@@ -1,0 +1,7 @@
+{
+    "/api/*":{
+        "target": "https://euapi.ttlock.com/v3/user/list?clientId=c4114592f7954ca3b751c44d81ef2c7d&clientSecret=33b556bdb803763f2e647fc7a357dedf&date=1625025703000&pageNo=1&pageSize=20",
+        "secure": false,
+        "logLevel": "debug"
+    }
+}

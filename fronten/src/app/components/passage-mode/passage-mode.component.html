@@ -1,0 +1,69 @@
+<div class="pagina_completa">
+    <app-loader [loader]="isLoading"></app-loader>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a [routerLink]="['/users', username]">Mis Dispositivos</a></li>
+            <li class="breadcrumb-item"><a [routerLink]="['/users', username, 'lock', lockId]">Informacion sobre la
+                    Cerradura</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Modo de Paso</li>
+        </ol>
+    </nav>
+    <div class="resto">
+        <div class="form-area">
+            <form #formInput="ngForm" class="common-form">
+                <div class="linea">
+                    <span class="input-container">
+                        Modo de Paso
+                        <mat-slide-toggle [(ngModel)]="isPassageModeToggleOn"
+                            (change)="onPassageModeToggleChange($event)" name="any"></mat-slide-toggle>
+                    </span>
+                </div>
+                <div *ngIf="isPassageModeToggleOn" class="linea">
+                    <span class="input-container">
+                        <div *ngFor="let day of weekDays">
+                            <label>
+                                <input type="checkbox" name="selectedDays" value="day.value" [checked]="day.checked"
+                                    (change)="onCheckboxChange($event, day)" />
+                                {{ day.name }}
+                            </label>
+                        </div>
+                    </span>
+                </div>
+                <div *ngIf="isPassageModeToggleOn" class="linea">
+
+                    <span class="input-container">
+                        Todas las Horas
+                        <mat-slide-toggle [(ngModel)]="isAllHoursToggleOn" name="isAllHoursToggleOn"
+                            (change)="onAllHoursToggleChange($event)"></mat-slide-toggle>
+                    </span>
+                </div>
+                <div *ngIf="!isAllHoursToggleOn && isPassageModeToggleOn" class="linea">
+
+                    <span class="input-container">
+                        Hora de Inicio
+                        <mat-form-field appearance="fill">
+                            <mat-label>Inicio</mat-label>
+                            <input matInput [ngxTimepicker]="startTimePicker" name="startHour" placeholder="HH:mm"
+                                required="required" [format]="24" [(ngModel)]="startHour" />
+                        </mat-form-field>
+                        <ngx-material-timepicker #startTimePicker></ngx-material-timepicker>
+                        Hora Final
+                        <mat-form-field appearance="fill">
+                            <mat-label>Final</mat-label>
+                            <input matInput [ngxTimepicker]="endTimePicker" name="endHour" placeholder="HH:mm"
+                                required="required" [format]="24" [(ngModel)]="endHour" />
+                        </mat-form-field>
+                        <ngx-material-timepicker #endTimePicker></ngx-material-timepicker>
+                    </span>
+                </div>
+                <div class="linea">
+                    <span class="input-container">
+                        <button class="button" name="button" type="submit"
+                            (click)="cambiarPassageMode()">Guardar</button>
+                    </span>
+                </div>
+                <p class="error">{{error}}</p>
+            </form>
+        </div>
+    </div>
+</div>

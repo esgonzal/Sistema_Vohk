@@ -1,0 +1,58 @@
+.Titulo {
+  text-align: center;
+}
+
+.listado_objetos {
+  margin: 20px;
+}
+
+.lock {
+  background-color: rgb(255, 255, 255);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 300px;
+}
+
+.lock:hover {
+  background-color: #f9c114; /* Change this color to your preference */
+  cursor: pointer;
+}
+
+.invalid-lock {
+  background-color: rgb(255, 255, 255);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 300px;
+}
+
+.invalid-lock:hover {
+  background-color: #c41818; /* Change this color to your preference */
+  cursor: pointer;
+}
+
+.title-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.lock-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100% - 50px); /* Adjust this value as needed */
+}
+
+.bateria_cerradura {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+}
+
+.numero_bateria {
+  font-weight: bold;
+}

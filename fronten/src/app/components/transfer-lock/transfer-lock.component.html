@@ -1,0 +1,30 @@
+<div class="pagina_completa">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a [routerLink]="['/users', username]">Mis Dispositivos</a></li>
+            <li class="breadcrumb-item"><a [routerLink]="['/users', username, 'lock', lockId]">Informacion sobre la
+                    Cerradura</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Transferir Dispositivo</li>
+        </ol>
+    </nav>
+    <div class="resto">
+        <div class="form-area">
+            <h2>Transferencia de Dispositivo</h2>
+            <p style="font-size: 14px; margin-bottom: 50px;">Transferir una cerradura implica que usted perderá acceso a esta y que el receptor será el administrador.</p>
+            <form #formInput="ngForm" class="common-form">
+                <div class="linea_alternative">
+                    Cuenta de Destinatario
+                    <span class="input-container">
+                        <input type="text" class="form-input" name="recieverUsername" [(ngModel)]="recieverUsername"
+                            required="" />
+                    </span>
+                </div>
+                <p class="error">{{error}}</p>
+                <div class="form-button">
+                    <button type="submit" (click)="transferir()">Transferir</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<app-pop-up *ngIf="popupService.transferLockWarning" style="z-index: 10;"></app-pop-up>

@@ -1,0 +1,16 @@
+<!-- login.component.html -->
+<div class="form-area">
+  <h1>Login</h1>
+  <p class="loginError">{{loginError}}</p>
+  <form #userSignIn="ngForm" (ngSubmit)="login(userSignIn.value)" class="common-form">
+    <p>
+      Ingrese su email o celular
+      <input type="text" class="form-input" name="username" placeholder="Username" required="required" ngModel />
+    </p>
+    <p>
+      Ingrese su contraseña
+      <input type="password" class="form-input" name="password" placeholder="Password" required="required" ngModel />
+    </p>
+    <button class="form-button" type="submit">Log In</button>
+  </form>
+</div>

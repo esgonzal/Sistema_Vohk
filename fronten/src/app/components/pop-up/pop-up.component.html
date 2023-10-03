@@ -1,0 +1,653 @@
+<app-loader [loader]="isLoading"></app-loader>
+<div id="container" *ngIf="popupService.registro">
+    <div id="header">
+        Gracias por registrarse en nuestra plataforma
+    </div>
+    <div id="content">
+        <div [innerHTML]="popupService.welcomingMessage"></div>
+    </div>
+    <div id="actions">
+        <button (click)="navigateToLogin()">Iniciar Sesión</button>
+    </div>
+</div>
+<div id="container" *ngIf="popupService.delete">
+    <div id="header">
+        Por favor confirme sus acciones
+    </div>
+    <div id="content">
+        ¿Está seguro que desea eliminar esta {{popupService.elementType}}?
+        <p class="error">{{error}}</p>
+    </div>
+    <div id="actions">
+        <button class="cancel" (click)="popupService.delete = false">No</button>
+        <button (click)="delete()">Si</button>
+    </div>
+</div>
+<div id="container" *ngIf="popupService.autorizar">
+    <div id="header">
+        Por favor confirme sus acciones
+    </div>
+    <div id="content">
+        ¿Está seguro que desea autorizar a {{decodeNombre(popupService.elementType)}}?
+    </div>
+    <div id="actions">
+        <button class="cancel" (click)="popupService.autorizar = false">No</button>
+        <button (click)="autorizar()">Si</button>
+    </div>
+</div>
+<div id="container" *ngIf="popupService.autorizarFalso">
+    <div id="header">
+        Por favor confirme sus acciones
+    </div>
+    <div id="content">
+        ¿Está seguro que desea autorizar a {{decodeNombre(popupService.elementType)}}?
+    </div>
+    <div id="actions">
+        <button class="cancel" (click)="popupService.autorizarFalso = false">No</button>
+        <button (click)="autorizarFalso()">Si</button>
+    </div>
+</div>
+<div id="container" *ngIf="popupService.desautorizar">
+    <div id="header">
+        Por favor confirme sus acciones
+    </div>
+    <div id="content">
+        ¿Está seguro que desea desautorizar a {{popupService.elementType}}?
+    </div>
+    <div id="actions">
+        <button class="cancel" (click)="popupService.desautorizar = false">No</button>
+        <button (click)="desautorizar()">Si</button>
+    </div>
+</div>
+<div id="container" *ngIf="popupService.desautorizarFalso">
+    <div id="header">
+        Por favor confirme sus acciones
+    </div>
+    <div id="content">
+        ¿Está seguro que desea desautorizar a {{popupService.elementType}}?
+    </div>
+    <div id="actions">
+        <button class="cancel" (click)="popupService.desautorizarFalso = false">No</button>
+        <button (click)="desautorizarFalso()">Si</button>
+    </div>
+</div>
+<div id="container" *ngIf="popupService.congelar">
+    <div id="header">
+        Por favor confirme sus acciones
+    </div>
+    <div id="content">
+        ¿Está seguro que desea congelar a {{popupService.elementType}}?
+    </div>
+    <div id="actions">
+        <button class="cancel" (click)="popupService.congelar = false">No</button>
+        <button (click)="congelar()">Si</button>
+    </div>
+</div>
+<div id="container" *ngIf="popupService.descongelar">
+    <div id="header">
+        Por favor confirme sus acciones
+    </div>
+    <div id="content">
+        ¿Está seguro que desea descongelar a {{popupService.elementType}}?
+    </div>
+    <div id="actions">
+        <button class="cancel" (click)="popupService.descongelar = false">No</button>
+        <button (click)="descongelar()">Si</button>
+    </div>
+</div>
+<div id="container" *ngIf="popupService.cambiarNombre">
+    <div id="header">
+        Actualizar {{popupService.elementType}}
+    </div>
+    <div id="content">
+        <div class="form-area">
+            <form #editName="ngForm" (ngSubmit)="cambiarNombre(editName.value)" class="common-form">
+                <p>
+                    Nombre
+                    <input type="text" class="form-input" name="name" required="" ngModel />
+                </p>
+                <p class="error">{{error}}</p>
+                <div id="actions">
+                    <button class="cancel" (click)="popupService.cambiarNombre = false">Volver</button>
+                    <button type="submit">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="actions">
+    </div>
+</div>
+<div id="container" *ngIf="popupService.cambiarPeriodo">
+    <div id="header">
+        Actualizar {{popupService.elementType}}
+    </div>
+    <div id="content">
+        <div class="form-area">
+            <form #editPeriod="ngForm" (ngSubmit)="cambiarPeriodo(editPeriod.value)" class="common-form">
+                <div class="linea">
+                    Periodo de inicio
+                    <span class="input-container">
+
+                        <mat-form-field appearance="fill">
+                            <mat-label>Fecha</mat-label>
+                            <input matInput [matDatepicker]="startDatePicker" name="startDate" required="required"
+                                ngModel (dateChange)="startTimePicker.open()">
+                            <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
+                            <mat-datepicker #startDatePicker></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="fill">
+                            <mat-label>Hora</mat-label>
+                            <input matInput [ngxTimepicker]="startTimePicker" name="startHour" required="required"
+                                [format]="24" ngModel>
+                        </mat-form-field>
+                        <ngx-material-timepicker #startTimePicker [hoursOnly]="true"></ngx-material-timepicker>
+                    </span>
+                </div>
+                <div class="linea">
+                    Periodo de finalización
+                    <span class="input-container">
+
+                        <mat-form-field appearance="fill">
+                            <mat-label>Fecha</mat-label>
+                            <input matInput [matDatepicker]="endDatePicker" name="endDate" required="required" ngModel
+                                (dateChange)="endTimePicker.open()">
+                            <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
+                            <mat-datepicker #endDatePicker></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="fill">
+                            <mat-label>Hora</mat-label>
+                            <input matInput [ngxTimepicker]="endTimePicker" name="endHour" required="required"
+                                [format]="24" ngModel>
+                        </mat-form-field>
+                        <ngx-material-timepicker #endTimePicker [hoursOnly]="true"></ngx-material-timepicker>
+                    </span>
+                </div>
+                <p class="error">{{error}}</p>
+                <div id="actions">
+                    <button class="cancel" (click)="popupService.cambiarPeriodo = false">Volver</button>
+                    <button type="submit">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div id="container" *ngIf="popupService.editarPasscode">
+    <div id="header">
+        Actualizar {{popupService.elementType}}
+    </div>
+    <div id="content">
+        <div class="form-area">
+            <form #editPasscode="ngForm" (ngSubmit)="editarPasscode(editPasscode.value)" class="common-form">
+                <div class="linea">
+                    Nombre
+                    <span class="input-container">
+                        <input type="text" class="form-input" name="name" placeholder="..." ngModel />
+                    </span>
+                </div>
+                <div class="linea">
+                    Contraseña
+                    <span class="input-container">
+                        <input type="password" class="form-input" name="passcodePwd" placeholder="..." required
+                            ngModel />
+                    </span>
+                </div>
+                <div *ngIf="popupService.passcode.keyboardPwdType === 3" class="linea">
+                    Periodo de inicio
+                    <span class="input-container">
+                        <mat-form-field appearance="fill">
+                            <mat-label>Fecha</mat-label>
+                            <input matInput [matDatepicker]="startDatePicker" name="startDate" placeholder="YYYY-MM-DD"
+                                ngModel (dateChange)="startTimePicker.open()">
+                            <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
+                            <mat-datepicker #startDatePicker></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="fill">
+                            <mat-label>Hora</mat-label>
+                            <input matInput [ngxTimepicker]="startTimePicker" name="startHour" placeholder="HH:mm"
+                                [format]="24" ngModel>
+                        </mat-form-field>
+                        <ngx-material-timepicker #startTimePicker [hoursOnly]="true"></ngx-material-timepicker>
+                    </span>
+                </div>
+                <div *ngIf="popupService.passcode.keyboardPwdType === 3" class="linea">
+                    Periodo de finalización
+                    <span class="input-container">
+                        <mat-form-field appearance="fill">
+                            <mat-label>Fecha</mat-label>
+                            <input matInput [matDatepicker]="endDatePicker" name="endDate" placeholder="YYYY-MM-DD"
+                                ngModel (dateChange)="endTimePicker.open()">
+                            <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
+                            <mat-datepicker #endDatePicker></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="fill">
+                            <mat-label>Hora</mat-label>
+                            <input matInput [ngxTimepicker]="endTimePicker" name="endHour" placeholder="HH:mm"
+                                [format]="24" ngModel>
+                        </mat-form-field>
+                        <ngx-material-timepicker #endTimePicker [hoursOnly]="true"></ngx-material-timepicker>
+                    </span>
+                </div>
+                <div *ngIf="popupService.passcode.keyboardPwdType !== 1 && popupService.passcode.keyboardPwdType !== 2 && popupService.passcode.keyboardPwdType !== 3 && popupService.passcode.keyboardPwdType !== 4"
+                    class="linea">
+                    Hora de inicio
+                    <span class="input-container">
+                        <mat-form-field appearance="fill">
+                            <mat-label>Hora</mat-label>
+                            <input matInput [ngxTimepicker]="startTimePicker" name="startHour" placeholder="HH:mm"
+                                [format]="24" ngModel>
+                        </mat-form-field>
+                        <ngx-material-timepicker #startTimePicker [hoursOnly]="true"></ngx-material-timepicker>
+                    </span>
+                </div>
+                <div *ngIf="popupService.passcode.keyboardPwdType !== 1 && popupService.passcode.keyboardPwdType !== 2 && popupService.passcode.keyboardPwdType !== 3 && popupService.passcode.keyboardPwdType !== 4"
+                    class="linea">
+                    Hora de finalización
+                    <span class="input-container">
+                        <mat-form-field appearance="fill">
+                            <mat-label>Hora</mat-label>
+                            <input matInput [ngxTimepicker]="endTimePicker" name="endHour" placeholder="HH:mm"
+                                [format]="24" ngModel>
+                        </mat-form-field>
+                        <ngx-material-timepicker #endTimePicker [hoursOnly]="true"></ngx-material-timepicker>
+                    </span>
+                </div>
+                <p class="error">{{error}}</p>
+                <div id="actions">
+                    <button class="cancel" (click)="popupService.editarPasscode= false">Volver</button>
+                    <button type="submit">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="actions">
+
+    </div>
+</div>
+<div id="container" *ngIf="popupService.esencial">
+    <div id="header">
+        Esencial
+    </div>
+    <div id="content">
+        <div class="linea_alternative">
+            Número de la cerradura
+            <span class="input-container">
+                {{popupService.detalles.lockName}}
+            </span>
+        </div>
+        <div class="linea_alternative">
+            MAC
+            <span class="input-container">
+                {{popupService.detalles.lockMac}}
+            </span>
+        </div>
+        <div class="linea_alternative">
+            LockID
+            <span class="input-container">
+                {{popupService.detalles.lockId}}
+            </span>
+        </div>
+        <div class="linea_alternative">
+            Firmware
+            <span class="input-container">
+                {{popupService.detalles.firmwareRevision}}
+            </span>
+        </div>
+    </div>
+    <div id="actions">
+        <button (click)="popupService.esencial= false">Ok</button>
+    </div>
+</div>
+<div id="container" *ngIf="popupService.gateway">
+    <div id="header">
+        Gateways asociados con este dispositivo
+    </div>
+    <div id="content">
+        <table mat-table [dataSource]="popupService.gatewaysOfLock" class="table">
+
+            <ng-container matColumnDef="NombreGateway">
+                <th mat-header-cell *matHeaderCellDef class="table-cell">Nombre de Gateway</th>
+                <td mat-cell *matCellDef="let gateway" class="table-cell">{{gateway.gatewayName}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="NombreWifi">
+                <th mat-header-cell *matHeaderCellDef class="table-cell">Nombre WiFi</th>
+                <td mat-cell *matCellDef="let gateway" class="table-cell">{{encontrarRed(gateway.gatewayId)}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="Signal">
+                <th mat-header-cell *matHeaderCellDef class="table-cell">Señal</th>
+                <td mat-cell *matCellDef="let gateway" class="table-cell">{{ displayrssi(gateway.rssi) }}</td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumnsGateway"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumnsGateway"></tr>
+        </table>
+
+    </div>
+    <div id="actions">
+        <button (click)="popupService.gateway= false">Ok</button>
+    </div>
+</div>
+<div id="container" *ngIf="popupService.cerradoAutomatico">
+    <div id="header">
+        Cierre Automático
+    </div>
+    <div id="content">
+        <div class="linea_alternative">
+            <span class="input-container">
+                Cierre Automático
+            </span>
+            <span class="input-container">
+                <mat-slide-toggle [(ngModel)]="autoLockToggle"
+                    (change)="autoLockToggleChange($event)"></mat-slide-toggle>
+            </span>
+        </div>
+        <div class="linea_alternative" *ngIf="autoLockToggle">
+            Tiempo
+            <span class="input-container">
+                <select #types name="autoLockTime" (change)="onSelected(types.value)" [(ngModel)]="selectedType"
+                    style="width: 202px; height: 35px;">
+                    <option value="1">5 segundos</option>
+                    <option value="2">10 segundos</option>
+                    <option value="3">15 segundos</option>
+                    <option value="4">30 segundos</option>
+                    <option value="5">60 segundos</option>
+                    <option value="6">Personalizado</option>
+                </select>
+            </span>
+        </div>
+        <div class="linea_alternative" *ngIf="autoLockToggle">
+            <div>
+
+            </div>
+            <span class="input-container" *ngIf="selectedType === '6'">
+                <input type="number" class="form-input" name="name" [(ngModel)]="customAutoLockTime" ngModel />
+            </span>
+        </div>
+    </div>
+    <p class="error">{{error}}</p>
+    <div id="actions">
+        <button (click)="popupService.cerradoAutomatico = false">Cancelar</button>
+        <button (click)="cambiarAutoLock()">Ok</button>
+    </div>
+</div>
+<div id="container" *ngIf="popupService.mostrarHora">
+    <div id="header">
+        Hora del dispositvo
+    </div>
+    <div id="content">
+        <div class="linea_alternative">
+            Tiempo Actual
+            <span class="input-container">
+                {{formatearHora()}}
+            </span>
+        </div>
+    </div>
+    <div id="actions">
+        <button (click)="ajustarHora()">Ajustar Hora</button>
+        <button (click)="popupService.mostrarHora = false">Ok</button>
+    </div>
+</div>
+<div id="container" *ngIf="popupService.needGateway">
+    <div id="header">
+        Función no permitida
+    </div>
+    <div id="content">
+        Para utilizar esta función necesita conectar esta cerradura a un dispositivo gateway.
+    </div>
+    <div id="actions">
+        <button (click)="popupService.needGateway = false">Ok</button>
+    </div>
+</div>
+<div id="container" *ngIf="popupService.invalidLock">
+    <div id="header">
+        Accesso Denegado
+    </div>
+    <div id="content">
+        No tiene permiso para acceder a esta cerradura. Comuníquese con el administrador de la cerradura para solucionar
+        este problema.
+    </div>
+    <div id="actions">
+        <button (click)="popupService.invalidLock = false">Ok</button>
+    </div>
+</div>
+<div id="container" *ngIf="popupService.newGroup">
+    <div id="header">
+        Crear Grupo
+    </div>
+    <div id="content">
+        <div class="form-area">
+            <form #newName="ngForm" (ngSubmit)="crearGrupo(newName.value)" class="common-form">
+                <p>
+                    Nombre
+                    <input type="text" class="form-input" name="name" required="" ngModel />
+                </p>
+                <p class="error">{{error}}</p>
+                <div id="actions">
+                    <button class="cancel" (click)="popupService.newGroup = false">Volver</button>
+                    <button type="submit">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="actions">
+
+    </div>
+</div>
+<div id="container" *ngIf="popupService.addRemoveLockGROUP">
+    <div id="header">
+        {{popupService.group.groupName}}
+    </div>
+    <div id="content">
+        <div class="form-area">
+            <ng-container *ngIf="popupService.group.locks.length > 0; else noLocks">
+                <ul>
+                    <li *ngFor="let lock of popupService.group.locks">
+                        {{ lock.lockAlias }}
+                    </li>
+                </ul>
+            </ng-container>
+            <ng-template #noLocks>
+                <p>No existen cerraduras asociadas a este grupo.</p>
+            </ng-template>
+        </div>
+    </div>
+    <div id="actions">
+        <button class="cancel" (click)="popupService.addRemoveLockGROUP = false">Volver</button>
+        <button (click)="openAddLockGroup()">Agregar </button>
+        <button (click)="openRemoveLockGroup()">Quitar </button>
+    </div>
+</div>
+<div id="container" *ngIf="popupService.addLockGROUP">
+    <div id="header">
+        Añadir Cerradura a {{popupService.group.groupName}}
+    </div>
+    <div id="content">
+        <div class="form-area">
+            <ng-container *ngIf="popupService.locksWithoutGroup.length > 0; else noLocks">
+                <div *ngFor="let lock of popupService.locksWithoutGroup">
+                    <label>
+                        <input type="checkbox" [value]="lock.lockId" (change)="toggleLockSelection(lock.lockId)">
+                        {{ lock.lockAlias }}
+                    </label>
+                </div>
+            </ng-container>
+            <ng-template #noLocks>
+                <p>No existen cerraduras disponibles para agregar a este grupo.</p>
+            </ng-template>
+        </div>
+    </div>
+    <div id="actions">
+        <button class="cancel"
+            (click)="popupService.addLockGROUP = false; popupService.addRemoveLockGROUP = true">Volver</button>
+        <button (click)="addSelectedLocksToGroup()">OK</button>
+    </div>
+</div>
+<div id="container" *ngIf="popupService.removeLockGROUP">
+    <div id="header">
+        Eliminar Cerradura de {{popupService.group.groupName}}
+    </div>
+    <div id="content">
+        <div class="form-area">
+            <ng-container *ngIf="popupService.group.locks.length > 0; else noLocks">
+                <div *ngFor="let lock of popupService.group.locks">
+                    <label>
+                        <input type="checkbox" (change)="toggleLockSelection(lock.lockId)">
+                        {{ lock.lockAlias }}
+                    </label>
+                </div>
+            </ng-container>
+            <ng-template #noLocks>
+                <p>No hay cerraduras en este grupo que puedas eliminar.</p>
+            </ng-template>
+        </div>
+    </div>
+    <div id="actions">
+        <button class="cancel"
+            (click)="popupService.removeLockGROUP = false; popupService.addRemoveLockGROUP = true">Volver</button>
+        <button (click)="removeSelectedLocksFromGroup()">OK</button>
+    </div>
+</div>
+<div id="container" *ngIf="popupService.selectLocksForMultipleEkeys">
+    <div id="header">
+        Seleccione Cerradura para compartir
+    </div>
+    <div id="content">
+        <div class="form-area">
+            <div *ngFor="let lock of ekeyService.currentLocks">
+                <label>
+                    <input type="checkbox" [value]="lock.lockId"
+                        (change)="popupService.toggleLockSelection(lock.lockId)"
+                        [checked]="isLockSelected(lock.lockId)">
+                    {{ lock.lockAlias }}
+                </label>
+            </div>
+        </div>
+    </div>
+    <div id="actions">
+        <button (click)="selectLocks()">OK</button>
+    </div>
+</div>
+<div id="container" *ngIf="popupService.addRecipientsForMultipleEkeys">
+    <div id="header">
+        Añadir Receptor(es)
+    </div>
+    <div id="content">
+        <div class="form-area">
+            <form #addRecipient="ngForm" class="common-form">
+                <div *ngFor="let recipient of popupService.recipients; let i = index" class="recipient-pair"
+                    style="display: flex;">
+                    <div>
+                        <p>
+                            Cuenta del Destinatario
+                            <input type="text" class="form-input" required [(ngModel)]="recipient.username"
+                                name="recipientAccount{{i}}" (ngModelChange)="validateEmailPhone(recipient.username)">
+                        </p>
+                        <p>
+                            Nombre de ekey
+                            <input type="text" class="form-input" required [(ngModel)]="recipient.ekeyName"
+                                name="ekeyName{{i}}">
+                        </p>
+                    </div>
+                    <div style="display: flex; flex-direction: column; justify-content: center;">
+                        <button type="button" class="x-button" (click)="removeRecipientPair(i)">X</button>
+                    </div>
+                </div>
+                <p class="error">{{error}}</p>
+            </form>
+        </div>
+    </div>
+    <div id="actions" style="justify-content: space-around;">
+        <div>
+            <button type="button" (click)="addRecipientPair()">+Añadir</button>
+        </div>
+        <div style="display:flex ;gap: 20px;">
+            <button class="cancel" (click)="popupService.addRecipientsForMultipleEkeys = false">Volver</button>
+            <button type="submit" (click)="confirmRecipients()">OK</button>
+        </div>
+    </div>
+</div>
+<div id="container" *ngIf="popupService.resetPassword">
+    <div id="header">
+        Reestablecer contraseña
+    </div>
+    <div id="content">
+        <div class="input-container">
+            <label for="currentPassword">Contraseña actual:</label>
+            <input type="password" id="currentPassword" [(ngModel)]="currentPassword">
+        </div>
+        <div class="input-container">
+            <label for="newPassword">Nueva contraseña:</label>
+            <input type="password" id="newPassword" [(ngModel)]="newPassword">
+        </div>
+        <div class="input-container">
+            <label for="confirmPassword">Confirmar nueva contraseña:</label>
+            <input type="password" id="confirmPassword" [(ngModel)]="confirmPassword">
+        </div>
+        <p class="error">{{error}}</p>
+    </div>
+    <div id="actions">
+        <button class="cancel" (click)="popupService.resetPassword = false">Volver</button>
+        <button (click)="resetPassword()">Ok</button>
+    </div>
+</div>
+<div id="container" *ngIf="popupService.sharePasscode">
+    <div id="header">
+        Compartir Código
+    </div>
+    <div id="content">
+        <div class="form-area">
+            <form #sharePasscode="ngForm" (ngSubmit)="compartirCodigo(sharePasscode.value)" class="common-form">
+                <p>
+                    Nombre
+                    <input type="text" class="form-input" name="name" required="" ngModel />
+                </p>
+                <p class="error">{{error}}</p>
+                <div id="actions">
+                    <button class="cancel" (click)="popupService.sharePasscode = false">Volver</button>
+                    <button type="submit">Compartir</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="actions">
+    </div>
+</div>
+<div id="container" *ngIf="popupService.wrongAccountType">
+    <div id="header">
+        Función no permitida
+    </div>
+    <div id="content">
+        Tu cuenta es antigua, por lo que el cambio de contraseña solo puede hacerse usando la aplicación de celular.
+    </div>
+    <div id="actions">
+        <button (click)="popupService.wrongAccountType = false">Ok</button>
+    </div>
+</div>
+<div id="container" *ngIf="popupService.changeNickname">
+    <div id="header">
+        Cambiar nombre
+    </div>
+    <div id="content">
+        <div class="form-area">
+            <form #newName="ngForm" (ngSubmit)="changeNickname(newName.value)" class="common-form">
+                <p>
+                    Nombre
+                    <input type="text" class="form-input" name="name" required="" ngModel />
+                </p>
+                <p class="error">{{error}}</p>
+                <div id="actions">
+                    <button class="cancel" (click)="popupService.changeNickname = false">Volver</button>
+                    <button type="submit">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="actions">
+
+    </div>
+</div>

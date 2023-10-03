@@ -1,0 +1,23 @@
+<!-- register.component.html -->
+<app-pop-up *ngIf="this.popupService.registro"></app-pop-up>
+<div class="form-area">
+  <h1>Registro de Usuario</h1>
+  <p class="registerError">{{registerError}}</p>
+  <form #userSignUp="ngForm" (ngSubmit)="signUp(userSignUp.value)" class="common-form">
+    <p>
+      Ingrese su email o celular
+      <input type="text" class="form-input" name="username" placeholder="Username" required ngModel />
+    </p>
+    <p>
+      Ingrese su contraseña
+      <input type="password" class="form-input" name="password" placeholder="Password" required minlength="8"
+        maxlength="20" pattern="^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$" ngModel />
+    </p>
+    <p>
+      Confirmar contraseña
+      <input type="password" class="form-input" name="confirmPassword" placeholder="Confirmar Contraseña" required
+        ngModel>
+    </p>
+    <button class="form-button" type="submit">Registrarse</button>
+  </form>
+</div>

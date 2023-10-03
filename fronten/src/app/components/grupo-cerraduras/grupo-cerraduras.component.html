@@ -1,0 +1,50 @@
+<div class="pagina_completa">
+    <app-loader [loader]="isLoading"></app-loader>
+    <nav aria-label="breadcrumb-space">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a [routerLink]="['/users', username]">Mis Dispositivos</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Grupo de Cerradura</li>
+        </ol>
+    </nav>
+    <div class="resto">
+        <div class="contenido">
+            <div class="button-container">
+                <!--     BOTON DE NUEVA EKEY     -->
+                <button class="nueva-button" (click)="crearGrupo()">Crear Grupo</button>
+                <!--------------------------------->
+            </div>
+            <div *ngIf="groupService.groups.length > 0; else noGroupsMessage">
+                <table mat-table [dataSource]="groupService.groups" class="table">
+                    <!---->
+                    <ng-container matColumnDef="Nombre">
+                        <th mat-header-cell *matHeaderCellDef class="table-cell">Nombre</th>
+                        <td mat-cell *matCellDef="let group" class="table-cell">{{group.groupName}}</td>
+                    </ng-container>
+                    <!---->
+                    <ng-container matColumnDef="Cantidad">
+                        <th mat-header-cell *matHeaderCellDef class="table-cell">Cantidad de Cerraduras</th>
+                        <td mat-cell *matCellDef="let group" class="table-cell">{{group.lockCount}}</td>
+                    </ng-container>
+                    <!---->
+                    <ng-container matColumnDef="Operacion">
+                        <th mat-header-cell *matHeaderCellDef class="table-cell">Operacion</th>
+                        <td mat-cell *matCellDef="let group" class="table-cell">
+                            <button mat-button class="mat-warn" (click)="eliminar(group.groupId)">Eliminar</button>
+                            <button mat-button class="mat-primary" (click)="cambiarNombre(group.groupId)">Cambiar
+                                Nombre</button>
+                            <button mat-button class="mat-primary" (click)="cerraduras(group)">Cerraduras</button>
+                        </td>
+                    </ng-container>
+                    <tr mat-header-row *matHeaderRowDef="displayedColumnsGroup"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumnsGroup"></tr>
+                </table>
+            </div>
+            <ng-template #noGroupsMessage>
+                <p>Usted no tiene grupos, si desea crear uno presione el botón "Crear Grupo"</p>
+            </ng-template>
+        </div>
+    </div>
+</div>
+<app-pop-up *ngIf="this.popupService.delete || this.popupService.cambiarNombre || this.popupService.newGroup || this.popupService.addRemoveLockGROUP || 
+                    this.popupService.addLockGROUP || this.popupService.removeLockGROUP"
+    style="z-index: 10;"></app-pop-up>

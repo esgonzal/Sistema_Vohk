@@ -1,0 +1,95 @@
+    <div class="pagina_completa">
+        <nav aria-label="breadcrumb-space">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a [routerLink]="['/users', ekeyService.username]">Mis Dispositivos</a></li>
+                <li class="breadcrumb-item"><a [routerLink]="['/users', ekeyService.username, 'lock', ekeyService.lockID]">Informacion sobre la
+                        Cerradura</a></li>
+                <li class="breadcrumb-item"><a [routerLink]="['/users', ekeyService.username, 'lock', ekeyService.lockID, 'ekey']">Generar Usuario</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Generar múltiples Usuarios</li>
+            </ol>
+        </nav>
+        <div class="resto">
+            <div class="form-area">
+                <h2 style="margin-bottom: 50px;">Ingrese los datos para generar Usuarios</h2>
+                <form #formInput="ngForm" class="common-form">
+                    <div class="linea">
+                        <span class="input-container">
+                            Cerradura
+                            <button (click)="popupService.selectLocksForMultipleEkeys=true">Seleccionar Cerradura</button>
+                        </span>
+                    </div>
+                    <div class="linea">
+                        <span class="input-container">
+                            Destinatario
+                            <button (click)="popupService.addRecipientsForMultipleEkeys=true">Agregar Destinatario</button>
+                        </span>
+                    </div>
+                    <div class="linea">
+                        <span class="input-container">
+                            Tipo de eKey
+                            <select #types name="ekeyType" (change)="onSelected(types.value)" ngModel
+                                style="width: 202px; height: 35px;">
+                                <option default value="">No seleccionado</option>
+                                <option value="1">Permanente</option>
+                                <option value="2">Periódica</option>
+                                <option value="3">De un uso</option>
+                                <option value="4">Solicitante</option>
+                            </select>
+                        </span>
+                    </div>
+                    <div class="linea" *ngIf="selectedType==='4'">
+                        <span class="input-container">
+                            <div *ngFor="let day of weekDays">
+                                <label>
+                                    <input type="checkbox" name="selectedDays" value="day.value" [checked]="day.checked"
+                                        (change)="onCheckboxChange($event, day)" />
+                                    {{ day.name }}
+                                </label>
+                            </div>
+                        </span>
+                    </div>
+                    <div class="linea" *ngIf="selectedType==='2' || selectedType==='4'">
+                        <span class="input-container">
+                            Fecha de inicio
+                            <mat-form-field appearance="fill">
+                                <mat-label>Fecha</mat-label>
+                                <input matInput [matDatepicker]="startDatePicker" name="startDate" placeholder="MM/DD/YYYY"
+                                    required="required" ngModel (dateChange)="startTimePicker.open()">
+                                <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
+                                <mat-datepicker #startDatePicker></mat-datepicker>
+                            </mat-form-field>
+                            Hora de inicio
+                            <mat-form-field appearance="fill">
+                                <mat-label>Hora</mat-label>
+                                <input matInput [ngxTimepicker]="startTimePicker" name="startHour" placeholder="HH:mm"
+                                    required="required" [format]="24" ngModel>
+                            </mat-form-field>
+                            <ngx-material-timepicker #startTimePicker></ngx-material-timepicker>
+                        </span>
+                    </div>
+                    <div class="linea" *ngIf="selectedType==='2' || selectedType==='4'">
+                        <span class="input-container">
+                            Fecha de finalización
+                            <mat-form-field appearance="fill">
+                                <mat-label>Fecha</mat-label>
+                                <input matInput [matDatepicker]="endDatePicker" name="endDate" placeholder="MM/DD/YYYY"
+                                    required="required" ngModel (dateChange)="endTimePicker.open()">
+                                <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
+                                <mat-datepicker #endDatePicker></mat-datepicker>
+                            </mat-form-field>
+                            Hora de finalización
+                            <mat-form-field appearance="fill">
+                                <mat-label>Hora</mat-label>
+                                <input matInput [ngxTimepicker]="endTimePicker" name="endHour" placeholder="HH:mm"
+                                    required="required" [format]="24" ngModel>
+                            </mat-form-field>
+                            <ngx-material-timepicker #endTimePicker></ngx-material-timepicker>
+                        </span>
+                    </div>
+                    <p class="error">{{error}}</p>
+                    <button class="form-button" type="submit" (click)="generarMultiple(formInput.value)">Generar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <app-pop-up *ngIf="this.popupService.selectLocksForMultipleEkeys || this.popupService.addRecipientsForMultipleEkeys" style="z-index: 10;"></app-pop-up>

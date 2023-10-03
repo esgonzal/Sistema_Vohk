@@ -1,0 +1,24 @@
+.navBar {
+  min-width: 1200px;
+}
+
+.contenido {
+  display: flex;
+  flex-direction: row;
+  height: calc(100vh - 96px);
+}
+
+.barra-lateral {
+  min-width: 200px;
+  max-width: 15%;
+  background-color: white;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.principal {
+  min-width: 1200px;
+  flex: 1;
+  height: 100%;
+  overflow-y: auto;
+}

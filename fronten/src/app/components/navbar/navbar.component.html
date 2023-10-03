@@ -1,0 +1,41 @@
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+    <div class="container-fluid">
+        <a class="navbar-brand" routerLink="home">
+            <img src="../../../assets/images/logo.png" alt="Vöhk Logo" width="auto" height="50" style="display: flex;">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
+            aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div *ngIf="returnLogged()!=='1'" class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link active" routerLink="register">Registrarse</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" routerLink="login">Iniciar Sesión</a>
+                </li>
+            </ul>
+        </div>
+        <div *ngIf="returnLogged()==='1'" class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link active" [matMenuTriggerFor]="menu" aria-label="Settings">
+                        {{returnNombre()}}
+                    </a>
+                    <mat-menu #menu="matMenu">
+                        <button mat-menu-item (click)="mostrarCerraduras()">
+                            <span>Mis Dispositivos</span>
+                        </button>
+                        <button mat-menu-item (click)="toPerfil()" *ngIf="returnAccountType() === 'Vohk'">
+                            <span>Informacion Personal</span>
+                        </button>
+                        <button mat-menu-item (click)="cerrarSesion()">
+                            <span>Cerrar Sesion</span>
+                        </button>
+                    </mat-menu>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

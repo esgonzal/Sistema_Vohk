@@ -1,0 +1,17 @@
+<div class="sidebar">
+    <ul class="lista-grupos">
+        <li>
+            <span [class.selected]="(selectedGroup$ | async)?.groupId === groupService.DEFAULT_GROUP.groupId"
+                (click)="selectGroup(groupService.DEFAULT_GROUP)">Todos</span>
+        </li>
+        <li *ngFor="let group of groupService.groups">
+            <ng-container *ngIf="group.lockCount > 0">
+                <span [class.selected]="(selectedGroup$ | async)?.groupId === group.groupId"
+                    (click)="selectGroup(group)">{{group.groupName}}</span>
+            </ng-container>
+        </li>
+    </ul>
+    <div class="boton-grupos" (click)="toGrupoCerraduras()">
+        <span>Grupos de Cerraduras</span>
+    </div>
+</div>
