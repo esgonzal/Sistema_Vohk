@@ -25,28 +25,28 @@ export class GroupService {
   updateSelectedGroup(group: Group) {
     this.selectedGroupSubject.next(group);
   }
-  getGroupofAccount(token: string): Observable<GroupResponse> {
-    let body = { token };
+  getGroupofAccount(userID: string): Observable<GroupResponse> {
+    let body = { userID };
     let url = 'http://localhost:3000/api/ttlock/group/getList'
     return this.http.post<GroupResponse>(url, body);
   }
-  addGroup(token: string, name: string): Observable<addGroupResponse> {
-    let body = { token, name };
+  addGroup(userID: string, name: string): Observable<addGroupResponse> {
+    let body = { userID, name };
     let url = 'http://localhost:3000/api/ttlock/group/add';
     return this.http.post<addGroupResponse>(url, body);
   }
-  deleteGroup(token: string, groupID: string): Observable<operationResponse> {
-    let body = { token, groupID };
+  deleteGroup(userID: string, groupID: string): Observable<operationResponse> {
+    let body = { userID, groupID };
     let url = 'http://localhost:3000/api/ttlock/group/delete';
     return this.http.post<operationResponse>(url, body);
   }
-  renameGroup(token: string, groupID: string, newName: string): Observable<operationResponse> {
-    let body = { token, groupID, newName };
+  renameGroup(userID: string, groupID: string, newName: string): Observable<operationResponse> {
+    let body = { userID, groupID, newName };
     let url = 'http://localhost:3000/api/ttlock/group/rename';
     return this.http.post<operationResponse>(url, body);
   }
-  setGroupofLock(token: string, lockID: string, groupID: string): Observable<operationResponse> {
-    let body = { token, lockID, groupID };
+  setGroupofLock(userID: string, lockID: string, groupID: string): Observable<operationResponse> {
+    let body = { userID, lockID, groupID };
     let url = 'http://localhost:3000/api/ttlock/group/setLock';
     return this.http.post<operationResponse>(url, body);
   }

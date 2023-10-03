@@ -30,6 +30,23 @@ import { MatTabChangeEvent } from '@angular/material/tabs';
   encapsulation: ViewEncapsulation.None,
 })
 export class LockComponent implements OnInit {
+
+  constructor(
+    private router: Router,
+    public popupService: PopUpService,
+    public lockService: LockServiceService,
+    private ekeyService: EkeyServiceService,
+    private passcodeService: PasscodeServiceService,
+    private cardService: CardServiceService,
+    private fingerprintService: FingerprintServiceService,
+    private recordService: RecordServiceService,
+    private gatewayService: GatewayService,
+    private passageModeService: PassageModeService,
+    private sanitizer: DomSanitizer,
+    public userService: UserServiceService,
+    private groupService: GroupService
+  ) { }
+
   pageLoaded = false;
   //encapsulation: ViewEncapsulation.None;
   ////////////////////////////////////////////////////////////
@@ -43,8 +60,8 @@ export class LockComponent implements OnInit {
   ////////////////////////////////////////////////////////////
   isLoading: boolean = false;
   lockDetails: LockDetails;
-  token = sessionStorage.getItem('token') ?? '';
   username = sessionStorage.getItem('user') ?? ''
+  userID: string;
   lockId: number = Number(sessionStorage.getItem('lockID') ?? '')
   userType = sessionStorage.getItem('userType') ?? '';
   keyRight = sessionStorage.getItem('keyRight') ?? '';
@@ -54,6 +71,7 @@ export class LockComponent implements OnInit {
   Bateria: string
   gateway:string;
   featureValue:string;
+  isUserValue: boolean;
   ////////////////////////////////////////////////////////////
   ekeys: Ekey[] = []
   passcodes: Passcode[] = []
@@ -78,24 +96,6 @@ export class LockComponent implements OnInit {
   displayedColumnsCard: string[] = ['cardName', 'cardNumber', 'senderUsername', 'createDate', 'Asignacion', 'Estado', 'Operacion']
   displayedColumnsFingerprint: string[] = ['fingerprintName', 'senderUsername', 'createDate', 'Asignacion', 'Estado', 'Operacion']
   displayedColumnsRecord: string[] = ['Operador', 'Metodo_Apertura', 'Horario_Apertura', 'Estado']
-  isUserValue: boolean;
-
-  constructor(
-    private router: Router,
-    public popupService: PopUpService,
-    public lockService: LockServiceService,
-    private ekeyService: EkeyServiceService,
-    private passcodeService: PasscodeServiceService,
-    private cardService: CardServiceService,
-    private fingerprintService: FingerprintServiceService,
-    private recordService: RecordServiceService,
-    private gatewayService: GatewayService,
-    private passageModeService: PassageModeService,
-    private sanitizer: DomSanitizer,
-    public userService: UserServiceService,
-    private groupService: GroupService
-  ) { }
-
   featureList = [
     { bit: 0, feature: "Passcode" },
     { bit: 1, feature: "Card" },
@@ -161,6 +161,13 @@ export class LockComponent implements OnInit {
   ];
 
   async ngOnInit() {
+    if(sessionStorage.getItem('Account') === 'Vohk'){
+      this.isUserValue = await this.isUser(this.userService.encodeNombre(this.username))
+      this.userID = this.userService.encodeNombre(this.username);
+    } else {
+      this.isUserValue = await this.isUser(this.username);
+      this.userID = this.username
+    }
     await this.fetchEkeys();
     await this.getAllLocks();
     await this.fetchGroups();
@@ -177,11 +184,7 @@ export class LockComponent implements OnInit {
       }
     }
     this.ekeysDataSource = new MatTableDataSource(this.ekeys);
-    if(sessionStorage.getItem('Account') === 'Vohk'){
-      this.isUserValue = await this.isUser(this.encodeNombre(this.username))
-    } else {
-      this.isUserValue = await this.isUser(this.username);
-    }
+    console.log('userID: ',this.userID)
     this.pageLoaded = true;
   }
   async getAllLocks() {
@@ -190,7 +193,7 @@ export class LockComponent implements OnInit {
       let pageNo = 1;
       const pageSize = 100;
       while (true) {
-        const locksResponse = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.token, pageNo, pageSize, 0));
+        const locksResponse = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.userID, pageNo, pageSize, 0));
         const locksTypedResponse = locksResponse as LockListResponse;
         if (locksTypedResponse?.list) {
           this.allLocks.push(...locksTypedResponse.list)
@@ -217,7 +220,7 @@ export class LockComponent implements OnInit {
   async fetchGroups() {
     this.isLoading = true;
     try {
-      const response = await lastValueFrom(this.groupService.getGroupofAccount(this.token));
+      const response = await lastValueFrom(this.groupService.getGroupofAccount(this.userID));
       const typedResponse = response as GroupResponse;
       if (typedResponse?.list) {
         this.groups = typedResponse.list;
@@ -241,7 +244,7 @@ export class LockComponent implements OnInit {
     const pageSize = 100;
     group.locks = [];
     while (true) {
-      const locksResponse = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.token, pageNo, pageSize, group.groupId));
+      const locksResponse = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.userID, pageNo, pageSize, group.groupId));
       const locksTypedResponse = locksResponse as LockListResponse;
       if (locksTypedResponse?.list && locksTypedResponse.list.length > 0) {
         lockCount += locksTypedResponse.list.length;
@@ -272,7 +275,7 @@ export class LockComponent implements OnInit {
     this.locks = [];
     this.isLoading = true;
     try {
-      const response = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.token, pageNo, 100, groupId));
+      const response = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.userID, pageNo, 100, groupId));
       const typedResponse = response as LockListResponse;
       if (typedResponse?.list) {
         this.locks.push(...typedResponse.list);
@@ -301,19 +304,12 @@ export class LockComponent implements OnInit {
   async fetchEkeysPage(pageNo: number) {
     this.isLoading = true;
     try {
-      let userID = '';
-      if(sessionStorage.getItem('Account') === 'TTLock') {
-        userID = this.username;
-      } else {
-        userID = this.encodeNombre(this.username);
-      }
-      const response = await lastValueFrom(this.ekeyService.getEkeysofLock(userID, this.lockId, pageNo, 100))
+      const response = await lastValueFrom(this.ekeyService.getEkeysofLock(this.userID, this.lockId, pageNo, 100))
       const typedResponse = response as EkeyResponse;
       if (typedResponse?.list) {
         for (const ekey of typedResponse.list) {
           ekey.isuser = await this.isUser(ekey.username);
         }
-
         this.ekeys.push(...typedResponse.list);
         if (typedResponse.pages > pageNo) {
           await this.fetchEkeysPage(pageNo + 1);
@@ -340,7 +336,7 @@ export class LockComponent implements OnInit {
   async fetchPasscodesPage(pageNo: number) {
     this.isLoading = true;
     try {
-      const response = await lastValueFrom(this.passcodeService.getPasscodesofLock(this.token, this.lockId, pageNo, 100))
+      const response = await lastValueFrom(this.passcodeService.getPasscodesofLock(this.userID, this.lockId, pageNo, 100))
       const typedResponse = response as PasscodeResponse;
       if (typedResponse?.list) {
         this.passcodes.push(...typedResponse.list);
@@ -369,7 +365,7 @@ export class LockComponent implements OnInit {
   async fetchCardsPage(pageNo: number) {
     this.isLoading = true;
     try {
-      const response = await lastValueFrom(this.cardService.getCardsofLock(this.token, this.lockId, pageNo, 100))
+      const response = await lastValueFrom(this.cardService.getCardsofLock(this.userID, this.lockId, pageNo, 100))
       const typedResponse = response as CardResponse;
       if (typedResponse?.list) {
         this.cards.push(...typedResponse.list);
@@ -398,7 +394,7 @@ export class LockComponent implements OnInit {
   async fetchFingerprintsPage(pageNo: number) {
     this.isLoading = true;
     try {
-      const response = await lastValueFrom(this.fingerprintService.getFingerprintsofLock(this.token, this.lockId, pageNo, 100))
+      const response = await lastValueFrom(this.fingerprintService.getFingerprintsofLock(this.userID, this.lockId, pageNo, 100))
       const typedResponse = response as FingerprintResponse;
       if (typedResponse?.list) {
         this.fingerprints.push(...typedResponse.list);
@@ -427,7 +423,7 @@ export class LockComponent implements OnInit {
   async fetchRecordsPage(pageNo: number) {
     this.isLoading = true;
     try {
-      const response = await lastValueFrom(this.recordService.getRecords(this.token, this.lockId, pageNo, 100))
+      const response = await lastValueFrom(this.recordService.getRecords(this.userID, this.lockId, pageNo, 100))
       const typedResponse = response as RecordResponse;
       if (typedResponse?.list) {
         this.records.push(...typedResponse.list);
@@ -456,7 +452,7 @@ export class LockComponent implements OnInit {
   async fetchGatewaysAccountPage(pageNo: number) {
     this.isLoading = true;
     try {
-      const response = await lastValueFrom(this.gatewayService.getGatewaysAccount(this.token, pageNo, 100))
+      const response = await lastValueFrom(this.gatewayService.getGatewaysAccount(this.userID, pageNo, 100))
       const typedResponse = response as GatewayAccountResponse;
       if (typedResponse?.list) {
         this.popupService.gatewaysOfAccount.push(...typedResponse.list);
@@ -475,7 +471,7 @@ export class LockComponent implements OnInit {
   async fetchGatewaysLock() {
     this.isLoading = true;
     try {
-      const response = await lastValueFrom(this.gatewayService.getGatewayListOfLock(this.token, this.lockId));
+      const response = await lastValueFrom(this.gatewayService.getGatewayListOfLock(this.userID, this.lockId));
       const typedResponse = response as GatewayLockResponse;
       if (typedResponse.list) {
         this.popupService.gatewaysOfLock.push(...typedResponse.list)
@@ -491,7 +487,7 @@ export class LockComponent implements OnInit {
   async fetchLockDetails() {
     this.isLoading = true;
     try {
-      const response = await lastValueFrom(this.lockService.getLockDetails(this.token, this.lockId)) as LockDetails
+      const response = await lastValueFrom(this.lockService.getLockDetails(this.userID, this.lockId)) as LockDetails
       if (response.lockId) {
         this.lockDetails = response;
       } else {
@@ -524,7 +520,7 @@ export class LockComponent implements OnInit {
         await this.fetchPasscodes();
         this.updatePasscodeUsage()
         this.passcodesDataSource = new MatTableDataSource(this.passcodes);
-        this.passcodesFiltradas = this.passcodes.filter(passcode => passcode.senderUsername === this.encodeNombre(this.username));
+        this.passcodesFiltradas = this.passcodes.filter(passcode => passcode.senderUsername === this.userService.encodeNombre(this.username));
         //console.log("Passcodes: ", this.passcodes)
         break;
       case 2:
@@ -543,7 +539,7 @@ export class LockComponent implements OnInit {
         this.records = [];
         await this.fetchRecords();
         this.recordsDataSource = new MatTableDataSource(this.records);
-        this.recordsFiltrados = this.records.filter(record => record.username === this.encodeNombre(this.username));
+        this.recordsFiltrados = this.records.filter(record => record.username === this.userService.encodeNombre(this.username));
         //console.log("Records: ", this.records)
         break;
     }
@@ -557,22 +553,6 @@ export class LockComponent implements OnInit {
       return response.isuser;
     } else {
       return false
-    }
-  }
-  encodeNombre(username: string) {
-    let prefijo = 'bhaaa_'
-    return prefijo.concat(this.userService.customBase64Encode(username))
-  }
-  decodeNombre(username: string) {
-    if (username) {
-      let nombre_dividido = username.split("_");
-      if (nombre_dividido[0] === 'bhaaa') {
-        return this.userService.customBase64Decode(nombre_dividido[1])
-      } else {
-        return username;
-      }
-    } else {
-      return username;
     }
   }
   periodoValidez(start: number, end: number) {
@@ -1020,7 +1000,7 @@ export class LockComponent implements OnInit {
     if (this.gateway === '1') {
       this.isLoading = true;
       try {
-        let response = await lastValueFrom(this.gatewayService.unlock(this.token, this.lockId)) as operationResponse;
+        let response = await lastValueFrom(this.gatewayService.unlock(this.userID, this.lockId)) as operationResponse;
         if (response.errcode === 0) {
           console.log("Cerradura desbloqueada")
         } else {
@@ -1040,7 +1020,7 @@ export class LockComponent implements OnInit {
     if (this.gateway === '1') {
       this.isLoading = true;
       try {
-        let response = await lastValueFrom(this.gatewayService.lock(this.token, this.lockId)) as operationResponse;
+        let response = await lastValueFrom(this.gatewayService.lock(this.userID, this.lockId)) as operationResponse;
         if (response.errcode === 0) {
           console.log("Cerradura bloqueada")
         } else {
@@ -1062,7 +1042,7 @@ export class LockComponent implements OnInit {
     this.popupService.esencial = true;
   }
   TransferirLock() {
-    this.lockService.token = this.token;
+    this.lockService.userID = this.userID;
     this.lockService.lockID = this.lockId;
     this.router.navigate(["users", this.username, "lock", this.lockId, "transferLock"]);
   }
@@ -1074,11 +1054,11 @@ export class LockComponent implements OnInit {
   }
   async HoraDispositivo() {
     if (this.gateway === '1') {
-      this.gatewayService.token = this.token;
+      this.gatewayService.userID = this.userID;
       this.gatewayService.lockID = this.lockId;
       this.isLoading = true;
       try {
-        let response = await lastValueFrom(this.gatewayService.getLockTime(this.token, this.lockId)) as GetLockTimeResponse;
+        let response = await lastValueFrom(this.gatewayService.getLockTime(this.userID, this.lockId)) as GetLockTimeResponse;
         if (response.date) {
           this.popupService.currentTime = response.date;
         } else {
@@ -1096,12 +1076,12 @@ export class LockComponent implements OnInit {
   }
   async PassageMode() {
     if (this.gateway === '1') {
-      this.passageModeService.token = this.token
+      this.passageModeService.userID = this.userID
       this.passageModeService.lockID = this.lockId;
       //TRAER CONFIGURACION DE MODO DE PASO
       this.isLoading = true;
       try {
-        let response = await lastValueFrom(this.passageModeService.getPassageModeConfig(this.token, this.lockId)) as PassageMode;
+        let response = await lastValueFrom(this.passageModeService.getPassageModeConfig(this.userID, this.lockId)) as PassageMode;
         if (response.passageMode) {
           this.passageModeService.passageModeConfig = response;
           this.router.navigate(["users", this.username, "lock", this.lockId, "passageMode"]);
@@ -1121,7 +1101,7 @@ export class LockComponent implements OnInit {
   AutoLock() {
     if (this.gateway === '1') {
       this.popupService.detalles = this.lockDetails;
-      this.popupService.token = this.token;
+      this.popupService.userID = this.userID;
       this.popupService.lockID = this.lockId;
       this.popupService.cerradoAutomatico = true;
     } else {
@@ -1131,21 +1111,21 @@ export class LockComponent implements OnInit {
   }
   //FUNCIONES EKEY
   congelar(ekeyID: number, user: string) {
-    this.popupService.token = this.token;
+    this.popupService.userID = this.userID;
     this.popupService.lockID = this.lockId;
     this.popupService.elementID = ekeyID;
     this.popupService.elementType = user;
     this.popupService.congelar = true;
   }
   descongelar(ekeyID: number, user: string) {
-    this.popupService.token = this.token;
+    this.popupService.userID = this.userID;
     this.popupService.lockID = this.lockId;
     this.popupService.elementID = ekeyID;
     this.popupService.elementType = user;
     this.popupService.descongelar = true;
   }
   borrarEkey(ekeyID: number, ekeyUsername: string) {
-    this.popupService.token = this.token;
+    this.popupService.userID = this.userID;
     this.popupService.lockID = this.lockId;
     this.popupService.elementType = 'ekey';
     this.popupService.elementID = ekeyID;
@@ -1153,35 +1133,35 @@ export class LockComponent implements OnInit {
     this.popupService.delete = true;
   }
   cambiarNombreEkey(ekeyID: number) {
-    this.popupService.token = this.token;
+    this.popupService.userID = this.userID;
     this.popupService.lockID = this.lockId;
     this.popupService.elementType = 'ekey';
     this.popupService.elementID = ekeyID;
     this.popupService.cambiarNombre = true;
   }
   cambiarPeriodoEkey(ekeyID: number) {
-    this.popupService.token = this.token;
+    this.popupService.userID = this.userID;
     this.popupService.lockID = this.lockId;
     this.popupService.elementType = 'ekey';
     this.popupService.elementID = ekeyID;
     this.popupService.cambiarPeriodo = true;
   }
   crearEkey() {
-    this.ekeyService.token = this.token;
+    this.ekeyService.userID = this.userID;
     this.ekeyService.username = this.username;
     this.ekeyService.lockID = this.lockId;
     this.ekeyService.endDateUser = this.endDateDeUser;
     this.router.navigate(["users", this.username, "lock", this.lockId, "ekey"]);
   }
   Autorizar(ekeyID: number, user: string) {
-    this.popupService.token = this.token;
+    this.popupService.userID = this.userID;
     this.popupService.lockID = this.lockId;
     this.popupService.elementID = ekeyID;
     this.popupService.elementType = user;
     this.popupService.autorizar = true;
   }
   Desautorizar(ekeyID: number, user: string) {
-    this.popupService.token = this.token;
+    this.popupService.userID = this.userID;
     this.popupService.lockID = this.lockId;
     this.popupService.elementID = ekeyID;
     this.popupService.elementType = user;
@@ -1203,7 +1183,7 @@ export class LockComponent implements OnInit {
   //FUNCIONES PASSCODE
   crearPasscode() {
     this.passcodeService.lockAlias = this.Alias;
-    this.passcodeService.token = this.token;
+    this.passcodeService.userID = this.userID;
     this.passcodeService.username = this.username;
     this.passcodeService.lockID = this.lockId;
     this.passcodeService.endDateUser = this.endDateDeUser;
@@ -1213,7 +1193,7 @@ export class LockComponent implements OnInit {
   }
   cambiarPasscode(passcode: Passcode) {
     if (this.gateway === '1') {
-      this.popupService.token = this.token;
+      this.popupService.userID = this.userID;
       this.popupService.lockID = this.lockId;
       this.popupService.elementType = 'passcode';
       this.popupService.elementID = passcode.keyboardPwdId;
@@ -1226,7 +1206,7 @@ export class LockComponent implements OnInit {
   }
   borrarPasscode(passcodeID: number) {
     if (this.gateway === '1') {
-      this.popupService.token = this.token;
+      this.popupService.userID = this.userID;
       this.popupService.lockID = this.lockId;
       this.popupService.elementType = 'passcode';
       this.popupService.elementID = passcodeID;
@@ -1237,7 +1217,7 @@ export class LockComponent implements OnInit {
     }
   }
   crearPasscodeSimple() {
-    this.passcodeService.token = this.token;
+    this.passcodeService.userID = this.userID;
     this.passcodeService.lockID = this.lockId;
     this.passcodeService.passcodesimple = true;
     this.router.navigate(["users", this.username, "lock", this.lockId, "passcode"]);
@@ -1249,7 +1229,7 @@ export class LockComponent implements OnInit {
   //FUNCIONES CARD
   borrarCard(cardID: number) {
     if (this.gateway === '1') {
-      this.popupService.token = this.token;
+      this.popupService.userID = this.userID;
       this.popupService.lockID = this.lockId;
       this.popupService.elementType = 'card';
       this.popupService.elementID = cardID;
@@ -1260,7 +1240,7 @@ export class LockComponent implements OnInit {
     }
   }
   cambiarNombreCard(cardID: number) {
-    this.popupService.token = this.token;
+    this.popupService.userID = this.userID;
     this.popupService.lockID = this.lockId;
     this.popupService.elementType = 'card';
     this.popupService.elementID = cardID;
@@ -1268,7 +1248,7 @@ export class LockComponent implements OnInit {
   }
   cambiarPeriodoCard(cardID: number) {
     if (this.gateway === '1') {
-      this.popupService.token = this.token;
+      this.popupService.userID = this.userID;
       this.popupService.lockID = this.lockId;
       this.popupService.elementType = 'card';
       this.popupService.elementID = cardID;
@@ -1281,7 +1261,7 @@ export class LockComponent implements OnInit {
   //FUNCIONES FINGERPRINT
   borrarFingerprint(fingerID: number) {
     if (this.gateway === '1') {
-      this.popupService.token = this.token;
+      this.popupService.userID = this.userID;
       this.popupService.lockID = this.lockId;
       this.popupService.elementType = 'fingerprint';
       this.popupService.elementID = fingerID;
@@ -1292,14 +1272,14 @@ export class LockComponent implements OnInit {
     }
   }
   cambiarNombreFingerprint(fingerID: number) {
-    this.popupService.token = this.token;
+    this.popupService.userID = this.userID;
     this.popupService.lockID = this.lockId;
     this.popupService.elementType = 'fingerprint';
     this.popupService.elementID = fingerID;
     this.popupService.cambiarNombre = true;
   }
   cambiarPeriodoFingerprint(fingerID: number) {
-    this.popupService.token = this.token;
+    this.popupService.userID = this.userID;
     this.popupService.lockID = this.lockId;
     this.popupService.elementType = 'fingerprint';
     this.popupService.elementID = fingerID;

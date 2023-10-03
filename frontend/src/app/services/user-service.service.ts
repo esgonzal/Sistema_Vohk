@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Md5 } from 'ts-md5';
 import { Observable, lastValueFrom } from 'rxjs';
-import { GetAccessTokenResponse, ResetPasswordResponse, UserRegisterResponse, checkUserInDBResponse, getUserInDBResponse } from '../Interfaces/API_responses';
+import { GetAccessTokenResponse, ResetPasswordResponse, UserRegisterResponse, checkUserInDBResponse, getUserInDBResponse, logoutResponse } from '../Interfaces/API_responses';
 import { PhoneNumberUtil } from 'google-libphonenumber';
 import emailjs from 'emailjs-com';
 
@@ -45,6 +45,10 @@ export class UserServiceService {
     }
     return output;
   }
+  encodeNombre(username: string) {
+    let prefijo = 'bhaaa_'
+    return prefijo.concat(this.customBase64Encode(username))
+  }
   customBase64Decode(encoded: string): string {
     const base64Chars =
       'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -72,6 +76,18 @@ export class UserServiceService {
     }
     return decoded;
   }
+  decodeNombre(username: string) {
+    if (username) {
+      let nombre_dividido = username.split("_");
+      if (nombre_dividido[0] === 'bhaaa') {
+        return this.customBase64Decode(nombre_dividido[1])
+      } else {
+        return username;
+      }
+    } else {
+      return username;
+    }
+  }
   isValidEmail(email: string): boolean {//Verifica si el nombre del destinatario es un email o no
     const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
     return emailPattern.test(email);
@@ -87,15 +103,6 @@ export class UserServiceService {
       }
     } catch (error) {
       return { isValid: false }; // Parsing error, not a valid phone number
-    }
-  }
-  async isEmailNew(email: string) {//Verifica si el email de la cuenta tiene la contraseña de defecto.
-    const response = await lastValueFrom(this.getAccessToken(email, 'il.com'));
-    const typedResponse = response as GetAccessTokenResponse;
-    if (typedResponse.access_token) {//El usuario tiene la clave de defecto
-      return true;
-    } else {
-      return false;
     }
   }
   UserRegister(nombre: string, clave: string): Observable<UserRegisterResponse> { 
@@ -179,6 +186,17 @@ export class UserServiceService {
       password
     }
     return this.http.put(url, body, options);
+  }
+  logOut(userID: string): Observable<logoutResponse> {
+    let url = `http://localhost:3000/api/ttlock/user/logout`;
+    let headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+    let options = { headers };
+    let body = {
+      userID
+    }
+    return this.http.post<logoutResponse>(url, body, options);
   }
 
 }

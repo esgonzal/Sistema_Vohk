@@ -11,7 +11,7 @@ export class PasscodeServiceService {
 
   username: string;
   lockAlias: string;
-  token: string;
+  userID: string;
   lockID: number;
   endDateUser: string;
   featureValue: string
@@ -20,28 +20,28 @@ export class PasscodeServiceService {
 
   constructor(private http: HttpClient) { }
 
-  getPasscodesofLock(token: string, lockID: number, pageNo: number, pageSize: number): Observable<PasscodeResponse> {
-    let body = { token, lockID, pageNo, pageSize };
+  getPasscodesofLock(userID: string, lockID: number, pageNo: number, pageSize: number): Observable<PasscodeResponse> {
+    let body = { userID, lockID, pageNo, pageSize };
     let url = 'http://localhost:3000/api/ttlock/passcode/getListLock';
     return this.http.post<PasscodeResponse>(url, body);
   }
-  generatePasscode(token: string, lockID: number, type: string, startDate: string, name?: string, endDate?: string): Observable<createPasscodeResponse> {
-    let body = { token, lockID, type, startDate, name, endDate };
+  generatePasscode(userID: string, lockID: number, type: string, startDate: string, name?: string, endDate?: string): Observable<createPasscodeResponse> {
+    let body = { userID, lockID, type, startDate, name, endDate };
     let url = 'http://localhost:3000/api/ttlock/passcode/get';
     return this.http.post<createPasscodeResponse>(url, body);
   }
-  generateCustomPasscode(token: string, lockID: number, keyboardPwd: string, keyboardPwdType: string, keyboardPwdName?: string, startDate?: string, endDate?: string): Observable<createPasscodeResponse> {
-    let body = { token, lockID, keyboardPwd, keyboardPwdType, keyboardPwdName, startDate, endDate };
+  generateCustomPasscode(userID: string, lockID: number, keyboardPwd: string, keyboardPwdType: string, keyboardPwdName?: string, startDate?: string, endDate?: string): Observable<createPasscodeResponse> {
+    let body = { userID, lockID, keyboardPwd, keyboardPwdType, keyboardPwdName, startDate, endDate };
     let url = 'http://localhost:3000/api/ttlock/passcode/add';
     return this.http.post<createPasscodeResponse>(url, body);
   }
-  deletePasscode(token: string, lockID: number, keyboardPwdId: number): Observable<operationResponse> {
-    let body = { token, lockID, keyboardPwdId };
+  deletePasscode(userID: string, lockID: number, keyboardPwdId: number): Observable<operationResponse> {
+    let body = { userID, lockID, keyboardPwdId };
     let url = 'http://localhost:3000/api/ttlock/passcode/delete';
     return this.http.post<operationResponse>(url, body);
   }
-  changePasscode(token: string, lockID: number, keyboardPwdId: number, newName?: string, newPwd?: string, newStartDate?: string, newEndDate?: string): Observable<operationResponse> {
-    let body = { token, lockID, keyboardPwdId, newName, newPwd, newStartDate, newEndDate };
+  changePasscode(userID: string, lockID: number, keyboardPwdId: number, newName?: string, newPwd?: string, newStartDate?: string, newEndDate?: string): Observable<operationResponse> {
+    let body = { userID, lockID, keyboardPwdId, newName, newPwd, newStartDate, newEndDate };
     let url = 'http://localhost:3000/api/ttlock/passcode/change';
     return this.http.post<operationResponse>(url, body);
   }

@@ -96,19 +96,19 @@ export class PopUpComponent implements OnInit {
       if (this.popupService.delete) {
         switch (this.popupService.elementType) {
           case 'passcode':
-            response = await lastValueFrom(this.passcodeService.deletePasscode(this.popupService.token, this.popupService.lockID, this.popupService.elementID)) as operationResponse;
+            response = await lastValueFrom(this.passcodeService.deletePasscode(this.popupService.userID, this.popupService.lockID, this.popupService.elementID)) as operationResponse;
             break;
           case 'ekey':
-            response = await lastValueFrom(this.ekeyService.deleteEkey(this.popupService.token, this.popupService.elementID)) as operationResponse;
+            response = await lastValueFrom(this.ekeyService.deleteEkey(this.popupService.userID, this.popupService.elementID)) as operationResponse;
             break;
           case 'card':
-            response = await lastValueFrom(this.cardService.deleteCard(this.popupService.token, this.popupService.lockID, this.popupService.elementID)) as operationResponse;
+            response = await lastValueFrom(this.cardService.deleteCard(this.popupService.userID, this.popupService.lockID, this.popupService.elementID)) as operationResponse;
             break;
           case 'fingerprint':
-            response = await lastValueFrom(this.fingerprintService.deleteFingerprint(this.popupService.token, this.popupService.lockID, this.popupService.elementID)) as operationResponse;
+            response = await lastValueFrom(this.fingerprintService.deleteFingerprint(this.popupService.userID, this.popupService.lockID, this.popupService.elementID)) as operationResponse;
             break;
           case 'grupo':
-            response = await lastValueFrom(this.groupService.deleteGroup(this.popupService.token, this.popupService.elementID.toString())) as operationResponse;
+            response = await lastValueFrom(this.groupService.deleteGroup(this.popupService.userID, this.popupService.elementID.toString())) as operationResponse;
             break;
           default:
             console.error('Invalid element type for deletion:', this.popupService.elementID);
@@ -133,7 +133,7 @@ export class PopUpComponent implements OnInit {
     }
   }
   async autorizar() {
-    await this.ekeyService.AuthorizeEkey(this.popupService.token, this.popupService.lockID, this.popupService.elementID);
+    await this.ekeyService.AuthorizeEkey(this.popupService.userID, this.popupService.lockID, this.popupService.elementID);
     this.popupService.autorizar = false;
     window.location.reload();
   }
@@ -143,7 +143,7 @@ export class PopUpComponent implements OnInit {
     this.popupService.autorizarFalso = false;
   }
   async desautorizar() {
-    await this.ekeyService.cancelAuthorizeEkey(this.popupService.token, this.popupService.lockID, this.popupService.elementID);
+    await this.ekeyService.cancelAuthorizeEkey(this.popupService.userID, this.popupService.lockID, this.popupService.elementID);
     this.popupService.desautorizar = false;
     window.location.reload();
   }
@@ -155,7 +155,7 @@ export class PopUpComponent implements OnInit {
   async congelar() {
     this.isLoading = true;
     try {
-      let response = await lastValueFrom(this.ekeyService.freezeEkey(this.popupService.token, this.popupService.elementID)) as operationResponse;
+      let response = await lastValueFrom(this.ekeyService.freezeEkey(this.popupService.userID, this.popupService.elementID)) as operationResponse;
       //console.log(response)
       if (response.errcode === 0) {
         this.popupService.congelar = false;
@@ -173,7 +173,7 @@ export class PopUpComponent implements OnInit {
   async descongelar() {
     this.isLoading = true;
     try {
-      let response = await lastValueFrom(this.ekeyService.unfreezeEkey(this.popupService.token, this.popupService.elementID));
+      let response = await lastValueFrom(this.ekeyService.unfreezeEkey(this.popupService.userID, this.popupService.elementID));
       //console.log(response)
       if (response.errcode === 0) {
         this.popupService.descongelar = false;
@@ -206,16 +206,16 @@ export class PopUpComponent implements OnInit {
         if (this.popupService.cambiarNombre) {
           switch (this.popupService.elementType) {
             case 'ekey':
-              response = await lastValueFrom(this.ekeyService.modifyEkey(this.popupService.token, this.popupService.elementID, datos.name, this.transformarRemoteEnable(datos.ekeyRemoteEnable))) as operationResponse;
+              response = await lastValueFrom(this.ekeyService.modifyEkey(this.popupService.userID, this.popupService.elementID, datos.name, this.transformarRemoteEnable(datos.ekeyRemoteEnable))) as operationResponse;
               break;
             case 'card':
-              response = await lastValueFrom(this.cardService.changeName(this.popupService.token, this.popupService.lockID, this.popupService.elementID, datos.name)) as operationResponse;
+              response = await lastValueFrom(this.cardService.changeName(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, datos.name)) as operationResponse;
               break;
             case 'fingerprint':
-              response = await lastValueFrom(this.fingerprintService.changeName(this.popupService.token, this.popupService.lockID, this.popupService.elementID, datos.name)) as operationResponse;
+              response = await lastValueFrom(this.fingerprintService.changeName(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, datos.name)) as operationResponse;
               break;
             case 'grupo':
-              response = await lastValueFrom(this.groupService.renameGroup(this.popupService.token, this.popupService.elementID.toString(), datos.name)) as operationResponse;
+              response = await lastValueFrom(this.groupService.renameGroup(this.popupService.userID, this.popupService.elementID.toString(), datos.name)) as operationResponse;
               break;
             default:
               console.error('Invalid element type for deletion:', this.popupService.elementID);
@@ -255,13 +255,13 @@ export class PopUpComponent implements OnInit {
         if (moment(newEndDate).isAfter(moment(newStartDate))) {
           switch (this.popupService.elementType) {
             case 'ekey':
-              response = await lastValueFrom(this.ekeyService.changePeriod(this.popupService.token, this.popupService.elementID, newStartDate.toString(), newEndDate.toString())) as operationResponse;
+              response = await lastValueFrom(this.ekeyService.changePeriod(this.popupService.userID, this.popupService.elementID, newStartDate.toString(), newEndDate.toString())) as operationResponse;
               break;
             case 'card':
-              response = await lastValueFrom(this.cardService.changePeriod(this.popupService.token, this.popupService.lockID, this.popupService.elementID, newStartDate.toString(), newEndDate.toString())) as operationResponse;
+              response = await lastValueFrom(this.cardService.changePeriod(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, newStartDate.toString(), newEndDate.toString())) as operationResponse;
               break;
             case 'fingerprint':
-              response = await lastValueFrom(this.fingerprintService.changePeriod(this.popupService.token, this.popupService.lockID, this.popupService.elementID, newStartDate.toString(), newEndDate.toString())) as operationResponse;
+              response = await lastValueFrom(this.fingerprintService.changePeriod(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, newStartDate.toString(), newEndDate.toString())) as operationResponse;
               break;
             default:
               console.error('Invalid element type for deletion:', this.popupService.elementID);
@@ -292,20 +292,20 @@ export class PopUpComponent implements OnInit {
     this.isLoading = true;
     try {
       if (this.popupService.passcode.keyboardPwdType === 1 || this.popupService.passcode.keyboardPwdType === 2 || this.popupService.passcode.keyboardPwdType === 4) {
-        response = await lastValueFrom(this.passcodeService.changePasscode(this.popupService.token, this.popupService.lockID, this.popupService.elementID, datos.name, datos.passcodePwd)) as operationResponse;
+        response = await lastValueFrom(this.passcodeService.changePasscode(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, datos.name, datos.passcodePwd)) as operationResponse;
       }
       if (this.popupService.passcode.keyboardPwdType === 3) {
         let newStartDay = moment(datos.startDate).valueOf()
         let newEndDay = moment(datos.endDate).valueOf()
         newStartDate = moment(newStartDay).add(this.lockService.transformarHora(datos.startHour), "milliseconds").valueOf()
         newEndDate = moment(newEndDay).add(this.lockService.transformarHora(datos.endHour), "milliseconds").valueOf()
-        response = await lastValueFrom(this.passcodeService.changePasscode(this.popupService.token, this.popupService.lockID, this.popupService.elementID, datos.name, datos.passcodePwd, newStartDate.toString(), newEndDate.toString())) as operationResponse
+        response = await lastValueFrom(this.passcodeService.changePasscode(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, datos.name, datos.passcodePwd, newStartDate.toString(), newEndDate.toString())) as operationResponse
       }
       if (this.popupService.passcode.keyboardPwdType === 5 || this.popupService.passcode.keyboardPwdType === 6 || this.popupService.passcode.keyboardPwdType === 7 || this.popupService.passcode.keyboardPwdType === 8 || this.popupService.passcode.keyboardPwdType === 9 || this.popupService.passcode.keyboardPwdType === 10 || this.popupService.passcode.keyboardPwdType === 11 || this.popupService.passcode.keyboardPwdType === 12 || this.popupService.passcode.keyboardPwdType === 13 || this.popupService.passcode.keyboardPwdType === 14) {
         let today = moment({ hour: 0, minute: 0 }).valueOf()
         let newStartDate = moment(today).add(this.lockService.transformarHora(datos.startHour), "milliseconds").valueOf()
         let newEndDate = moment(today).add(this.lockService.transformarHora(datos.endHour), "milliseconds").valueOf()
-        response = await lastValueFrom(this.passcodeService.changePasscode(this.popupService.token, this.popupService.lockID, this.popupService.elementID, datos.name, datos.passcodePwd, newStartDate.toString(), newEndDate.toString()))
+        response = await lastValueFrom(this.passcodeService.changePasscode(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, datos.name, datos.passcodePwd, newStartDate.toString(), newEndDate.toString()))
       }
       //console.log(response)
       if (response?.errcode === 0) {
@@ -377,7 +377,7 @@ export class PopUpComponent implements OnInit {
     }
     this.isLoading = true;
     try {
-      let response = await lastValueFrom(this.lockService.setAutoLock(this.popupService.token, this.popupService.lockID, segundos)) as operationResponse;
+      let response = await lastValueFrom(this.lockService.setAutoLock(this.popupService.userID, this.popupService.lockID, segundos)) as operationResponse;
       if (response.errcode === 0) {
         this.popupService.cerradoAutomatico = false;
         window.location.reload();
@@ -401,7 +401,7 @@ export class PopUpComponent implements OnInit {
       if (!datos.name) {
         this.error = "Por favor ingrese el dato requerido"
       } else {
-        let response = await lastValueFrom(this.groupService.addGroup(this.popupService.token, datos.name)) as addGroupResponse;
+        let response = await lastValueFrom(this.groupService.addGroup(this.popupService.userID, datos.name)) as addGroupResponse;
         //console.log("Respuesta de crear grupo:",response)
         if (response.groupId) {
           this.popupService.newGroup = false;
@@ -452,7 +452,7 @@ export class PopUpComponent implements OnInit {
         console.log("Seleccione al menos una cerradura para remover");
       } else {
         for (const lockId of this.selectedLockIds) {
-          let response = await lastValueFrom(this.groupService.setGroupofLock(this.popupService.token, lockId.toString(), "0")) as operationResponse;
+          let response = await lastValueFrom(this.groupService.setGroupofLock(this.popupService.userID, lockId.toString(), "0")) as operationResponse;
           if (response.errcode === 0) {
             console.log("Se removió la cerradura exitosamente")
           } else {
@@ -475,7 +475,7 @@ export class PopUpComponent implements OnInit {
         console.log("Seleccione al menos una cerradura para añadir");
       } else {
         for (const lockId of this.selectedLockIds) {
-          let response = await lastValueFrom(this.groupService.setGroupofLock(this.popupService.token, lockId.toString(), this.popupService.group.groupId.toString())) as operationResponse;
+          let response = await lastValueFrom(this.groupService.setGroupofLock(this.popupService.userID, lockId.toString(), this.popupService.group.groupId.toString())) as operationResponse;
           if (response.errcode === 0) {
             console.log("Se removió la cerradura exitosamente")
           } else {
@@ -600,7 +600,7 @@ export class PopUpComponent implements OnInit {
   async ajustarHora() {
     this.isLoading = true;
     try {
-      let response = await lastValueFrom(this.gatewayService.adjustLockTime(this.gatewayService.token, this.gatewayService.lockID)) as GetLockTimeResponse
+      let response = await lastValueFrom(this.gatewayService.adjustLockTime(this.gatewayService.userID, this.gatewayService.lockID)) as GetLockTimeResponse
       if (response.date) {
         console.log("Hora ajustada")
       } else {

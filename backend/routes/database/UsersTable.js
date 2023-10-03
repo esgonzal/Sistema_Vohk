@@ -33,7 +33,6 @@ router.get('/:accountName', async (req, res) => {
   const { accountName } = req.params;
   try {
     const user = await db.query('SELECT * FROM Usuario WHERE accountName = $1', [accountName]);
-    console.log(user[0])
     if(user !== null && user.length > 0){
       res.status(200).json(user[0])
     } else {
@@ -62,7 +61,6 @@ router.get('/nickname/:accountName', async (req, res) => {
   const { accountName } = req.params;
   try {
     const nickname = await db.query('SELECT nickname FROM Usuario WHERE accountName = $1', [accountName]);
-    console.log(nickname)
     if(nickname !== null){
       res.status(200).json(nickname)
     } else {
@@ -87,7 +85,6 @@ router.get('/email/:accountName', async (req, res) => {
   const { accountName } = req.params;
   try {
     const email = await db.query('SELECT email FROM Usuario WHERE accountName = $1', [accountName]);
-    console.log(email)
     if(email !== null){
       res.status(200).json(email)
     } else {
@@ -112,7 +109,6 @@ router.get('/phone/:accountName', async (req, res) => {
   const { accountName } = req.params;
   try {
     const phone = await db.query('SELECT phone FROM Usuario WHERE accountName = $1', [accountName]);
-    console.log(phone)
     if(phone !== null){
       res.status(200).json(phone)
     } else {
@@ -137,7 +133,6 @@ router.get('/password/:accountName', async (req, res) => {
   const { accountName } = req.params;
   try {
     const password = await db.query('SELECT password FROM Usuario WHERE accountName = $1', [accountName]);
-    console.log(password)
     if(password !== null){
       res.status(200).json(password)
     } else {

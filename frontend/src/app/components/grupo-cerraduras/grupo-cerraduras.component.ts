@@ -6,6 +6,7 @@ import { lastValueFrom } from 'rxjs';
 import { EkeyServiceService } from 'src/app/services/ekey-service.service';
 import { LockData } from 'src/app/Interfaces/Lock';
 import { GroupResponse, LockListResponse } from '../../Interfaces/API_responses'
+import { UserServiceService } from 'src/app/services/user-service.service';
 
 @Component({
   selector: 'app-grupo-cerraduras',
@@ -14,24 +15,29 @@ import { GroupResponse, LockListResponse } from '../../Interfaces/API_responses'
 })
 export class GrupoCerradurasComponent implements OnInit {
 
-  token = sessionStorage.getItem('token') ?? ''
   username = sessionStorage.getItem('user') ?? ''
   displayedColumnsGroup: string[] = ['Nombre', 'Cantidad', 'Operacion'];
   groups: Group[] = [];
   allLocks: LockData[] = [];
   locksWithoutGroup: LockData[] = [];
   isLoading: boolean = false;
+  userID: string;
 
-  constructor(public groupService: GroupService, public popupService: PopUpService, private ekeyService: EkeyServiceService) { }
+  constructor(public groupService: GroupService, public popupService: PopUpService, private ekeyService: EkeyServiceService, private userService: UserServiceService) { }
 
   async ngOnInit() {
     await this.getAllLocks();
     await this.fetchGroups();
+    if(sessionStorage.getItem('Account') === 'Vohk'){
+      this.userID = this.userService.encodeNombre(this.username);
+    } else {
+      this.userID = this.username
+    }
   }
   async fetchGroups() {
     this.isLoading = true;
     try {
-      const response = await lastValueFrom(this.groupService.getGroupofAccount(this.token));
+      const response = await lastValueFrom(this.groupService.getGroupofAccount(this.userID));
       const typedResponse = response as GroupResponse;
       if (typedResponse?.list) {
         this.groups = typedResponse.list;
@@ -55,7 +61,7 @@ export class GrupoCerradurasComponent implements OnInit {
     const pageSize = 100;
     group.locks = [];
     while (true) {
-      const locksResponse = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.token, pageNo, pageSize, group.groupId));
+      const locksResponse = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.userID, pageNo, pageSize, group.groupId));
       const locksTypedResponse = locksResponse as LockListResponse;
       if (locksTypedResponse?.list && locksTypedResponse.list.length > 0) {
         lockCount += locksTypedResponse.list.length;
@@ -77,7 +83,7 @@ export class GrupoCerradurasComponent implements OnInit {
       let pageNo = 1;
       const pageSize = 100;
       while (true) {
-        const locksResponse = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.token, pageNo, pageSize, 0));
+        const locksResponse = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.userID, pageNo, pageSize, 0));
         const locksTypedResponse = locksResponse as LockListResponse;
         if (locksTypedResponse?.list) {
           this.allLocks.push(...locksTypedResponse.list)
@@ -102,24 +108,24 @@ export class GrupoCerradurasComponent implements OnInit {
     }
   }
   crearGrupo() {
-    this.popupService.token = this.token
+    this.popupService.userID = this.userID
     this.popupService.newGroup = true;
   }
   cambiarNombre(grupoID: number) {
-    this.popupService.token = this.token;
+    this.popupService.userID = this.userID;
     this.popupService.elementType = 'grupo';
     this.popupService.elementID = grupoID;
     this.popupService.cambiarNombre = true
   }
   eliminar(grupoID: number) {
-    this.popupService.token = this.token;
+    this.popupService.userID = this.userID;
     this.popupService.elementType = 'grupo';
     this.popupService.elementID = grupoID;
     this.popupService.delete = true
   }
   cerraduras(group: Group) {
     this.popupService.group = group;
-    this.popupService.token = this.token;
+    this.popupService.userID = this.userID;
     this.popupService.locksWithoutGroup = this.groupService.locksWithoutGroup;
     this.popupService.addRemoveLockGROUP = true;
   }

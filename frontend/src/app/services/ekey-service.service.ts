@@ -11,7 +11,7 @@ import emailjs from 'emailjs-com';
 })
 export class EkeyServiceService {
 
-  token: string;
+  userID: string;
   username = sessionStorage.getItem('user') ?? ''
   lockAlias = sessionStorage.getItem('Alias') ?? ''
   lockID: number;
@@ -23,8 +23,8 @@ export class EkeyServiceService {
 
   constructor(private http: HttpClient) { }
 
-  getEkeysofAccount(token: string, pageNo: number, pageSize: number, groupId?: number): Observable<LockListResponse> {
-    let body = { token, pageNo, pageSize, groupId };
+  getEkeysofAccount(userID: string, pageNo: number, pageSize: number, groupId?: number): Observable<LockListResponse> {
+    let body = { userID, pageNo, pageSize, groupId };
     let url = 'http://localhost:3000/api/ttlock/ekey/getListAccount';
     return this.http.post<LockListResponse>(url, body);
   }
@@ -33,43 +33,43 @@ export class EkeyServiceService {
     let url = 'http://localhost:3000/api/ttlock/ekey/getListLock';
     return this.http.post<EkeyResponse>(url, body);
   }
-  sendEkey(token: string, lockID: number, recieverName: string, keyName: string, startDate: string, endDate: string, keyRight: number, keyType?: number, startDay?: string, endDay?: string, weekDays?: string): Observable<sendEkeyResponse> {
-    let body = { token, lockID, recieverName, keyName, startDate, endDate, keyRight, keyType, startDay, endDay, weekDays };
+  sendEkey(userID: string, lockID: number, recieverName: string, keyName: string, startDate: string, endDate: string, keyRight: number, keyType?: number, startDay?: string, endDay?: string, weekDays?: string): Observable<sendEkeyResponse> {
+    let body = { userID, lockID, recieverName, keyName, startDate, endDate, keyRight, keyType, startDay, endDay, weekDays };
     let url = 'http://localhost:3000/api/ttlock/ekey/send';
     return this.http.post<sendEkeyResponse>(url, body);
   }
-  deleteEkey(token: string, keyID: number): Observable<operationResponse> {
-    let body = { token, keyID };
+  deleteEkey(userID: string, keyID: number): Observable<operationResponse> {
+    let body = { userID, keyID };
     let url = 'http://localhost:3000/api/ttlock/ekey/delete';
     return this.http.post<operationResponse>(url, body);
   }
-  freezeEkey(token: string, keyID: number): Observable<operationResponse> {
-    let body = { token, keyID };
+  freezeEkey(userID: string, keyID: number): Observable<operationResponse> {
+    let body = { userID, keyID };
     let url = 'http://localhost:3000/api/ttlock/ekey/freeze';
     return this.http.post<operationResponse>(url, body);
   }
-  unfreezeEkey(token: string, keyID: number): Observable<operationResponse> {
-    let body = { token, keyID };
+  unfreezeEkey(userID: string, keyID: number): Observable<operationResponse> {
+    let body = { userID, keyID };
     let url = 'http://localhost:3000/api/ttlock/ekey/unfreeze';
     return this.http.post<operationResponse>(url, body);
   }
-  modifyEkey(token: string, keyID: number, newName?: string, remoteEnable?: string): Observable<operationResponse> {
-    let body = { token, keyID, newName, remoteEnable };
+  modifyEkey(userID: string, keyID: number, newName?: string, remoteEnable?: string): Observable<operationResponse> {
+    let body = { userID, keyID, newName, remoteEnable };
     let url = 'http://localhost:3000/api/ttlock/ekey/modify';
     return this.http.post<operationResponse>(url, body);
   }
-  changePeriod(token: string, keyID: number, newStartDate: string, newEndDate: string): Observable<operationResponse> {
-    let body = { token, keyID, newStartDate, newEndDate };
+  changePeriod(userID: string, keyID: number, newStartDate: string, newEndDate: string): Observable<operationResponse> {
+    let body = { userID, keyID, newStartDate, newEndDate };
     let url = 'http://localhost:3000/api/ttlock/ekey/changePeriod';
     return this.http.post<operationResponse>(url, body);
   }
-  AuthorizeEkey(token: string, lockID: number, keyID: number): Observable<operationResponse> {
-    let body = { token, lockID, keyID };
+  AuthorizeEkey(userID: string, lockID: number, keyID: number): Observable<operationResponse> {
+    let body = { userID, lockID, keyID };
     let url = 'http://localhost:3000/api/ttlock/ekey/authorize';
     return this.http.post<operationResponse>(url, body);
   }
-  cancelAuthorizeEkey(token: string, lockID: number, keyID: number): Observable<operationResponse> {
-    let body = { token, lockID, keyID };
+  cancelAuthorizeEkey(userID: string, lockID: number, keyID: number): Observable<operationResponse> {
+    let body = { userID, lockID, keyID };
     let url = 'http://localhost:3000/api/ttlock/ekey/unauthorize';
     return this.http.post<operationResponse>(url, body);
   }

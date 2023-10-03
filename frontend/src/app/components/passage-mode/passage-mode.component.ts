@@ -95,7 +95,7 @@ export class PassageModeComponent implements OnInit {
         let endDate = this.transformarHora(this.endHour);
         let isAllDay = this.transformarAllHoursToggle(this.isAllHoursToggleOn);
         let weekDays = selectedDayNumbers;
-        let response = await lastValueFrom(this.passageModeService.setPassageMode(this.passageModeService.token, this.passageModeService.lockID, passageMode, startDate, endDate, isAllDay, weekDays)) as operationResponse
+        let response = await lastValueFrom(this.passageModeService.setPassageMode(this.passageModeService.userID, this.passageModeService.lockID, passageMode, startDate, endDate, isAllDay, weekDays)) as operationResponse
         if (response.errcode === 0) {
           console.log("Modo de Paso configurado correctamente")
           this.router.navigate(["users", this.username, "lock", this.lockId]);

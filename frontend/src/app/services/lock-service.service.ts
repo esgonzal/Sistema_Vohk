@@ -11,7 +11,7 @@ import { LockDetails } from '../Interfaces/Lock';
 })
 export class LockServiceService {
 
-  token: string;
+  userID: string;
   lockID: number;
 
   constructor(private http: HttpClient) { }
@@ -26,25 +26,25 @@ export class LockServiceService {
     const reversedBinary = binaryValue.split('').reverse().join('');
     return reversedBinary[bit] === '1';
   }
-  getLockListAccount(token: string): Observable<LockListResponse> {
+  getLockListAccount(userID: string): Observable<LockListResponse> {
     let pageNo = 1;
     let pageSize = 100;
-    let body = {token, pageNo, pageSize};
+    let body = {userID, pageNo, pageSize};
     let url = 'http://localhost:3000/api/ttlock/lock/getListAccount';
     return this.http.post<LockListResponse>(url, body)
   }
-  getLockDetails(token: string, lockID: number): Observable<LockDetails> {
-    let body = {token, lockID};
+  getLockDetails(userID: string, lockID: number): Observable<LockDetails> {
+    let body = {userID, lockID};
     let url = 'http://localhost:3000/api/ttlock/lock/details';
     return this.http.post<LockDetails>(url, body)
   }
-  setAutoLock(token: string, lockID: number, seconds: number): Observable<operationResponse> {
-    let body = {token, lockID, seconds}
+  setAutoLock(userID: string, lockID: number, seconds: number): Observable<operationResponse> {
+    let body = {userID, lockID, seconds}
     let url = 'http://localhost:3000/api/ttlock/lock/setAutoLock';
     return this.http.post<operationResponse>(url, body);
   }
-  transferLock(token: string, receiverUsername: string, lockIdList: string): Observable<operationResponse> {
-    let body = {token, receiverUsername, lockIdList}
+  transferLock(userID: string, receiverUsername: string, lockIdList: string): Observable<operationResponse> {
+    let body = {userID, receiverUsername, lockIdList}
     let url = 'http://localhost:3000/api/ttlock/lock/transfer';
     return this.http.post<operationResponse>(url, body);
   }

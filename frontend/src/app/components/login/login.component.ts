@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
 import { UserServiceService } from '../../services/user-service.service';
-import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { User } from '../../Interfaces/User';
 import { lastValueFrom } from 'rxjs';
@@ -15,9 +14,8 @@ import { GetAccessTokenResponse } from '../../Interfaces/API_responses'
 export class LoginComponent {
 
   loginError: string = "";
-  access_token: string;
 
-  constructor(private router: Router, public userService: UserServiceService, private http: HttpClient) { }
+  constructor(private router: Router, public userService: UserServiceService) { }
 
   validarInputs(data: User) {
     if (data.username == '' && data.password == '') {
@@ -41,23 +39,17 @@ export class LoginComponent {
     let response;
     if (this.validarInputs(data)) {
       response = await lastValueFrom(this.userService.getAccessToken(data.username, data.password)) as GetAccessTokenResponse;
-      console.log(response)
-      if (response.access_token) {
-        this.access_token = response.access_token
+      if (response.errcode === 'Success') {
         sessionStorage.setItem('logged', '1')
         sessionStorage.setItem('user', data.username)
-        sessionStorage.setItem('token', this.access_token);
         sessionStorage.setItem('Account', 'TTLock')
         this.router.navigate(['/users/', data.username]);
       } else {
-        let encode = this.userService.customBase64Encode(data.username);
-        response = await lastValueFrom(this.userService.getAccessToken('bhaaa_'.concat(encode), data.password)) as GetAccessTokenResponse;
-        console.log(response)
-        if (response.access_token) {
-          this.access_token = response.access_token
+        let encode = this.userService.encodeNombre(data.username);
+        response = await lastValueFrom(this.userService.getAccessToken(encode, data.password)) as GetAccessTokenResponse;
+        if (response.errcode === 'Success') {
           sessionStorage.setItem('logged', '1')
           sessionStorage.setItem('user', data.username)
-          sessionStorage.setItem('token', this.access_token);
           sessionStorage.setItem('Account', 'Vohk')
           this.router.navigate(['/users/', data.username]);
         } else {

@@ -16,7 +16,7 @@ import { lastValueFrom } from 'rxjs';
 export class PasscodeComponent{
 
   constructor(public passcodeService: PasscodeServiceService, public lockService: LockServiceService, private router: Router, public popupService: PopUpService) {
-    if(!this.passcodeService.token || !this.passcodeService.username || !this.passcodeService.lockID || !this.passcodeService.endDateUser || !this.passcodeService.featureValue) {
+    if(!this.passcodeService.userID || !this.passcodeService.username || !this.passcodeService.lockID || !this.passcodeService.endDateUser || !this.passcodeService.featureValue) {
       this.router.navigate(['users', sessionStorage.getItem('user'), 'lock', sessionStorage.getItem('lockID')])
     }
    }
@@ -94,7 +94,7 @@ export class PasscodeComponent{
           let newEndDay = moment(datos.endDate).valueOf()
           let newStartDate = moment(newStartDay).add(this.lockService.transformarHora(datos.startHour), "milliseconds").valueOf()
           let newEndDate = moment(newEndDay).add(this.lockService.transformarHora(datos.endHour), "milliseconds").valueOf()
-          response = await lastValueFrom(this.passcodeService.generatePasscode(this.passcodeService.token, this.passcodeService.lockID, datos.passcodeType, newStartDate.toString(), datos.name, newEndDate.toString())) as createPasscodeResponse;
+          response = await lastValueFrom(this.passcodeService.generatePasscode(this.passcodeService.userID, this.passcodeService.lockID, datos.passcodeType, newStartDate.toString(), datos.name, newEndDate.toString())) as createPasscodeResponse;
         }
         else {
           if (datos.startHour) {
@@ -102,11 +102,11 @@ export class PasscodeComponent{
             let hoy = moment({hour:0, minute:0}).valueOf()
             let newStartDate = moment(hoy).add(this.lockService.transformarHora(datos.startHour)).valueOf()
             let newEndDate = moment(hoy).add(this.lockService.transformarHora(datos.endHour)).valueOf()
-            response = await lastValueFrom(this.passcodeService.generatePasscode(this.passcodeService.token, this.passcodeService.lockID, datos.passcodeType, newStartDate.toString(), datos.name, newEndDate.toString())) as createPasscodeResponse;
+            response = await lastValueFrom(this.passcodeService.generatePasscode(this.passcodeService.userID, this.passcodeService.lockID, datos.passcodeType, newStartDate.toString(), datos.name, newEndDate.toString())) as createPasscodeResponse;
           }
           else {
             //PERMANENT PASSCODE
-            response = await lastValueFrom(this.passcodeService.generatePasscode(this.passcodeService.token, this.passcodeService.lockID, datos.passcodeType, moment().valueOf().toString(), datos.name)) as createPasscodeResponse
+            response = await lastValueFrom(this.passcodeService.generatePasscode(this.passcodeService.userID, this.passcodeService.lockID, datos.passcodeType, moment().valueOf().toString(), datos.name)) as createPasscodeResponse
           }
         }
       }
@@ -118,11 +118,11 @@ export class PasscodeComponent{
             let newEndDay = moment(datos.endDate).valueOf()
             let newStartDate = moment(newStartDay).add(this.lockService.transformarHora(datos.startHour), "milliseconds").valueOf()
             let newEndDate = moment(newEndDay).add(this.lockService.transformarHora(datos.endHour), "milliseconds").valueOf()
-            response = await lastValueFrom(this.passcodeService.generateCustomPasscode(this.passcodeService.token, this.passcodeService.lockID, datos.passcodePwd, "3", datos.name, newStartDate.toString(), newEndDate.toString())) as createPasscodeResponse;
+            response = await lastValueFrom(this.passcodeService.generateCustomPasscode(this.passcodeService.userID, this.passcodeService.lockID, datos.passcodePwd, "3", datos.name, newStartDate.toString(), newEndDate.toString())) as createPasscodeResponse;
           }
           else {
             //CUSTOM PERMANENT PASSCODE
-            response = await lastValueFrom(this.passcodeService.generateCustomPasscode(this.passcodeService.token, this.passcodeService.lockID, datos.passcodePwd, "2", datos.name, "0", "0")) as createPasscodeResponse;
+            response = await lastValueFrom(this.passcodeService.generateCustomPasscode(this.passcodeService.userID, this.passcodeService.lockID, datos.passcodePwd, "2", datos.name, "0", "0")) as createPasscodeResponse;
           }
         } else {
           this.popupService.needGateway = true;
@@ -175,7 +175,7 @@ export class PasscodeComponent{
     try {
       let startDate = moment().valueOf()
       let endDate = moment().add(this.howManyHours, "hours").valueOf()
-      response = await lastValueFrom(this.passcodeService.generatePasscode(this.passcodeService.token, this.passcodeService.lockID, '3', startDate.toString(), datos.name, endDate.toString())) as createPasscodeResponse;
+      response = await lastValueFrom(this.passcodeService.generatePasscode(this.passcodeService.userID, this.passcodeService.lockID, '3', startDate.toString(), datos.name, endDate.toString())) as createPasscodeResponse;
       console.log(response)
       if (response.keyboardPwdId) {
         this.passcodeService.passcodesimple = false;

@@ -43,7 +43,7 @@ export class PopUpService {
   detalles: LockDetails;
   currentTime: number;
   welcomingMessage: string;
-  token: string;
+  userID: string;
   lockID: number;
   elementType: string;
   elementID: number;

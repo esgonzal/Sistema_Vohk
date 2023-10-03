@@ -9,20 +9,20 @@ import { operationResponse } from '../Interfaces/API_responses';
 })
 export class PassageModeService {
 
-  token: string;
+  userID: string;
   lockID: number;
   passageModeConfig: PassageMode;
 
   constructor(private http: HttpClient) { }
 
-  getPassageModeConfig(token: string, lockID: number): Observable<PassageMode> {
-    let body = { token, lockID };
+  getPassageModeConfig(userID: string, lockID: number): Observable<PassageMode> {
+    let body = { userID, lockID };
     let url = 'http://localhost:3000/api/ttlock/passageMode/get'
     return this.http.post<PassageMode>(url, body);
   }
-  setPassageMode(token: string, lockID: number, passageMode:number, startDate: string, endDate:string, isAllDay:number, weekDays: number[]): Observable<operationResponse> {
+  setPassageMode(userID: string, lockID: number, passageMode:number, startDate: string, endDate:string, isAllDay:number, weekDays: number[]): Observable<operationResponse> {
     let formatted_weekDays = JSON.stringify(weekDays)
-    let body = { token, lockID, passageMode, startDate, endDate, isAllDay, formatted_weekDays};
+    let body = { userID, lockID, passageMode, startDate, endDate, isAllDay, formatted_weekDays};
     let url = 'http://localhost:3000/api/ttlock/passageMode/set'
     return this.http.post<operationResponse>(url, body);
   }

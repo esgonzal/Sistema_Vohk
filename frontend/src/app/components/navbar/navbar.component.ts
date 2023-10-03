@@ -1,5 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { lastValueFrom } from 'rxjs';
+import { logoutResponse } from 'src/app/Interfaces/API_responses';
 import { UserServiceService } from 'src/app/services/user-service.service';
 
 @Component({
@@ -28,9 +30,15 @@ export class NavbarComponent {
     let username = sessionStorage.getItem('user') ?? '';
     this.router.navigate(['users', username, 'perfil']);
   }
-  cerrarSesion() {
+  async cerrarSesion() {
+    let userID: string;
+    if (this.returnAccountType() === 'TTLock'){
+      userID = this.returnNombre();
+    } else {
+      userID = this.userService.encodeNombre(this.returnNombre());
+    }
+    await lastValueFrom(this.userService.logOut(userID)) as logoutResponse;
     sessionStorage.removeItem('user');
-    sessionStorage.removeItem('token');
     sessionStorage.removeItem('keyRight');
     sessionStorage.removeItem('userType');
     sessionStorage.removeItem('startDate');

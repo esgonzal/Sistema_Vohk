@@ -34,7 +34,7 @@ export class TransferLockComponent {
     try {
       let lockID = sessionStorage.getItem('lockID') ?? ''
       let lockIDList: string = "[".concat(lockID).concat("]");
-      let response = await lastValueFrom(this.lockService.transferLock(this.lockService.token, this.recieverUsername, lockIDList)) as operationResponse;
+      let response = await lastValueFrom(this.lockService.transferLock(this.lockService.userID, this.recieverUsername, lockIDList)) as operationResponse;
       if (response.errcode === 0) {//Es cuenta TTLock
         this.router.navigate(["users", sessionStorage.getItem('user') ?? '']);
         console.log("La cerradura se transfirió a la cuenta TTLock exitosamente")
@@ -42,7 +42,7 @@ export class TransferLockComponent {
         lastValueFrom(this.ekeyService.changeIsUser(this.recieverUsername, Number(lockID), false))
       } else if (response.errcode === -1002) {
         let encode = this.userService.customBase64Encode(this.recieverUsername);
-        response = await lastValueFrom(this.lockService.transferLock(this.lockService.token, 'bhaaa_'.concat(encode), lockIDList)) as operationResponse;
+        response = await lastValueFrom(this.lockService.transferLock(this.lockService.userID, 'bhaaa_'.concat(encode), lockIDList)) as operationResponse;
         if (response.errcode == 0) {//Es cuenta VOHK
           this.router.navigate(["users", sessionStorage.getItem('user') ?? '']);
           console.log("La cerradura se transfirió a la cuenta VOHK exitosamente")

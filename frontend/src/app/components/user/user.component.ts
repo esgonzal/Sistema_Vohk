@@ -10,6 +10,7 @@ import { Group,  } from '../../Interfaces/Group';
 import { LockListResponse, GroupResponse } from '../../Interfaces/API_responses'
 import moment from 'moment';
 import { lastValueFrom } from 'rxjs/internal/lastValueFrom';
+import { UserServiceService } from 'src/app/services/user-service.service';
 
 @Component({
   selector: 'app-user',
@@ -19,8 +20,10 @@ import { lastValueFrom } from 'rxjs/internal/lastValueFrom';
 })
 export class UserComponent implements OnInit {
 
+  constructor(private router: Router, public groupService: GroupService, private ekeyService: EkeyServiceService, public popupService: PopUpService, private userService: UserServiceService) { }
+
   username = sessionStorage.getItem('user') ?? '';
-  token = sessionStorage.getItem('token') ?? '';
+  userID: string;
   isLoading: boolean = false;
   ekeyList: LockListResponse;
   allLocks: LockData[] = [];
@@ -36,9 +39,13 @@ export class UserComponent implements OnInit {
   faWifi = faWifi
   private selectedGroupSubscription: Subscription;
 
-  constructor(private router: Router, public groupService: GroupService, private ekeyService: EkeyServiceService, public popupService: PopUpService) { }
 
   async ngOnInit() {
+    if(sessionStorage.getItem('Account') === 'Vohk'){
+      this.userID = this.userService.encodeNombre(this.username);
+    } else {
+      this.userID = this.username
+    }
     await this.getAllLocks();
     await this.fetchGroups();
     //await this.getLocksWithoutGroup();
@@ -70,7 +77,7 @@ export class UserComponent implements OnInit {
     this.locks = [];
     this.isLoading = true;
     try {
-      const response = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.token, pageNo, 100, groupId));
+      const response = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.userID, pageNo, 100, groupId));
       const typedResponse = response as LockListResponse;
       if (typedResponse?.list) {
         this.locks.push(...typedResponse.list);
@@ -89,7 +96,7 @@ export class UserComponent implements OnInit {
   async fetchGroups() {
     this.isLoading = true;
     try {
-      const response = await lastValueFrom(this.groupService.getGroupofAccount(this.token));
+      const response = await lastValueFrom(this.groupService.getGroupofAccount(this.userID));
       const typedResponse = response as GroupResponse;
       if (typedResponse?.list) {
         this.groups = typedResponse.list;
@@ -113,7 +120,7 @@ export class UserComponent implements OnInit {
     const pageSize = 100;
     group.locks = [];
     while (true) {
-      const locksResponse = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.token, pageNo, pageSize, group.groupId));
+      const locksResponse = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.userID, pageNo, pageSize, group.groupId));
       const locksTypedResponse = locksResponse as LockListResponse;
       if (locksTypedResponse?.list && locksTypedResponse.list.length > 0) {
         lockCount += locksTypedResponse.list.length;
@@ -135,7 +142,7 @@ export class UserComponent implements OnInit {
       let pageNo = 1;
       const pageSize = 100;
       while (true) {
-        const locksResponse = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.token, pageNo, pageSize, 0));
+        const locksResponse = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.userID, pageNo, pageSize, 0));
         const locksTypedResponse = locksResponse as LockListResponse;
         if (locksTypedResponse?.list) {
           this.allLocks.push(...locksTypedResponse.list)
@@ -163,7 +170,7 @@ export class UserComponent implements OnInit {
     let pageNo = 1;
     const pageSize = 100;
     while (true) {
-      const locksResponse = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.token, pageNo, pageSize, 0));
+      const locksResponse = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.userID, pageNo, pageSize, 0));
       const locksTypedResponse = locksResponse as LockListResponse;
       if (locksTypedResponse?.list) {
         this.locksWithoutGroup.push(...locksTypedResponse.list.filter(lock => !lock.groupId))

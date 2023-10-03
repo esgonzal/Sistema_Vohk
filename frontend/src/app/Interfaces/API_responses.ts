@@ -83,7 +83,7 @@ export interface GetAccessTokenResponse {
     uid: number;
     //invalida response
     description: string;
-    errcode: number;
+    errcode: string;
     errmsg: string;
 }
 export interface ResetPasswordResponse {
@@ -125,5 +125,8 @@ export interface getByUserAndLockIdResponse {
     accountname: string;
     lockid: number;
     isuser: boolean;
+    message: string;
+}
+export interface logoutResponse {
     message: string;
 }

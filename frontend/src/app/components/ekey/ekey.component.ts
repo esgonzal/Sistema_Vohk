@@ -16,7 +16,7 @@ import { LockServiceService } from '../../services/lock-service.service';
 export class EkeyComponent {
 
   constructor(private router: Router, public ekeyService: EkeyServiceService, private userService: UserServiceService, private lockService: LockServiceService) {
-    if(!this.ekeyService.username || !this.ekeyService.token || !this.ekeyService.lockID || !this.ekeyService.endDateUser) {
+    if(!this.ekeyService.username || !this.ekeyService.userID || !this.ekeyService.lockID || !this.ekeyService.endDateUser) {
       this.router.navigate(['users', sessionStorage.getItem('user'), 'lock', sessionStorage.getItem('lockID')])
     }
    }
@@ -133,7 +133,7 @@ export class EkeyComponent {
     try {
       if (datos.ekeyType === '1') {
         ///////////PERMANENTE////////////////////////////////
-        let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.token, this.ekeyService.lockID, datos.recieverName, datos.name, "0", "0", 1)) as sendEkeyResponse;
+        let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, datos.recieverName, datos.name, "0", "0", 1)) as sendEkeyResponse;
         if (sendEkeyResponse.errcode === 0) {//Existe una cuenta TTLock de destinatario y la ekey fue enviada correctamente
           //Se agrega la eKey a la base de datos VOHK
           const response2 = await lastValueFrom(this.ekeyService.createEkeyDB(datos.recieverName, this.ekeyService.lockID, true));
@@ -150,7 +150,7 @@ export class EkeyComponent {
           let new_password = this.generateRandomPassword();
           let userRegisterResponse = await lastValueFrom(this.userService.UserRegister(encode, new_password)) as UserRegisterResponse;
           if (userRegisterResponse.username) {//El destinatario no tiene cuenta, se crea una cuenta VOHK
-            sendEkeyResponse = await (lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.token, this.ekeyService.lockID, 'bhaaa_'.concat(encode), datos.name, "0", "0", 1))) as sendEkeyResponse;
+            sendEkeyResponse = await (lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, 'bhaaa_'.concat(encode), datos.name, "0", "0", 1))) as sendEkeyResponse;
             if (sendEkeyResponse.errcode === 0) {//Se envia correctamente la ekey a la cuenta nueva
               //Se agrega la eKey a la base de datos VOHK
               const response2 = await lastValueFrom(this.ekeyService.createEkeyDB('bhaaa_'.concat(encode), this.ekeyService.lockID, true));
@@ -178,7 +178,7 @@ export class EkeyComponent {
             }
           }
           else if (userRegisterResponse.errcode === 30003) {//El destinatario es una cuenta VOHK
-            sendEkeyResponse = await (lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.token, this.ekeyService.lockID, 'bhaaa_'.concat(encode), datos.name, "0", "0", 1))) as sendEkeyResponse;
+            sendEkeyResponse = await (lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, 'bhaaa_'.concat(encode), datos.name, "0", "0", 1))) as sendEkeyResponse;
             if (sendEkeyResponse.errcode === 0) {//Se envia correctamente la ekey a la cuenta VOHK
               //Se agrega la eKey a la base de datos VOHK
               const response2 = await lastValueFrom(this.ekeyService.createEkeyDB('bhaaa_'.concat(encode), this.ekeyService.lockID, true));
@@ -201,7 +201,7 @@ export class EkeyComponent {
         let newEndDay = moment(datos.endDate).valueOf()
         let newStartDate = moment(newStartDay).add(this.lockService.transformarHora(datos.startHour), "milliseconds").valueOf()
         let newEndDate = moment(newEndDay).add(this.lockService.transformarHora(datos.endHour), "milliseconds").valueOf()
-        let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.token, this.ekeyService.lockID, datos.recieverName, datos.name, newStartDate.toString(), newEndDate.toString(), 1)) as sendEkeyResponse;
+        let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, datos.recieverName, datos.name, newStartDate.toString(), newEndDate.toString(), 1)) as sendEkeyResponse;
         if (sendEkeyResponse.errcode === 0) {//Existe una cuenta TTLock de destinatario y la ekey fue enviada correctamente
           //Se agrega la eKey a la base de datos VOHK
           const response2 = await lastValueFrom(this.ekeyService.createEkeyDB(datos.recieverName, this.ekeyService.lockID, true));
@@ -218,7 +218,7 @@ export class EkeyComponent {
           let new_password = this.generateRandomPassword();
           let userRegisterResponse = await lastValueFrom(this.userService.UserRegister(encode, new_password)) as UserRegisterResponse;
           if (userRegisterResponse.username) {//El destinatario no tiene cuenta, se crea una cuenta VOHK
-            sendEkeyResponse = await (lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.token, this.ekeyService.lockID, 'bhaaa_'.concat(encode), datos.name, newStartDate.toString(), newEndDate.toString(), 1))) as sendEkeyResponse;
+            sendEkeyResponse = await (lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, 'bhaaa_'.concat(encode), datos.name, newStartDate.toString(), newEndDate.toString(), 1))) as sendEkeyResponse;
             if (sendEkeyResponse.errcode === 0) {//Se envia correctamente la ekey a la cuenta nueva
               //Se agrega la eKey a la base de datos VOHK
               const response2 = await lastValueFrom(this.ekeyService.createEkeyDB('bhaaa_'.concat(encode), this.ekeyService.lockID, true));
@@ -246,7 +246,7 @@ export class EkeyComponent {
             }
           }
           else if (userRegisterResponse.errcode === 30003) {//El destinatario es una cuenta VOHK
-            sendEkeyResponse = await (lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.token, this.ekeyService.lockID, 'bhaaa_'.concat(encode), datos.name, newStartDate.toString(), newEndDate.toString(), 1))) as sendEkeyResponse;
+            sendEkeyResponse = await (lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, 'bhaaa_'.concat(encode), datos.name, newStartDate.toString(), newEndDate.toString(), 1))) as sendEkeyResponse;
             if (sendEkeyResponse.errcode === 0) {//Se envia correctamente la ekey a la cuenta VOHK
               //Se agrega la eKey a la base de datos VOHK
               const response2 = await lastValueFrom(this.ekeyService.createEkeyDB('bhaaa_'.concat(encode), this.ekeyService.lockID, true));
@@ -265,7 +265,7 @@ export class EkeyComponent {
       }
       else if (datos.ekeyType === '3') {
         ///////////DE UN USO/////////////////////////////////////////////////////////////////////////////
-        let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.token, this.ekeyService.lockID, datos.recieverName, datos.name, moment().valueOf().toString(), "1", 1)) as sendEkeyResponse;
+        let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, datos.recieverName, datos.name, moment().valueOf().toString(), "1", 1)) as sendEkeyResponse;
         if (sendEkeyResponse.errcode === 0) {//Existe una cuenta TTLock de destinatario y la ekey fue enviada correctamente
           //Se agrega la eKey a la base de datos VOHK
           const response2 = await lastValueFrom(this.ekeyService.createEkeyDB(datos.recieverName, this.ekeyService.lockID, true));
@@ -282,7 +282,7 @@ export class EkeyComponent {
           let new_password = this.generateRandomPassword();
           let userRegisterResponse = await lastValueFrom(this.userService.UserRegister(encode, new_password)) as UserRegisterResponse;
           if (userRegisterResponse.username) {//El destinatario no tiene cuenta, se crea una cuenta VOHK
-            sendEkeyResponse = await (lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.token, this.ekeyService.lockID, 'bhaaa_'.concat(encode), datos.name, moment().valueOf().toString(), "1", 1))) as sendEkeyResponse;
+            sendEkeyResponse = await (lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, 'bhaaa_'.concat(encode), datos.name, moment().valueOf().toString(), "1", 1))) as sendEkeyResponse;
             if (sendEkeyResponse.errcode === 0) {//Se envia correctamente la ekey a la cuenta nueva
               //Se agrega la eKey a la base de datos VOHK
               const response2 = await lastValueFrom(this.ekeyService.createEkeyDB('bhaaa_'.concat(encode), this.ekeyService.lockID, true));
@@ -310,7 +310,7 @@ export class EkeyComponent {
             }
           }
           else if (userRegisterResponse.errcode === 30003) {//El destinatario es una cuenta VOHK
-            sendEkeyResponse = await (lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.token, this.ekeyService.lockID, 'bhaaa_'.concat(encode), datos.name, moment().valueOf().toString(), "1", 1))) as sendEkeyResponse;
+            sendEkeyResponse = await (lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, 'bhaaa_'.concat(encode), datos.name, moment().valueOf().toString(), "1", 1))) as sendEkeyResponse;
             if (sendEkeyResponse.errcode === 0) {//Se envia correctamente la ekey a la cuenta de PC
               //Se agrega la eKey a la base de datos VOHK
               const response2 = await lastValueFrom(this.ekeyService.createEkeyDB('bhaaa_'.concat(encode), this.ekeyService.lockID, true));
@@ -337,7 +337,7 @@ export class EkeyComponent {
         this.weekDays.forEach(day => {
           if (day.checked) { selectedDayNumbers.push(day.value) }
         });
-        let sendEkeyResponse = await (lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.token, this.ekeyService.lockID, datos.recieverName, datos.name, newStartDate.toString(), newEndDate.toString(), 1, 4, newStartDay.toString(), newEndDay.toString(), JSON.stringify(selectedDayNumbers)))) as sendEkeyResponse;
+        let sendEkeyResponse = await (lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, datos.recieverName, datos.name, newStartDate.toString(), newEndDate.toString(), 1, 4, newStartDay.toString(), newEndDay.toString(), JSON.stringify(selectedDayNumbers)))) as sendEkeyResponse;
         if (sendEkeyResponse.errcode === 0) {//Existe una cuenta TTLock de destinatario y la ekey fue enviada correctamente
           //Se agrega la eKey a la base de datos VOHK
           const response2 = await lastValueFrom(this.ekeyService.createEkeyDB(datos.recieverName, this.ekeyService.lockID, true));
@@ -354,7 +354,7 @@ export class EkeyComponent {
           let new_password = this.generateRandomPassword();
           let userRegisterResponse = await lastValueFrom(this.userService.UserRegister(encode, new_password)) as UserRegisterResponse;
           if (userRegisterResponse.username) {//El destinatario no tiene cuenta, se crea una cuenta VOHK
-            sendEkeyResponse = await (lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.token, this.ekeyService.lockID, 'bhaaa_'.concat(encode), datos.name, newStartDate.toString(), newEndDate.toString(), 1, 4, newStartDay.toString(), newEndDay.toString(), JSON.stringify(selectedDayNumbers)))) as sendEkeyResponse;
+            sendEkeyResponse = await (lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, 'bhaaa_'.concat(encode), datos.name, newStartDate.toString(), newEndDate.toString(), 1, 4, newStartDay.toString(), newEndDay.toString(), JSON.stringify(selectedDayNumbers)))) as sendEkeyResponse;
             if (sendEkeyResponse.errcode === 0) {//Se envia correctamente la ekey a la cuenta nueva
               //Se agrega la eKey a la base de datos VOHK
               const response2 = await lastValueFrom(this.ekeyService.createEkeyDB('bhaaa_'.concat(encode), this.ekeyService.lockID, true));
@@ -382,7 +382,7 @@ export class EkeyComponent {
             }
           }
           else if (userRegisterResponse.errcode === 30003) {//El destinatario es una cuenta VOHK
-            sendEkeyResponse = await (lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.token, this.ekeyService.lockID, 'bhaaa_'.concat(encode), datos.name, newStartDate.toString(), newEndDate.toString(), 1, 4, newStartDay.toString(), newEndDay.toString(), JSON.stringify(selectedDayNumbers)))) as sendEkeyResponse;
+            sendEkeyResponse = await (lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, 'bhaaa_'.concat(encode), datos.name, newStartDate.toString(), newEndDate.toString(), 1, 4, newStartDay.toString(), newEndDay.toString(), JSON.stringify(selectedDayNumbers)))) as sendEkeyResponse;
             if (sendEkeyResponse.errcode === 0) {//Se envia correctamente la ekey a la cuenta de PC
               //Se agrega la eKey a la base de datos VOHK
               const response2 = await lastValueFrom(this.ekeyService.createEkeyDB('bhaaa_'.concat(encode), this.ekeyService.lockID, true));

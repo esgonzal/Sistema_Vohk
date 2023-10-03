@@ -2,21 +2,26 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 
-// Constants for clientId and clientSecret
+const { accessTokenStorage } = require('./accessTokenStorage'); 
 const TTLOCK_CLIENT_ID = 'c4114592f7954ca3b751c44d81ef2c7d';
 
 router.post('/getListLock', async (req, res) => {
-    let { token, lockID } = req.body;
+    let { userID, lockID } = req.body;
     try {
         let date = Date.now()
+        const accessToken = accessTokenStorage[userID] || null;
+        if (!accessToken) {
+            return res.status(401).json({ error: 'Access token not found for this user' });
+        }
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
-            accessToken: token,
+            accessToken: accessToken,
             lockId: lockID,
             date,
         };
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': `Bearer ${accessToken}`
         };
         let ttlockResponse = await axios.post(
             'https://euapi.ttlock.com/v3/gateway/listByLock',
@@ -31,18 +36,23 @@ router.post('/getListLock', async (req, res) => {
     }
 });
 router.post('/getListAccount', async (req, res) => {
-    let { token, pageNo, pageSize } = req.body;
+    let { userID, pageNo, pageSize } = req.body;
     try {
         let date = Date.now()
+        const accessToken = accessTokenStorage[userID] || null;
+        if (!accessToken) {
+            return res.status(401).json({ error: 'Access token not found for this user' });
+        }
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
-            accessToken: token,
+            accessToken: accessToken,
             pageNo: pageNo,
             pageSize: pageSize,
             date,
         };
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': `Bearer ${accessToken}`
         };
         let ttlockResponse = await axios.post(
             'https://euapi.ttlock.com/v3/gateway/list',
@@ -57,17 +67,22 @@ router.post('/getListAccount', async (req, res) => {
     }
 });
 router.post('/unlock', async (req, res) => {
-    let { token, lockID } = req.body;
+    let { userID, lockID } = req.body;
     try {
         let date = Date.now()
+        const accessToken = accessTokenStorage[userID] || null;
+        if (!accessToken) {
+            return res.status(401).json({ error: 'Access token not found for this user' });
+        }
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
-            accessToken: token,
+            accessToken: accessToken,
             lockId: lockID,
             date,
         };
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': `Bearer ${accessToken}`
         };
         let ttlockResponse = await axios.post(
             'https://euapi.ttlock.com/v3/lock/unlock',
@@ -82,17 +97,22 @@ router.post('/unlock', async (req, res) => {
     }
 });
 router.post('/lock', async (req, res) => {
-    let { token, lockID } = req.body;
+    let { userID, lockID } = req.body;
     try {
         let date = Date.now()
+        const accessToken = accessTokenStorage[userID] || null;
+        if (!accessToken) {
+            return res.status(401).json({ error: 'Access token not found for this user' });
+        }
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
-            accessToken: token,
+            accessToken: accessToken,
             lockId: lockID,
             date,
         };
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': `Bearer ${accessToken}`
         };
         let ttlockResponse = await axios.post(
             'https://euapi.ttlock.com/v3/lock/lock',
@@ -107,17 +127,22 @@ router.post('/lock', async (req, res) => {
     }
 });
 router.post('/getTime', async (req, res) => {
-    let { token, lockID } = req.body;
+    let { userID, lockID } = req.body;
     try {
         let date = Date.now()
+        const accessToken = accessTokenStorage[userID] || null;
+        if (!accessToken) {
+            return res.status(401).json({ error: 'Access token not found for this user' });
+        }
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
-            accessToken: token,
+            accessToken: accessToken,
             lockId: lockID,
             date,
         };
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': `Bearer ${accessToken}`
         };
         let ttlockResponse = await axios.post(
             'https://euapi.ttlock.com/v3/lock/queryDate',
@@ -132,17 +157,22 @@ router.post('/getTime', async (req, res) => {
     }
 });
 router.post('/adjustTime', async (req, res) => {
-    let { token, lockID } = req.body;
+    let { userID, lockID } = req.body;
     try {
         let date = Date.now()
+        const accessToken = accessTokenStorage[userID] || null;
+        if (!accessToken) {
+            return res.status(401).json({ error: 'Access token not found for this user' });
+        }
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
-            accessToken: token,
+            accessToken: accessToken,
             lockId: lockID,
             date,
         };
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': `Bearer ${accessToken}`
         };
         let ttlockResponse = await axios.post(
             'https://euapi.ttlock.com/v3/lock/updateDate',
