@@ -301,7 +301,13 @@ export class LockComponent implements OnInit {
   async fetchEkeysPage(pageNo: number) {
     this.isLoading = true;
     try {
-      const response = await lastValueFrom(this.ekeyService.getEkeysofLock(this.token, this.lockId, pageNo, 100))
+      let userID = '';
+      if(sessionStorage.getItem('Account') === 'TTLock') {
+        userID = this.username;
+      } else {
+        userID = this.encodeNombre(this.username);
+      }
+      const response = await lastValueFrom(this.ekeyService.getEkeysofLock(userID, this.lockId, pageNo, 100))
       const typedResponse = response as EkeyResponse;
       if (typedResponse?.list) {
         for (const ekey of typedResponse.list) {

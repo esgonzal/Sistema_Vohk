@@ -28,8 +28,8 @@ export class EkeyServiceService {
     let url = 'http://localhost:3000/api/ttlock/ekey/getListAccount';
     return this.http.post<LockListResponse>(url, body);
   }
-  getEkeysofLock(token: string, lockID: number, pageNo: number, pageSize: number): Observable<EkeyResponse> {
-    let body = { token, lockID, pageNo, pageSize };
+  getEkeysofLock(userID: string, lockID: number, pageNo: number, pageSize: number): Observable<EkeyResponse> {
+    let body = { userID, lockID, pageNo, pageSize };
     let url = 'http://localhost:3000/api/ttlock/ekey/getListLock';
     return this.http.post<EkeyResponse>(url, body);
   }

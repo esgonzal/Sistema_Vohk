@@ -6,6 +6,7 @@ const md5 = require('md5');
 // Constants for clientId and clientSecret
 const TTLOCK_CLIENT_ID = 'c4114592f7954ca3b751c44d81ef2c7d';
 const TTLOCK_CLIENT_SECRET = '33b556bdb803763f2e647fc7a357dedf';
+const { accessTokenStorage, storeAccessToken } = require('./accessTokenStorage');  
 
 router.post('/register', async (req, res) => {
     let { nombre, clave } = req.body;
@@ -34,7 +35,6 @@ router.post('/register', async (req, res) => {
         res.status(500).json({ error: 'Error with TTLock API' });
     }
 });
-
 router.post('/login', async (req, res) => {
     let { nombre, clave } = req.body;
     try {
@@ -54,13 +54,14 @@ router.post('/login', async (req, res) => {
             { headers }
         );
         //console.log(ttlockResponse.data)
+        storeAccessToken(nombre, ttlockResponse.data.access_token);
+        console.log(accessTokenStorage)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error with TTLock API' });
     }
 });
-
 router.post('/resetPassword', async (req, res) => {
     let { nombre, clave } = req.body;
     try {
@@ -88,6 +89,5 @@ router.post('/resetPassword', async (req, res) => {
         res.status(500).json({ error: 'Error with TTLock API' });
     }
 });
-
 // Export the TTLock router
 module.exports = router;

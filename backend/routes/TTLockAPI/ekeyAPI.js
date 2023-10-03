@@ -2,19 +2,12 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 
+const { accessTokenStorage } = require('./accessTokenStorage'); 
+
 // Constants for clientId and clientSecret
 const TTLOCK_CLIENT_ID = 'c4114592f7954ca3b751c44d81ef2c7d';
 
-const ttlockAccessTokenMiddleware = (req, res, next) => {
-    if (req.path.startsWith('/api/ttlock/')) {
-        console.log(req.cookies)
-        req.accessToken = req.cookies.access_token || null;
-    }
-    next();
-};
 
-// Apply the middleware to this router
-router.use(ttlockAccessTokenMiddleware);
 
 router.post('/getListAccount', async (req, res) => {
     let { token, pageNo, pageSize, groupId } = req.body;
@@ -31,7 +24,6 @@ router.post('/getListAccount', async (req, res) => {
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded',
         };
-        console.log('Request Payload:', ttlockData);
         let ttlockResponse = await axios.post(
             'https://euapi.ttlock.com/v3/key/list',
             ttlockData,
@@ -45,12 +37,16 @@ router.post('/getListAccount', async (req, res) => {
     }
 });
 router.post('/getListLock', async (req, res) => {
-    let { token, lockID, pageNo, pageSize } = req.body;
+    let { userID, lockID, pageNo, pageSize } = req.body;
     try {
         let date = Date.now()
+        const accessToken = accessTokenStorage[userID] || null;
+        if (!accessToken) {
+            return res.status(401).json({ error: 'Access token not found for this user' });
+        }
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
-            accessToken: token,
+            accessToken: accessToken,
             lockId: lockID,
             pageNo: pageNo,
             pageSize: pageSize,
@@ -58,6 +54,7 @@ router.post('/getListLock', async (req, res) => {
         };
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': `Bearer ${accessToken}`
         };
         let ttlockResponse = await axios.post(
             'https://euapi.ttlock.com/v3/lock/listKey',
