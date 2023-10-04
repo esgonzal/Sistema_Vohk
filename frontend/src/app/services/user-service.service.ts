@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Md5 } from 'ts-md5';
-import { Observable, lastValueFrom } from 'rxjs';
+import { Observable } from 'rxjs';
 import { GetAccessTokenResponse, ResetPasswordResponse, UserRegisterResponse, checkUserInDBResponse, getUserInDBResponse, logoutResponse } from '../Interfaces/API_responses';
 import { PhoneNumberUtil } from 'google-libphonenumber';
 import emailjs from 'emailjs-com';
@@ -12,8 +12,6 @@ import emailjs from 'emailjs-com';
 })
 export class UserServiceService {
 
-  nombre_usuario: string;
-  clave_usuario: string;
   loggedIn = false;
   private phoneNumberUtil: PhoneNumberUtil;
 

@@ -8,10 +8,6 @@ import { CardResponse, operationResponse } from '../Interfaces/API_responses';
 })
 export class CardServiceService {
 
-  token: string;
-  lockID: number;
-  cardID: number;
-
   constructor(private http: HttpClient) { }
 
   getCardsofLock(userID: string, lockID: number, pageNo: number, pageSize: number): Observable<CardResponse> {

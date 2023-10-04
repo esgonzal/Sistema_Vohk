@@ -1,9 +1,11 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { Router } from '@angular/router';
-import { faBatteryFull, faBatteryThreeQuarters, faBatteryHalf, faBatteryQuarter, faBatteryEmpty, faGear, faWifi } from '@fortawesome/free-solid-svg-icons'
+import { DomSanitizer } from '@angular/platform-browser';
 import moment from 'moment';
-import { LockData, LockDetails } from '../../Interfaces/Lock';
-import { Ekey, Passcode, Card, Fingerprint, Record } from '../../Interfaces/Elements';
+import { lastValueFrom } from 'rxjs';
+import { faBatteryFull, faBatteryThreeQuarters, faBatteryHalf, faBatteryQuarter, faBatteryEmpty, faGear, faWifi } from '@fortawesome/free-solid-svg-icons'
+import { MatTableDataSource } from '@angular/material/table';
+import { MatTabChangeEvent } from '@angular/material/tabs';
 import { LockServiceService } from '../../services/lock-service.service';
 import { EkeyServiceService } from '../../services/ekey-service.service';
 import { PasscodeServiceService } from '../../services/passcode-service.service';
@@ -13,15 +15,13 @@ import { RecordServiceService } from '../../services/record-service.service';
 import { PopUpService } from '../../services/pop-up.service';
 import { GatewayService } from '../../services/gateway.service';
 import { PassageModeService } from '../../services/passage-mode.service';
-import { GroupService } from 'src/app/services/group.service';
-import { DomSanitizer } from '@angular/platform-browser';
-import { Group } from '../../Interfaces/Group';
-import { lastValueFrom } from 'rxjs';
-import { MatTableDataSource } from '@angular/material/table';
-import { UserServiceService } from 'src/app/services/user-service.service';
+import { GroupService } from '../../services/group.service';
+import { UserServiceService } from '../../services/user-service.service';
 import { RecordResponse, EkeyResponse, PasscodeResponse, CardResponse, FingerprintResponse, GatewayAccountResponse, GatewayLockResponse, operationResponse, GetLockTimeResponse, LockListResponse, GroupResponse, getByUserAndLockIdResponse } from '../../Interfaces/API_responses';
-import { PassageMode } from 'src/app/Interfaces/PassageMode';
-import { MatTabChangeEvent } from '@angular/material/tabs';
+import { Ekey, Passcode, Card, Fingerprint, Record } from '../../Interfaces/Elements';
+import { Group } from '../../Interfaces/Group';
+import { PassageMode } from '../../Interfaces/PassageMode';
+import { LockData, LockDetails } from '../../Interfaces/Lock';
 
 @Component({
   selector: 'app-lock',
@@ -31,25 +31,7 @@ import { MatTabChangeEvent } from '@angular/material/tabs';
 })
 export class LockComponent implements OnInit {
 
-  constructor(
-    private router: Router,
-    public popupService: PopUpService,
-    public lockService: LockServiceService,
-    private ekeyService: EkeyServiceService,
-    private passcodeService: PasscodeServiceService,
-    private cardService: CardServiceService,
-    private fingerprintService: FingerprintServiceService,
-    private recordService: RecordServiceService,
-    private gatewayService: GatewayService,
-    private passageModeService: PassageModeService,
-    private sanitizer: DomSanitizer,
-    public userService: UserServiceService,
-    private groupService: GroupService
-  ) { }
 
-  pageLoaded = false;
-  //encapsulation: ViewEncapsulation.None;
-  ////////////////////////////////////////////////////////////
   faBatteryFull = faBatteryFull
   faBatteryThreeQuarters = faBatteryThreeQuarters
   faBatteryHalf = faBatteryHalf
@@ -57,9 +39,6 @@ export class LockComponent implements OnInit {
   faBatteryEmpty = faBatteryEmpty
   faGear = faGear
   faWifi = faWifi
-  ////////////////////////////////////////////////////////////
-  isLoading: boolean = false;
-  lockDetails: LockDetails;
   username = sessionStorage.getItem('user') ?? ''
   userID: string;
   lockId: number = Number(sessionStorage.getItem('lockID') ?? '')
@@ -69,22 +48,23 @@ export class LockComponent implements OnInit {
   endDateDeUser = sessionStorage.getItem('endDate') ?? '';
   Alias: string;
   Bateria: string
-  gateway:string;
-  featureValue:string;
+  gateway: string;
+  featureValue: string;
   isUserValue: boolean;
-  ////////////////////////////////////////////////////////////
+  pageLoaded = false;
+  isLoading: boolean = false;
+  lockDetails: LockDetails;
   ekeys: Ekey[] = []
   passcodes: Passcode[] = []
+  passcodesFiltradas: Passcode[] = []
   fingerprints: Fingerprint[] = []
   cards: Card[] = []
   records: Record[] = []
   recordsFiltrados: Record[] = []
-  passcodesFiltradas: Passcode[] = []
   allLocks: LockData[] = [];
   locks: LockData[] = [];
   locksWithoutGroup: LockData[] = [];
   groups: Group[] = []
-  ////////////////////////////////////////////////////////////
   selectedTabIndex = 0;
   ekeysDataSource: MatTableDataSource<Ekey>;
   passcodesDataSource: MatTableDataSource<Passcode>;
@@ -160,8 +140,25 @@ export class LockComponent implements OnInit {
     { bit: 70, feature: "Support palm vein" },
   ];
 
+  constructor(
+    private router: Router,
+    private sanitizer: DomSanitizer,
+    private ekeyService: EkeyServiceService,
+    private passcodeService: PasscodeServiceService,
+    private cardService: CardServiceService,
+    private fingerprintService: FingerprintServiceService,
+    private recordService: RecordServiceService,
+    private gatewayService: GatewayService,
+    private passageModeService: PassageModeService,
+    private groupService: GroupService,
+    public popupService: PopUpService,
+    public lockService: LockServiceService,
+    public userService: UserServiceService
+  ) { }
+
+
   async ngOnInit() {
-    if(sessionStorage.getItem('Account') === 'Vohk'){
+    if (sessionStorage.getItem('Account') === 'Vohk') {
       this.isUserValue = await this.isUser(this.userService.encodeNombre(this.username))
       this.userID = this.userService.encodeNombre(this.username);
     } else {
@@ -172,19 +169,14 @@ export class LockComponent implements OnInit {
     await this.getAllLocks();
     await this.fetchGroups();
     await this.fetchLockDetails();
-    //console.log("Los detalles del lock: ", this.lockDetails)
     this.Alias = this.lockDetails.lockAlias;
     this.Bateria = this.lockDetails.electricQuantity.toString();
     this.gateway = this.lockDetails.hasGateway.toString();
     this.featureValue = this.lockDetails.featureValue;
     for (const feature of this.featureList) {
-      const isSupported = this.lockService.checkFeature(this.featureValue, feature.bit);
-      if (isSupported) {
-        //console.log(`${feature.bit} - ${feature.feature} - ${isSupported}`);
-      }
+      this.lockService.checkFeature(this.featureValue, feature.bit);
     }
     this.ekeysDataSource = new MatTableDataSource(this.ekeys);
-    console.log('userID: ',this.userID)
     this.pageLoaded = true;
   }
   async getAllLocks() {
@@ -201,10 +193,10 @@ export class LockComponent implements OnInit {
           if (locksTypedResponse.pages > pageNo) {
             pageNo++;
           } else {
-            break; // No more pages to fetch
+            break;
           }
         } else {
-          break; // No more locks to fetch
+          break;
         }
       }
       this.ekeyService.currentLocks = this.allLocks.filter(
@@ -224,7 +216,6 @@ export class LockComponent implements OnInit {
       const typedResponse = response as GroupResponse;
       if (typedResponse?.list) {
         this.groups = typedResponse.list;
-        // Fetch locks and calculate lock counts for each group
         for (const group of this.groups) {
           group.lockCount = await this.calculateLockCountForGroup(group);
         }
@@ -234,7 +225,7 @@ export class LockComponent implements OnInit {
     } catch (error) {
       console.error("Error while fetching groups:", error);
     } finally {
-      this.isLoading = false; // Set isLoading to false when data fetching is complete
+      this.isLoading = false;
     }
     this.groupService.groups = this.groups;
   }
@@ -252,10 +243,10 @@ export class LockComponent implements OnInit {
         if (locksTypedResponse.pages > pageNo) {
           pageNo++;
         } else {
-          break; // No more pages to fetch
+          break;
         }
       } else {
-        break; // No more locks to fetch
+        break;
       }
     }
     return lockCount;
@@ -267,9 +258,8 @@ export class LockComponent implements OnInit {
     } catch (error) {
       console.error("Error while fetching Locks: ", error);
     } finally {
-      this.isLoading = false; // Set isLoading to false when data fetching is complete
+      this.isLoading = false;
     }
-    //console.log("Locks actuales", this.locks)
   }
   async fetchLocksPage(pageNo: number, groupId?: number) {
     this.locks = [];
@@ -288,7 +278,7 @@ export class LockComponent implements OnInit {
     } catch (error) {
       console.error("Error while fetching locks page:", error)
     } finally {
-      this.isLoading = false; // Set isLoading to false when data fetching is complete
+      this.isLoading = false;
     }
   }
   async fetchEkeys() {
@@ -298,7 +288,7 @@ export class LockComponent implements OnInit {
     } catch (error) {
       console.error("Error while fetching ekeys:", error);
     } finally {
-      this.isLoading = false; // Set isLoading to false when data fetching is complete
+      this.isLoading = false;
     }
   }
   async fetchEkeysPage(pageNo: number) {
@@ -320,7 +310,7 @@ export class LockComponent implements OnInit {
     } catch (error) {
       console.error("Error while fetching ekeys page:", error);
     } finally {
-      this.isLoading = false; // Set isLoading to false when data fetching is complete
+      this.isLoading = false;
     }
   }
   async fetchPasscodes() {
@@ -330,7 +320,7 @@ export class LockComponent implements OnInit {
     } catch (error) {
       console.error("Error while fetching passcodes:", error);
     } finally {
-      this.isLoading = false; // Set isLoading to false when data fetching is complete
+      this.isLoading = false;
     }
   }
   async fetchPasscodesPage(pageNo: number) {
@@ -349,7 +339,7 @@ export class LockComponent implements OnInit {
     } catch (error) {
       console.error("Error while fetching passcodes page:", error);
     } finally {
-      this.isLoading = false; // Set isLoading to false when data fetching is complete
+      this.isLoading = false;
     }
   }
   async fetchCards() {
@@ -359,7 +349,7 @@ export class LockComponent implements OnInit {
     } catch (error) {
       console.error("Error while fetching cards:", error);
     } finally {
-      this.isLoading = false; // Set isLoading to false when data fetching is complete
+      this.isLoading = false;
     }
   }
   async fetchCardsPage(pageNo: number) {
@@ -378,7 +368,7 @@ export class LockComponent implements OnInit {
     } catch (error) {
       console.error("Error while fetching cards page:", error);
     } finally {
-      this.isLoading = false; // Set isLoading to false when data fetching is complete
+      this.isLoading = false;
     }
   }
   async fetchFingerprints() {
@@ -388,7 +378,7 @@ export class LockComponent implements OnInit {
     } catch (error) {
       console.error("Error while fetching fingerprints:", error);
     } finally {
-      this.isLoading = false; // Set isLoading to false when data fetching is complete
+      this.isLoading = false;
     }
   }
   async fetchFingerprintsPage(pageNo: number) {
@@ -407,7 +397,7 @@ export class LockComponent implements OnInit {
     } catch (error) {
       console.error("Error while fetching fingerprints page:", error);
     } finally {
-      this.isLoading = false; // Set isLoading to false when data fetching is complete
+      this.isLoading = false;
     }
   }
   async fetchRecords() {
@@ -417,7 +407,7 @@ export class LockComponent implements OnInit {
     } catch (error) {
       console.error("Error while fetching records:", error);
     } finally {
-      this.isLoading = false; // Set isLoading to false when data fetching is complete
+      this.isLoading = false;
     }
   }
   async fetchRecordsPage(pageNo: number) {
@@ -436,7 +426,7 @@ export class LockComponent implements OnInit {
     } catch (error) {
       console.error("Error while fetching records page:", error);
     } finally {
-      this.isLoading = false; // Set isLoading to false when data fetching is complete
+      this.isLoading = false;
     }
   }
   async fetchGatewaysAccount() {
@@ -446,7 +436,7 @@ export class LockComponent implements OnInit {
     } catch (error) {
       console.error("Error while fetching gateways of an account:", error)
     } finally {
-      this.isLoading = false; // Set isLoading to false when data fetching is complete
+      this.isLoading = false;
     }
   }
   async fetchGatewaysAccountPage(pageNo: number) {
@@ -465,7 +455,7 @@ export class LockComponent implements OnInit {
     } catch (error) {
       console.error("Error while fetching gateways page:", error);
     } finally {
-      this.isLoading = false; // Set isLoading to false when data fetching is complete
+      this.isLoading = false;
     }
   }
   async fetchGatewaysLock() {
@@ -496,16 +486,17 @@ export class LockComponent implements OnInit {
     } catch (error) {
       console.error("Error while fetching details of a lock:", error)
     } finally {
-      this.isLoading = false; // Set isLoading to false when data fetching is complete
+      this.isLoading = false;
     }
   }
   updatePasscodeUsage() {
     for (const passcode of this.passcodes) {
       const usedRecord = this.records.find(record => record.keyboardPwd === passcode.keyboardPwd && record.success === 1);
-      if (usedRecord) { passcode.hasBeenUsed = true }
+      if (usedRecord) {
+        passcode.hasBeenUsed = true
+      }
     }
   }
-  //FUNCIONES PARA FORMATO DE TABLA
   async onTabChanged(event: MatTabChangeEvent): Promise<void> {
     this.selectedTabIndex = event.index;
     switch (this.selectedTabIndex) {
@@ -549,7 +540,7 @@ export class LockComponent implements OnInit {
   }
   async isUser(username: string) {
     let response = await lastValueFrom(this.ekeyService.getIsUser(username, this.lockId)) as getByUserAndLockIdResponse;
-    if(response.isuser) {
+    if (response.isuser) {
       return response.isuser;
     } else {
       return false
@@ -577,11 +568,12 @@ export class LockComponent implements OnInit {
       let DiaFinal = moment(ekey.endDay).format('YYYY/MM/DD');
       let selectedDays = JSON.parse(ekey.weekDays);
       let formattedSelectedDays = selectedDays.map((day: number) => dayNames[day]).join(', ');
-
       let formattedResult = `${DiaInicio} - ${DiaFinal}, ${formattedSelectedDays}, ${HoraInicio} ~ ${HoraFinal}`;
       return formattedResult
     }
-    else { return this.periodoValidez(Number(ekey.startDate), Number(ekey.endDate)) }
+    else {
+      return this.periodoValidez(Number(ekey.startDate), Number(ekey.endDate))
+    }
   }
   periodoValidezPasscode(passcode: Passcode) {
     var respuesta
@@ -656,57 +648,37 @@ export class LockComponent implements OnInit {
       return this.periodoValidez(fingerprint.startDate, fingerprint.endDate)
     }
     else {
-      var HoraInicio: string;
-      var HoraFinal: string;
-      var minutosInicio;
-      var minutosFinal;
-      var fechaInicio = moment(fingerprint.startDate)
-      var fechaFinal = moment(fingerprint.endDate)
-      var dia: string;
-      var retorno = fechaInicio.format("YYYY/MM/DD").toString().concat(' - ').concat(fechaFinal.format("YYYY/MM/DD").toString().concat("\n"));
+      let HoraInicio: string;
+      let HoraFinal: string;
+      let minutosInicio;
+      let minutosFinal;
+      let fechaInicio = moment(fingerprint.startDate)
+      let fechaFinal = moment(fingerprint.endDate)
+      let retorno = fechaInicio.format("YYYY/MM/DD").toString().concat(' - ').concat(fechaFinal.format("YYYY/MM/DD").toString().concat("\n"));
       for (let index = 0; index < fingerprint.cyclicConfig.length; index++) {
         if (fingerprint.cyclicConfig[index].weekDay === 1) {
-          dia = ', Lunes'
-          retorno = retorno.concat(dia);
-          minutosInicio = fingerprint.cyclicConfig[index].startTime
-          minutosFinal = fingerprint.cyclicConfig[index].endTime
+          retorno += ', Lunes';
         }
         if (fingerprint.cyclicConfig[index].weekDay === 2) {
-          dia = ', Martes'
-          retorno = retorno.concat(dia);
-          minutosInicio = fingerprint.cyclicConfig[index].startTime
-          minutosFinal = fingerprint.cyclicConfig[index].endTime
+          retorno += ', Martes';
         }
         if (fingerprint.cyclicConfig[index].weekDay === 3) {
-          dia = ', Miercoles'
-          retorno = retorno.concat(dia);
-          minutosInicio = fingerprint.cyclicConfig[index].startTime
-          minutosFinal = fingerprint.cyclicConfig[index].endTime
+          retorno += ', Miercoles';
         }
         if (fingerprint.cyclicConfig[index].weekDay === 4) {
-          dia = ', Jueves'
-          retorno = retorno.concat(dia);
-          minutosInicio = fingerprint.cyclicConfig[index].startTime
-          minutosFinal = fingerprint.cyclicConfig[index].endTime
+          retorno += ', Jueves';
         }
         if (fingerprint.cyclicConfig[index].weekDay === 5) {
-          dia = ', Viernes'
-          retorno = retorno.concat(dia);
-          minutosInicio = fingerprint.cyclicConfig[index].startTime
-          minutosFinal = fingerprint.cyclicConfig[index].endTime
+          retorno += ', Viernes';
         }
         if (fingerprint.cyclicConfig[index].weekDay === 6) {
-          dia = ', Sabado'
-          retorno = retorno.concat(dia);
-          minutosInicio = fingerprint.cyclicConfig[index].startTime
-          minutosFinal = fingerprint.cyclicConfig[index].endTime
+          retorno += ', Sabado';
         }
         if (fingerprint.cyclicConfig[index].weekDay === 7) {
-          dia = ', Domingo'
-          retorno = retorno.concat(dia);
-          minutosInicio = fingerprint.cyclicConfig[index].startTime
-          minutosFinal = fingerprint.cyclicConfig[index].endTime
+          retorno += ', Domingo';
         }
+        minutosInicio = fingerprint.cyclicConfig[index].startTime
+        minutosFinal = fingerprint.cyclicConfig[index].endTime
       }
       //SE AGREGA EL TIEMPO DE CICLO A LA FECHA
       fechaInicio.add(minutosInicio, 'minutes')
@@ -714,27 +686,35 @@ export class LockComponent implements OnInit {
       fechaFinal.add(1, 'minutes');//POR ALGUNA RAZON LE FALTA UN MINUTO A LA HORA FINAL TALVEZ REDONDEA MAL
       //AGREGAR UN 0 AL INICIO PARA QUE QUEDE 09:00 EN VEZ DE 9:00
       if (fechaInicio.hours() < 10) {
-        var cero = "0";
+        let cero = "0";
         cero = cero.concat(fechaInicio.hours().toString())
         HoraInicio = cero
-      } else { HoraInicio = fechaInicio.hours().toString() }
+      } else {
+        HoraInicio = fechaInicio.hours().toString()
+      }
       //SE HACE LO MISMO CON MINUTOS Y SE JUNTAN PARA QUE QUEDE 09:08 EN VEZ DE 09:8
       if (fechaInicio.minutes() < 10) {
-        var cero = "0";
+        let cero = "0";
         cero = cero.concat(fechaInicio.minutes().toString())
         HoraInicio = HoraInicio.concat(":").concat(cero);
-      } else { HoraInicio = HoraInicio.concat(":").concat(fechaInicio.minutes().toString()) }
+      } else {
+        HoraInicio = HoraInicio.concat(":").concat(fechaInicio.minutes().toString())
+      }
       //HACER LO MISMO CON HORA FINAL
       if (fechaFinal.hours() < 10) {
-        var cero = "0";
+        let cero = "0";
         cero = cero.concat(fechaFinal.hours().toString())
         HoraFinal = cero
-      } else { HoraFinal = fechaFinal.hours().toString() }
+      } else {
+        HoraFinal = fechaFinal.hours().toString()
+      }
       if (fechaFinal.minutes() < 10) {
-        var cero = "0";
+        let cero = "0";
         cero = cero.concat(fechaFinal.minutes().toString())
         HoraFinal = HoraFinal.concat(":").concat(cero);
-      } else { HoraFinal = HoraFinal.concat(":").concat(fechaFinal.minutes().toString()) }
+      } else {
+        HoraFinal = HoraFinal.concat(":").concat(fechaFinal.minutes().toString())
+      }
       retorno = retorno.concat("\n").concat(HoraInicio).concat(" ~ ").concat(HoraFinal)
       return retorno
     }

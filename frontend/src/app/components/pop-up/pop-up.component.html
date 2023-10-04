@@ -28,7 +28,7 @@
         Por favor confirme sus acciones
     </div>
     <div id="content">
-        ¿Está seguro que desea autorizar a {{decodeNombre(popupService.elementType)}}?
+        ¿Está seguro que desea autorizar a {{userService.decodeNombre(popupService.elementType)}}?
     </div>
     <div id="actions">
         <button class="cancel" (click)="popupService.autorizar = false">No</button>
@@ -40,7 +40,7 @@
         Por favor confirme sus acciones
     </div>
     <div id="content">
-        ¿Está seguro que desea autorizar a {{decodeNombre(popupService.elementType)}}?
+        ¿Está seguro que desea autorizar a {{userService.decodeNombre(popupService.elementType)}}?
     </div>
     <div id="actions">
         <button class="cancel" (click)="popupService.autorizarFalso = false">No</button>

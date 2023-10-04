@@ -1,13 +1,10 @@
 const express = require('express');
 const router = express.Router();
-
 const db = require('../../db.js');
 
-// Create a new user
 router.post('/create', async (req, res) => {
   const { accountName, originalUsername, nickname, email, phone, password } = req.body;
   try {
-    // Insert a new user record into the database
     await db.none(
       'INSERT INTO Usuario (accountName, originalUsername, nickname, email, phone, password) VALUES ($1, $2, $3, $4, $5, $6)',
       [accountName, originalUsername, nickname, email, phone, password]
@@ -153,6 +150,5 @@ router.put('/password', async (req, res) => {
     res.status(500).json({ error: 'Error updating password' });
   }
 });
-
 
 module.exports = router;

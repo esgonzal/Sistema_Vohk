@@ -1,12 +1,12 @@
 import { Component } from '@angular/core';
-import { EkeyServiceService } from '../../services/ekey-service.service';
 import { Router } from '@angular/router';
-import { Formulario } from '../../Interfaces/Formulario';
 import moment from 'moment';
-import { UserRegisterResponse, checkUserInDBResponse, sendEkeyResponse } from '../../Interfaces/API_responses'
 import { lastValueFrom } from 'rxjs';
 import { UserServiceService } from '../../services/user-service.service';
 import { LockServiceService } from '../../services/lock-service.service';
+import { EkeyServiceService } from '../../services/ekey-service.service';
+import { UserRegisterResponse, checkUserInDBResponse, sendEkeyResponse } from '../../Interfaces/API_responses'
+import { Formulario } from '../../Interfaces/Formulario';
 
 @Component({
   selector: 'app-ekey',
@@ -15,12 +15,16 @@ import { LockServiceService } from '../../services/lock-service.service';
 })
 export class EkeyComponent {
 
-  constructor(private router: Router, public ekeyService: EkeyServiceService, private userService: UserServiceService, private lockService: LockServiceService) {
-    if(!this.ekeyService.username || !this.ekeyService.userID || !this.ekeyService.lockID || !this.ekeyService.endDateUser) {
+  constructor(
+    private router: Router,
+    private userService: UserServiceService,
+    private lockService: LockServiceService,
+    public ekeyService: EkeyServiceService) {
+    if (!this.ekeyService.username || !this.ekeyService.userID || !this.ekeyService.lockID || !this.ekeyService.endDateUser) {
       this.router.navigate(['users', sessionStorage.getItem('user'), 'lock', sessionStorage.getItem('lockID')])
     }
-   }
-  
+  }
+
   isLoading: boolean = false;
   error = "";
   selectedType = '';

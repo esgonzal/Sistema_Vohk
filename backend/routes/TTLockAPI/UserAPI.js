@@ -2,8 +2,6 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 const md5 = require('md5');
-
-// Constants for clientId and clientSecret
 const TTLOCK_CLIENT_ID = 'c4114592f7954ca3b751c44d81ef2c7d';
 const TTLOCK_CLIENT_SECRET = '33b556bdb803763f2e647fc7a357dedf';
 const { accessTokenStorage, storeAccessToken } = require('./accessTokenStorage');
@@ -56,7 +54,7 @@ router.post('/login', async (req, res) => {
         //console.log(ttlockResponse.data)
         if (ttlockResponse.data.access_token) {
             storeAccessToken(nombre, ttlockResponse.data.access_token);
-            console.log(accessTokenStorage)
+            //console.log(accessTokenStorage)
             res.json({ errcode: 'Success' });
         } else {
             res.json({ errcode: 'Fail' });
@@ -100,7 +98,7 @@ router.post('/logout', async (req, res) => {
         if (accessTokenStorage.hasOwnProperty(userID)) {
             delete accessTokenStorage[userID];
             res.json({ message: 'Success' });
-            console.log(accessTokenStorage)
+            //console.log(accessTokenStorage)
         } else {
             res.json({ message: 'Fail' });
         }
@@ -110,5 +108,4 @@ router.post('/logout', async (req, res) => {
     }
 });
 
-// Export the TTLock router
 module.exports = router;

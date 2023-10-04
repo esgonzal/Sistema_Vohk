@@ -67,6 +67,6 @@ export class PopUpService {
       // If lock ID is not in the array, add it
       this.selectedLockIds_forMultipleEkeys.push(lockId);
     }
-    console.log("selectedLockIds: ", this.selectedLockIds_forMultipleEkeys)
+    //console.log("selectedLockIds: ", this.selectedLockIds_forMultipleEkeys)
   }
 }

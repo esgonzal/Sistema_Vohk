@@ -43,18 +43,19 @@ export class PopUpComponent implements OnInit {
   newPassword: string = '';
   confirmPassword: string = '';
 
-  constructor(public dialogRef: MatDialog,
-    public popupService: PopUpService,
+  constructor(
     private router: Router,
+    private cdr: ChangeDetectorRef,
     private lockService: LockServiceService,
-    public ekeyService: EkeyServiceService,
     private passcodeService: PasscodeServiceService,
     private cardService: CardServiceService,
     private fingerprintService: FingerprintServiceService,
+    private gatewayService: GatewayService,
     private groupService: GroupService,
-    private cdr: ChangeDetectorRef,
-    private userService: UserServiceService,
-    private gatewayService: GatewayService
+    public dialogRef: MatDialog,
+    public userService: UserServiceService,
+    public ekeyService: EkeyServiceService,
+    public popupService: PopUpService,
   ) { }
 
   ngOnInit(): void {
@@ -222,7 +223,7 @@ export class PopUpComponent implements OnInit {
               break;
           }
         }
-        console.log(response)
+        //console.log(response)
         if (response?.errcode === 0) {
           this.popupService.cambiarNombre = false;
           window.location.reload();
@@ -435,15 +436,7 @@ export class PopUpComponent implements OnInit {
       // If lock ID is not in the array, add it
       this.selectedLockIds.push(lockId);
     }
-    console.log("selectedLockIds: ", this.selectedLockIds)
-  }
-  toggleLockSelection2(lock: LockData) {
-    const lockIdIndex = this.selectedLockIds.indexOf(lock.lockId);
-    if (lockIdIndex === -1) {
-      this.selectedLockIds.push(lock.lockId);
-    } else {
-      this.selectedLockIds.splice(lockIdIndex, 1);
-    }
+    //console.log("selectedLockIds: ", this.selectedLockIds)
   }
   async removeSelectedLocksFromGroup() {
     this.isLoading = true;
@@ -505,7 +498,7 @@ export class PopUpComponent implements OnInit {
     this.popupService.recipients.splice(index, 1);
   }
   confirmRecipients() {
-    console.log(this.popupService.recipients)
+    //console.log(this.popupService.recipients)
     if (!this.error) {
       this.ekeyService.recipients = this.popupService.recipients;
       this.popupService.addRecipientsForMultipleEkeys = false;
@@ -532,7 +525,7 @@ export class PopUpComponent implements OnInit {
               let response = await lastValueFrom(this.userService.ResetPassword(this.popupService.accountName, this.newPassword)) as ResetPasswordResponse;
               if (response.errcode === 0) {
                 const response2 = await lastValueFrom(this.userService.changePasswordDB(this.popupService.accountName, this.newPassword));
-                console.log(response2)
+                //console.log(response2)
                 this.popupService.resetPassword = false;
                 window.location.reload();
               } else {
@@ -592,7 +585,7 @@ export class PopUpComponent implements OnInit {
       this.error = 'Ingrese un nombre'
     } else {
       const response = await lastValueFrom(this.userService.changeNicknameDB(this.popupService.accountName, datos.name))
-      console.log(response);
+      //console.log(response);
       this.popupService.changeNickname = false;
       window.location.reload();
     }
@@ -612,16 +605,5 @@ export class PopUpComponent implements OnInit {
       this.isLoading = false;
     }
   }
-  decodeNombre(username: string) {
-    if (username) {
-      let nombre_dividido = username.split("_");
-      if (nombre_dividido[0] === 'bhaaa') {
-        return this.userService.customBase64Decode(nombre_dividido[1])
-      } else {
-        return username;
-      }
-    } else {
-      return username;
-    }
-  }
+  
 }

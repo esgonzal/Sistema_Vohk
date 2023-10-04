@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, lastValueFrom } from 'rxjs';
+import { Observable } from 'rxjs';
 import { EkeyResponse, operationResponse, sendEkeyResponse, LockListResponse, getByUserAndLockIdResponse } from '../Interfaces/API_responses';
 import { LockData } from '../Interfaces/Lock';
 import { RecipientList } from '../Interfaces/RecipientList';
@@ -12,14 +12,12 @@ import emailjs from 'emailjs-com';
 export class EkeyServiceService {
 
   userID: string;
-  username = sessionStorage.getItem('user') ?? ''
-  lockAlias = sessionStorage.getItem('Alias') ?? ''
   lockID: number;
+  username = sessionStorage.getItem('user') ?? ''
   endDateUser: string;
   currentLocks: LockData[] = []
   selectedLocks: number[] = [];
   recipients: RecipientList[] = [];
-  ekeysimple = false;
 
   constructor(private http: HttpClient) { }
 
@@ -112,29 +110,27 @@ export class EkeyServiceService {
     let url = `http://localhost:3000/api/ekeys/delete?accountName=${accountName}&lockId=${lockId}`;
     return this.http.delete(url)
   }
-
-
-  async sendEmail_permanentEkey(recipientEmail: string, keyName: string) {//Template para eKey permanente a una cuenta existente
+  async sendEmail_permanentEkey(recipientEmail: string, keyName: string, alias:string) {//Template para eKey permanente a una cuenta existente
     //esteban.vohk@gmail.com
     emailjs.send('contact_service', 'SendEkeyPermanent', {
       to_email: recipientEmail,
       from_name: this.username,
       subject: 'Una eKey permanente ha sido compartida contigo',
       to_name: recipientEmail,
-      lock_alias: this.lockAlias,
+      lock_alias: alias,
       ekey_name: keyName
     }, 'IHg0KzBkt_UoFb1yg')
       .then((response) => { console.log('Email sent successfully to', response); })
       .catch((error) => { console.error('Error sending email:', error); });
   }
-  async sendEmail_periodicEkey(recipientEmail: string, keyName: string, start: string, end: string) {//Template para eKey periodica a una cuenta existente
+  async sendEmail_periodicEkey(recipientEmail: string, keyName: string, start: string, end: string, alias:string) {//Template para eKey periodica a una cuenta existente
     //esteban.vohk@gmail.com
     emailjs.send('contact_service', 'SendEkeyPeriodic', {
       to_email: recipientEmail,
       from_name: this.username,
       subject: 'Una eKey temporal ha sido compartida contigo',
       to_name: recipientEmail,
-      lock_alias: this.lockAlias,
+      lock_alias: alias,
       ekey_name: keyName,
       start: start,
       end: end
@@ -142,27 +138,27 @@ export class EkeyServiceService {
       .then((response) => { console.log('Email sent successfully:', response); })
       .catch((error) => { console.error('Error sending email:', error); });
   }
-  async sendEmail_oneTimeEkey(recipientEmail: string, keyName: string) {//Template para eKey de un uso a una cuenta existente
+  async sendEmail_oneTimeEkey(recipientEmail: string, keyName: string, alias:string) {//Template para eKey de un uso a una cuenta existente
     //esteban.vohk+1@gmail.com
     emailjs.send('contact_service', 'SendEkeyOneTime', {
       to_email: recipientEmail,
       from_name: this.username,
       subject: 'Una eKey de un uso ha sido compartida contigo',
       to_name: recipientEmail,
-      lock_alias: this.lockAlias,
+      lock_alias: alias,
       ekey_name: keyName
     }, 'JGXYy0TqnFt_IB5f4')
       .then((response) => { console.log('Email sent successfully:', response); })
       .catch((error) => { console.error('Error sending email:', error); });
   }
-  async sendEmail_solicitanteEkey(recipientEmail: string, keyName: string, weekDays: string, start: string, end: string) {//Template para eKey solicitante a una cuenta existente
+  async sendEmail_solicitanteEkey(recipientEmail: string, keyName: string, weekDays: string, start: string, end: string, alias:string) {//Template para eKey solicitante a una cuenta existente
     //esteban.vohk+1@gmail.com
     emailjs.send('contact_service', 'SendEkeySolicitante', {
       to_email: recipientEmail,
       from_name: this.username,
       subject: 'Una eKey cíclica ha sido compartida contigo',
       to_name: recipientEmail,
-      lock_alias: this.lockAlias,
+      lock_alias: alias,
       ekey_name: keyName,
       week_days: weekDays,
       start: start,
@@ -171,28 +167,28 @@ export class EkeyServiceService {
       .then((response) => { console.log('Email sent successfully:', response); })
       .catch((error) => { console.error('Error sending email:', error); });
   }
-  async sendEmail_permanentEkey_newAccount(recipientEmail: string, keyName: string, password: string) {//Template para eKey permanente a una cuenta nueva
+  async sendEmail_permanentEkey_newAccount(recipientEmail: string, keyName: string, password: string, alias:string) {//Template para eKey permanente a una cuenta nueva
     //esteban.vohk+2@gmail.com
     emailjs.send('contact_service', 'SendEkeyPermanentNewUser', {
       to_email: recipientEmail,
       from_name: this.username,
       subject: 'Una eKey permanente ha sido compartida contigo',
       to_name: recipientEmail,
-      lock_alias: this.lockAlias,
+      lock_alias: alias,
       password: password,
       ekey_name: keyName
     }, '8Q0_n1lg4twgrBlaf')
       .then((response) => { console.log('Email sent successfully:', response); })
       .catch((error) => { console.error('Error sending email:', error); });
   }
-  async sendEmail_periodicEkey_newAccount(recipientEmail: string, keyName: string, start: string, end: string, password: string) {//Template para eKey periodica a una cuenta nueva
+  async sendEmail_periodicEkey_newAccount(recipientEmail: string, keyName: string, start: string, end: string, password: string, alias:string) {//Template para eKey periodica a una cuenta nueva
     //esteban.vohk+2@gmail.com
     emailjs.send('contact_service', 'SendEkeyPeriodicNewUser', {
       to_email: recipientEmail,
       from_name: this.username,
       subject: 'Una eKey temporal ha sido compartida contigo',
       to_name: recipientEmail,
-      lock_alias: this.lockAlias,
+      lock_alias: alias,
       password: password,
       ekey_name: keyName,
       start: start,
@@ -201,28 +197,28 @@ export class EkeyServiceService {
       .then((response) => { console.log('Email sent successfully:', response); })
       .catch((error) => { console.error('Error sending email:', error); });
   }
-  async sendEmail_oneTimeEkey_newAccount(recipientEmail: string, keyName: string, password: string) {//Template para eKey de un uso a una cuenta nueva
+  async sendEmail_oneTimeEkey_newAccount(recipientEmail: string, keyName: string, password: string, alias:string) {//Template para eKey de un uso a una cuenta nueva
     //esteban.vohk+3@gmail.com
     emailjs.send('contact_service', 'SendEkeyOneTimeNewUser', {
       to_email: recipientEmail,
       from_name: this.username,
       subject: 'Una eKey de un uso ha sido compartida contigo',
       to_name: recipientEmail,
-      lock_alias: this.lockAlias,
+      lock_alias: alias,
       password: password,
       ekey_name: keyName
     }, 'ENb99SX5j4gqE1TFZ')
       .then((response) => { console.log('Email sent successfully:', response); })
       .catch((error) => { console.error('Error sending email:', error); });
   }
-  async sendEmail_solicitanteEkey_newAccount(recipientEmail: string, keyName: string, weekDays: string, start: string, end: string, password: string) {//Template para eKey solicitante a una cuenta nueva
+  async sendEmail_solicitanteEkey_newAccount(recipientEmail: string, keyName: string, weekDays: string, start: string, end: string, password: string, alias:string) {//Template para eKey solicitante a una cuenta nueva
     //esteban.vohk+3@gmail.com
     emailjs.send('contact_service', 'SendEkeySolicitanteNewUs', {
       to_email: recipientEmail,
       from_name: this.username,
       subject: 'Una eKey cíclica ha sido compartida contigo',
       to_name: recipientEmail,
-      lock_alias: this.lockAlias,
+      lock_alias: alias,
       password: password,
       ekey_name: keyName,
       week_days: weekDays,

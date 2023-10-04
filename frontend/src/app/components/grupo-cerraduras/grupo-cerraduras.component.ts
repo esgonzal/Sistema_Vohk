@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
+import { lastValueFrom } from 'rxjs';
+import { UserServiceService } from '../../services/user-service.service';
 import { GroupService } from '../../services/group.service';
 import { PopUpService } from '../../services/pop-up.service';
-import { Group } from '../../Interfaces/Group';
-import { lastValueFrom } from 'rxjs';
-import { EkeyServiceService } from 'src/app/services/ekey-service.service';
-import { LockData } from 'src/app/Interfaces/Lock';
+import { EkeyServiceService } from '../../services/ekey-service.service';
 import { GroupResponse, LockListResponse } from '../../Interfaces/API_responses'
-import { UserServiceService } from 'src/app/services/user-service.service';
+import { LockData } from '../../Interfaces/Lock';
+import { Group } from '../../Interfaces/Group';
 
 @Component({
   selector: 'app-grupo-cerraduras',
@@ -23,16 +23,21 @@ export class GrupoCerradurasComponent implements OnInit {
   isLoading: boolean = false;
   userID: string;
 
-  constructor(public groupService: GroupService, public popupService: PopUpService, private ekeyService: EkeyServiceService, private userService: UserServiceService) { }
+  constructor(
+    private ekeyService: EkeyServiceService,
+    private userService: UserServiceService,
+    public groupService: GroupService,
+    public popupService: PopUpService
+  ) { }
 
   async ngOnInit() {
-    await this.getAllLocks();
-    await this.fetchGroups();
-    if(sessionStorage.getItem('Account') === 'Vohk'){
+    if (sessionStorage.getItem('Account') === 'Vohk') {
       this.userID = this.userService.encodeNombre(this.username);
     } else {
       this.userID = this.username
     }
+    await this.getAllLocks();
+    await this.fetchGroups();
   }
   async fetchGroups() {
     this.isLoading = true;
@@ -41,7 +46,6 @@ export class GrupoCerradurasComponent implements OnInit {
       const typedResponse = response as GroupResponse;
       if (typedResponse?.list) {
         this.groups = typedResponse.list;
-        // Fetch locks and calculate lock counts for each group
         for (const group of this.groups) {
           group.lockCount = await this.calculateLockCountForGroup(group);
         }
@@ -51,7 +55,7 @@ export class GrupoCerradurasComponent implements OnInit {
     } catch (error) {
       console.error("Error while fetching groups:", error);
     } finally {
-      this.isLoading = false; // Set isLoading to false when data fetching is complete
+      this.isLoading = false;
     }
     this.groupService.groups = this.groups;
   }
@@ -69,10 +73,10 @@ export class GrupoCerradurasComponent implements OnInit {
         if (locksTypedResponse.pages > pageNo) {
           pageNo++;
         } else {
-          break; // No more pages to fetch
+          break;
         }
       } else {
-        break; // No more locks to fetch
+        break;
       }
     }
     return lockCount;
@@ -83,18 +87,17 @@ export class GrupoCerradurasComponent implements OnInit {
       let pageNo = 1;
       const pageSize = 100;
       while (true) {
-        const locksResponse = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.userID, pageNo, pageSize, 0));
-        const locksTypedResponse = locksResponse as LockListResponse;
+        const locksTypedResponse = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.userID, pageNo, pageSize, 0)) as LockListResponse;
         if (locksTypedResponse?.list) {
           this.allLocks.push(...locksTypedResponse.list)
           this.locksWithoutGroup.push(...locksTypedResponse.list.filter(lock => !lock.groupId))
           if (locksTypedResponse.pages > pageNo) {
             pageNo++;
           } else {
-            break; // No more pages to fetch
+            break;
           }
         } else {
-          break; // No more locks to fetch
+          break;
         }
       }
       this.ekeyService.currentLocks = this.allLocks.filter(

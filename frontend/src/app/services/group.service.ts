@@ -15,7 +15,6 @@ export class GroupService {
   public selectedGroupSubject = new BehaviorSubject<Group>(this.DEFAULT_GROUP);
   selectedGroup$ = this.selectedGroupSubject.asObservable();
 
-  token = sessionStorage.getItem('token') ?? '';
   groups: Group[] = [];
   locksWithoutGroup: LockData[];
   selectedGroup: Group;

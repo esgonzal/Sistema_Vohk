@@ -1,13 +1,10 @@
 const express = require('express');
 const router = express.Router();
-
 const db = require('../../db.js');
 
-// Route for adding an eKey
 router.post('/create', async (req, res) => {
   const { accountName, lockId, isUser } = req.body;
   try {
-    // Insert a new eKey record into the eKey table
     await db.none(
       'INSERT INTO ekey (accountName, lockId, isUser) VALUES ($1, $2, $3) ' +
       'ON CONFLICT (accountName, lockId) ' +
@@ -23,12 +20,10 @@ router.post('/create', async (req, res) => {
 router.get('/getByUserAndLockId', async (req, res) => {
   const { accountName, lockId } = req.query;
   try {
-    // Query the database for the eKey record
     const eKeyRecord = await db.oneOrNone(
       'SELECT * FROM ekey WHERE accountName = $1 AND lockId = $2',
       [accountName, lockId]
     );
-    // If the eKey record exists, return it; otherwise, return null
     if (eKeyRecord !== null) {
       res.status(200).json(eKeyRecord);
     } else {
@@ -55,7 +50,6 @@ router.put('/changeIsUser', async (req, res) => {
 router.delete('/delete', async (req, res) => {
   const { accountName, lockId } = req.body;
   try {
-    // Delete the eKey record from the eKey table
     await db.none('DELETE FROM ekey WHERE accountName = $1 AND lockId = $2', [
       accountName,
       lockId,
@@ -66,6 +60,5 @@ router.delete('/delete', async (req, res) => {
     res.status(500).json({ error: 'Error deleting eKey' });
   }
 });
-
 
 module.exports = router;
