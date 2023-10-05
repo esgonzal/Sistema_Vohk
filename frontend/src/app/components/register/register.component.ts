@@ -48,55 +48,27 @@ export class RegisterComponent {
     }
   }
   async signUp(data: User) {
-    if (this.validarInputs(data)) {
-      if (await this.validarCuentaNueva(data)) {
-        let encode = this.userService.customBase64Encode(data.username);
-        let accountName = 'bhaaa_'.concat(encode)
-        const phoneValidation = this.userService.isValidPhone(data.username);
-        if (this.userService.isValidEmail(data.username)) {//Es un email
-          this.registerError = ''
-          const response = await lastValueFrom(this.userService.UserRegister(encode, data.password)) as UserRegisterResponse;
-          //console.log(response)
-          if (response.username) {
-            this.popupService.registro = true;
-            this.popupService.welcomingMessage = `Bienvenido ${data.username}!<br>Presione el siguiente botón para iniciar sesión en su cuenta.<br>También hemos enviado los datos de acceso a tu correo electrónico`;
-            //this.userService.sendEmail_NewUser(data.username, data.password);
-            const existsInDB = await lastValueFrom(this.userService.checkUserInDB(accountName)) as checkUserInDBResponse;
-            if (existsInDB.exists === false) {
-              const response2 = await lastValueFrom(this.userService.createUserDB(accountName, data.username, data.username, data.username, '', data.password));
-              console.log(response2)
+    try {
+      if (this.validarInputs(data)) {
+        if (await this.validarCuentaNueva(data)) {
+          if (this.userService.isValidEmail(data.username) || this.userService.isValidPhone(data.username).isValid) {
+            let response = await lastValueFrom(this.userService.UserRegister(data.username, data.password)) as UserRegisterResponse
+            if (response.errcode === 0) {
+              console.log("Usuario registrado");
+            } else if (response.errcode === 30003) {
+              this.registerError = 'Ya existe una cuenta asociada con el correo electrónico'
+            } else if (response.errcode === 30002) {//Nunca debería ocurrir esto porque el nombre se codifica
+              this.registerError = 'Solo se permiten digitos y caracteres del alfabeto ingles'
+            } else if (response.errcode === 90000) {
+              this.registerError = 'el email ingresado es muy largo'
             }
-          } else if (response.errcode === 30003) {
-            this.registerError = 'Ya existe una cuenta asociada con el correo electrónico'
-          } else if (response.errcode === 30002) {//Nunca debería ocurrir esto porque el nombre se codifica
-            this.registerError = 'Solo se permiten digitos y caracteres del alfabeto ingles'
-          } else if (response.errcode === 90000) {
-            this.registerError = 'el email ingresado es muy largo'
+          } else {//No es email ni telefono
+            this.registerError = 'Debe ingresar un correo electrónico o un número con prefijo telefónico (+XX)';
           }
-        }
-        else if (phoneValidation.isValid) {//Es un telefono
-          this.registerError = ''
-          const response = await lastValueFrom(this.userService.UserRegister(encode, data.password)) as UserRegisterResponse;
-          //console.log(response)
-          if (response.username) {
-            this.popupService.registro = true;
-            this.popupService.welcomingMessage = `Bienvenido ${data.username}!<br>Presione el siguiente botón para iniciar sesión en su cuenta.`;
-            const existsInDB = await lastValueFrom(this.userService.checkUserInDB(accountName)) as checkUserInDBResponse;
-            if (existsInDB.exists === false) {
-              const response2 = await lastValueFrom(this.userService.createUserDB(accountName, data.username, data.username, '', data.username, data.password));
-              console.log(response2)
-            }
-          } else if (response.errcode === 30003) {
-            this.registerError = 'Ya existe una cuenta asociada con el numero de teléfono'
-          } else if (response.errcode === 30002) {//Nunca debería ocurrir esto porque el nombre se codifica
-            this.registerError = 'Solo se permiten digitos y caracteres del alfabeto ingles'
-          } else if (response.errcode === 90000) {//Nunca debería ocurrir esto porque la validacion de google de telefono lo evita
-            this.registerError = 'el numero ingresado es muy largo'
-          }
-        } else {//No es email ni telefono
-          this.registerError = 'Debe ingresar un correo electrónico o un número con prefijo telefónico (+XX)';
         }
       }
+    } catch (error) {
+      console.error("An error occurred:", error);
     }
   }
 }
