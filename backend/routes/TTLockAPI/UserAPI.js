@@ -51,10 +51,10 @@ router.post('/login', async (req, res) => {
             ttlockData,
             { headers }
         );
-        //console.log(ttlockResponse.data)
+        console.log(ttlockResponse.data)
         if (ttlockResponse.data.access_token) {
             storeAccessToken(nombre, ttlockResponse.data.access_token);
-            //console.log(accessTokenStorage)
+            console.log(accessTokenStorage)
             res.json({ errcode: 'Success' });
         } else {
             res.json({ errcode: 'Fail' });

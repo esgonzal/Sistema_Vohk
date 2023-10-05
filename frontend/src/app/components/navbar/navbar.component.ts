@@ -11,28 +11,34 @@ import { UserServiceService } from 'src/app/services/user-service.service';
 })
 export class NavbarComponent {
 
-  constructor(private router: Router, public userService: UserServiceService) { }
+  nickname= '';
+  dataLoaded = false;
+
+  constructor(
+    private router: Router,
+    private userService: UserServiceService) { }
 
   returnNombre() {
     return sessionStorage.getItem('user') ?? '';
   }
+  returnNickname() {
+    return sessionStorage.getItem('nick') ?? '';
+  }
   returnLogged() {
     return sessionStorage.getItem('logged') ?? '';
   }
-  returnAccountType(){
+  returnAccountType() {
     return sessionStorage.getItem('Account') ?? '';
   }
   mostrarCerraduras() {
-    let username = sessionStorage.getItem('user') ?? '';
-    this.router.navigate(['users', username]);
+    this.router.navigate(['users', this.returnNombre()]);
   }
   toPerfil() {
-    let username = sessionStorage.getItem('user') ?? '';
-    this.router.navigate(['users', username, 'perfil']);
+    this.router.navigate(['users', this.returnNombre(), 'perfil']);
   }
   async cerrarSesion() {
     let userID: string;
-    if (this.returnAccountType() === 'TTLock'){
+    if (this.returnAccountType() === 'TTLock') {
       userID = this.returnNombre();
     } else {
       userID = this.userService.encodeNombre(this.returnNombre());
@@ -46,6 +52,7 @@ export class NavbarComponent {
     sessionStorage.removeItem('lockID');
     sessionStorage.removeItem('logged');
     sessionStorage.removeItem('Account');
+    sessionStorage.removeItem('nick');
     this.router.navigate(['home']);
   }
 }

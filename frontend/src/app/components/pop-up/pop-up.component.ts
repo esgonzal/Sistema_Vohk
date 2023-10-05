@@ -587,7 +587,7 @@ export class PopUpComponent implements OnInit {
       const response = await lastValueFrom(this.userService.changeNicknameDB(this.popupService.accountName, datos.name))
       //console.log(response);
       this.popupService.changeNickname = false;
-      window.location.reload();
+      //window.location.reload();
     }
   }
   async ajustarHora() {

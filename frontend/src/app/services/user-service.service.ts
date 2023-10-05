@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
+import { EventEmitter, Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Md5 } from 'ts-md5';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { GetAccessTokenResponse, ResetPasswordResponse, UserRegisterResponse, checkUserInDBResponse, getUserInDBResponse, logoutResponse } from '../Interfaces/API_responses';
 import { PhoneNumberUtil } from 'google-libphonenumber';
 import emailjs from 'emailjs-com';
@@ -15,8 +15,15 @@ export class UserServiceService {
   loggedIn = false;
   private phoneNumberUtil: PhoneNumberUtil;
 
+  private nicknameSubject: BehaviorSubject<string> = new BehaviorSubject<string>('');
+  public nickname$: Observable<string> = this.nicknameSubject.asObservable();
+
   constructor(private http: HttpClient) {
     this.phoneNumberUtil = PhoneNumberUtil.getInstance();
+  }
+
+  setNickname(nickname: string) {
+    this.nicknameSubject.next(nickname);
   }
 
   getMD5(clave: string) {

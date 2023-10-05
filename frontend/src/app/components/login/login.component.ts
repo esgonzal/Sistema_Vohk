@@ -3,7 +3,7 @@ import { UserServiceService } from '../../services/user-service.service';
 import { Router } from '@angular/router';
 import { User } from '../../Interfaces/User';
 import { lastValueFrom } from 'rxjs';
-import { GetAccessTokenResponse } from '../../Interfaces/API_responses'
+import { GetAccessTokenResponse, getUserInDBResponse } from '../../Interfaces/API_responses'
 
 @Component({
   selector: 'app-login',
@@ -43,6 +43,7 @@ export class LoginComponent {
         sessionStorage.setItem('logged', '1')
         sessionStorage.setItem('user', data.username)
         sessionStorage.setItem('Account', 'TTLock')
+        sessionStorage.setItem('nick', data.username)
         this.router.navigate(['/users/', data.username]);
       } else {
         let encode = this.userService.encodeNombre(data.username);
@@ -51,6 +52,8 @@ export class LoginComponent {
           sessionStorage.setItem('logged', '1')
           sessionStorage.setItem('user', data.username)
           sessionStorage.setItem('Account', 'Vohk')
+          const response = await lastValueFrom(this.userService.getUserDB(encode)) as getUserInDBResponse;
+          sessionStorage.setItem('nick', response.nickname)
           this.router.navigate(['/users/', data.username]);
         } else {
           this.loginError = "Nombre de usuario y/o contraseña inválidos";

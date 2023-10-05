@@ -21,7 +21,7 @@
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
                     <a class="nav-link active" [matMenuTriggerFor]="menu" aria-label="Settings">
-                        {{returnNombre()}}
+                        {{ returnNickname() }}
                     </a>
                     <mat-menu #menu="matMenu">
                         <button mat-menu-item (click)="mostrarCerraduras()">
