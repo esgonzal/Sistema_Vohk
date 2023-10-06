@@ -73,18 +73,11 @@ export interface LockListResponse {
     total: number;
 }
 export interface GetAccessTokenResponse {
-    //valid response
-    access_token: string;
-    expires_in: number;
-    openid: number;
-    refresh_token: string;
-    scope: string;
-    token_type: string;
-    uid: number;
-    //invalida response
-    description: string;
-    errcode: string;
+    errcode: number;
     errmsg: string;
+    description: string;
+    account: string;
+    nickname: string;
 }
 export interface ResetPasswordResponse {
     description: string;

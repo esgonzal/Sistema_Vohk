@@ -152,7 +152,7 @@
                           <td mat-cell *matCellDef="let ekey" class="table-cell">
                             <button
                               *ngIf="( (userType==='110301') || (userType==='110302' && keyRight==='1' && ekey.senderUsername===username) || (userService.decodeNombre(ekey.username)===username) )"
-                              mat-button class="mat-warn" (click)="borrarEkey(ekey.keyId, userService.decodeNombre(ekey.username))">Eliminar</button>
+                              mat-button class="mat-warn" (click)="borrarEkey(ekey.keyId,ekey.username)">Eliminar</button>
                             <!--
                             <button
                               *ngIf="( (userType==='110301') || (userType==='110302' && keyRight==='1' && ekey.senderUsername===fullName) || (ekey.username===fullName) )"

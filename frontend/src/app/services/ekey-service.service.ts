@@ -36,8 +36,8 @@ export class EkeyServiceService {
     let url = 'http://localhost:3000/api/ttlock/ekey/send';
     return this.http.post<sendEkeyResponse>(url, body);
   }
-  deleteEkey(userID: string, keyID: number): Observable<operationResponse> {
-    let body = { userID, keyID };
+  deleteEkey(userID: string, keyID: number, lockID: number, keyUsername: string): Observable<operationResponse> {
+    let body = { userID, keyID, lockID, keyUsername };
     let url = 'http://localhost:3000/api/ttlock/ekey/delete';
     return this.http.post<operationResponse>(url, body);
   }

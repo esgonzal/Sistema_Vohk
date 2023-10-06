@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
-const { accessTokenStorage } = require('./accessTokenStorage'); 
+const { accessTokenStorage } = require('./accessTokenStorage');
 const TTLOCK_CLIENT_ID = 'c4114592f7954ca3b751c44d81ef2c7d';
 
 router.post('/getListAccount', async (req, res) => {
@@ -100,36 +100,36 @@ router.post('/send', async (req, res) => {
             ttlockData,
             { headers }
         );
-        console.log(ttlockResponse.data)
+        //console.log(ttlockResponse.data)
         if (typeof ttlockResponse === 'object' &&
             ttlockResponse.data.hasOwnProperty('keyId') &&
             typeof ttlockResponse.data.keyId === 'number'
-            ) {//Send ekey was successful
-                let ekeyData = {
-                    accountName: recieverName,
-                    lockId: lockID,
-                    isUser: true
-                }
-                let headers = {
-                    'Content-Type': 'application/json'
-                }
-                let DBResponse = await axios.post(
-                    'http://localhost:3000/api/ekeys/create',
-                    ekeyData,
-                    { headers }
-                );
-                console.log("DBResponse:", DBResponse.data)
-                res.json(ttlockResponse.data)
-            } else {//Send ekey was unsuccessful
-                res.json(ttlockResponse.data)
+        ) {//Send ekey was successful
+            let ekeyData = {
+                accountName: recieverName,
+                lockId: lockID,
+                isUser: true
             }
+            let headers = {
+                'Content-Type': 'application/json'
+            }
+            let DBResponse = await axios.post(
+                'http://localhost:3000/api/ekeys/create',
+                ekeyData,
+                { headers }
+            );
+            console.log("DBResponse:", DBResponse.data)
+            res.json(ttlockResponse.data)
+        } else {//Send ekey was unsuccessful
+            res.json(ttlockResponse.data)
+        }
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error with TTLock API' });
     }
 })
 router.post('/delete', async (req, res) => {
-    let { userID, keyID } = req.body;
+    let { userID, keyID, lockID, keyUsername } = req.body;
     try {
         let date = Date.now()
         const accessToken = accessTokenStorage[userID] || null;
@@ -151,7 +151,20 @@ router.post('/delete', async (req, res) => {
             ttlockData,
             { headers }
         );
-        //console.log(ttlockResponse.data)
+        if (typeof ttlockResponse === 'object' && ttlockResponse.data.hasOwnProperty('errcode')) {
+            if (ttlockResponse.data.errcode === 0) {
+                let ekeyData = {
+                    accountName: keyUsername,
+                    lockId: lockID,
+                }
+                let DBResponse = await axios.delete('http://localhost:3000/api/ekeys/delete', {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    data: ekeyData,
+                });
+            }
+        }
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);

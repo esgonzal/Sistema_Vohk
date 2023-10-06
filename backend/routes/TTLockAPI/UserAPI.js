@@ -11,6 +11,9 @@ const { accessTokenStorage, storeAccessToken } = require('./accessTokenStorage')
 router.post('/register', async (req, res) => {
     let { nombre, clave } = req.body;
     try {
+        if (!isValidEmail(nombre) && !isValidPhone(nombre).isValid) {
+            return res.json({ errcode: 30002, errmsg: 'La cuenta debe ser un correo electrónico o número de celular' });
+        }
         let encode = customBase64Encode(nombre);
         let date = Date.now()
         let encryptedPassword = md5(clave);
@@ -90,30 +93,61 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
     let { nombre, clave } = req.body;
     try {
-        let encryptedPassword = md5(clave);
-        let ttlockData = {
-            clientId: TTLOCK_CLIENT_ID,
-            clientSecret: TTLOCK_CLIENT_SECRET,
-            username: nombre,
-            password: encryptedPassword
-        };
-        let headers = {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        };
-        let ttlockResponse = await axios.post(
-            'https://euapi.ttlock.com/oauth2/token',
-            ttlockData,
-            { headers }
-        );
-        //console.log(ttlockResponse.data)
-        if (ttlockResponse.data.access_token) {
-            storeAccessToken(nombre, ttlockResponse.data.access_token);
-            console.log(accessTokenStorage)
-            res.json({ errcode: 'Success' });
-        } else {
-            res.json({ errcode: 'Fail' });
+        const userExistsResponse = await axios.get(`http://localhost:3000/api/usuarios/exists/${encodeNombre(nombre)}`);
+        if (typeof userExistsResponse === 'object' && userExistsResponse.data.hasOwnProperty('exists')) {
+            if (userExistsResponse.data.exists) {
+                const UserInDBResponse = await axios.get(`http://localhost:3000/api/usuarios/${encodeNombre(nombre)}`);
+                if (typeof UserInDBResponse === 'object' && UserInDBResponse.data.hasOwnProperty('nickname') && UserInDBResponse.data.hasOwnProperty('accountname')) {
+                    let encryptedPassword = md5(clave);
+                    let ttlockData = {
+                        clientId: TTLOCK_CLIENT_ID,
+                        clientSecret: TTLOCK_CLIENT_SECRET,
+                        username: UserInDBResponse.data.accountname,
+                        password: encryptedPassword
+                    };
+                    let headers = {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    };
+                    let ttlockResponse = await axios.post(
+                        'https://euapi.ttlock.com/oauth2/token',
+                        ttlockData,
+                        { headers }
+                    );
+                    //console.log(ttlockResponse)
+                    if (ttlockResponse.data.access_token) {
+                        storeAccessToken(UserInDBResponse.data.accountname, ttlockResponse.data.access_token);
+                        console.log(accessTokenStorage)
+                        res.json({ errcode: 'Success', account: 'Vohk', nickname: UserInDBResponse.data.nickname });
+                    } else {
+                        res.json(ttlockResponse.data);
+                    }
+                }
+            } else {//The user doesnt exists in the database(Its a TTLock account)
+                let encryptedPassword = md5(clave);
+                let ttlockData = {
+                    clientId: TTLOCK_CLIENT_ID,
+                    clientSecret: TTLOCK_CLIENT_SECRET,
+                    username: nombre,
+                    password: encryptedPassword
+                };
+                let headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                };
+                let ttlockResponse = await axios.post(
+                    'https://euapi.ttlock.com/oauth2/token',
+                    ttlockData,
+                    { headers }
+                );
+                //console.log(ttlockResponse.data)
+                if (ttlockResponse.data.access_token) {
+                    storeAccessToken(nombre, ttlockResponse.data.access_token);
+                    console.log(accessTokenStorage)
+                    res.json({ errcode: 'Success' });
+                } else {
+                    res.json(ttlockResponse.data);
+                }
+            }
         }
-
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error with TTLock API' });
@@ -127,7 +161,7 @@ router.post('/resetPassword', async (req, res) => {
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
             clientSecret: TTLOCK_CLIENT_SECRET,
-            username: nombre,
+            username: encodeNombre(nombre),
             password: encryptedPassword,
             date,
         };
@@ -139,6 +173,22 @@ router.post('/resetPassword', async (req, res) => {
             ttlockData,
             { headers }
         );
+        if (typeof ttlockResponse === 'object' && ttlockResponse.data.hasOwnProperty("errcode")) {
+            if (ttlockResponse.data.errcode === 0) {
+                let passwordChangeData = {
+                    accountName: encodeNombre(nombre),
+                    password: clave
+                };
+                let headers = {
+                    'Content-Type': 'application/json'
+                };
+                let DBResponse = await axios.put(
+                    'http://localhost:3000/api/usuarios/password',
+                    passwordChangeData,
+                    { headers }
+                );
+            }
+        }
         //console.log(ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {

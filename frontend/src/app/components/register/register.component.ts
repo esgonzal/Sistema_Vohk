@@ -40,7 +40,7 @@ export class RegisterComponent {
   }
   async validarCuentaNueva(data: User) {
     const response = await lastValueFrom(this.userService.getAccessToken(data.username, data.password)) as GetAccessTokenResponse;
-    if (response.errcode === 'Success') {//Ya existe una cuenta TTLock con este email/telefono
+    if (response.description === undefined) {//Ya existe una cuenta TTLock con este email/telefono
       this.registerError = 'Ya existe una cuenta con este email o teléfono'
       return false;
     } else {

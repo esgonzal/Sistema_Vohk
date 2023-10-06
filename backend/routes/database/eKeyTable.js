@@ -50,15 +50,20 @@ router.put('/changeIsUser', async (req, res) => {
 router.delete('/delete', async (req, res) => {
   const { accountName, lockId } = req.body;
   try {
-    await db.none('DELETE FROM ekey WHERE accountName = $1 AND lockId = $2', [
+    const result = await db.result('DELETE FROM ekey WHERE accountName = $1 AND lockId = $2', [
       accountName,
       lockId,
     ]);
-    res.status(200).json({ message: 'eKey deleted successfully' });
+    if (result.rowCount === 1) {
+      res.status(200).json({ message: 'eKey deleted successfully' });
+    } else {
+      res.status(404).json({ error: 'eKey not found or not deleted' });
+    }
   } catch (error) {
-    console.error(error);
+    console.error('Error deleting eKey:', error);
     res.status(500).json({ error: 'Error deleting eKey' });
   }
+
 });
 
 module.exports = router;

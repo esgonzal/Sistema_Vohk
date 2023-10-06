@@ -100,7 +100,7 @@ export class PopUpComponent implements OnInit {
             response = await lastValueFrom(this.passcodeService.deletePasscode(this.popupService.userID, this.popupService.lockID, this.popupService.elementID)) as operationResponse;
             break;
           case 'ekey':
-            response = await lastValueFrom(this.ekeyService.deleteEkey(this.popupService.userID, this.popupService.elementID)) as operationResponse;
+            response = await lastValueFrom(this.ekeyService.deleteEkey(this.popupService.userID, this.popupService.elementID, this.popupService.lockID, this.popupService.ekeyUsername)) as operationResponse;
             break;
           case 'card':
             response = await lastValueFrom(this.cardService.deleteCard(this.popupService.userID, this.popupService.lockID, this.popupService.elementID)) as operationResponse;
@@ -119,9 +119,6 @@ export class PopUpComponent implements OnInit {
       //console.log(response)
       if (response?.errcode === 0) {
         this.popupService.delete = false;
-        if (this.popupService.elementType === 'ekey') {
-          lastValueFrom(this.ekeyService.deleteEkeyDB(this.popupService.ekeyUsername, this.popupService.lockID))
-        }
         console.log(this.popupService.elementType, "borrada exitosamente")
         window.location.reload();
       } else {
@@ -524,8 +521,6 @@ export class PopUpComponent implements OnInit {
             if (this.newPassword === this.confirmPassword) {
               let response = await lastValueFrom(this.userService.ResetPassword(this.popupService.accountName, this.newPassword)) as ResetPasswordResponse;
               if (response.errcode === 0) {
-                const response2 = await lastValueFrom(this.userService.changePasswordDB(this.popupService.accountName, this.newPassword));
-                //console.log(response2)
                 this.popupService.resetPassword = false;
                 window.location.reload();
               } else {

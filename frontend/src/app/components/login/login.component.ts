@@ -39,25 +39,20 @@ export class LoginComponent {
     let response;
     if (this.validarInputs(data)) {
       response = await lastValueFrom(this.userService.getAccessToken(data.username, data.password)) as GetAccessTokenResponse;
-      if (response.errcode === 'Success') {
+      if(response.account) {
+        sessionStorage.setItem('logged', '1')
+        sessionStorage.setItem('user', data.username)
+        sessionStorage.setItem('Account', 'Vohk')
+        sessionStorage.setItem('nick', response.nickname)
+        this.router.navigate(['/users/', data.username]);
+      } else if(response.description) {
+        this.loginError = "Nombre de usuario y/o contraseña inválidos";
+      } else {
         sessionStorage.setItem('logged', '1')
         sessionStorage.setItem('user', data.username)
         sessionStorage.setItem('Account', 'TTLock')
         sessionStorage.setItem('nick', data.username)
         this.router.navigate(['/users/', data.username]);
-      } else {
-        let encode = this.userService.encodeNombre(data.username);
-        response = await lastValueFrom(this.userService.getAccessToken(encode, data.password)) as GetAccessTokenResponse;
-        if (response.errcode === 'Success') {
-          sessionStorage.setItem('logged', '1')
-          sessionStorage.setItem('user', data.username)
-          sessionStorage.setItem('Account', 'Vohk')
-          const response = await lastValueFrom(this.userService.getUserDB(encode)) as getUserInDBResponse;
-          sessionStorage.setItem('nick', response.nickname)
-          this.router.navigate(['/users/', data.username]);
-        } else {
-          this.loginError = "Nombre de usuario y/o contraseña inválidos";
-        }
       }
     }
   }
