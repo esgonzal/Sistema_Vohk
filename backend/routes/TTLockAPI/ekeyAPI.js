@@ -100,8 +100,29 @@ router.post('/send', async (req, res) => {
             ttlockData,
             { headers }
         );
-        //console.log(ttlockResponse.data)
-        res.json(ttlockResponse.data);
+        console.log(ttlockResponse.data)
+        if (typeof ttlockResponse === 'object' &&
+            ttlockResponse.data.hasOwnProperty('keyId') &&
+            typeof ttlockResponse.data.keyId === 'number'
+            ) {//Send ekey was successful
+                let ekeyData = {
+                    accountName: recieverName,
+                    lockId: lockID,
+                    isUser: true
+                }
+                let headers = {
+                    'Content-Type': 'application/json'
+                }
+                let DBResponse = await axios.post(
+                    'http://localhost:3000/api/ekeys/create',
+                    ekeyData,
+                    { headers }
+                );
+                console.log("DBResponse:", DBResponse.data)
+                res.json(ttlockResponse.data)
+            } else {//Send ekey was unsuccessful
+                res.json(ttlockResponse.data)
+            }
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error with TTLock API' });

@@ -48,6 +48,7 @@ export class RegisterComponent {
     }
   }
   async signUp(data: User) {
+    this.registerError = '';
     try {
       if (this.validarInputs(data)) {
         if (await this.validarCuentaNueva(data)) {
@@ -55,6 +56,8 @@ export class RegisterComponent {
             let response = await lastValueFrom(this.userService.UserRegister(data.username, data.password)) as UserRegisterResponse
             if (response.errcode === 0) {
               console.log("Usuario registrado");
+              this.popupService.registro = true;
+              this.popupService.welcomingMessage = `Bienvenido ${data.username}!<br>Presione el siguiente botón para iniciar sesión en su cuenta.<br>También hemos enviado los datos de acceso a tu correo electrónico`;
             } else if (response.errcode === 30003) {
               this.registerError = 'Ya existe una cuenta asociada con el correo electrónico'
             } else if (response.errcode === 30002) {//Nunca debería ocurrir esto porque el nombre se codifica
