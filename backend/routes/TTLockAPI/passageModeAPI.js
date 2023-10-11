@@ -28,14 +28,19 @@ router.post('/get', async (req, res) => {
             { headers }
         );
         //console.log(ttlockResponse.data)
-        res.json(ttlockResponse.data);
+        if (typeof ttlockResponse === 'object' && ttlockResponse.data.hasOwnProperty('passageMode')) {
+            res.json(ttlockResponse.data);
+        } else {
+            res.json({ errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg });
+        }
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error with TTLock API' });
     }
 });
 router.post('/set', async (req, res) => {
-    let { userID, lockID, passageMode, startDate, endDate, isAllDay, formatted_weekDays } = req.body;
+    let { userID, lockID, passageMode, startDate, endDate, isAllDay, weekDays } = req.body;
+    console.log(userID, lockID, passageMode, startDate, endDate, isAllDay, weekDays)
     try {
         let date = Date.now()
         const accessToken = accessTokenStorage[userID] || null;
@@ -50,7 +55,7 @@ router.post('/set', async (req, res) => {
             startDate: startDate,
             endDate: endDate,
             isAllDay: isAllDay,
-            weekDays: formatted_weekDays,
+            weekDays: weekDays,
             type: '2',
             date,
         };
@@ -64,7 +69,7 @@ router.post('/set', async (req, res) => {
             { headers }
         );
         //console.log(ttlockResponse.data)
-        res.json(ttlockResponse.data);
+        res.json({ errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error with TTLock API' });

@@ -48,12 +48,13 @@ router.put('/changeIsUser', async (req, res) => {
   }
 });
 router.delete('/delete', async (req, res) => {
-  const { accountName, lockId } = req.body;
+  const { accountName, lockId } = req.query ;
   try {
     const result = await db.result('DELETE FROM ekey WHERE accountName = $1 AND lockId = $2', [
       accountName,
       lockId,
     ]);
+    console.log(result)
     if (result.rowCount === 1) {
       res.status(200).json({ message: 'eKey deleted successfully' });
     } else {

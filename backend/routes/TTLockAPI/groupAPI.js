@@ -27,7 +27,11 @@ router.post('/getList', async (req, res) => {
             { headers }
         );
         //console.log(ttlockResponse.data)
-        res.json(ttlockResponse.data);
+        if(typeof ttlockResponse === 'object' && ttlockResponse.data.hasOwnProperty('list')){
+            res.json(ttlockResponse.data);
+        } else {
+            res.json({errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg});
+        }
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error with TTLock API' });
@@ -57,7 +61,11 @@ router.post('/add', async (req, res) => {
             { headers }
         );
         //console.log(ttlockResponse.data)
-        res.json(ttlockResponse.data);
+        if(typeof ttlockResponse === 'object' && ttlockResponse.data.hasOwnProperty('groupId')){
+            res.json({groupID: ttlockResponse.data.groupId});
+        } else {
+            res.json({errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg});
+        }
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error with TTLock API' });
@@ -87,7 +95,7 @@ router.post('/delete', async (req, res) => {
             { headers }
         );
         //console.log(ttlockResponse.data)
-        res.json(ttlockResponse.data);
+        res.json({ errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error with TTLock API' });
@@ -118,7 +126,7 @@ router.post('/rename', async (req, res) => {
             { headers }
         );
         //console.log(ttlockResponse.data)
-        res.json(ttlockResponse.data);
+        res.json({ errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error with TTLock API' });
@@ -149,7 +157,7 @@ router.post('/setLock', async (req, res) => {
             { headers }
         );
         //console.log(ttlockResponse.data)
-        res.json(ttlockResponse.data);
+        res.json({ errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error with TTLock API' });

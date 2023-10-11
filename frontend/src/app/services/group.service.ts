@@ -26,27 +26,27 @@ export class GroupService {
   }
   getGroupofAccount(userID: string): Observable<GroupResponse> {
     let body = { userID };
-    let url = 'http://localhost:3000/api/ttlock/group/getList'
+    let url = 'http://localhost:3000/api/vohk/group/getList'
     return this.http.post<GroupResponse>(url, body);
   }
   addGroup(userID: string, name: string): Observable<addGroupResponse> {
     let body = { userID, name };
-    let url = 'http://localhost:3000/api/ttlock/group/add';
+    let url = 'http://localhost:3000/api/vohk/group/add';
     return this.http.post<addGroupResponse>(url, body);
   }
   deleteGroup(userID: string, groupID: string): Observable<operationResponse> {
     let body = { userID, groupID };
-    let url = 'http://localhost:3000/api/ttlock/group/delete';
+    let url = 'http://localhost:3000/api/vohk/group/delete';
     return this.http.post<operationResponse>(url, body);
   }
   renameGroup(userID: string, groupID: string, newName: string): Observable<operationResponse> {
     let body = { userID, groupID, newName };
-    let url = 'http://localhost:3000/api/ttlock/group/rename';
+    let url = 'http://localhost:3000/api/vohk/group/rename';
     return this.http.post<operationResponse>(url, body);
   }
   setGroupofLock(userID: string, lockID: string, groupID: string): Observable<operationResponse> {
     let body = { userID, lockID, groupID };
-    let url = 'http://localhost:3000/api/ttlock/group/setLock';
+    let url = 'http://localhost:3000/api/vohk/group/setLock';
     return this.http.post<operationResponse>(url, body);
   }
 }

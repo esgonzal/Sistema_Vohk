@@ -12,22 +12,22 @@ export class CardServiceService {
 
   getCardsofLock(userID: string, lockID: number, pageNo: number, pageSize: number): Observable<CardResponse> {
     let body = { userID, lockID, pageNo, pageSize };
-    let url = 'http://localhost:3000/api/ttlock/card/getListLock'
+    let url = 'http://localhost:3000/api/vohk/card/getListLock'
     return this.http.post<CardResponse>(url, body);
   }
   changeName(userID: string, lockID: number, cardID: number, newName: string): Observable<operationResponse> {
     let body = { userID, lockID, cardID, newName };
-    let url = 'http://localhost:3000/api/ttlock/card/rename';
+    let url = 'http://localhost:3000/api/vohk/card/rename';
     return this.http.post<operationResponse>(url, body);
   }
   deleteCard(userID: string, lockID: number, cardID: number): Observable<operationResponse> {
     let body = { userID, lockID, cardID };
-    let url = 'http://localhost:3000/api/ttlock/card/delete';
+    let url = 'http://localhost:3000/api/vohk/card/delete';
     return this.http.post<operationResponse>(url, body);
   }
   changePeriod(userID: string, lockID: number, cardID: number, newStartDate: string, newEndDate: string): Observable<operationResponse> {
     let body = { userID, lockID, cardID, newStartDate, newEndDate };
-    let url = 'http://localhost:3000/api/ttlock/card/changePeriod';
+    let url = 'http://localhost:3000/api/vohk/card/changePeriod';
     return this.http.post<operationResponse>(url, body);
   }
 }

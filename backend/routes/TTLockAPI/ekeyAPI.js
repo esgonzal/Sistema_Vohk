@@ -5,7 +5,7 @@ const { accessTokenStorage } = require('./accessTokenStorage');
 const TTLOCK_CLIENT_ID = 'c4114592f7954ca3b751c44d81ef2c7d';
 
 router.post('/getListAccount', async (req, res) => {
-    let { userID, pageNo, pageSize, groupId } = req.body;
+    let { userID, pageNo, pageSize, groupID } = req.body;
     try {
         let date = Date.now()
         const accessToken = accessTokenStorage[userID] || null;
@@ -17,7 +17,7 @@ router.post('/getListAccount', async (req, res) => {
             accessToken: accessToken,
             pageNo: pageNo,
             pageSize: pageSize,
-            groupId: groupId,
+            groupId: groupID,
             date,
         };
         let headers = {
@@ -30,7 +30,11 @@ router.post('/getListAccount', async (req, res) => {
             { headers }
         );
         //console.log(ttlockResponse.data)
-        res.json(ttlockResponse.data);
+        if (typeof ttlockResponse === 'object' && ttlockResponse.data.hasOwnProperty('list')) {
+            res.json(ttlockResponse.data);
+        } else {
+            res.json({ errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg });
+        }
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error with TTLock API' });
@@ -62,14 +66,18 @@ router.post('/getListLock', async (req, res) => {
             { headers }
         );
         //console.log(ttlockResponse.data)
-        res.json(ttlockResponse.data);
+        if (typeof ttlockResponse === 'object' && ttlockResponse.data.hasOwnProperty('list')) {
+            res.json(ttlockResponse.data);
+        } else {
+            res.json({ errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg });
+        }
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error with TTLock API' });
     }
 });
 router.post('/send', async (req, res) => {
-    let { userID, lockID, recieverName, keyName, startDate, endDate, keyRight, keyType, startDay, endDay, weekDays } = req.body;
+    let { userID, lockID, recieverName, keyName, startDate, endDate, keyType, startDay, endDay, weekDays } = req.body;
     try {
         let date = Date.now()
         const accessToken = accessTokenStorage[userID] || null;
@@ -84,7 +92,7 @@ router.post('/send', async (req, res) => {
             keyName: keyName,
             startDate: startDate,
             endDate: endDate,
-            keyRight: keyRight,
+            keyRight: 1,
             keyType: keyType,
             startDay: startDay,
             endDay: endDay,
@@ -114,14 +122,14 @@ router.post('/send', async (req, res) => {
                 'Content-Type': 'application/json'
             }
             let DBResponse = await axios.post(
-                'http://localhost:3000/api/ekeys/create',
+                'http://localhost:3000/api/DB/ekeys/create',
                 ekeyData,
                 { headers }
             );
-            console.log("DBResponse:", DBResponse.data)
-            res.json(ttlockResponse.data)
+            //console.log("DBResponse:", DBResponse.data)
+            res.json({keyId: ttlockResponse.data.keyId})
         } else {//Send ekey was unsuccessful
-            res.json(ttlockResponse.data)
+            res.json({ errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg })
         }
     } catch (error) {
         console.error(error);
@@ -153,19 +161,15 @@ router.post('/delete', async (req, res) => {
         );
         if (typeof ttlockResponse === 'object' && ttlockResponse.data.hasOwnProperty('errcode')) {
             if (ttlockResponse.data.errcode === 0) {
-                let ekeyData = {
-                    accountName: keyUsername,
-                    lockId: lockID,
-                }
-                let DBResponse = await axios.delete('http://localhost:3000/api/ekeys/delete', {
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    data: ekeyData,
-                });
+                let headers = {
+                    'Content-Type': 'application/json'
+                };
+                let url = `http://localhost:3000/api/DB/ekeys/delete?accountName=${keyUsername}&lockId=${lockID}`;
+                let DBResponse = await axios.delete(url, { headers });
+                console.log(DBResponse)
             }
         }
-        res.json(ttlockResponse.data);
+        res.json({ errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error with TTLock API' });
@@ -195,7 +199,7 @@ router.post('/freeze', async (req, res) => {
             { headers }
         );
         //console.log(ttlockResponse.data)
-        res.json(ttlockResponse.data);
+        res.json({ errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error with TTLock API' });
@@ -224,8 +228,8 @@ router.post('/unfreeze', async (req, res) => {
             ttlockData,
             { headers }
         );
-        console.log(ttlockResponse.data)
-        res.json(ttlockResponse.data);
+        //console.log(ttlockResponse.data)
+        res.json({ errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error with TTLock API' });
@@ -257,7 +261,7 @@ router.post('/modify', async (req, res) => {
             { headers }
         );
         //console.log(ttlockResponse.data)
-        res.json(ttlockResponse.data);
+        res.json({ errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error with TTLock API' });
@@ -289,7 +293,7 @@ router.post('/changePeriod', async (req, res) => {
             { headers }
         );
         //console.log(ttlockResponse.data)
-        res.json(ttlockResponse.data);
+        res.json({ errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error with TTLock API' });
@@ -320,7 +324,7 @@ router.post('/authorize', async (req, res) => {
             { headers }
         );
         //console.log(ttlockResponse.data)
-        res.json(ttlockResponse.data);
+        res.json({ errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error with TTLock API' });
@@ -351,7 +355,7 @@ router.post('/unauthorize', async (req, res) => {
             { headers }
         );
         //console.log(ttlockResponse.data)
-        res.json(ttlockResponse.data);
+        res.json({ errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error with TTLock API' });

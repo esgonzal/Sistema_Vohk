@@ -400,12 +400,14 @@ export class PopUpComponent implements OnInit {
         this.error = "Por favor ingrese el dato requerido"
       } else {
         let response = await lastValueFrom(this.groupService.addGroup(this.popupService.userID, datos.name)) as addGroupResponse;
-        //console.log("Respuesta de crear grupo:",response)
-        if (response.groupId) {
+        console.log("Respuesta de crear grupo:",response)
+        if (response.groupID) {
           this.popupService.newGroup = false;
           window.location.reload();
         } else if (response.errcode === -3) {
           this.error = "El nombre ingresado es muy largo";
+        } else if (response.errcode === -1016){
+          this.error = "Ya existe un grupo con ese mismo nombre, elija otro nombre";
         } else {
           this.error = "No se pudo completar la acción, intente nuevamente más tarde";
         }

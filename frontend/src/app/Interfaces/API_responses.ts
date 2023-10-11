@@ -57,7 +57,7 @@ export interface operationResponse {
     description: string;
 }
 export interface addGroupResponse {
-    groupId: number;
+    groupID: number;
     description: string;
     errcode: number;
     errmsg: string;

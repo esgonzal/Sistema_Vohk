@@ -28,21 +28,21 @@ export class LockServiceService {
     let pageNo = 1;
     let pageSize = 100;
     let body = {userID, pageNo, pageSize};
-    let url = 'http://localhost:3000/api/ttlock/lock/getListAccount';
+    let url = 'http://localhost:3000/api/vohk/lock/getListAccount';
     return this.http.post<LockListResponse>(url, body)
   }
   getLockDetails(userID: string, lockID: number): Observable<LockDetails> {
     let body = {userID, lockID};
-    let url = 'http://localhost:3000/api/ttlock/lock/details';
+    let url = 'http://localhost:3000/api/vohk/lock/details';
     return this.http.post<LockDetails>(url, body)
   }
   setAutoLock(userID: string, lockID: number, seconds: number): Observable<operationResponse> {
     let body = {userID, lockID, seconds}
-    let url = 'http://localhost:3000/api/ttlock/lock/setAutoLock';
+    let url = 'http://localhost:3000/api/vohk/lock/setAutoLock';
     return this.http.post<operationResponse>(url, body);
   }
-  transferLock(userID: string, receiverUsername: string, lockIdList: string): Observable<operationResponse> {
-    let body = {userID, receiverUsername, lockIdList}
+  transferLock(userID: string, receiverUsername: string, lockID: string): Observable<operationResponse> {
+    let body = {userID, receiverUsername, lockID}
     let url = 'http://localhost:3000/api/ttlock/lock/transfer';
     return this.http.post<operationResponse>(url, body);
   }

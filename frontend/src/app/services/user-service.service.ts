@@ -22,10 +22,94 @@ export class UserServiceService {
     this.phoneNumberUtil = PhoneNumberUtil.getInstance();
   }
 
+  UserRegister(nombre: string, clave: string): Observable<UserRegisterResponse> { 
+    let body = { nombre, clave };
+    let url = 'http://localhost:3000/api/vohk/user/register';
+    return this.http.post<UserRegisterResponse>(url, body);
+  }
+  getAccessToken(nombre: string, clave: string): Observable<GetAccessTokenResponse> {
+    let body = { nombre, clave };
+    let url = 'http://localhost:3000/api/vohk/user/login'
+    return this.http.post<GetAccessTokenResponse>(url, body);
+  }
+  ResetPassword(nombre: string, clave: string): Observable<ResetPasswordResponse> {
+    let body = { nombre, clave };
+    let url = 'http://localhost:3000/api/vohk/user/resetPassword'
+    return this.http.post<ResetPasswordResponse>(url, body);
+  }
+  logOut(userID: string): Observable<logoutResponse> {
+    let url = `http://localhost:3000/api/vohk/user/logout`;
+    let headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+    let options = { headers };
+    let body = {
+      userID
+    }
+    return this.http.post<logoutResponse>(url, body, options);
+  }
+
+  
+  createUserDB(accountName: string, originalUsername: string, nickname: string, email: string, phone: string, password: string) {
+    let url = 'http://localhost:3000/api/DB/usuarios/create';
+    let newUser = {
+      accountName,
+      originalUsername,
+      nickname,
+      email,
+      phone,
+      password,
+    };
+    let headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+    });
+    let options = { headers };
+    return this.http.post(url, newUser, options);
+  }
+  checkUserInDB(accountName:string): Observable<checkUserInDBResponse>{
+    let url = `http://localhost:3000/api/DB/usuarios/exists/${accountName}`;
+    let headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+    });
+    let options = { headers };
+    return this.http.get<checkUserInDBResponse>(url, options);
+  }
+  getUserDB(accountName: string): Observable<getUserInDBResponse>{
+    let url = `http://localhost:3000/api/DB/usuarios/${accountName}`;
+    let headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+    });
+    let options = { headers };
+    return this.http.get<getUserInDBResponse>(url, options);
+  }
+  changeNicknameDB(accountName: string, nickname: string) {
+    let url = `http://localhost:3000/api/DB/usuarios/nickname`;
+    let headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+    });
+    let options = { headers };
+    let body = {
+      accountName,
+      nickname
+    }
+    return this.http.put(url, body, options);
+  }
+  changePasswordDB(accountName: string, password: string) {
+    let url = `http://localhost:3000/api/DB/usuarios/password`;
+    let headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+    });
+    let options = { headers };
+    let body = {
+      accountName,
+      password
+    }
+    return this.http.put(url, body, options);
+  }
+
   setNickname(nickname: string) {
     this.nicknameSubject.next(nickname);
   }
-
   getMD5(clave: string) {
     return Md5.hashStr(clave);
   }
@@ -110,21 +194,6 @@ export class UserServiceService {
       return { isValid: false }; // Parsing error, not a valid phone number
     }
   }
-  UserRegister(nombre: string, clave: string): Observable<UserRegisterResponse> { 
-    let body = { nombre, clave };
-    let url = 'http://localhost:3000/api/ttlock/user/register';
-    return this.http.post<UserRegisterResponse>(url, body);
-  }
-  getAccessToken(nombre: string, clave: string): Observable<GetAccessTokenResponse> {
-    let body = { nombre, clave };
-    let url = 'http://localhost:3000/api/ttlock/user/login'
-    return this.http.post<GetAccessTokenResponse>(url, body);
-  }
-  ResetPassword(nombre: string, clave: string): Observable<ResetPasswordResponse> {
-    let body = { nombre, clave };
-    let url = 'http://localhost:3000/api/ttlock/user/resetPassword'
-    return this.http.post<ResetPasswordResponse>(url, body);
-  }
   sendEmail_NewUser(recipientEmail: string, password: string) {//Template para passcode recurrente
     //esteban.vohk+6@gmail.com
     emailjs.send('contact_service', 'NewUser', {
@@ -136,72 +205,6 @@ export class UserServiceService {
       .then((response) => { console.log('Email sent successfully:', response); })
       .catch((error) => { console.error('Error sending email:', error); });
   }
-  createUserDB(accountName: string, originalUsername: string, nickname: string, email: string, phone: string, password: string) {
-    let url = 'http://localhost:3000/api/usuarios/create';
-    let newUser = {
-      accountName,
-      originalUsername,
-      nickname,
-      email,
-      phone,
-      password,
-    };
-    let headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-    });
-    let options = { headers };
-    return this.http.post(url, newUser, options);
-  }
-  checkUserInDB(accountName:string): Observable<checkUserInDBResponse>{
-    let url = `http://localhost:3000/api/usuarios/exists/${accountName}`;
-    let headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-    });
-    let options = { headers };
-    return this.http.get<checkUserInDBResponse>(url, options);
-  }
-  getUserDB(accountName: string): Observable<getUserInDBResponse>{
-    let url = `http://localhost:3000/api/usuarios/${accountName}`;
-    let headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-    });
-    let options = { headers };
-    return this.http.get<getUserInDBResponse>(url, options);
-  }
-  changeNicknameDB(accountName: string, nickname: string) {
-    let url = `http://localhost:3000/api/usuarios/nickname`;
-    let headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-    });
-    let options = { headers };
-    let body = {
-      accountName,
-      nickname
-    }
-    return this.http.put(url, body, options);
-  }
-  changePasswordDB(accountName: string, password: string) {
-    let url = `http://localhost:3000/api/usuarios/password`;
-    let headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-    });
-    let options = { headers };
-    let body = {
-      accountName,
-      password
-    }
-    return this.http.put(url, body, options);
-  }
-  logOut(userID: string): Observable<logoutResponse> {
-    let url = `http://localhost:3000/api/ttlock/user/logout`;
-    let headers = new HttpHeaders({
-      'Content-Type': 'application/json'
-    });
-    let options = { headers };
-    let body = {
-      userID
-    }
-    return this.http.post<logoutResponse>(url, body, options);
-  }
+  
 
 }

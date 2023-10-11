@@ -99,7 +99,7 @@ router.post('/setAutoLock', async (req, res) => {
     }
 });
 router.post('/transfer', async (req, res) => {
-    let { userID, receiverUsername, lockIdList } = req.body;
+    let { userID, receiverUsername, lockID } = req.body;
     try {
         let date = Date.now()
         const accessToken = accessTokenStorage[userID] || null;
@@ -110,7 +110,7 @@ router.post('/transfer', async (req, res) => {
             clientId: TTLOCK_CLIENT_ID,
             accessToken: accessToken,
             receiverUsername: receiverUsername,
-            lockIdList: lockIdList,
+            lockIdList: lockID,
             date,
         };
         let headers = {

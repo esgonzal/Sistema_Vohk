@@ -504,7 +504,7 @@ export class LockComponent implements OnInit {
         this.ekeys = [];
         await this.fetchEkeys();
         this.ekeysDataSource = new MatTableDataSource(this.ekeys);
-        //console.log("eKeys: ", this.ekeys)
+        console.log("eKeys: ", this.ekeys)
         break;
       case 1:
         this.passcodes = [];
@@ -512,19 +512,19 @@ export class LockComponent implements OnInit {
         this.updatePasscodeUsage()
         this.passcodesDataSource = new MatTableDataSource(this.passcodes);
         this.passcodesFiltradas = this.passcodes.filter(passcode => passcode.senderUsername === this.userService.encodeNombre(this.username));
-        //console.log("Passcodes: ", this.passcodes)
+        console.log("Passcodes: ", this.passcodes)
         break;
       case 2:
         this.cards = [];
         await this.fetchCards();
         this.cardsDataSource = new MatTableDataSource(this.cards);
-        //console.log("Cards: ", this.cards)
+        console.log("Cards: ", this.cards)
         break;
       case 3:
         this.fingerprints = [];
         await this.fetchFingerprints();
         this.fingerprintsDataSource = new MatTableDataSource(this.fingerprints);
-        //console.log("Fingerprints: ", this.fingerprints)
+        console.log("Fingerprints: ", this.fingerprints)
         break;
       case 4:
         this.records = [];

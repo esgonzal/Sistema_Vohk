@@ -17,13 +17,14 @@ export class PassageModeService {
 
   getPassageModeConfig(userID: string, lockID: number): Observable<PassageMode> {
     let body = { userID, lockID };
-    let url = 'http://localhost:3000/api/ttlock/passageMode/get'
+    let url = 'http://localhost:3000/api/vohk/passageMode/get'
     return this.http.post<PassageMode>(url, body);
   }
-  setPassageMode(userID: string, lockID: number, passageMode:number, startDate: string, endDate:string, isAllDay:number, weekDays: number[]): Observable<operationResponse> {
-    let formatted_weekDays = JSON.stringify(weekDays)
-    let body = { userID, lockID, passageMode, startDate, endDate, isAllDay, formatted_weekDays};
-    let url = 'http://localhost:3000/api/ttlock/passageMode/set'
+  setPassageMode(userID: string, lockID: number, passageMode:number, startDate: string, endDate:string, isAllDay:number, weekdays: number[]): Observable<operationResponse> {
+    let weekDays = JSON.stringify(weekdays)
+    let body = { userID, lockID, passageMode, startDate, endDate, isAllDay, weekDays};
+    console.log(body)
+    let url = 'http://localhost:3000/api/vohk/passageMode/set'
     return this.http.post<operationResponse>(url, body);
   }
 }
