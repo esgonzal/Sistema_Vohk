@@ -12,7 +12,6 @@ import { HomeComponent } from './components/home/home.component';
 import { PerfilComponent } from './components/perfil/perfil.component';
 import { GrupoCerradurasComponent } from './components/grupo-cerraduras/grupo-cerraduras.component';
 import { MultipleEkeyComponent } from './components/multiple-ekey/multiple-ekey.component';
-import { GroupDataLoadedGuard } from './guards/group-data-loaded.guard';
 
 const routes: Routes = [
   { path: 'home', component: HomeComponent },

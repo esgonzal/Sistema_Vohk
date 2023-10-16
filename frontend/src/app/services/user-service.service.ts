@@ -1,4 +1,4 @@
-import { EventEmitter, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Md5 } from 'ts-md5';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -12,6 +12,7 @@ import emailjs from 'emailjs-com';
 })
 export class UserServiceService {
 
+  URL = 'http://34.176.169.34:8080';
   loggedIn = false;
   private phoneNumberUtil: PhoneNumberUtil;
 
@@ -22,23 +23,23 @@ export class UserServiceService {
     this.phoneNumberUtil = PhoneNumberUtil.getInstance();
   }
 
-  UserRegister(nombre: string, clave: string): Observable<UserRegisterResponse> { 
+  UserRegister(nombre: string, clave: string): Observable<UserRegisterResponse> {
     let body = { nombre, clave };
-    let url = 'http://localhost:3000/api/vohk/user/register';
+    let url = this.URL.concat('/api/vohk/user/register');
     return this.http.post<UserRegisterResponse>(url, body);
   }
   getAccessToken(nombre: string, clave: string): Observable<GetAccessTokenResponse> {
     let body = { nombre, clave };
-    let url = 'http://localhost:3000/api/vohk/user/login'
+    let url = this.URL.concat('/api/vohk/user/login');
     return this.http.post<GetAccessTokenResponse>(url, body);
   }
   ResetPassword(nombre: string, clave: string): Observable<ResetPasswordResponse> {
     let body = { nombre, clave };
-    let url = 'http://localhost:3000/api/vohk/user/resetPassword'
+    let url = this.URL.concat('/api/vohk/user/resetPassword');
     return this.http.post<ResetPasswordResponse>(url, body);
   }
   logOut(userID: string): Observable<logoutResponse> {
-    let url = `http://localhost:3000/api/vohk/user/logout`;
+    let url = this.URL.concat('/api/vohk/user/logout');
     let headers = new HttpHeaders({
       'Content-Type': 'application/json'
     });
@@ -48,10 +49,8 @@ export class UserServiceService {
     }
     return this.http.post<logoutResponse>(url, body, options);
   }
-
-  
   createUserDB(accountName: string, originalUsername: string, nickname: string, email: string, phone: string, password: string) {
-    let url = 'http://localhost:3000/api/DB/usuarios/create';
+    let url = this.URL.concat('/api/DB/usuarios/create');
     let newUser = {
       accountName,
       originalUsername,
@@ -66,16 +65,16 @@ export class UserServiceService {
     let options = { headers };
     return this.http.post(url, newUser, options);
   }
-  checkUserInDB(accountName:string): Observable<checkUserInDBResponse>{
-    let url = `http://localhost:3000/api/DB/usuarios/exists/${accountName}`;
+  checkUserInDB(accountName: string): Observable<checkUserInDBResponse> {
+    let url = this.URL.concat(`/api/DB/usuarios/exists/${accountName}`);
     let headers = new HttpHeaders({
       'Content-Type': 'application/json',
     });
     let options = { headers };
     return this.http.get<checkUserInDBResponse>(url, options);
   }
-  getUserDB(accountName: string): Observable<getUserInDBResponse>{
-    let url = `http://localhost:3000/api/DB/usuarios/${accountName}`;
+  getUserDB(accountName: string): Observable<getUserInDBResponse> {
+    let url = this.URL.concat(`/api/DB/usuarios/${accountName}`);
     let headers = new HttpHeaders({
       'Content-Type': 'application/json',
     });
@@ -83,7 +82,7 @@ export class UserServiceService {
     return this.http.get<getUserInDBResponse>(url, options);
   }
   changeNicknameDB(accountName: string, nickname: string) {
-    let url = `http://localhost:3000/api/DB/usuarios/nickname`;
+    let url = this.URL.concat(`/api/DB/usuarios/nickname`);
     let headers = new HttpHeaders({
       'Content-Type': 'application/json',
     });
@@ -95,7 +94,7 @@ export class UserServiceService {
     return this.http.put(url, body, options);
   }
   changePasswordDB(accountName: string, password: string) {
-    let url = `http://localhost:3000/api/DB/usuarios/password`;
+    let url = this.URL.concat('/api/DB/usuarios/password');
     let headers = new HttpHeaders({
       'Content-Type': 'application/json',
     });
@@ -106,7 +105,6 @@ export class UserServiceService {
     }
     return this.http.put(url, body, options);
   }
-
   setNickname(nickname: string) {
     this.nicknameSubject.next(nickname);
   }
@@ -205,6 +203,4 @@ export class UserServiceService {
       .then((response) => { console.log('Email sent successfully:', response); })
       .catch((error) => { console.error('Error sending email:', error); });
   }
-  
-
 }

@@ -11,6 +11,7 @@ import emailjs from 'emailjs-com';
 })
 export class EkeyServiceService {
 
+  URL = 'http://34.176.169.34:8080';
   userID: string;
   lockID: number;
   username = sessionStorage.getItem('user') ?? ''
@@ -23,56 +24,56 @@ export class EkeyServiceService {
 
   getEkeysofAccount(userID: string, pageNo: number, pageSize: number, groupID?: number): Observable<LockListResponse> {
     let body = { userID, pageNo, pageSize, groupID };
-    let url = 'http://localhost:3000/api/vohk/ekey/getListAccount';
+    let url = this.URL.concat('/api/vohk/ekey/getListAccount');
     return this.http.post<LockListResponse>(url, body);
   }
   getEkeysofLock(userID: string, lockID: number, pageNo: number, pageSize: number): Observable<EkeyResponse> {
     let body = { userID, lockID, pageNo, pageSize };
-    let url = 'http://localhost:3000/api/vohk/ekey/getListLock';
+    let url = this.URL.concat('/api/vohk/ekey/getListLock');
     return this.http.post<EkeyResponse>(url, body);
   }
   sendEkey(userID: string, lockID: number, recieverName: string, keyName: string, startDate: string, endDate: string, keyRight: number, keyType?: number, startDay?: string, endDay?: string, weekDays?: string): Observable<sendEkeyResponse> {
     let body = { userID, lockID, recieverName, keyName, startDate, endDate, keyRight, keyType, startDay, endDay, weekDays };
-    let url = 'http://localhost:3000/api/vohk/ekey/send';
+    let url = this.URL.concat('/api/vohk/ekey/send');
     return this.http.post<sendEkeyResponse>(url, body);
   }
   deleteEkey(userID: string, keyID: number, lockID: number, keyUsername: string): Observable<operationResponse> {
     let body = { userID, keyID, lockID, keyUsername };
-    let url = 'http://localhost:3000/api/vohk/ekey/delete';
+    let url = this.URL.concat('/api/vohk/ekey/delete');
     return this.http.post<operationResponse>(url, body);
   }
   freezeEkey(userID: string, keyID: number): Observable<operationResponse> {
     let body = { userID, keyID };
-    let url = 'http://localhost:3000/api/vohk/ekey/freeze';
+    let url = this.URL.concat('/api/vohk/ekey/freeze');
     return this.http.post<operationResponse>(url, body);
   }
   unfreezeEkey(userID: string, keyID: number): Observable<operationResponse> {
     let body = { userID, keyID };
-    let url = 'http://localhost:3000/api/vohk/ekey/unfreeze';
+    let url = this.URL.concat('/api/vohk/ekey/unfreeze');
     return this.http.post<operationResponse>(url, body);
   }
   modifyEkey(userID: string, keyID: number, newName?: string, remoteEnable?: string): Observable<operationResponse> {
     let body = { userID, keyID, newName, remoteEnable };
-    let url = 'http://localhost:3000/api/vohk/ekey/modify';
+    let url = this.URL.concat('/api/vohk/ekey/modify');
     return this.http.post<operationResponse>(url, body);
   }
   changePeriod(userID: string, keyID: number, newStartDate: string, newEndDate: string): Observable<operationResponse> {
     let body = { userID, keyID, newStartDate, newEndDate };
-    let url = 'http://localhost:3000/api/vohk/ekey/changePeriod';
+    let url = this.URL.concat('/api/vohk/ekey/changePeriod');
     return this.http.post<operationResponse>(url, body);
   }
   AuthorizeEkey(userID: string, lockID: number, keyID: number): Observable<operationResponse> {
     let body = { userID, lockID, keyID };
-    let url = 'http://localhost:3000/api/vohk/ekey/authorize';
+    let url = this.URL.concat('/api/vohk/ekey/authorize');
     return this.http.post<operationResponse>(url, body);
   }
   cancelAuthorizeEkey(userID: string, lockID: number, keyID: number): Observable<operationResponse> {
     let body = { userID, lockID, keyID };
-    let url = 'http://localhost:3000/api/vohk/ekey/unauthorize';
+    let url = this.URL.concat('/api/vohk/ekey/unauthorize');
     return this.http.post<operationResponse>(url, body);
   }
   createEkeyDB(accountName: string, lockId: number, isUser: boolean){
-    let url = 'http://localhost:3000/api/ekeys/create';
+    let url = this.URL.concat('/api/ekeys/create');
     let body = {
       accountName,
       lockId,
@@ -85,7 +86,7 @@ export class EkeyServiceService {
     return this.http.post(url, body, options)
   }
   getIsUser(accountName: string, lockID: number): Observable<getByUserAndLockIdResponse> {
-    let url = `http://localhost:3000/api/DB/ekeys/getByUserAndLockId?accountName=${accountName}&lockId=${lockID}`;
+    let url = this.URL.concat(`/api/DB/ekeys/getByUserAndLockId?accountName=${accountName}&lockId=${lockID}`);
     let headers = new HttpHeaders({
       'Content-Type': 'application/json',
     });
@@ -94,7 +95,7 @@ export class EkeyServiceService {
   }
   changeIsUser(accountName: string, lockId: number, isUser: boolean) {
     console.log("variables en ekeyService:",accountName,lockId,isUser)
-    let url = 'http://localhost:3000/api/DB/ekeys/changeIsUser';
+    let url = this.URL.concat('/api/DB/ekeys/changeIsUser');
     let body = {
       accountName,
       lockId,
@@ -107,7 +108,7 @@ export class EkeyServiceService {
     return this.http.put(url, body, options);
   }
   deleteEkeyDB(accountName: string, lockId: number) {
-    let url = `http://localhost:3000/api/DB/ekeys/delete?accountName=${accountName}&lockId=${lockId}`;
+    let url = this.URL.concat(`/api/DB/ekeys/delete?accountName=${accountName}&lockId=${lockId}`);
     return this.http.delete(url)
   }
   async sendEmail_permanentEkey(recipientEmail: string, keyName: string, alias:string) {//Template para eKey permanente a una cuenta existente

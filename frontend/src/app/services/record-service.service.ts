@@ -8,11 +8,13 @@ import { Observable } from 'rxjs';
 })
 export class RecordServiceService {
 
+  URL = 'http://34.176.169.34:8080';
+
   constructor(private http: HttpClient) { }
 
   getRecords(userID: string, lockID: number, pageNo: number, pageSize: number): Observable<RecordResponse> {
    let body = {userID, lockID, pageNo, pageSize};
-   let url = 'http://localhost:3000/api/vohk/record/getListLock'
+   let url = this.URL.concat('/api/vohk/record/getListLock');
    return this.http.post<RecordResponse>(url, body);
   }
 }

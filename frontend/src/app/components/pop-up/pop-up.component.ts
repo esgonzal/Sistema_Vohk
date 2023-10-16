@@ -14,7 +14,6 @@ import { GroupService } from '../../services/group.service';
 import { GatewayAccount } from '../../Interfaces/Gateway';
 import { Formulario } from '../../Interfaces/Formulario';
 import { operationResponse, ResetPasswordResponse, addGroupResponse, GetLockTimeResponse } from '../../Interfaces/API_responses';
-import { LockData } from '../../Interfaces/Lock';
 
 import { lastValueFrom } from 'rxjs';
 import moment from 'moment';

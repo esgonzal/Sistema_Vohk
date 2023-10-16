@@ -5,7 +5,7 @@ import { lastValueFrom } from 'rxjs';
 import { UserServiceService } from '../../services/user-service.service';
 import { LockServiceService } from '../../services/lock-service.service';
 import { EkeyServiceService } from '../../services/ekey-service.service';
-import { UserRegisterResponse, checkUserInDBResponse, sendEkeyResponse } from '../../Interfaces/API_responses'
+import { UserRegisterResponse, sendEkeyResponse } from '../../Interfaces/API_responses'
 import { Formulario } from '../../Interfaces/Formulario';
 
 @Component({

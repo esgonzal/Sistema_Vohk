@@ -9,8 +9,6 @@ import { LockServiceService } from 'src/app/services/lock-service.service';
 import { lastValueFrom } from 'rxjs';
 import { UserServiceService } from 'src/app/services/user-service.service';
 import { checkUserInDBResponse, sendEkeyResponse, UserRegisterResponse } from 'src/app/Interfaces/API_responses';
-import { from } from 'rxjs';
-
 
 @Component({
   selector: 'app-multiple-ekey',

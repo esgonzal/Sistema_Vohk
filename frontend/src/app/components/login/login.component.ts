@@ -3,7 +3,7 @@ import { UserServiceService } from '../../services/user-service.service';
 import { Router } from '@angular/router';
 import { User } from '../../Interfaces/User';
 import { lastValueFrom } from 'rxjs';
-import { GetAccessTokenResponse, getUserInDBResponse } from '../../Interfaces/API_responses'
+import { GetAccessTokenResponse } from '../../Interfaces/API_responses'
 
 @Component({
   selector: 'app-login',
