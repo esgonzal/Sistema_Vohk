@@ -10,7 +10,7 @@ import { operationResponse, GroupResponse, addGroupResponse } from '../Interface
 })
 export class GroupService {
 
-  URL = 'http://34.176.169.34:8080';
+  URL = 'http://34.176.182.56:8080';
   DEFAULT_GROUP: Group = { groupId: 0, groupName: 'Todos', lockCount: 0, locks: [] };
 
   public selectedGroupSubject = new BehaviorSubject<Group>(this.DEFAULT_GROUP);

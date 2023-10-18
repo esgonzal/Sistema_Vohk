@@ -12,7 +12,7 @@ import emailjs from 'emailjs-com';
 })
 export class UserServiceService {
 
-  URL = 'http://34.176.169.34:8080';
+  URL = 'http://34.176.182.56:8080';
   loggedIn = false;
   private phoneNumberUtil: PhoneNumberUtil;
 

@@ -11,7 +11,7 @@ import emailjs from 'emailjs-com';
 })
 export class EkeyServiceService {
 
-  URL = 'http://34.176.169.34:8080';
+  URL = 'http://34.176.182.56:8080';
   userID: string;
   lockID: number;
   username = sessionStorage.getItem('user') ?? ''

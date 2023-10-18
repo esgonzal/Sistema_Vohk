@@ -8,7 +8,7 @@ import { FingerprintResponse, operationResponse } from '../Interfaces/API_respon
 })
 export class FingerprintServiceService {
 
-  URL = 'http://34.176.169.34:8080';
+  URL = 'http://34.176.182.56:8080';
 
   constructor(private http: HttpClient) { }
 

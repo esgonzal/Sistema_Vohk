@@ -8,7 +8,7 @@ import { Observable } from 'rxjs';
 })
 export class RecordServiceService {
 
-  URL = 'http://34.176.169.34:8080';
+  URL = 'http://34.176.182.56:8080';
 
   constructor(private http: HttpClient) { }
 
