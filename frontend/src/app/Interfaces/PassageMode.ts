@@ -4,5 +4,6 @@ export interface PassageMode {
     isAllDay: number;
     passageMode: number;
     startDate: string;
-    weekDays: number[]
+    weekDays: number[];
+    errcode: number;
 }

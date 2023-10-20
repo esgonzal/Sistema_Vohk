@@ -10,7 +10,7 @@ router.post('/getListAccount', async (req, res) => {
         let date = Date.now()
         const accessToken = accessTokenStorage[userID] || null;
         if (!accessToken) {
-            return res.status(401).json({ error: 'Access token not found for this user' });
+            return res.status(401).json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
@@ -37,7 +37,7 @@ router.post('/getListAccount', async (req, res) => {
         }
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Error with TTLock API' });
+        res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
 router.post('/getListLock', async (req, res) => {
@@ -46,7 +46,7 @@ router.post('/getListLock', async (req, res) => {
         let date = Date.now()
         const accessToken = accessTokenStorage[userID] || null;
         if (!accessToken) {
-            return res.status(401).json({ error: 'Access token not found for this user' });
+            return res.status(401).json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
@@ -73,7 +73,7 @@ router.post('/getListLock', async (req, res) => {
         }
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Error with TTLock API' });
+        res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
 router.post('/send', async (req, res) => {
@@ -82,7 +82,7 @@ router.post('/send', async (req, res) => {
         let date = Date.now()
         const accessToken = accessTokenStorage[userID] || null;
         if (!accessToken) {
-            return res.status(401).json({ error: 'Access token not found for this user' });
+            return res.status(401).json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
@@ -133,7 +133,7 @@ router.post('/send', async (req, res) => {
         }
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Error with TTLock API' });
+        res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 })
 router.post('/delete', async (req, res) => {
@@ -142,7 +142,7 @@ router.post('/delete', async (req, res) => {
         let date = Date.now()
         const accessToken = accessTokenStorage[userID] || null;
         if (!accessToken) {
-            return res.status(401).json({ error: 'Access token not found for this user' });
+            return res.status(401).json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
@@ -172,7 +172,7 @@ router.post('/delete', async (req, res) => {
         res.json({ errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Error with TTLock API' });
+        res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
 router.post('/freeze', async (req, res) => {
@@ -181,7 +181,7 @@ router.post('/freeze', async (req, res) => {
         let date = Date.now()
         const accessToken = accessTokenStorage[userID] || null;
         if (!accessToken) {
-            return res.status(401).json({ error: 'Access token not found for this user' });
+            return res.status(401).json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
@@ -202,7 +202,7 @@ router.post('/freeze', async (req, res) => {
         res.json({ errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Error with TTLock API' });
+        res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
 router.post('/unfreeze', async (req, res) => {
@@ -211,7 +211,7 @@ router.post('/unfreeze', async (req, res) => {
         let date = Date.now()
         const accessToken = accessTokenStorage[userID] || null;
         if (!accessToken) {
-            return res.status(401).json({ error: 'Access token not found for this user' });
+            return res.status(401).json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
@@ -232,7 +232,7 @@ router.post('/unfreeze', async (req, res) => {
         res.json({ errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Error with TTLock API' });
+        res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
 router.post('/modify', async (req, res) => {
@@ -241,7 +241,7 @@ router.post('/modify', async (req, res) => {
         let date = Date.now()
         const accessToken = accessTokenStorage[userID] || null;
         if (!accessToken) {
-            return res.status(401).json({ error: 'Access token not found for this user' });
+            return res.status(401).json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
@@ -264,7 +264,7 @@ router.post('/modify', async (req, res) => {
         res.json({ errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Error with TTLock API' });
+        res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
 router.post('/changePeriod', async (req, res) => {
@@ -273,7 +273,7 @@ router.post('/changePeriod', async (req, res) => {
         let date = Date.now()
         const accessToken = accessTokenStorage[userID] || null;
         if (!accessToken) {
-            return res.status(401).json({ error: 'Access token not found for this user' });
+            return res.status(401).json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
@@ -296,7 +296,7 @@ router.post('/changePeriod', async (req, res) => {
         res.json({ errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Error with TTLock API' });
+        res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
 router.post('/authorize', async (req, res) => {
@@ -305,7 +305,7 @@ router.post('/authorize', async (req, res) => {
         let date = Date.now()
         const accessToken = accessTokenStorage[userID] || null;
         if (!accessToken) {
-            return res.status(401).json({ error: 'Access token not found for this user' });
+            return res.status(401).json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
@@ -327,7 +327,7 @@ router.post('/authorize', async (req, res) => {
         res.json({ errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Error with TTLock API' });
+        res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
 router.post('/unauthorize', async (req, res) => {
@@ -336,7 +336,7 @@ router.post('/unauthorize', async (req, res) => {
         let date = Date.now()
         const accessToken = accessTokenStorage[userID] || null;
         if (!accessToken) {
-            return res.status(401).json({ error: 'Access token not found for this user' });
+            return res.status(401).json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
@@ -358,7 +358,7 @@ router.post('/unauthorize', async (req, res) => {
         res.json({ errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Error with TTLock API' });
+        res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
 

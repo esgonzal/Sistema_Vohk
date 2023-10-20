@@ -39,7 +39,6 @@ export class UserComponent implements OnInit {
   faWifi = faWifi
   private selectedGroupSubscription: Subscription;
 
-
   async ngOnInit() {
     if(sessionStorage.getItem('Account') === 'Vohk'){
       this.userID = this.userService.encodeNombre(this.username);
@@ -197,10 +196,9 @@ export class UserComponent implements OnInit {
     this.popupService.invalidLock = true;
   }
   hasValidAccess(lock: LockData): boolean {
-    if (Number(lock.endDate) === 0 || moment(lock.endDate).isAfter(moment())) {
+    if ((Number(lock.endDate) === 0 || moment(lock.endDate).isAfter(moment())) && (lock.keyRight === 1 || lock.userType === '110301')) {
       return true
-    }
-    else {
+    } else {
       return false;
     }
   }

@@ -23,27 +23,27 @@ export class PasscodeServiceService {
 
   getPasscodesofLock(userID: string, lockID: number, pageNo: number, pageSize: number): Observable<PasscodeResponse> {
     let body = { userID, lockID, pageNo, pageSize };
-    let url = 'http://localhost:3000/api/vohk/passcode/getListLock';
+    let url = this.URL.concat('/api/vohk/passcode/getListLock');
     return this.http.post<PasscodeResponse>(url, body);
   }
   generatePasscode(userID: string, lockID: number, type: string, startDate: string, name?: string, endDate?: string): Observable<createPasscodeResponse> {
     let body = { userID, lockID, type, startDate, name, endDate };
-    let url = 'http://localhost:3000/api/vohk/passcode/get';
+    let url = this.URL.concat('/api/vohk/passcode/get');
     return this.http.post<createPasscodeResponse>(url, body);
   }
   generateCustomPasscode(userID: string, lockID: number, keyboardPwd: string, keyboardPwdType: string, keyboardPwdName?: string, startDate?: string, endDate?: string): Observable<createPasscodeResponse> {
     let body = { userID, lockID, keyboardPwd, keyboardPwdType, keyboardPwdName, startDate, endDate };
-    let url = 'http://localhost:3000/api/vohk/passcode/add';
+    let url = this.URL.concat('/api/vohk/passcode/add');
     return this.http.post<createPasscodeResponse>(url, body);
   }
   deletePasscode(userID: string, lockID: number, passcodeID: number): Observable<operationResponse> {
     let body = { userID, lockID, passcodeID };
-    let url = 'http://localhost:3000/api/vohk/passcode/delete';
+    let url = this.URL.concat('/api/vohk/passcode/delete');
     return this.http.post<operationResponse>(url, body);
   }
   changePasscode(userID: string, lockID: number, passcodeID: number, newName?: string, newPwd?: string, newStartDate?: string, newEndDate?: string): Observable<operationResponse> {
     let body = { userID, lockID, passcodeID, newName, newPwd, newStartDate, newEndDate };
-    let url = 'http://localhost:3000/api/vohk/passcode/change';
+    let url = this.URL.concat('/api/vohk/passcode/change');
     return this.http.post<operationResponse>(url, body);
   }
   sendEmail_PermanentPasscode(recipientEmail: string, code: string) {//Template para passcode permanente

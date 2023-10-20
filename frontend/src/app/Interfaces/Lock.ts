@@ -76,4 +76,5 @@ export interface LockDetails {
   tamperAlert: number;
   timezoneRawOffset: string;
   wirelessKeypadFeatureValue: string;
+  errcode: number;
 }

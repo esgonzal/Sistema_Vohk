@@ -145,8 +145,9 @@ export class EkeyComponent {
             console.log("mandar mensaje de wsp")
           }
           this.router.navigate(["users", this.ekeyService.username, "lock", this.ekeyService.lockID]);
-        }
-        else if (sendEkeyResponse.errcode === -1002) {//No existe una cuenta TTLock con el nombre ingresado, asi que se intenta con cuenta VOHK
+        } else if (sendEkeyResponse.errcode === 10003) {
+          this.router.navigate(['/login']);
+        } else if (sendEkeyResponse.errcode === -1002) {//No existe una cuenta TTLock con el nombre ingresado, asi que se intenta con cuenta VOHK
           let encode = this.userService.encodeNombre(datos.recieverName)
           let new_password = this.generateRandomPassword();
           let userRegisterResponse = await lastValueFrom(this.userService.UserRegister(datos.recieverName, new_password)) as UserRegisterResponse;
@@ -159,6 +160,8 @@ export class EkeyComponent {
                 console.log("mandar mensaje de wsp")
               }
               this.router.navigate(["users", this.ekeyService.username, "lock", this.ekeyService.lockID]);
+            } else if (sendEkeyResponse.errcode === 10003) {
+              this.router.navigate(['/login']);
             } else {//La ekey no se pudo enviar por alguna razón a la cuenta nueva
               console.log("Error:", sendEkeyResponse)
             }
@@ -172,6 +175,8 @@ export class EkeyComponent {
                 console.log("mandar mensaje de wsp")
               }
               this.router.navigate(["users", this.ekeyService.username, "lock", this.ekeyService.lockID]);
+            } else if (sendEkeyResponse.errcode === 10003) {
+              this.router.navigate(['/login']);
             } else {//La ekey no se pudo enviar por alguna razón a la cuenta VOHK
               console.log("Error:", sendEkeyResponse)
             }
@@ -192,8 +197,9 @@ export class EkeyComponent {
             console.log("mandar mensaje de wsp")
           }
           this.router.navigate(["users", this.ekeyService.username, "lock", this.ekeyService.lockID]);
-        }
-        else if (sendEkeyResponse.errcode === -1002) {//No existe una cuenta TTLock con el nombre ingresado, asi que se intenta con cuenta VOHK
+        } else if (sendEkeyResponse.errcode === 10003) {
+          this.router.navigate(['/login']);
+        } else if (sendEkeyResponse.errcode === -1002) {//No existe una cuenta TTLock con el nombre ingresado, asi que se intenta con cuenta VOHK
           let encode = this.userService.encodeNombre(datos.recieverName)
           let new_password = this.generateRandomPassword();
           let userRegisterResponse = await lastValueFrom(this.userService.UserRegister(datos.recieverName, new_password)) as UserRegisterResponse;
@@ -206,6 +212,8 @@ export class EkeyComponent {
                 console.log("mandar mensaje de wsp")
               }
               this.router.navigate(["users", this.ekeyService.username, "lock", this.ekeyService.lockID]);
+            } else if (sendEkeyResponse.errcode === 10003) {
+              this.router.navigate(['/login']);
             } else {//La ekey no se pudo enviar por alguna razón a la cuenta nueva
               console.log("Error:", sendEkeyResponse)
             }
@@ -219,6 +227,8 @@ export class EkeyComponent {
                 console.log("mandar mensaje de wsp")
               }
               this.router.navigate(["users", this.ekeyService.username, "lock", this.ekeyService.lockID]);
+            } else if (sendEkeyResponse.errcode === 10003) {
+              this.router.navigate(['/login']);
             } else {//La ekey no se pudo enviar por alguna razón a la cuenta VOHK
               console.log("Error:", sendEkeyResponse)
             }
@@ -235,8 +245,9 @@ export class EkeyComponent {
             console.log("mandar mensaje de wsp")
           }
           this.router.navigate(["users", this.ekeyService.username, "lock", this.ekeyService.lockID]);
-        }
-        else if (sendEkeyResponse.errcode === -1002) {//No existe una cuenta TTLock con el nombre ingresado, asi que se intenta con cuenta VOHK
+        } else if (sendEkeyResponse.errcode === 10003) {
+          this.router.navigate(['/login']);
+        } else if (sendEkeyResponse.errcode === -1002) {//No existe una cuenta TTLock con el nombre ingresado, asi que se intenta con cuenta VOHK
           let encode = this.userService.encodeNombre(datos.recieverName)
           let new_password = this.generateRandomPassword();
           let userRegisterResponse = await lastValueFrom(this.userService.UserRegister(datos.recieverName, new_password)) as UserRegisterResponse;
@@ -249,6 +260,8 @@ export class EkeyComponent {
                 console.log("mandar mensaje de wsp")
               }
               this.router.navigate(["users", this.ekeyService.username, "lock", this.ekeyService.lockID]);
+            } else if (sendEkeyResponse.errcode === 10003) {
+              this.router.navigate(['/login']);
             } else {//La ekey no se pudo envío 
               console.log("Error:", sendEkeyResponse)
             }
@@ -262,6 +275,8 @@ export class EkeyComponent {
                 console.log("mandar mensaje de wsp")
               }
               this.router.navigate(["users", this.ekeyService.username, "lock", this.ekeyService.lockID]);
+            } else if (sendEkeyResponse.errcode === 10003) {
+              this.router.navigate(['/login']);
             } else {//La ekey no se pudo envío 
               console.log("Error:", sendEkeyResponse)
             }
@@ -286,8 +301,9 @@ export class EkeyComponent {
             console.log("mandar mensaje de wsp")
           }
           this.router.navigate(["users", this.ekeyService.username, "lock", this.ekeyService.lockID]);
-        }
-        else if (sendEkeyResponse.errcode === -1002) {//No existe una cuenta TTLock con el nombre ingresado, asi que se intenta con cuenta VOHK
+        } else if (sendEkeyResponse.errcode === 10003) {
+          this.router.navigate(['/login']);
+        } else if (sendEkeyResponse.errcode === -1002) {//No existe una cuenta TTLock con el nombre ingresado, asi que se intenta con cuenta VOHK
           let encode = this.userService.encodeNombre(datos.recieverName)
           let new_password = this.generateRandomPassword();
           let userRegisterResponse = await lastValueFrom(this.userService.UserRegister(datos.recieverName, new_password)) as UserRegisterResponse;
@@ -300,6 +316,8 @@ export class EkeyComponent {
                 console.log("mandar mensaje de wsp")
               }
               this.router.navigate(["users", this.ekeyService.username, "lock", this.ekeyService.lockID]);
+            } else if (sendEkeyResponse.errcode === 10003) {
+              this.router.navigate(['/login']);
             } else {//La ekey no se pudo envío 
               console.log("Error:", sendEkeyResponse)
             }
@@ -313,6 +331,8 @@ export class EkeyComponent {
                 console.log("mandar mensaje de wsp")
               }
               this.router.navigate(["users", this.ekeyService.username, "lock", this.ekeyService.lockID]);
+            } else if (sendEkeyResponse.errcode === 10003) {
+              this.router.navigate(['/login']);
             } else {//La ekey no se pudo envío 
               console.log("Error:", sendEkeyResponse)
             }

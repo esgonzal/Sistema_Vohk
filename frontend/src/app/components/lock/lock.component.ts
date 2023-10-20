@@ -72,7 +72,7 @@ export class LockComponent implements OnInit {
   fingerprintsDataSource: MatTableDataSource<Fingerprint>;
   recordsDataSource: MatTableDataSource<Record>;
   displayedColumnsEkey: string[] = ['username', 'rol', 'senderUsername', 'date', 'Asignacion', 'Estado', 'Operacion']
-  displayedColumnsPasscode: string[] = ['keyboardPwdName', 'keyboardPwd', 'senderUsername', 'createDate', 'Asignacion', 'Estado', 'Operacion']
+  displayedColumnsPasscode: string[] = ['keyboardPwd', 'senderUsername', 'createDate', 'Asignacion', 'Estado', 'Operacion']
   displayedColumnsCard: string[] = ['cardName', 'cardNumber', 'senderUsername', 'createDate', 'Asignacion', 'Estado', 'Operacion']
   displayedColumnsFingerprint: string[] = ['fingerprintName', 'senderUsername', 'createDate', 'Asignacion', 'Estado', 'Operacion']
   displayedColumnsRecord: string[] = ['Operador', 'Metodo_Apertura', 'Horario_Apertura', 'Estado']
@@ -166,6 +166,9 @@ export class LockComponent implements OnInit {
       this.userID = this.username
     }
     await this.fetchEkeys();
+    await this.fetchPasscodes();
+    this.updatePasscodeUsage();
+    this.passcodesFiltradas = this.passcodes.filter(passcode => passcode.senderUsername === this.userID);
     await this.getAllLocks();
     await this.fetchGroups();
     await this.fetchLockDetails();
@@ -177,6 +180,7 @@ export class LockComponent implements OnInit {
       this.lockService.checkFeature(this.featureValue, feature.bit);
     }
     this.ekeysDataSource = new MatTableDataSource(this.ekeys);
+    this.passcodesDataSource = new MatTableDataSource(this.passcodes);
     this.pageLoaded = true;
   }
   async getAllLocks() {
@@ -480,6 +484,8 @@ export class LockComponent implements OnInit {
       const response = await lastValueFrom(this.lockService.getLockDetails(this.userID, this.lockId)) as LockDetails
       if (response.lockId) {
         this.lockDetails = response;
+      } else if (response.errcode === 10003) {
+        this.router.navigate(['/login']);
       } else {
         console.log(response)
       }
@@ -499,40 +505,62 @@ export class LockComponent implements OnInit {
   }
   async onTabChanged(event: MatTabChangeEvent): Promise<void> {
     this.selectedTabIndex = event.index;
-    switch (this.selectedTabIndex) {
-      case 0:
-        this.ekeys = [];
-        await this.fetchEkeys();
-        this.ekeysDataSource = new MatTableDataSource(this.ekeys);
-        console.log("eKeys: ", this.ekeys)
-        break;
-      case 1:
-        this.passcodes = [];
-        await this.fetchPasscodes();
-        this.updatePasscodeUsage()
-        this.passcodesDataSource = new MatTableDataSource(this.passcodes);
-        this.passcodesFiltradas = this.passcodes.filter(passcode => passcode.senderUsername === this.userService.encodeNombre(this.username));
-        console.log("Passcodes: ", this.passcodes)
-        break;
-      case 2:
-        this.cards = [];
-        await this.fetchCards();
-        this.cardsDataSource = new MatTableDataSource(this.cards);
-        console.log("Cards: ", this.cards)
-        break;
-      case 3:
-        this.fingerprints = [];
-        await this.fetchFingerprints();
-        this.fingerprintsDataSource = new MatTableDataSource(this.fingerprints);
-        console.log("Fingerprints: ", this.fingerprints)
-        break;
-      case 4:
-        this.records = [];
-        await this.fetchRecords();
-        this.recordsDataSource = new MatTableDataSource(this.records);
-        this.recordsFiltrados = this.records.filter(record => record.username === this.userService.encodeNombre(this.username));
-        //console.log("Records: ", this.records)
-        break;
+    if (!this.isUserValue) {
+      switch (this.selectedTabIndex) {
+        case 0:
+          this.ekeys = [];
+          await this.fetchEkeys();
+          this.ekeysDataSource = new MatTableDataSource(this.ekeys);
+          //console.log("eKeys: ", this.ekeys)
+          break;
+        case 1:
+          this.passcodes = [];
+          await this.fetchPasscodes();
+          this.updatePasscodeUsage()
+          this.passcodesDataSource = new MatTableDataSource(this.passcodes);
+          this.passcodesFiltradas = this.passcodes.filter(passcode => passcode.senderUsername === this.userID);
+          //console.log("Passcodes: ", this.passcodes)
+          break;
+        case 2:
+          this.cards = [];
+          await this.fetchCards();
+          this.cardsDataSource = new MatTableDataSource(this.cards);
+          //console.log("Cards: ", this.cards)
+          break;
+        case 3:
+          this.fingerprints = [];
+          await this.fetchFingerprints();
+          this.fingerprintsDataSource = new MatTableDataSource(this.fingerprints);
+          //console.log("Fingerprints: ", this.fingerprints)
+          break;
+        case 4:
+          this.records = [];
+          await this.fetchRecords();
+          this.recordsDataSource = new MatTableDataSource(this.records);
+          this.recordsFiltrados = this.records.filter(record => record.username === this.userID);
+          //console.log("Records: ", this.records)
+          break;
+      }
+    } else {
+      switch (this.selectedTabIndex) {
+        case 0:
+          this.passcodes = [];
+          this.passcodesFiltradas = [];
+          await this.fetchPasscodes();
+          this.updatePasscodeUsage()
+          this.passcodesDataSource = new MatTableDataSource(this.passcodes);
+          this.passcodesFiltradas = this.passcodes.filter(passcode => passcode.senderUsername === this.userService.encodeNombre(this.username));
+          console.log("Passcodes: ", this.passcodesFiltradas)
+          break;
+        case 1:
+          this.records = [];
+          this.recordsFiltrados = [];
+          await this.fetchRecords();
+          this.recordsDataSource = new MatTableDataSource(this.records);
+          this.recordsFiltrados = this.records.filter(record => record.username === this.userService.encodeNombre(this.username));
+          console.log("Records: ", this.records)
+          break;
+      }
     }
   }
   Number(palabra: string) {
@@ -983,6 +1011,8 @@ export class LockComponent implements OnInit {
         let response = await lastValueFrom(this.gatewayService.unlock(this.userID, this.lockId)) as operationResponse;
         if (response.errcode === 0) {
           console.log("Cerradura desbloqueada")
+        } else if (response.errcode === 10003) {
+          this.router.navigate(['/login']);
         } else {
           console.log(response)
         }
@@ -1003,7 +1033,9 @@ export class LockComponent implements OnInit {
         let response = await lastValueFrom(this.gatewayService.lock(this.userID, this.lockId)) as operationResponse;
         if (response.errcode === 0) {
           console.log("Cerradura bloqueada")
-        } else {
+        } else if (response.errcode === 10003) {
+          this.router.navigate(['/login']);
+        }  else {
           console.log(response)
         }
       } catch (error) {
@@ -1041,6 +1073,8 @@ export class LockComponent implements OnInit {
         let response = await lastValueFrom(this.gatewayService.getLockTime(this.userID, this.lockId)) as GetLockTimeResponse;
         if (response.date) {
           this.popupService.currentTime = response.date;
+        } else if (response.errcode === 10003) {
+          this.router.navigate(['/login']);
         } else {
           console.log(response)
         }
@@ -1065,6 +1099,8 @@ export class LockComponent implements OnInit {
         if (response.passageMode) {
           this.passageModeService.passageModeConfig = response;
           this.router.navigate(["users", this.username, "lock", this.lockId, "passageMode"]);
+        } else if (response.errcode === 10003) {
+          this.router.navigate(['/login']);
         } else {
           console.log(response)
         }
@@ -1198,7 +1234,10 @@ export class LockComponent implements OnInit {
   }
   crearPasscodeSimple() {
     this.passcodeService.userID = this.userID;
+    this.passcodeService.username = this.username;
     this.passcodeService.lockID = this.lockId;
+    this.passcodeService.endDateUser = this.endDateDeUser;
+    this.passcodeService.featureValue = this.featureValue;
     this.passcodeService.passcodesimple = true;
     this.router.navigate(["users", this.username, "lock", this.lockId, "passcode"]);
   }

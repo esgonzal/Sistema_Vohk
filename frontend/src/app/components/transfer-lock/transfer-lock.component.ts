@@ -38,7 +38,6 @@ export class TransferLockComponent {
       if (response.errcode === 0) {//Es cuenta TTLock
         this.router.navigate(["users", sessionStorage.getItem('user') ?? '']);
         console.log("La cerradura se transfirió a la cuenta TTLock exitosamente")
-        
         lastValueFrom(this.ekeyService.changeIsUser(this.recieverUsername, Number(lockID), false))
       } else if (response.errcode === -1002) {
         let encode = this.userService.customBase64Encode(this.recieverUsername);
@@ -49,9 +48,13 @@ export class TransferLockComponent {
           lastValueFrom(this.ekeyService.changeIsUser('bhaaa_'.concat(encode), Number(lockID), false))
         } else if (response.errcode === -1002) {
           this.error = 'El receptor ingresado no tiene una cuenta registrada.'
+        } else if (response.errcode === 10003) {
+          this.router.navigate(['/login']);
         } else {
           console.log(response)
         }
+      } else if (response.errcode === 10003) {
+        this.router.navigate(['/login']);
       } else {
         console.log(response)
       }

@@ -201,11 +201,12 @@
                     </div>
                     <div>
                       <table mat-table [dataSource]="passcodesDataSource" class="table">
-                        <!---->
+                        <!--
                         <ng-container matColumnDef="keyboardPwdName">
                           <th mat-header-cell *matHeaderCellDef class="table-cell">Nombre</th>
                           <td mat-cell *matCellDef="let passcode" class="table-cell">{{passcode.keyboardPwdName}}</td>
                         </ng-container>
+                        -->
                         <!---->
                         <ng-container matColumnDef="keyboardPwd">
                           <th mat-header-cell *matHeaderCellDef class="table-cell">Contraseña</th>
@@ -412,15 +413,16 @@
                 <mat-tab label="Códigos" *ngIf="lockService.checkFeature(featureValue, 0)">
                   <div class="contenido">
                     <div class="button-container">
-                      <button class="nueva-button" (click)="crearPasscodeSimple()">Crear Passcode Temporal</button>
+                      <button class="nueva-button" (click)="crearPasscodeSimple()">Crear Código Temporal</button>
                     </div>
                     <div>
                       <table mat-table [dataSource]="passcodesFiltradas" class="table">
-                        <!---->
+                        <!--
                         <ng-container matColumnDef="keyboardPwdName">
                           <th mat-header-cell *matHeaderCellDef class="table-cell">Nombre</th>
                           <td mat-cell *matCellDef="let passcode" class="table-cell">{{passcode.keyboardPwdName}}</td>
                         </ng-container>
+                        -->
                         <!---->
                         <ng-container matColumnDef="keyboardPwd">
                           <th mat-header-cell *matHeaderCellDef class="table-cell">Contraseña</th>
@@ -478,7 +480,7 @@
                         <!---->
                         <ng-container matColumnDef="Operador">
                           <th mat-header-cell *matHeaderCellDef class="table-cell">Operador</th>
-                          <td mat-cell *matCellDef="let record" class="table-cell">{{record.username}}</td>
+                          <td mat-cell *matCellDef="let record" class="table-cell">{{record.username ? userService.decodeNombre(record.username) : ''}}</td>
                         </ng-container>
                         <!---->
                         <ng-container matColumnDef="Metodo_Apertura">

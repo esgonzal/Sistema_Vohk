@@ -99,7 +99,9 @@ export class PassageModeComponent implements OnInit {
         if (response.errcode === 0) {
           console.log("Modo de Paso configurado correctamente")
           this.router.navigate(["users", this.username, "lock", this.lockId]);
-        } else {
+        } else if (response.errcode === 10003) {
+          this.router.navigate(['/login']);
+        }  else {
           console.log(response)
         }
       } catch (error) {

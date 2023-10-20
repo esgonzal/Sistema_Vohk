@@ -156,13 +156,7 @@
 <div class="resto" *ngIf="this.passcodeService.passcodesimple">
     <div class="form-area">
         <h2 style="margin-bottom: 50px;">Ingrese los datos para generar una nueva Passcode</h2>
-        <form #formInput="ngForm" (ngSubmit)="validarPasscodeSimple(formInput.value)" class="common-form">
-            <div class="linea">
-                <span class="input-container">
-                    Nombre de la Passcode
-                    <input type="text" class="form-input" name="name" placeholder="..." ngModel />
-                </span>
-            </div>
+        <form #formInput="ngForm" (ngSubmit)="validarPasscodeSimple()" class="common-form">
             <div class="linea">
                 <span class="input-container">
                     Duración

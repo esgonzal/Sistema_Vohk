@@ -85,7 +85,6 @@ export class PasscodeComponent{
   async crearpasscode(datos: Formulario) {
     let response;
     this.isLoading = true;
-    console.log(datos)
     try {
       if (!datos.passcodePwd) {
         if (datos.startDate) {
@@ -131,6 +130,8 @@ export class PasscodeComponent{
       if (response?.keyboardPwdId) {
         this.router.navigate(["users", this.passcodeService.username, "lock", this.passcodeService.lockID]);
         console.log("Se creó la passcode con exito")
+      } else if (response?.errcode === 10003) {
+        this.router.navigate(['/login']);
       } else {
         console.log("ERROR:", response)
       }
@@ -169,18 +170,22 @@ export class PasscodeComponent{
       }
     }
   }
-  async validarPasscodeSimple(datos: Formulario) {
-    let response;
+  async validarPasscodeSimple() {
     this.isLoading = true;
     try {
       let startDate = moment().valueOf()
       let endDate = moment().add(this.howManyHours, "hours").valueOf()
-      response = await lastValueFrom(this.passcodeService.generatePasscode(this.passcodeService.userID, this.passcodeService.lockID, '3', startDate.toString(), datos.name, endDate.toString())) as createPasscodeResponse;
+      console.log(moment(startDate).format("DD/MM/YYYY HH:mm"))
+      console.log(moment(endDate).format("DD/MM/YYYY HH:mm"))
+      let response = await lastValueFrom(this.passcodeService.generatePasscode(this.passcodeService.userID, this.passcodeService.lockID, '3', startDate.toString(), this.passcodeService.userID, endDate.toString())) as createPasscodeResponse;
       console.log(response)
       if (response.keyboardPwdId) {
         this.passcodeService.passcodesimple = false;
         this.router.navigate(["users", this.passcodeService.username, "lock", this.passcodeService.lockID]);
-      } else {
+      } else if (response.errcode === 10003) {
+        this.passcodeService.passcodesimple = false;
+        this.router.navigate(['/login']);
+      }  else {
         console.log("Algo salió mal", response)
       }
     } catch (error) {

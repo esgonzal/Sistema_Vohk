@@ -10,6 +10,7 @@ import { FingerprintServiceService } from '../../services/fingerprint-service.se
 import { UserServiceService } from '../../services/user-service.service';
 import { LockServiceService } from '../../services/lock-service.service';
 import { GroupService } from '../../services/group.service';
+import { GatewayService } from 'src/app/services/gateway.service';
 
 import { GatewayAccount } from '../../Interfaces/Gateway';
 import { Formulario } from '../../Interfaces/Formulario';
@@ -17,7 +18,6 @@ import { operationResponse, ResetPasswordResponse, addGroupResponse, GetLockTime
 
 import { lastValueFrom } from 'rxjs';
 import moment from 'moment';
-import { GatewayService } from 'src/app/services/gateway.service';
 
 @Component({
   selector: 'app-pop-up',
@@ -26,17 +26,13 @@ import { GatewayService } from 'src/app/services/gateway.service';
 })
 export class PopUpComponent implements OnInit {
   isLoading: boolean = false;
-  //Variables para seccion Gateway
   gatewayEncontrado: GatewayAccount | undefined
   redWiFi: string | undefined;
   displayedColumnsGateway: string[] = ['NombreGateway', 'NombreWifi', 'Signal']
-  ////////////////////////////////
-  //Variables para seccion Cerrado Automatico
   autoLockToggle = false;
   customAutoLockTime: number = 0;
   selectedType = '';
   error = '';
-  ////////////////////////////////
   selectedLockIds: number[] = [];
   currentPassword: string = '';
   newPassword: string = '';
@@ -120,6 +116,9 @@ export class PopUpComponent implements OnInit {
         this.popupService.delete = false;
         console.log(this.popupService.elementType, "borrada exitosamente")
         window.location.reload();
+      } else if (response?.errcode === 10003) {
+        this.popupService.delete = false;
+        this.router.navigate(['/login']);
       } else {
         this.error = "La acción eliminar no pudo ser completada, intente nuevamente mas tarde."
       }
@@ -158,6 +157,9 @@ export class PopUpComponent implements OnInit {
         this.popupService.congelar = false;
         console.log("eKey congelada exitosamente")
         window.location.reload();
+      } else if (response?.errcode === 10003) {
+        this.popupService.congelar = false;
+        this.router.navigate(['/login']);
       } else {
         this.error = "La acción congelar no pudo ser completada, intente nuevamente mas tarde."
       }
@@ -176,6 +178,9 @@ export class PopUpComponent implements OnInit {
         this.popupService.descongelar = false;
         window.location.reload();
         console.log("eKey descongelada exitosamente")
+      } else if (response?.errcode === 10003) {
+        this.popupService.descongelar = false;
+        this.router.navigate(['/login']);
       } else {
         this.error = "La acción descongelar no pudo ser completada, intente nuevamente mas tarde."
       }
@@ -224,9 +229,11 @@ export class PopUpComponent implements OnInit {
           this.popupService.cambiarNombre = false;
           window.location.reload();
           console.log("Se ha cambiado el nombre de", this.popupService.elementType, "exitosamente")
-        }
-        if (response?.errcode === -3) {
+        } else if (response?.errcode === -3) {
           this.error = "El nombre ingresado es muy largo"
+        } else if (response?.errcode === 10003) {
+          this.popupService.cambiarNombre = false;
+          this.router.navigate(['/login']);
         } else {
           this.error = "La acción cambiar nombre no pudo ser completada, intente nuevamente mas tarde."
         }
@@ -268,6 +275,9 @@ export class PopUpComponent implements OnInit {
           if (response?.errcode === 0) {
             this.popupService.cambiarPeriodo = false;
             window.location.reload();
+          } else if (response?.errcode === 10003) {
+            this.popupService.cambiarPeriodo = false;
+            this.router.navigate(['/login']);
           } else {
             this.error = "La acción cambiar periodo no pudo ser completada, intente nuevamente mas tarde"
           }
@@ -309,15 +319,15 @@ export class PopUpComponent implements OnInit {
         this.popupService.editarPasscode = false;
         window.location.reload();
         console.log("passcode editada correctamente");
-      }
-      if (response?.errcode === -3008) {
+      } else if (response?.errcode === -3008) {
         this.error = "No se puede editar una passcode que no haya sido usada antes";
-      }
-      if (response?.errcode === -3007) {
+      } else if (response?.errcode === -3007) {
         this.error = "Por favor ingresa un código diferente";
-      }
-      if (response?.errcode === -3006) {
+      } else if (response?.errcode === -3006) {
         this.error = "El código debe tener entre 4 y 9 digitos";//TTLock dice entre 6-9
+      } else if (response?.errcode === 10003) {
+        this.popupService.editarPasscode = false;
+        this.router.navigate(['/login']);
       }
     } catch (error) {
       console.error("Error while editing a passcode:", error);
@@ -378,6 +388,9 @@ export class PopUpComponent implements OnInit {
       if (response.errcode === 0) {
         this.popupService.cerradoAutomatico = false;
         window.location.reload();
+      } else if (response.errcode === 10003) {
+        this.popupService.cerradoAutomatico = false;
+        this.router.navigate(['/login']);
       } else {
         this.error = "No se pudo completar la acción, intente nuevamente más tarde"
         console.log(response);
@@ -399,14 +412,17 @@ export class PopUpComponent implements OnInit {
         this.error = "Por favor ingrese el dato requerido"
       } else {
         let response = await lastValueFrom(this.groupService.addGroup(this.popupService.userID, datos.name)) as addGroupResponse;
-        console.log("Respuesta de crear grupo:",response)
+        //console.log(response)
         if (response.groupID) {
           this.popupService.newGroup = false;
           window.location.reload();
         } else if (response.errcode === -3) {
           this.error = "El nombre ingresado es muy largo";
-        } else if (response.errcode === -1016){
+        } else if (response.errcode === -1016) {
           this.error = "Ya existe un grupo con ese mismo nombre, elija otro nombre";
+        } else if (response.errcode === 10003) {
+          this.popupService.newGroup = false;
+          this.router.navigate(['/login']);
         } else {
           this.error = "No se pudo completar la acción, intente nuevamente más tarde";
         }
@@ -446,6 +462,9 @@ export class PopUpComponent implements OnInit {
           let response = await lastValueFrom(this.groupService.setGroupofLock(this.popupService.userID, lockId.toString(), "0")) as operationResponse;
           if (response.errcode === 0) {
             console.log("Se removió la cerradura exitosamente")
+          } else if (response?.errcode === 10003) {
+            this.popupService.removeLockGROUP = false;
+            this.router.navigate(['/login']);
           } else {
             console.log(response)
           }
@@ -469,6 +488,9 @@ export class PopUpComponent implements OnInit {
           let response = await lastValueFrom(this.groupService.setGroupofLock(this.popupService.userID, lockId.toString(), this.popupService.group.groupId.toString())) as operationResponse;
           if (response.errcode === 0) {
             console.log("Se removió la cerradura exitosamente")
+          } else if (response.errcode === 10003) {
+            this.popupService.addLockGROUP = false;
+            this.router.navigate(['/login']);
           } else {
             console.log(response)
           }
@@ -524,6 +546,9 @@ export class PopUpComponent implements OnInit {
               if (response.errcode === 0) {
                 this.popupService.resetPassword = false;
                 window.location.reload();
+              } else if (response.errcode === 10003) {
+                this.popupService.resetPassword = false;
+                this.router.navigate(['/login']);
               } else {
                 this.error = "No se pudo completar la acción, intente nuevamente más tarde";
                 console.log(response)
@@ -592,6 +617,9 @@ export class PopUpComponent implements OnInit {
       let response = await lastValueFrom(this.gatewayService.adjustLockTime(this.gatewayService.userID, this.gatewayService.lockID)) as GetLockTimeResponse
       if (response.date) {
         console.log("Hora ajustada")
+      } else if (response?.errcode === 10003) {
+        this.popupService.congelar = false;
+        this.router.navigate(['/login']);
       } else {
         console.log(response)
       }
@@ -601,5 +629,4 @@ export class PopUpComponent implements OnInit {
       this.isLoading = false;
     }
   }
-  
 }
