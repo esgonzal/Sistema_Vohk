@@ -2,7 +2,26 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const app = express();
+const { accessTokenStorage, storeAccessToken } = require('./accessTokenStorage');
 
+const logoutInterval = 30 * 60 * 1000; // 30 minutes
+
+// A function to check and log out users with expired sessions
+const checkAndLogoutExpiredSessions = () => {
+  const currentTime = Date.now();
+  
+  for (const userId in accessTokenStorage) {
+    const user = accessTokenStorage[userId];
+    if (user && user.loginTime && currentTime - user.loginTime >= logoutInterval) {
+      // The user's session has expired, log them out
+      delete accessTokenStorage[userId];
+      console.log(`Logged out user with ID: ${userId}`);
+    }
+  }
+};
+
+// Set up a periodic task to check and log out expired sessions
+const logoutIntervalId = setInterval(checkAndLogoutExpiredSessions, logoutInterval);
 
 // Middleware
 app.use(bodyParser.json());

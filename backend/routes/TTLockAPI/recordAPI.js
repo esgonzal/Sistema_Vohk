@@ -8,7 +8,8 @@ router.post('/getListLock', async (req, res) => {
     let { userID, lockID, pageNo, pageSize } = req.body;
     try {
         let date = Date.now()
-        const accessToken = accessTokenStorage[userID] || null;
+        const storedData = accessTokenStorage[userID];
+        const accessToken = storedData ? storedData.accessToken : null;
         if (!accessToken) {
             return res.json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }

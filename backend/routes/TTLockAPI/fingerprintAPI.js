@@ -1,14 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
-const { accessTokenStorage } = require('./accessTokenStorage'); 
+const { accessTokenStorage } = require('./accessTokenStorage');
 const TTLOCK_CLIENT_ID = 'c4114592f7954ca3b751c44d81ef2c7d';
 
 router.post('/getListLock', async (req, res) => {
     let { userID, lockID, pageNo, pageSize } = req.body;
     try {
         let date = Date.now()
-        const accessToken = accessTokenStorage[userID] || null;
+        const storedData = accessTokenStorage[userID];
+        const accessToken = storedData ? storedData.accessToken : null;
         if (!accessToken) {
             return res.json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }
@@ -25,7 +26,7 @@ router.post('/getListLock', async (req, res) => {
             'Authorization': `Bearer ${accessToken}`
         };
         let ttlockResponse = await axios.post(
-            'https://euapi.ttlock.com/v3/fingerprint/list',
+            'https://euapi.ttlock.com/v3/identityCard/list',
             ttlockData,
             { headers }
         );
@@ -41,10 +42,11 @@ router.post('/getListLock', async (req, res) => {
     }
 });
 router.post('/rename', async (req, res) => {
-    let { userID, lockID, fingerprintID, newName } = req.body;
+    let { userID, lockID, cardID, newName } = req.body;
     try {
         let date = Date.now()
-        const accessToken = accessTokenStorage[userID] || null;
+        const storedData = accessTokenStorage[userID];
+        const accessToken = storedData ? storedData.accessToken : null;
         if (!accessToken) {
             return res.json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }
@@ -52,8 +54,8 @@ router.post('/rename', async (req, res) => {
             clientId: TTLOCK_CLIENT_ID,
             accessToken: accessToken,
             lockId: lockID,
-            fingerprintId: fingerprintID,
-            fingerprintName: newName,
+            cardId: cardID,
+            cardName: newName,
             date,
         };
         let headers = {
@@ -61,7 +63,7 @@ router.post('/rename', async (req, res) => {
             'Authorization': `Bearer ${accessToken}`
         };
         let ttlockResponse = await axios.post(
-            'https://euapi.ttlock.com/v3/fingerprint/rename',
+            'https://euapi.ttlock.com/v3/identityCard/rename',
             ttlockData,
             { headers }
         );
@@ -73,10 +75,11 @@ router.post('/rename', async (req, res) => {
     }
 });
 router.post('/delete', async (req, res) => {
-    let { userID, lockID, fingerprintID } = req.body;
+    let { userID, lockID, cardID } = req.body;
     try {
         let date = Date.now()
-        const accessToken = accessTokenStorage[userID] || null;
+        const storedData = accessTokenStorage[userID];
+        const accessToken = storedData ? storedData.accessToken : null;
         if (!accessToken) {
             return res.json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }
@@ -84,7 +87,7 @@ router.post('/delete', async (req, res) => {
             clientId: TTLOCK_CLIENT_ID,
             accessToken: accessToken,
             lockId: lockID,
-            fingerprintId: fingerprintID,
+            cardId: cardID,
             deleteType: '2',
             date,
         };
@@ -93,7 +96,7 @@ router.post('/delete', async (req, res) => {
             'Authorization': `Bearer ${accessToken}`
         };
         let ttlockResponse = await axios.post(
-            'https://euapi.ttlock.com/v3/fingerprint/delete',
+            'https://euapi.ttlock.com/v3/identityCard/delete',
             ttlockData,
             { headers }
         );
@@ -105,10 +108,11 @@ router.post('/delete', async (req, res) => {
     }
 });
 router.post('/changePeriod', async (req, res) => {
-    let { userID, lockID, fingerprintID, newStartDate, newEndDate } = req.body;
+    let { userID, lockID, cardID, newStartDate, newEndDate } = req.body;
     try {
         let date = Date.now()
-        const accessToken = accessTokenStorage[userID] || null;
+        const storedData = accessTokenStorage[userID];
+        const accessToken = storedData ? storedData.accessToken : null;
         if (!accessToken) {
             return res.json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }
@@ -116,10 +120,10 @@ router.post('/changePeriod', async (req, res) => {
             clientId: TTLOCK_CLIENT_ID,
             accessToken: accessToken,
             lockId: lockID,
-            fingerprintId: fingerprintID,
+            cardId: cardID,
+            changeType: '2',
             startDate: newStartDate,
             endDate: newEndDate,
-            changeType: '2',
             date,
         };
         let headers = {
@@ -127,7 +131,7 @@ router.post('/changePeriod', async (req, res) => {
             'Authorization': `Bearer ${accessToken}`
         };
         let ttlockResponse = await axios.post(
-            'https://euapi.ttlock.com/v3/fingerprint/changePeriod',
+            'https://euapi.ttlock.com/v3/identityCard/changePeriod',
             ttlockData,
             { headers }
         );

@@ -8,7 +8,8 @@ router.post('/getListLock', async (req, res) => {
     let { userID, lockID, pageNo, pageSize } = req.body;
     try {
         let date = Date.now()
-        const accessToken = accessTokenStorage[userID] || null;
+        const storedData = accessTokenStorage[userID];
+        const accessToken = storedData ? storedData.accessToken : null;
         if (!accessToken) {
             return res.json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }
@@ -44,7 +45,8 @@ router.post('/get', async (req, res) => {
     let { userID, lockID, type, startDate, name, endDate } = req.body;
     try {
         let date = Date.now()
-        const accessToken = accessTokenStorage[userID] || null;
+        const storedData = accessTokenStorage[userID];
+        const accessToken = storedData ? storedData.accessToken : null;
         if (!accessToken) {
             return res.json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }
@@ -82,7 +84,8 @@ router.post('/add', async (req, res) => {
     let { userID, lockID, keyboardPwd, keyboardPwdType, keyboardPwdName, startDate, endDate } = req.body;
     try {
         let date = Date.now()
-        const accessToken = accessTokenStorage[userID] || null;
+        const storedData = accessTokenStorage[userID];
+        const accessToken = storedData ? storedData.accessToken : null;
         if (!accessToken) {
             return res.json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }
@@ -122,7 +125,8 @@ router.post('/delete', async (req, res) => {
     let { userID, lockID, passcodeID } = req.body;
     try {
         let date = Date.now()
-        const accessToken = accessTokenStorage[userID] || null;
+        const storedData = accessTokenStorage[userID];
+        const accessToken = storedData ? storedData.accessToken : null;
         if (!accessToken) {
             return res.json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }
@@ -154,7 +158,8 @@ router.post('/change', async (req, res) => {
     let { userID, lockID, passcodeID, newName, newPwd, newStartDate, newEndDate } = req.body;
     try {
         let date = Date.now()
-        const accessToken = accessTokenStorage[userID] || null;
+        const storedData = accessTokenStorage[userID];
+        const accessToken = storedData ? storedData.accessToken : null;
         if (!accessToken) {
             return res.json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }
