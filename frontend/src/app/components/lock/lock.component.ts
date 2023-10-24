@@ -165,24 +165,17 @@ export class LockComponent implements OnInit {
       this.isUserValue = await this.isUser(this.username);
       this.userID = this.username
     }
-    if ((this.userType === '110301') || (this.keyRight === '1')) {
-      await this.fetchEkeys();
+    await this.fetchEkeys();
     await this.fetchPasscodes();
     this.updatePasscodeUsage();
     this.passcodesFiltradas = this.passcodes.filter(passcode => passcode.senderUsername === this.userID);
-    await this.getAllLocks();
-    await this.fetchGroups();
-    await this.fetchLockDetails();
-    this.Alias = this.lockDetails.lockAlias;
-    this.Bateria = this.lockDetails.electricQuantity.toString();
-    this.gateway = this.lockDetails.hasGateway.toString();
-    this.featureValue = this.lockDetails.featureValue;
+    //await this.getAllLocks();
+    //await this.fetchGroups();
     for (const feature of this.featureList) {
       this.lockService.checkFeature(this.featureValue, feature.bit);
     }
     this.ekeysDataSource = new MatTableDataSource(this.ekeys);
     this.passcodesDataSource = new MatTableDataSource(this.passcodes);
-    }
     this.pageLoaded = true;
   }
   async getAllLocks() {
@@ -310,7 +303,7 @@ export class LockComponent implements OnInit {
         if (typedResponse.pages > pageNo) {
           await this.fetchEkeysPage(pageNo + 1);
         }
-      } else if(typedResponse.errcode === 10003) {
+      } else if (typedResponse.errcode === 10003) {
         sessionStorage.clear();
         this.router.navigate(['/login']);
       } else {
@@ -1043,7 +1036,7 @@ export class LockComponent implements OnInit {
         } else if (response.errcode === 10003) {
           sessionStorage.clear();
           this.router.navigate(['/login']);
-        }  else {
+        } else {
           console.log(response)
         }
       } catch (error) {
@@ -1124,8 +1117,9 @@ export class LockComponent implements OnInit {
       console.log("Necesita estar conectado a un gateway para usar esta función")
     }
   }
-  AutoLock() {
+  async AutoLock() {
     if (this.gateway === '1') {
+      await this.fetchLockDetails();
       this.popupService.detalles = this.lockDetails;
       this.popupService.userID = this.userID;
       this.popupService.lockID = this.lockId;
