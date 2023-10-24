@@ -10,7 +10,7 @@ router.post('/getListAccount', async (req, res) => {
         let date = Date.now()
         const accessToken = accessTokenStorage[userID] || null;
         if (!accessToken) {
-            return res.status(401).json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
+            return res.json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
@@ -46,7 +46,7 @@ router.post('/getListLock', async (req, res) => {
         let date = Date.now()
         const accessToken = accessTokenStorage[userID] || null;
         if (!accessToken) {
-            return res.status(401).json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
+            return res.json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
@@ -82,7 +82,7 @@ router.post('/send', async (req, res) => {
         let date = Date.now()
         const accessToken = accessTokenStorage[userID] || null;
         if (!accessToken) {
-            return res.status(401).json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
+            return res.json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
@@ -142,7 +142,7 @@ router.post('/delete', async (req, res) => {
         let date = Date.now()
         const accessToken = accessTokenStorage[userID] || null;
         if (!accessToken) {
-            return res.status(401).json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
+            return res.json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
@@ -181,7 +181,7 @@ router.post('/freeze', async (req, res) => {
         let date = Date.now()
         const accessToken = accessTokenStorage[userID] || null;
         if (!accessToken) {
-            return res.status(401).json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
+            return res.json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
@@ -211,7 +211,7 @@ router.post('/unfreeze', async (req, res) => {
         let date = Date.now()
         const accessToken = accessTokenStorage[userID] || null;
         if (!accessToken) {
-            return res.status(401).json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
+            return res.json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
@@ -241,7 +241,7 @@ router.post('/modify', async (req, res) => {
         let date = Date.now()
         const accessToken = accessTokenStorage[userID] || null;
         if (!accessToken) {
-            return res.status(401).json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
+            return res.json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
@@ -273,7 +273,7 @@ router.post('/changePeriod', async (req, res) => {
         let date = Date.now()
         const accessToken = accessTokenStorage[userID] || null;
         if (!accessToken) {
-            return res.status(401).json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
+            return res.json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
@@ -305,7 +305,7 @@ router.post('/authorize', async (req, res) => {
         let date = Date.now()
         const accessToken = accessTokenStorage[userID] || null;
         if (!accessToken) {
-            return res.status(401).json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
+            return res.json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
@@ -336,7 +336,7 @@ router.post('/unauthorize', async (req, res) => {
         let date = Date.now()
         const accessToken = accessTokenStorage[userID] || null;
         if (!accessToken) {
-            return res.status(401).json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
+            return res.json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
