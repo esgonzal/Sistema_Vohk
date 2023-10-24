@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { LockData,  } from '../../Interfaces/Lock';
+import { LockData, } from '../../Interfaces/Lock';
 import { EkeyServiceService } from '../../services/ekey-service.service';
 import { faBatteryFull, faBatteryThreeQuarters, faBatteryHalf, faBatteryQuarter, faBatteryEmpty, faGear, faWifi } from '@fortawesome/free-solid-svg-icons'
 import { PopUpService } from '../../services/pop-up.service';
 import { GroupService } from '../../services/group.service';
 import { Subscription } from 'rxjs';
-import { Group,  } from '../../Interfaces/Group';
+import { Group, } from '../../Interfaces/Group';
 import { LockListResponse, GroupResponse } from '../../Interfaces/API_responses'
 import moment from 'moment';
 import { lastValueFrom } from 'rxjs/internal/lastValueFrom';
@@ -40,7 +40,7 @@ export class UserComponent implements OnInit {
   private selectedGroupSubscription: Subscription;
 
   async ngOnInit() {
-    if(sessionStorage.getItem('Account') === 'Vohk'){
+    if (sessionStorage.getItem('Account') === 'Vohk') {
       this.userID = this.userService.encodeNombre(this.username);
     } else {
       this.userID = this.username
@@ -51,7 +51,7 @@ export class UserComponent implements OnInit {
     this.groupService.selectedGroupSubject.subscribe(async selectedGroup => {
       if (selectedGroup) {
         await this.fetchLocks(selectedGroup.groupId);
-        //console.log("All Locks",this.allLocks)
+        console.log("All Locks", this.allLocks)
         //console.log("Locks without group",this.locksWithoutGroup)
       }
     });
@@ -151,7 +151,11 @@ export class UserComponent implements OnInit {
           } else {
             break; // No more pages to fetch
           }
-        } else {
+        } else if (locksTypedResponse.errcode === 10003) {
+          sessionStorage.clear;
+          this.router.navigate(['login'])
+        }
+        else {
           break; // No more locks to fetch
         }
       }
@@ -190,13 +194,17 @@ export class UserComponent implements OnInit {
     sessionStorage.setItem('keyRight', lock.keyRight.toString())
     sessionStorage.setItem('startDate', lock.startDate)
     sessionStorage.setItem('endDate', lock.endDate)
+    sessionStorage.setItem('lockAlias', lock.lockAlias)
+    sessionStorage.setItem('lockBatery', lock.electricQuantity.toString())
+    sessionStorage.setItem('lockGateway', lock.hasGateway.toString())
+    sessionStorage.setItem('lockFeature', lock.featureValue.toString())
     this.router.navigate(['users', this.username, 'lock', lock.lockId])
   }
   onInvalidButtonClick() {
     this.popupService.invalidLock = true;
   }
   hasValidAccess(lock: LockData): boolean {
-    if ((Number(lock.endDate) === 0 || moment(lock.endDate).isAfter(moment())) && (lock.keyRight === 1 || lock.userType === '110301')) {
+    if ( (Number(lock.endDate) === 0 || moment(lock.endDate).isAfter(moment())) && (lock.userType=== '110301' || (lock.userType=== '110302' && lock.keyRight===1)) ) {
       return true
     } else {
       return false;

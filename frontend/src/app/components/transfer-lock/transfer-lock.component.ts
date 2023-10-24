@@ -49,11 +49,13 @@ export class TransferLockComponent {
         } else if (response.errcode === -1002) {
           this.error = 'El receptor ingresado no tiene una cuenta registrada.'
         } else if (response.errcode === 10003) {
+          sessionStorage.clear();
           this.router.navigate(['/login']);
         } else {
           console.log(response)
         }
       } else if (response.errcode === 10003) {
+        sessionStorage.clear();
         this.router.navigate(['/login']);
       } else {
         console.log(response)

@@ -34,7 +34,7 @@
                   {{Bateria}}%
                 </div>
               </div>
-              <div class="settings_cerradura">
+              <div class="settings_cerradura" *ngIf="(userType==='110301') || (userType==='110302' && keyRight==='1')">
                 <button [matMenuTriggerFor]="menu" aria-label="Settings" style="background-color: #f9c114;">
                   <fa-icon [icon]="faGear"></fa-icon>
                 </button>
@@ -74,10 +74,10 @@
               <div *ngIf="userType==='110301'">
                 Administrador Principal
               </div>
-              <div *ngIf="userType==='110302' && !isUserValue">
+              <div *ngIf="userType==='110302' && keyRight==='1'">
                 Administrador Secundario // {{periodoValidez(Number(startDateDeUser),Number(endDateDeUser))}}
               </div>
-              <div *ngIf="userType==='110302' && isUserValue">
+              <div *ngIf="userType==='110302' && keyRight==='0'">
                 Usuario // {{periodoValidez(Number(startDateDeUser),Number(endDateDeUser))}}
               </div>
             </div>
@@ -98,7 +98,7 @@
           </div>
         </div>
       </div>
-      <div class="funciones_cerradura">
+      <div class="funciones_cerradura" *ngIf="(userType==='110301') || (userType==='110302' && keyRight==='1')">
         <div>
           <div class="tablist">
             <mat-tab-group backgroundColor="primary" color="warn" (selectedTabChange)="onTabChanged($event)">

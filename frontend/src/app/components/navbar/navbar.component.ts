@@ -44,16 +44,8 @@ export class NavbarComponent {
       userID = this.userService.encodeNombre(this.returnNombre());
     }
     await lastValueFrom(this.userService.logOut(userID)) as logoutResponse;
-    sessionStorage.removeItem('user');
-    sessionStorage.removeItem('keyRight');
-    sessionStorage.removeItem('userType');
-    sessionStorage.removeItem('startDate');
-    sessionStorage.removeItem('endDate');
-    sessionStorage.removeItem('lockID');
-    sessionStorage.removeItem('logged');
-    sessionStorage.removeItem('Account');
-    sessionStorage.removeItem('nick');
-    this.router.navigate(['home']);
+    sessionStorage.clear();
+    this.router.navigate(['/login']);
   }
 }
 

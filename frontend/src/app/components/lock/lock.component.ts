@@ -46,10 +46,10 @@ export class LockComponent implements OnInit {
   keyRight = sessionStorage.getItem('keyRight') ?? '';
   startDateDeUser = sessionStorage.getItem('startDate') ?? '';
   endDateDeUser = sessionStorage.getItem('endDate') ?? '';
-  Alias: string;
-  Bateria: string
-  gateway: string;
-  featureValue: string;
+  Alias = sessionStorage.getItem('lockAlias') ?? '';
+  Bateria = sessionStorage.getItem('lockBatery') ?? '';
+  gateway = sessionStorage.getItem('lockGateway') ?? '';
+  featureValue = sessionStorage.getItem('lockFeature') ?? '';
   isUserValue: boolean;
   pageLoaded = false;
   isLoading: boolean = false;
@@ -165,7 +165,8 @@ export class LockComponent implements OnInit {
       this.isUserValue = await this.isUser(this.username);
       this.userID = this.username
     }
-    await this.fetchEkeys();
+    if ((this.userType === '110301') || (this.keyRight === '1')) {
+      await this.fetchEkeys();
     await this.fetchPasscodes();
     this.updatePasscodeUsage();
     this.passcodesFiltradas = this.passcodes.filter(passcode => passcode.senderUsername === this.userID);
@@ -181,6 +182,7 @@ export class LockComponent implements OnInit {
     }
     this.ekeysDataSource = new MatTableDataSource(this.ekeys);
     this.passcodesDataSource = new MatTableDataSource(this.passcodes);
+    }
     this.pageLoaded = true;
   }
   async getAllLocks() {
@@ -308,6 +310,9 @@ export class LockComponent implements OnInit {
         if (typedResponse.pages > pageNo) {
           await this.fetchEkeysPage(pageNo + 1);
         }
+      } else if(typedResponse.errcode === 10003) {
+        sessionStorage.clear();
+        this.router.navigate(['/login']);
       } else {
         console.log("Ekeys not yet available");
       }
@@ -485,6 +490,7 @@ export class LockComponent implements OnInit {
       if (response.lockId) {
         this.lockDetails = response;
       } else if (response.errcode === 10003) {
+        sessionStorage.clear();
         this.router.navigate(['/login']);
       } else {
         console.log(response)
@@ -1012,6 +1018,7 @@ export class LockComponent implements OnInit {
         if (response.errcode === 0) {
           console.log("Cerradura desbloqueada")
         } else if (response.errcode === 10003) {
+          sessionStorage.clear();
           this.router.navigate(['/login']);
         } else {
           console.log(response)
@@ -1034,6 +1041,7 @@ export class LockComponent implements OnInit {
         if (response.errcode === 0) {
           console.log("Cerradura bloqueada")
         } else if (response.errcode === 10003) {
+          sessionStorage.clear();
           this.router.navigate(['/login']);
         }  else {
           console.log(response)
@@ -1074,6 +1082,7 @@ export class LockComponent implements OnInit {
         if (response.date) {
           this.popupService.currentTime = response.date;
         } else if (response.errcode === 10003) {
+          sessionStorage.clear();
           this.router.navigate(['/login']);
         } else {
           console.log(response)
@@ -1100,6 +1109,7 @@ export class LockComponent implements OnInit {
           this.passageModeService.passageModeConfig = response;
           this.router.navigate(["users", this.username, "lock", this.lockId, "passageMode"]);
         } else if (response.errcode === 10003) {
+          sessionStorage.clear();
           this.router.navigate(['/login']);
         } else {
           console.log(response)

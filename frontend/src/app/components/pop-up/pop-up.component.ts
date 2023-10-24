@@ -117,6 +117,7 @@ export class PopUpComponent implements OnInit {
         console.log(this.popupService.elementType, "borrada exitosamente")
         window.location.reload();
       } else if (response?.errcode === 10003) {
+        sessionStorage.clear();
         this.popupService.delete = false;
         this.router.navigate(['/login']);
       } else {
@@ -152,12 +153,13 @@ export class PopUpComponent implements OnInit {
     this.isLoading = true;
     try {
       let response = await lastValueFrom(this.ekeyService.freezeEkey(this.popupService.userID, this.popupService.elementID)) as operationResponse;
-      //console.log(response)
+      console.log(response)
       if (response.errcode === 0) {
         this.popupService.congelar = false;
         console.log("eKey congelada exitosamente")
         window.location.reload();
       } else if (response?.errcode === 10003) {
+        sessionStorage.clear();
         this.popupService.congelar = false;
         this.router.navigate(['/login']);
       } else {
@@ -179,6 +181,7 @@ export class PopUpComponent implements OnInit {
         window.location.reload();
         console.log("eKey descongelada exitosamente")
       } else if (response?.errcode === 10003) {
+        sessionStorage.clear();
         this.popupService.descongelar = false;
         this.router.navigate(['/login']);
       } else {
@@ -232,6 +235,7 @@ export class PopUpComponent implements OnInit {
         } else if (response?.errcode === -3) {
           this.error = "El nombre ingresado es muy largo"
         } else if (response?.errcode === 10003) {
+          sessionStorage.clear();
           this.popupService.cambiarNombre = false;
           this.router.navigate(['/login']);
         } else {
@@ -276,6 +280,7 @@ export class PopUpComponent implements OnInit {
             this.popupService.cambiarPeriodo = false;
             window.location.reload();
           } else if (response?.errcode === 10003) {
+            sessionStorage.clear();
             this.popupService.cambiarPeriodo = false;
             this.router.navigate(['/login']);
           } else {
@@ -326,6 +331,7 @@ export class PopUpComponent implements OnInit {
       } else if (response?.errcode === -3006) {
         this.error = "El código debe tener entre 4 y 9 digitos";//TTLock dice entre 6-9
       } else if (response?.errcode === 10003) {
+        sessionStorage.clear();
         this.popupService.editarPasscode = false;
         this.router.navigate(['/login']);
       }
@@ -389,6 +395,7 @@ export class PopUpComponent implements OnInit {
         this.popupService.cerradoAutomatico = false;
         window.location.reload();
       } else if (response.errcode === 10003) {
+        sessionStorage.clear();
         this.popupService.cerradoAutomatico = false;
         this.router.navigate(['/login']);
       } else {
@@ -421,6 +428,7 @@ export class PopUpComponent implements OnInit {
         } else if (response.errcode === -1016) {
           this.error = "Ya existe un grupo con ese mismo nombre, elija otro nombre";
         } else if (response.errcode === 10003) {
+          sessionStorage.clear();
           this.popupService.newGroup = false;
           this.router.navigate(['/login']);
         } else {
@@ -463,6 +471,7 @@ export class PopUpComponent implements OnInit {
           if (response.errcode === 0) {
             console.log("Se removió la cerradura exitosamente")
           } else if (response?.errcode === 10003) {
+            sessionStorage.clear();
             this.popupService.removeLockGROUP = false;
             this.router.navigate(['/login']);
           } else {
@@ -489,6 +498,7 @@ export class PopUpComponent implements OnInit {
           if (response.errcode === 0) {
             console.log("Se removió la cerradura exitosamente")
           } else if (response.errcode === 10003) {
+            sessionStorage.clear();
             this.popupService.addLockGROUP = false;
             this.router.navigate(['/login']);
           } else {
@@ -547,6 +557,7 @@ export class PopUpComponent implements OnInit {
                 this.popupService.resetPassword = false;
                 window.location.reload();
               } else if (response.errcode === 10003) {
+                sessionStorage.clear();
                 this.popupService.resetPassword = false;
                 this.router.navigate(['/login']);
               } else {
@@ -618,6 +629,7 @@ export class PopUpComponent implements OnInit {
       if (response.date) {
         console.log("Hora ajustada")
       } else if (response?.errcode === 10003) {
+        sessionStorage.clear();
         this.popupService.congelar = false;
         this.router.navigate(['/login']);
       } else {

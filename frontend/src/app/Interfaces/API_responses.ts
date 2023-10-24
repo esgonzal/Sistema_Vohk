@@ -8,7 +8,8 @@ export interface EkeyResponse {
     pageNo: number;
     pageSize: number;
     pages: number;
-    total: number
+    total: number;
+    errcode: number;
 }
 export interface PasscodeResponse {
     list: Passcode[];
@@ -71,6 +72,7 @@ export interface LockListResponse {
     pageSize: number;
     pages: number;
     total: number;
+    errcode: number;
 }
 export interface GetAccessTokenResponse {
     errcode: number;
