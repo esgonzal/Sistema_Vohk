@@ -26,7 +26,7 @@ router.post('/getListLock', async (req, res) => {
             'Authorization': `Bearer ${accessToken}`
         };
         let ttlockResponse = await axios.post(
-            'https://euapi.ttlock.com/v3/identityCard/list',
+            'https://euapi.ttlock.com/v3/fingerprint/list',
             ttlockData,
             { headers }
         );
@@ -42,7 +42,7 @@ router.post('/getListLock', async (req, res) => {
     }
 });
 router.post('/rename', async (req, res) => {
-    let { userID, lockID, cardID, newName } = req.body;
+    let { userID, lockID, fingerprintID, newName } = req.body;
     try {
         let date = Date.now()
         const storedData = accessTokenStorage[userID];
@@ -54,8 +54,8 @@ router.post('/rename', async (req, res) => {
             clientId: TTLOCK_CLIENT_ID,
             accessToken: accessToken,
             lockId: lockID,
-            cardId: cardID,
-            cardName: newName,
+            fingerprintId: fingerprintID,
+            fingerprintName: newName,
             date,
         };
         let headers = {
@@ -63,7 +63,7 @@ router.post('/rename', async (req, res) => {
             'Authorization': `Bearer ${accessToken}`
         };
         let ttlockResponse = await axios.post(
-            'https://euapi.ttlock.com/v3/identityCard/rename',
+            'https://euapi.ttlock.com/v3/fingerprint/rename',
             ttlockData,
             { headers }
         );
@@ -75,7 +75,7 @@ router.post('/rename', async (req, res) => {
     }
 });
 router.post('/delete', async (req, res) => {
-    let { userID, lockID, cardID } = req.body;
+    let { userID, lockID, fingerprintID } = req.body;
     try {
         let date = Date.now()
         const storedData = accessTokenStorage[userID];
@@ -87,7 +87,7 @@ router.post('/delete', async (req, res) => {
             clientId: TTLOCK_CLIENT_ID,
             accessToken: accessToken,
             lockId: lockID,
-            cardId: cardID,
+            fingerprintId: fingerprintID,
             deleteType: '2',
             date,
         };
@@ -96,7 +96,7 @@ router.post('/delete', async (req, res) => {
             'Authorization': `Bearer ${accessToken}`
         };
         let ttlockResponse = await axios.post(
-            'https://euapi.ttlock.com/v3/identityCard/delete',
+            'https://euapi.ttlock.com/v3/fingerprint/delete',
             ttlockData,
             { headers }
         );
@@ -108,7 +108,7 @@ router.post('/delete', async (req, res) => {
     }
 });
 router.post('/changePeriod', async (req, res) => {
-    let { userID, lockID, cardID, newStartDate, newEndDate } = req.body;
+    let { userID, lockID, fingerprintID, newStartDate, newEndDate } = req.body;
     try {
         let date = Date.now()
         const storedData = accessTokenStorage[userID];
@@ -120,7 +120,7 @@ router.post('/changePeriod', async (req, res) => {
             clientId: TTLOCK_CLIENT_ID,
             accessToken: accessToken,
             lockId: lockID,
-            cardId: cardID,
+            fingerprintId: fingerprintID,
             changeType: '2',
             startDate: newStartDate,
             endDate: newEndDate,
@@ -131,7 +131,7 @@ router.post('/changePeriod', async (req, res) => {
             'Authorization': `Bearer ${accessToken}`
         };
         let ttlockResponse = await axios.post(
-            'https://euapi.ttlock.com/v3/identityCard/changePeriod',
+            'https://euapi.ttlock.com/v3/fingerprint/changePeriod',
             ttlockData,
             { headers }
         );
