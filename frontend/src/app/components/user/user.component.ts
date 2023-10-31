@@ -7,10 +7,10 @@ import { PopUpService } from '../../services/pop-up.service';
 import { GroupService } from '../../services/group.service';
 import { Subscription } from 'rxjs';
 import { Group, } from '../../Interfaces/Group';
-import { LockListResponse, GroupResponse } from '../../Interfaces/API_responses'
+import { LockListResponse } from '../../Interfaces/API_responses'
 import moment from 'moment';
 import { lastValueFrom } from 'rxjs/internal/lastValueFrom';
-import { UserServiceService } from 'src/app/services/user-service.service';
+import { UserServiceService } from '../../services/user-service.service';
 
 @Component({
   selector: 'app-user',
@@ -46,13 +46,9 @@ export class UserComponent implements OnInit {
       this.userID = this.username
     }
     await this.getAllLocks();
-    await this.fetchGroups();
-    //await this.getLocksWithoutGroup();
     this.groupService.selectedGroupSubject.subscribe(async selectedGroup => {
       if (selectedGroup) {
         await this.fetchLocks(selectedGroup.groupId);
-        console.log("All Locks", this.allLocks)
-        //console.log("Locks without group",this.locksWithoutGroup)
       }
     });
   }
@@ -92,49 +88,6 @@ export class UserComponent implements OnInit {
       this.isLoading = false; // Set isLoading to false when data fetching is complete
     }
   }
-  async fetchGroups() {
-    this.isLoading = true;
-    try {
-      const response = await lastValueFrom(this.groupService.getGroupofAccount(this.userID));
-      const typedResponse = response as GroupResponse;
-      if (typedResponse?.list) {
-        this.groups = typedResponse.list;
-        // Fetch locks and calculate lock counts for each group
-        for (const group of this.groups) {
-          group.lockCount = await this.calculateLockCountForGroup(group);
-        }
-      } else {
-        console.log("Groups not yet available");
-      }
-    } catch (error) {
-      console.error("Error while fetching groups:", error);
-    } finally {
-      this.isLoading = false; // Set isLoading to false when data fetching is complete
-    }
-    this.groupService.groups = this.groups;
-  }
-  async calculateLockCountForGroup(group: Group): Promise<number> {
-    let lockCount = 0;
-    let pageNo = 1;
-    const pageSize = 100;
-    group.locks = [];
-    while (true) {
-      const locksResponse = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.userID, pageNo, pageSize, group.groupId));
-      const locksTypedResponse = locksResponse as LockListResponse;
-      if (locksTypedResponse?.list && locksTypedResponse.list.length > 0) {
-        lockCount += locksTypedResponse.list.length;
-        group.locks.push(...locksTypedResponse.list);
-        if (locksTypedResponse.pages > pageNo) {
-          pageNo++;
-        } else {
-          break; // No more pages to fetch
-        }
-      } else {
-        break; // No more locks to fetch
-      }
-    }
-    return lockCount;
-  }
   async getAllLocks() {
     this.isLoading = true;
     try {
@@ -168,25 +121,6 @@ export class UserComponent implements OnInit {
     } finally {
       this.isLoading = false;
     }
-  }
-  async getLocksWithoutGroup() {
-    let pageNo = 1;
-    const pageSize = 100;
-    while (true) {
-      const locksResponse = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.userID, pageNo, pageSize, 0));
-      const locksTypedResponse = locksResponse as LockListResponse;
-      if (locksTypedResponse?.list) {
-        this.locksWithoutGroup.push(...locksTypedResponse.list.filter(lock => !lock.groupId))
-        if (locksTypedResponse.pages > pageNo) {
-          pageNo++;
-        } else {
-          break; // No more pages to fetch
-        }
-      } else {
-        break; // No more locks to fetch
-      }
-    }
-    this.groupService.locksWithoutGroup = this.locksWithoutGroup;
   }
   onLockButtonClick(lock: LockData) {
     sessionStorage.setItem('lockID', lock.lockId.toString())
