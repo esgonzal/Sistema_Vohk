@@ -19,6 +19,8 @@ const EkeyRouter = require('../backend/routes/v1/ekeyAPI');
 app.use('/v1/ekey', EkeyRouter);
 const PasscodeRouter = require('../backend/routes/v1/passcodeAPI');
 app.use('/v1/passcode', PasscodeRouter);
+const GroupRouter = require('../backend/routes/v1/groupAPI');
+app.use('/v1/group', GroupRouter);
 
 // HTTP Configuration
 const httpPort = 8080;

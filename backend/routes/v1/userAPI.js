@@ -20,11 +20,11 @@ router.post('/register', async (req, res) => {
             ttlockData,
             { headers }
         );
-        //console.log("ttlock response:", ttlockResponse.data)
+        console.log("userRegister response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ errmsg: 'Error with TTLock API' });
+        res.status(500).json({ errmsg: 'Error with API' });
     }
 });
 router.post('/resetPassword', async (req, res) => {
@@ -45,11 +45,11 @@ router.post('/resetPassword', async (req, res) => {
             ttlockData,
             { headers }
         );
-        //console.log(ttlockResponse.data)
+        console.log("userResetPassword response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ errmsg: 'Error with TTLock API' });
+        res.status(500).json({ errmsg: 'Error with API' });
     }
 });
 router.get('/list', async (req, res) => {
@@ -71,11 +71,11 @@ router.get('/list', async (req, res) => {
             'https://euapi.ttlock.com/v3/user/list',
             { params: ttlockData, headers }
         );
-        //console.log(ttlockResponse.data)
+        console.log("userList response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ errmsg: 'Error with TTLock API' });
+        res.status(500).json({ errmsg: 'Error with API' });
     }
 });
 router.post('/delete', async (req, res) => {
@@ -95,11 +95,11 @@ router.post('/delete', async (req, res) => {
             ttlockData,
             { headers }
         );
-        //console.log(ttlockResponse.data)
+        console.log("userDelete response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ errmsg: 'Error with TTLock API' });
+        res.status(500).json({ errmsg: 'Error with API' });
     }
 });
 router.post('/token', async (req, res) => {
@@ -119,11 +119,11 @@ router.post('/token', async (req, res) => {
             ttlockData,
             { headers }
         );
-        //console.log(ttlockResponse.data)
+        console.log("userToken response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ errmsg: 'Error with TTLock API' });
+        res.status(500).json({ errmsg: 'Error with API' });
     }
 });
 router.post('/refreshToken', async (req, res) => {
@@ -143,11 +143,11 @@ router.post('/refreshToken', async (req, res) => {
             ttlockData,
             { headers }
         );
-        //console.log(ttlockResponse.data)
+        console.log("userRefreshToken response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ errmsg: 'Error with TTLock API' });
+        res.status(500).json({ errmsg: 'Error with API' });
     }
 });
 

@@ -2,58 +2,71 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 
-router.post('/get', async (req, res) => {
-    let { clientId, accessToken, lockId, keyboardPwdType, keyboardPwdName, startDate, endDate, date } = req.body;
+router.post('/add', async (req, res) => {
+    let { clientId, accessToken, name, date } = req.body;
     try {
         let ttlockData = {
             clientId: clientId,
             accessToken: accessToken,
-            lockId: lockId,
-            keyboardPwdType: keyboardPwdType,
-            keyboardPwdName: keyboardPwdName,
-            startDate: startDate,
-            endDate: endDate,
-            date
+            name: name,
+            date: date
         };
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
         };
         let ttlockResponse = await axios.post(
-            'https://euapi.ttlock.com/v3/keyboardPwd/get',
+            'https://euapi.ttlock.com/v3/group/add',
             ttlockData,
             { headers }
         );
-        console.log("passcodeGet response:", ttlockResponse.data)
+        console.log("groupAdd response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
         res.status(500).json({ errmsg: 'Error with API' });
     }
 });
-router.post('/add', async (req, res) => {
-    let { clientId, accessToken, lockId, keyboardPwd, keyboardPwdType, keyboardPwdName, startDate, endDate, addType, date } = req.body;
+router.get('/list', async (req, res) => {
+    let { clientId, accessToken, date } = req.query;
+    try {
+        let ttlockData = {
+            clientId: clientId,
+            accessToken: accessToken,
+            date: date
+        };
+        let headers = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        };
+        let ttlockResponse = await axios.get(
+            'https://euapi.ttlock.com/v3/group/list',
+            { params: ttlockData, headers }
+        );
+        console.log("groupList response:", ttlockResponse.data)
+        res.json(ttlockResponse.data);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ errmsg: 'Error with API' });
+    }
+});
+router.post('/setLock', async (req, res) => {
+    let { clientId, accessToken, lockId, groupId, date } = req.body;
     try {
         let ttlockData = {
             clientId: clientId,
             accessToken: accessToken,
             lockId: lockId,
-            keyboardPwd: keyboardPwd,
-            keyboardPwdType: keyboardPwdType,
-            keyboardPwdName: keyboardPwdName,
-            startDate: startDate,
-            endDate: endDate,
-            addType: addType,
-            date
+            groupId: groupId,
+            date: date
         };
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
         };
         let ttlockResponse = await axios.post(
-            'https://euapi.ttlock.com/v3/keyboardPwd/add',
+            'https://euapi.ttlock.com/v3/lock/setGroup',
             ttlockData,
             { headers }
         );
-        console.log("passcodeAdd response:", ttlockResponse.data)
+        console.log("groupSetGroup response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
@@ -61,55 +74,48 @@ router.post('/add', async (req, res) => {
     }
 });
 router.post('/delete', async (req, res) => {
-    let { clientId, accessToken, lockId, keyboardPwdId, deleteType, date } = req.body;
+    let { clientId, accessToken, groupId, date } = req.body;
     try {
         let ttlockData = {
             clientId: clientId,
             accessToken: accessToken,
-            lockId: lockId,
-            keyboardPwdId: keyboardPwdId,
-            deleteType: deleteType,
-            date
+            groupId: groupId,
+            date: date,
         };
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
         };
         let ttlockResponse = await axios.post(
-            'https://euapi.ttlock.com/v3/keyboardPwd/delete',
+            'https://euapi.ttlock.com/v3/group/delete',
             ttlockData,
             { headers }
         );
-        console.log("passcodeDelete response:", ttlockResponse.data)
+        console.log("groupDelete response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
         res.status(500).json({ errmsg: 'Error with API' });
     }
 });
-router.post('/change', async (req, res) => {
-    let { clientId, accessToken, lockId, keyboardPwdId, keyboardPwdName, newKeyboardPwd, startDate, endDate, changeType, date } = req.body;
+router.post('/rename', async (req, res) => {
+    let { clientId, accessToken, groupId, name, date } = req.body;
     try {
         let ttlockData = {
             clientId: clientId,
             accessToken: accessToken,
-            lockId: lockId,
-            keyboardPwdId: keyboardPwdId,
-            keyboardPwdName: keyboardPwdName,
-            newKeyboardPwd: newKeyboardPwd,
-            startDate: startDate,
-            endDate: endDate,
-            changeType: changeType,
-            date: date
+            groupId: groupId,
+            name: name,
+            date: date,
         };
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
         };
         let ttlockResponse = await axios.post(
-            'https://euapi.ttlock.com/v3/keyboardPwd/change',
+            'https://euapi.ttlock.com/v3/group/update',
             ttlockData,
             { headers }
         );
-        console.log("passcodeEdit response:", ttlockResponse.data)
+        console.log("groupUpdate response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);

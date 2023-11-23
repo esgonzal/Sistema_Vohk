@@ -2,8 +2,8 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 
-router.post('/list', async (req, res) => {
-    let { clientId, accessToken, lockAlias, groupId, pageNo, pageSize, date } = req.body;
+router.get('/list', async (req, res) => {
+    let { clientId, accessToken, lockAlias, groupId, pageNo, pageSize, date } = req.query;
     try {
         let ttlockData = {
             clientId: clientId,
@@ -17,20 +17,19 @@ router.post('/list', async (req, res) => {
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
         };
-        let ttlockResponse = await axios.post(
+        let ttlockResponse = await axios.get(
             'https://euapi.ttlock.com/v3/lock/list',
-            ttlockData,
-            { headers }
+            { params: ttlockData, headers }
         );
-        //console.log(ttlockResponse.data)
+        console.log("lockList response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ errmsg: 'Error with TTLock API' });
+        res.status(500).json({ errmsg: 'Error with API' });
     }
 });
-router.post('/listKey', async (req, res) => {
-    let { clientId, accessToken, lockId, pageNo, pageSize, date } = req.body;
+router.get('/listKey', async (req, res) => {
+    let { clientId, accessToken, lockId, pageNo, pageSize, date } = req.query;
     try {
         let ttlockData = {
             clientId: clientId,
@@ -43,20 +42,19 @@ router.post('/listKey', async (req, res) => {
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded',
         };
-        let ttlockResponse = await axios.post(
+        let ttlockResponse = await axios.get(
             'https://euapi.ttlock.com/v3/lock/listKey',
-            ttlockData,
-            { headers }
+            { params: ttlockData, headers }
         );
-        //console.log(ttlockResponse.data)
+        console.log("lockListEkeys response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ errmsg: 'Error with TTLock API' });
+        res.status(500).json({ errmsg: 'Error with API' });
     }
 });
-router.post('/listKeyboardPwd', async (req, res) => {
-    let { clientId, accessToken, lockId, pageNo, pageSize, date } = req.body;
+router.get('/listKeyboardPwd', async (req, res) => {
+    let { clientId, accessToken, lockId, pageNo, pageSize, date } = req.query;
     try {
         let ttlockData = {
             clientId: clientId,
@@ -69,20 +67,19 @@ router.post('/listKeyboardPwd', async (req, res) => {
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
         };
-        let ttlockResponse = await axios.post(
+        let ttlockResponse = await axios.get(
             'https://euapi.ttlock.com/v3/lock/listKeyboardPwd',
-            ttlockData,
-            { headers }
+            { params: ttlockData, headers }
         );
-        //console.log(ttlockResponse.data)
+        console.log("lockListPasscodes response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ errmsg: 'Error with TTLock API' });
+        res.status(500).json({ errmsg: 'Error with API' });
     }
 });
-router.post('/detail', async (req, res) => {
-    let { clientId, accessToken, lockId, date } = req.body;
+router.get('/detail', async (req, res) => {
+    let { clientId, accessToken, lockId, date } = req.query;
     try {
         let ttlockData = {
             clientId: clientId,
@@ -93,16 +90,15 @@ router.post('/detail', async (req, res) => {
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
         };
-        let ttlockResponse = await axios.post(
+        let ttlockResponse = await axios.get(
             'https://euapi.ttlock.com/v3/lock/detail',
-            ttlockData,
-            { headers }
+            { params: ttlockData, headers }
         );
-        //console.log(ttlockResponse.data)
+        console.log("lockDetail response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ errmsg: 'Error with TTLock API' });
+        res.status(500).json({ errmsg: 'Error with API' });
     }
 });
 router.post('/delete', async (req, res) => {
@@ -122,11 +118,11 @@ router.post('/delete', async (req, res) => {
             ttlockData,
             { headers }
         );
-        //console.log(ttlockResponse.data)
+        console.log("lockDelete response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ errmsg: 'Error with TTLock API' });
+        res.status(500).json({ errmsg: 'Error with API' });
     }
 });
 router.post('/rename', async (req, res) => {
@@ -147,11 +143,11 @@ router.post('/rename', async (req, res) => {
             ttlockData,
             { headers }
         );
-        //console.log(ttlockResponse.data)
+        console.log("lockRename response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ errmsg: 'Error with TTLock API' });
+        res.status(500).json({ errmsg: 'Error with API' });
     }
 });
 router.post('/transfer', async (req, res) => {
@@ -172,11 +168,11 @@ router.post('/transfer', async (req, res) => {
             ttlockData,
             { headers }
         );
-        //console.log(ttlockResponse.data)
+        console.log("lockTransfer response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ errmsg: 'Error with TTLock API' });
+        res.status(500).json({ errmsg: 'Error with API' });
     }
 });
 router.post('/setAutoLockTime', async (req, res) => {
@@ -198,11 +194,11 @@ router.post('/setAutoLockTime', async (req, res) => {
             ttlockData,
             { headers }
         );
-        //console.log(ttlockResponse.data)
+        console.log("lockSetAutoLockTime response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ errmsg: 'Error with TTLock API' });
+        res.status(500).json({ errmsg: 'Error with API' });
     }
 });
 router.post('/unlock', async (req, res) => {
@@ -222,11 +218,11 @@ router.post('/unlock', async (req, res) => {
             ttlockData,
             { headers }
         );
-        //console.log(ttlockResponse.data)
+        console.log("lockUnlock response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ errmsg: 'Error with TTLock API' });
+        res.status(500).json({ errmsg: 'Error with API' });
     }
 });
 router.post('/lock', async (req, res) => {
@@ -246,15 +242,15 @@ router.post('/lock', async (req, res) => {
             ttlockData,
             { headers }
         );
-        //console.log(ttlockResponse.data)
+        console.log("lockLock response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ errmsg: 'Error with TTLock API' });
+        res.status(500).json({ errmsg: 'Error with API' });
     }
 });
-router.post('/queryOpenState', async (req, res) => {
-    let { clientId, accessToken, lockId, date } = req.body;
+router.get('/queryOpenState', async (req, res) => {
+    let { clientId, accessToken, lockId, date } = req.query;
     try {
         let ttlockData = {
             clientId: clientId,
@@ -265,20 +261,19 @@ router.post('/queryOpenState', async (req, res) => {
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
         };
-        let ttlockResponse = await axios.post(
+        let ttlockResponse = await axios.get(
             'https://euapi.ttlock.com/v3/lock/queryOpenState',
-            ttlockData,
-            { headers }
+            { params: ttlockData, headers }
         );
-        //console.log(ttlockResponse.data)
+        console.log("lockQueryOpenState response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ errmsg: 'Error with TTLock API' });
+        res.status(500).json({ errmsg: 'Error with API' });
     }
 });
-router.post('/queryDate', async (req, res) => {
-    let { clientId, accessToken, lockId, date } = req.body;
+router.get('/queryDate', async (req, res) => {
+    let { clientId, accessToken, lockId, date } = req.query;
     try {
         let ttlockData = {
             clientId: clientId,
@@ -289,16 +284,15 @@ router.post('/queryDate', async (req, res) => {
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
         };
-        let ttlockResponse = await axios.post(
+        let ttlockResponse = await axios.get(
             'https://euapi.ttlock.com/v3/lock/queryDate',
-            ttlockData,
-            { headers }
+            { params: ttlockData, headers }
         );
-        //console.log(ttlockResponse.data)
+        console.log("lockQueryDate response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ errmsg: 'Error with TTLock API' });
+        res.status(500).json({ errmsg: 'Error with API' });
     }
 });
 router.post('/updateDate', async (req, res) => {
@@ -318,14 +312,12 @@ router.post('/updateDate', async (req, res) => {
             ttlockData,
             { headers }
         );
-        //console.log(ttlockResponse.data)
+        console.log("lockUpdateDate response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ errmsg: 'Error with TTLock API' });
+        res.status(500).json({ errmsg: 'Error with API' });
     }
 });
-
-
 
 module.exports = router;
