@@ -27,7 +27,7 @@ export class GroupService {
   }
   getGroupofAccount(userID: string): Observable<GroupResponse> {
     let body = { userID };
-    let url = this.URL.concat('/v0/group/getList');
+    let url = this.URL.concat('/v0/group/list');
     return this.http.post<GroupResponse>(url, body);
   }
   addGroup(userID: string, name: string): Observable<addGroupResponse> {

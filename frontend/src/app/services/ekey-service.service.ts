@@ -24,7 +24,7 @@ export class EkeyServiceService {
 
   getEkeysofAccount(userID: string, pageNo: number, pageSize: number, groupID?: number): Observable<LockListResponse> {
     let body = { userID, pageNo, pageSize, groupID };
-    let url = this.URL.concat('/v0/ekey/getListAccount');
+    let url = this.URL.concat('/v0/ekey/list');
     return this.http.post<LockListResponse>(url, body);
   }
   getEkeysofLock(userID: string, lockID: number, pageNo: number, pageSize: number): Observable<EkeyResponse> {
