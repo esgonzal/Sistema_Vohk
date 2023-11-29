@@ -9,7 +9,7 @@ import { LockDetails } from '../Interfaces/Lock';
 })
 export class LockServiceService {
 
-  URL = 'http://34.176.182.56:8080';
+  URL = 'https://api.vohkapp.com';
   userID: string;
   lockID: number;
 
@@ -29,22 +29,22 @@ export class LockServiceService {
     let pageNo = 1;
     let pageSize = 100;
     let body = {userID, pageNo, pageSize};
-    let url = this.URL.concat('/api/vohk/lock/getListAccount');
+    let url = this.URL.concat('/v0/lock/getListAccount');
     return this.http.post<LockListResponse>(url, body)
   }
   getLockDetails(userID: string, lockID: number): Observable<LockDetails> {
     let body = {userID, lockID};
-    let url = this.URL.concat('/api/vohk/lock/details');
+    let url = this.URL.concat('/v0/lock/details');
     return this.http.post<LockDetails>(url, body)
   }
   setAutoLock(userID: string, lockID: number, seconds: number): Observable<operationResponse> {
     let body = {userID, lockID, seconds}
-    let url = this.URL.concat('/api/vohk/lock/setAutoLock');
+    let url = this.URL.concat('/v0/lock/setAutoLock');
     return this.http.post<operationResponse>(url, body);
   }
   transferLock(userID: string, receiverUsername: string, lockID: string): Observable<operationResponse> {
     let body = {userID, receiverUsername, lockID}
-    let url = this.URL.concat('/api/ttlock/lock/transfer');
+    let url = this.URL.concat('/v0/lock/transfer');
     return this.http.post<operationResponse>(url, body);
   }
 }

@@ -1,3 +1,7 @@
+.navbar {
+  padding: 0; /* Remove the default padding */
+}
+
 .container-fluid {
   background-color: black;
   height: 80px;
