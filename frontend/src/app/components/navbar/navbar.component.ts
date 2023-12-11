@@ -21,14 +21,8 @@ export class NavbarComponent {
   returnNombre() {
     return sessionStorage.getItem('user') ?? '';
   }
-  returnNickname() {
-    return sessionStorage.getItem('nick') ?? '';
-  }
   returnLogged() {
     return sessionStorage.getItem('logged') ?? '';
-  }
-  returnAccountType() {
-    return sessionStorage.getItem('Account') ?? '';
   }
   mostrarCerraduras() {
     this.router.navigate(['users', this.returnNombre()]);
@@ -37,12 +31,7 @@ export class NavbarComponent {
     this.router.navigate(['users', this.returnNombre(), 'perfil']);
   }
   async cerrarSesion() {
-    let userID: string;
-    if (this.returnAccountType() === 'TTLock') {
-      userID = this.returnNombre();
-    } else {
-      userID = this.userService.encodeNombre(this.returnNombre());
-    }
+    let userID = this.returnNombre();
     await lastValueFrom(this.userService.logOut(userID)) as logoutResponse;
     sessionStorage.clear();
     this.router.navigate(['/login']);

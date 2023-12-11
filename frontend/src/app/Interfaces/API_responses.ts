@@ -78,8 +78,7 @@ export interface GetAccessTokenResponse {
     errcode: number;
     errmsg: string;
     description: string;
-    account: string;
-    nickname: string;
+    userID: string;
 }
 export interface ResetPasswordResponse {
     description: string;

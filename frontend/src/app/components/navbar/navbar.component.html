@@ -10,7 +10,7 @@
         <div *ngIf="returnLogged()!=='1'" class="collapse navbar-collapse" id="navbarNavDropdown">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <a class="nav-link active" routerLink="register">Registrarse</a>
+                    <!--<a class="nav-link active" routerLink="register">Registrarse</a>-->
                 </li>
                 <li class="nav-item">
                     <a class="nav-link active" routerLink="login">Iniciar Sesión</a>
@@ -21,13 +21,13 @@
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
                     <a class="nav-link active" [matMenuTriggerFor]="menu" aria-label="Settings">
-                        {{ returnNickname() }}
+                        {{ returnNombre() }}
                     </a>
                     <mat-menu #menu="matMenu">
                         <button mat-menu-item (click)="mostrarCerraduras()">
                             <span>Mis Dispositivos</span>
                         </button>
-                        <button mat-menu-item (click)="toPerfil()" *ngIf="returnAccountType() === 'Vohk'">
+                        <button mat-menu-item >
                             <span>Informacion Personal</span>
                         </button>
                         <button mat-menu-item (click)="cerrarSesion()">

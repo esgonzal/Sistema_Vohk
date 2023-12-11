@@ -56,11 +56,9 @@ export class LockComponent implements OnInit {
   lockDetails: LockDetails;
   ekeys: Ekey[] = []
   passcodes: Passcode[] = []
-  passcodesFiltradas: Passcode[] = []
   fingerprints: Fingerprint[] = []
   cards: Card[] = []
   records: Record[] = []
-  recordsFiltrados: Record[] = []
   allLocks: LockData[] = [];
   locks: LockData[] = [];
   locksWithoutGroup: LockData[] = [];
@@ -158,24 +156,16 @@ export class LockComponent implements OnInit {
 
 
   async ngOnInit() {
-    if (sessionStorage.getItem('Account') === 'Vohk') {
-      this.isUserValue = await this.isUser(this.userService.encodeNombre(this.username))
-      this.userID = this.userService.encodeNombre(this.username);
-    } else {
-      this.isUserValue = await this.isUser(this.username);
-      this.userID = this.username
-    }
+    this.userID = this.username;
     await this.fetchEkeys();
     await this.fetchPasscodes();
     this.updatePasscodeUsage();
-    this.passcodesFiltradas = this.passcodes.filter(passcode => passcode.senderUsername === this.userID);
     //await this.getAllLocks();
     //await this.fetchGroups();
     for (const feature of this.featureList) {
       this.lockService.checkFeature(this.featureValue, feature.bit);
     }
     this.ekeysDataSource = new MatTableDataSource(this.ekeys);
-    this.passcodesDataSource = new MatTableDataSource(this.passcodes);
     this.pageLoaded = true;
   }
   async getAllLocks() {
@@ -296,9 +286,6 @@ export class LockComponent implements OnInit {
       const response = await lastValueFrom(this.ekeyService.getEkeysofLock(this.userID, this.lockId, pageNo, 100))
       const typedResponse = response as EkeyResponse;
       if (typedResponse?.list) {
-        for (const ekey of typedResponse.list) {
-          ekey.isuser = await this.isUser(ekey.username);
-        }
         this.ekeys.push(...typedResponse.list);
         if (typedResponse.pages > pageNo) {
           await this.fetchEkeysPage(pageNo + 1);
@@ -504,74 +491,42 @@ export class LockComponent implements OnInit {
   }
   async onTabChanged(event: MatTabChangeEvent): Promise<void> {
     this.selectedTabIndex = event.index;
-    if (!this.isUserValue) {
-      switch (this.selectedTabIndex) {
-        case 0:
-          this.ekeys = [];
-          await this.fetchEkeys();
-          this.ekeysDataSource = new MatTableDataSource(this.ekeys);
-          //console.log("eKeys: ", this.ekeys)
-          break;
-        case 1:
-          this.passcodes = [];
-          await this.fetchPasscodes();
-          this.updatePasscodeUsage()
-          this.passcodesDataSource = new MatTableDataSource(this.passcodes);
-          this.passcodesFiltradas = this.passcodes.filter(passcode => passcode.senderUsername === this.userID);
-          //console.log("Passcodes: ", this.passcodes)
-          break;
-        case 2:
-          this.cards = [];
-          await this.fetchCards();
-          this.cardsDataSource = new MatTableDataSource(this.cards);
-          //console.log("Cards: ", this.cards)
-          break;
-        case 3:
-          this.fingerprints = [];
-          await this.fetchFingerprints();
-          this.fingerprintsDataSource = new MatTableDataSource(this.fingerprints);
-          //console.log("Fingerprints: ", this.fingerprints)
-          break;
-        case 4:
-          this.records = [];
-          await this.fetchRecords();
-          this.recordsDataSource = new MatTableDataSource(this.records);
-          this.recordsFiltrados = this.records.filter(record => record.username === this.userID);
-          //console.log("Records: ", this.records)
-          break;
-      }
-    } else {
-      switch (this.selectedTabIndex) {
-        case 0:
-          this.passcodes = [];
-          this.passcodesFiltradas = [];
-          await this.fetchPasscodes();
-          this.updatePasscodeUsage()
-          this.passcodesDataSource = new MatTableDataSource(this.passcodes);
-          this.passcodesFiltradas = this.passcodes.filter(passcode => passcode.senderUsername === this.userService.encodeNombre(this.username));
-          console.log("Passcodes: ", this.passcodesFiltradas)
-          break;
-        case 1:
-          this.records = [];
-          this.recordsFiltrados = [];
-          await this.fetchRecords();
-          this.recordsDataSource = new MatTableDataSource(this.records);
-          this.recordsFiltrados = this.records.filter(record => record.username === this.userService.encodeNombre(this.username));
-          console.log("Records: ", this.records)
-          break;
-      }
+    switch (this.selectedTabIndex) {
+      case 0:
+        this.ekeys = [];
+        await this.fetchEkeys();
+        this.ekeysDataSource = new MatTableDataSource(this.ekeys);
+        console.log("eKeys: ", this.ekeys)
+        break;
+      case 1:
+        this.passcodes = [];
+        await this.fetchPasscodes();
+        this.updatePasscodeUsage()
+        this.passcodesDataSource = new MatTableDataSource(this.passcodes);
+        //console.log("Passcodes: ", this.passcodes)
+        break;
+      case 2:
+        this.cards = [];
+        await this.fetchCards();
+        this.cardsDataSource = new MatTableDataSource(this.cards);
+        //console.log("Cards: ", this.cards)
+        break;
+      case 3:
+        this.fingerprints = [];
+        await this.fetchFingerprints();
+        this.fingerprintsDataSource = new MatTableDataSource(this.fingerprints);
+        //console.log("Fingerprints: ", this.fingerprints)
+        break;
+      case 4:
+        this.records = [];
+        await this.fetchRecords();
+        this.recordsDataSource = new MatTableDataSource(this.records);
+        //console.log("Records: ", this.records)
+        break;
     }
   }
   Number(palabra: string) {
     return Number(palabra)
-  }
-  async isUser(username: string) {
-    let response = await lastValueFrom(this.ekeyService.getIsUser(username, this.lockId)) as getByUserAndLockIdResponse;
-    if (response.isuser) {
-      return response.isuser;
-    } else {
-      return false
-    }
   }
   periodoValidez(start: number, end: number) {
     if (end === 0) { return 'Permanente' }
@@ -583,11 +538,10 @@ export class LockComponent implements OnInit {
     }
   }
   periodoValidezEkey(ekey: Ekey) {
-    if (this.Number(ekey.endDate) === 1) {//UNA VEZ
+    if (Number(ekey.endDate) === 1) {//UNA VEZ
       let retorno = moment(ekey.startDate).format('YYYY/MM/DD HH:mm').concat(" Una vez");
       return retorno;
-    }
-    if (ekey.keyType === 4) {//SOLICITANTE
+    } else if (ekey.keyType === 4) {//SOLICITANTE
       const dayNames = ["Sabado", "Domingo", "Lunes", "Martes", "Miercoles", "Jueves", "Viernes"];
       let HoraInicio = moment(ekey.startDate).format('HH:mm');
       let HoraFinal = moment(ekey.endDate).format('HH:mm');
@@ -597,8 +551,7 @@ export class LockComponent implements OnInit {
       let formattedSelectedDays = selectedDays.map((day: number) => dayNames[day]).join(', ');
       let formattedResult = `${DiaInicio} - ${DiaFinal}, ${formattedSelectedDays}, ${HoraInicio} ~ ${HoraFinal}`;
       return formattedResult
-    }
-    else {
+    } else {
       return this.periodoValidez(Number(ekey.startDate), Number(ekey.endDate))
     }
   }
@@ -1196,9 +1149,6 @@ export class LockComponent implements OnInit {
     this.popupService.elementType = ekeyUsername;
     this.popupService.lockID = this.lockId;
     this.popupService.desautorizarFalso = true;
-  }
-  getVariable(nombre: string) {
-    return sessionStorage.getItem(nombre);
   }
   //FUNCIONES PASSCODE
   crearPasscode() {

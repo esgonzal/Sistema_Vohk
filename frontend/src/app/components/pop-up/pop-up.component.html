@@ -35,18 +35,6 @@
         <button (click)="autorizar()">Si</button>
     </div>
 </div>
-<div id="container" *ngIf="popupService.autorizarFalso">
-    <div id="header">
-        Por favor confirme sus acciones
-    </div>
-    <div id="content">
-        ¿Está seguro que desea autorizar a {{userService.decodeNombre(popupService.elementType)}}?
-    </div>
-    <div id="actions">
-        <button class="cancel" (click)="popupService.autorizarFalso = false">No</button>
-        <button (click)="autorizarFalso()">Si</button>
-    </div>
-</div>
 <div id="container" *ngIf="popupService.desautorizar">
     <div id="header">
         Por favor confirme sus acciones
@@ -57,18 +45,6 @@
     <div id="actions">
         <button class="cancel" (click)="popupService.desautorizar = false">No</button>
         <button (click)="desautorizar()">Si</button>
-    </div>
-</div>
-<div id="container" *ngIf="popupService.desautorizarFalso">
-    <div id="header">
-        Por favor confirme sus acciones
-    </div>
-    <div id="content">
-        ¿Está seguro que desea desautorizar a {{popupService.elementType}}?
-    </div>
-    <div id="actions">
-        <button class="cancel" (click)="popupService.desautorizarFalso = false">No</button>
-        <button (click)="desautorizarFalso()">Si</button>
     </div>
 </div>
 <div id="container" *ngIf="popupService.congelar">
@@ -571,30 +547,6 @@
         </div>
     </div>
 </div>
-<div id="container" *ngIf="popupService.resetPassword">
-    <div id="header">
-        Reestablecer contraseña
-    </div>
-    <div id="content">
-        <div class="input-container">
-            <label for="currentPassword">Contraseña actual:</label>
-            <input type="password" id="currentPassword" [(ngModel)]="currentPassword">
-        </div>
-        <div class="input-container">
-            <label for="newPassword">Nueva contraseña:</label>
-            <input type="password" id="newPassword" [(ngModel)]="newPassword">
-        </div>
-        <div class="input-container">
-            <label for="confirmPassword">Confirmar nueva contraseña:</label>
-            <input type="password" id="confirmPassword" [(ngModel)]="confirmPassword">
-        </div>
-        <p class="error">{{error}}</p>
-    </div>
-    <div id="actions">
-        <button class="cancel" (click)="popupService.resetPassword = false">Volver</button>
-        <button (click)="resetPassword()">Ok</button>
-    </div>
-</div>
 <div id="container" *ngIf="popupService.sharePasscode">
     <div id="header">
         Compartir Código
@@ -615,39 +567,5 @@
         </div>
     </div>
     <div id="actions">
-    </div>
-</div>
-<div id="container" *ngIf="popupService.wrongAccountType">
-    <div id="header">
-        Función no permitida
-    </div>
-    <div id="content">
-        Tu cuenta es antigua, por lo que el cambio de contraseña solo puede hacerse usando la aplicación de celular.
-    </div>
-    <div id="actions">
-        <button (click)="popupService.wrongAccountType = false">Ok</button>
-    </div>
-</div>
-<div id="container" *ngIf="popupService.changeNickname">
-    <div id="header">
-        Cambiar nombre
-    </div>
-    <div id="content">
-        <div class="form-area">
-            <form #newName="ngForm" (ngSubmit)="changeNickname(newName.value)" class="common-form">
-                <p>
-                    Nombre
-                    <input type="text" class="form-input" name="name" required="" ngModel />
-                </p>
-                <p class="error">{{error}}</p>
-                <div id="actions">
-                    <button class="cancel" (click)="popupService.changeNickname = false">Volver</button>
-                    <button type="submit">Guardar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    <div id="actions">
-
     </div>
 </div>

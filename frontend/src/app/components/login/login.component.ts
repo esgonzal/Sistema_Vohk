@@ -39,21 +39,14 @@ export class LoginComponent {
     let response;
     if (this.validarInputs(data)) {
       response = await lastValueFrom(this.userService.getAccessToken(data.username, data.password)) as GetAccessTokenResponse;
-      if(response.account) {
+      //console.log(response)
+      if(response.userID) {
         sessionStorage.setItem('logged', '1')
         sessionStorage.setItem('user', data.username)
-        sessionStorage.setItem('Account', 'Vohk')
-        sessionStorage.setItem('nick', response.nickname)
         this.router.navigate(['/users/', data.username]);
       } else if(response.description) {
         this.loginError = "Nombre de usuario y/o contraseña inválidos";
-      } else {
-        sessionStorage.setItem('logged', '1')
-        sessionStorage.setItem('user', data.username)
-        sessionStorage.setItem('Account', 'TTLock')
-        sessionStorage.setItem('nick', data.username)
-        this.router.navigate(['/users/', data.username]);
-      }
+      } 
     }
   }
 }

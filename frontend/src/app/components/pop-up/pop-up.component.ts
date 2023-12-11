@@ -130,24 +130,14 @@ export class PopUpComponent implements OnInit {
     }
   }
   async autorizar() {
-    await this.ekeyService.AuthorizeEkey(this.popupService.userID, this.popupService.lockID, this.popupService.elementID);
+    lastValueFrom(this.ekeyService.AuthorizeEkey(this.popupService.userID, this.popupService.lockID, this.popupService.elementID));
     this.popupService.autorizar = false;
     window.location.reload();
   }
-  autorizarFalso() {
-    lastValueFrom(this.ekeyService.changeIsUser(this.popupService.elementType, this.popupService.lockID, false))
-    window.location.reload();
-    this.popupService.autorizarFalso = false;
-  }
   async desautorizar() {
-    await this.ekeyService.cancelAuthorizeEkey(this.popupService.userID, this.popupService.lockID, this.popupService.elementID);
+    await lastValueFrom(this.ekeyService.cancelAuthorizeEkey(this.popupService.userID, this.popupService.lockID, this.popupService.elementID));
     this.popupService.desautorizar = false;
     window.location.reload();
-  }
-  desautorizarFalso() {
-    lastValueFrom(this.ekeyService.changeIsUser(this.popupService.elementType, this.popupService.lockID, true));
-    window.location.reload();
-    this.popupService.desautorizarFalso = false;
   }
   async congelar() {
     this.isLoading = true;
@@ -543,45 +533,6 @@ export class PopUpComponent implements OnInit {
       return true;
     }
   }
-  async resetPassword() {
-    this.error = ''
-    this.isLoading = true;
-    try {
-      if (this.currentPassword !== '' && this.newPassword !== '' && this.confirmPassword !== '') {
-        if (this.currentPassword === this.popupService.password) {
-          const passwordPattern = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-          if (passwordPattern.test(this.newPassword)) {
-            if (this.newPassword === this.confirmPassword) {
-              let response = await lastValueFrom(this.userService.ResetPassword(this.popupService.accountName, this.newPassword)) as ResetPasswordResponse;
-              if (response.errcode === 0) {
-                this.popupService.resetPassword = false;
-                window.location.reload();
-              } else if (response.errcode === 10003) {
-                sessionStorage.clear();
-                this.popupService.resetPassword = false;
-                this.router.navigate(['/login']);
-              } else {
-                this.error = "No se pudo completar la acción, intente nuevamente más tarde";
-                console.log(response)
-              }
-            } else {
-              this.error = 'No coincide la contraseña. Por favor intente de nuevo'
-            }
-          } else {
-            this.error = 'Tu nueva contraseña debe tener entre 8-20 caracteres e incluir al menos un número, letra y símbolo'
-          }
-        } else {
-          this.error = 'Contraseña actual inválida'
-        }
-      } else {
-        this.error = 'Por favor, introduzca una contraseña'
-      }
-    } catch (error) {
-      console.error("Error while resetting the password of the account:", error);
-    } finally {
-      this.isLoading = false;
-    }
-  }
   compartirCodigo(datos: Formulario) {
     this.error = '';
     this.isLoading = true;
@@ -610,16 +561,6 @@ export class PopUpComponent implements OnInit {
       console.error("Error while sending email to share a passcode:", error);
     } finally {
       this.isLoading = false;
-    }
-  }
-  async changeNickname(datos: Formulario) {
-    if (!datos.name) {
-      this.error = 'Ingrese un nombre'
-    } else {
-      const response = await lastValueFrom(this.userService.changeNicknameDB(this.popupService.accountName, datos.name))
-      //console.log(response);
-      this.popupService.changeNickname = false;
-      //window.location.reload();
     }
   }
   async ajustarHora() {
