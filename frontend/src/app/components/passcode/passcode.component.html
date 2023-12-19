@@ -153,24 +153,3 @@
     </div>
 </div>
 <app-pop-up *ngIf="this.popupService.needGateway"></app-pop-up>
-<div class="resto" *ngIf="this.passcodeService.passcodesimple">
-    <div class="form-area">
-        <h2 style="margin-bottom: 50px;">Ingrese los datos para generar una nueva Passcode</h2>
-        <form #formInput="ngForm" (ngSubmit)="validarPasscodeSimple()" class="common-form">
-            <div class="linea">
-                <span class="input-container">
-                    Duración
-                    <select #hours name="passcodeType" (change)="onSelectedHour(hours.value)" [(ngModel)]="howManyHours"
-                        style="width: 202px; height: 35px;">
-                        <option default value="">No seleccionado</option>
-                        <option value="1">1 Hora</option>
-                        <option value="6">6 Horas</option>
-                        <option value="12">12 Horas</option>
-                        <option value="24">24 Horas</option>
-                    </select>
-                </span>
-            </div>
-            <button class="form-button" type="submit">Generar</button>
-        </form>
-    </div>
-</div>

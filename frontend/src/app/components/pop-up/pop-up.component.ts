@@ -14,10 +14,13 @@ import { GatewayService } from 'src/app/services/gateway.service';
 
 import { GatewayAccount } from '../../Interfaces/Gateway';
 import { Formulario } from '../../Interfaces/Formulario';
-import { operationResponse, ResetPasswordResponse, addGroupResponse, GetLockTimeResponse } from '../../Interfaces/API_responses';
+import { operationResponse, addGroupResponse, GetLockTimeResponse } from '../../Interfaces/API_responses';
 
 import { lastValueFrom } from 'rxjs';
 import moment from 'moment';
+import { Clipboard } from '@angular/cdk/clipboard';
+import { DomSanitizer } from '@angular/platform-browser';
+
 
 @Component({
   selector: 'app-pop-up',
@@ -37,6 +40,9 @@ export class PopUpComponent implements OnInit {
   currentPassword: string = '';
   newPassword: string = '';
   confirmPassword: string = '';
+  URL = 'https://api.vohkapp.com';
+  cardNumber: string = '';
+  public isCopied: boolean = false;
 
   constructor(
     private router: Router,
@@ -51,6 +57,8 @@ export class PopUpComponent implements OnInit {
     public userService: UserServiceService,
     public ekeyService: EkeyServiceService,
     public popupService: PopUpService,
+    private clipboard: Clipboard,
+    private sanitizer: DomSanitizer,
   ) { }
 
   ngOnInit(): void {
@@ -79,6 +87,20 @@ export class PopUpComponent implements OnInit {
             this.customAutoLockTime = this.popupService.detalles.autoLockTime;
         }
       }
+    }
+    if (this.popupService.cardReader) {
+      document.addEventListener('keydown', (event) => {
+        this.cardNumber += event.key;
+        if (event.key === 'Enter') {
+          const trimmedCardNumber = this.cardNumber.replace(/\D/g, '');
+          if (trimmedCardNumber !== '') {
+            //console.log('Card Number:', trimmedCardNumber);
+            this.popupService.cardReader = false;
+            this.cardService.cardNumber = trimmedCardNumber;
+            this.cardNumber = '';
+          }
+        }
+      });
     }
   }
   navigateToLogin() {
@@ -533,25 +555,25 @@ export class PopUpComponent implements OnInit {
       return true;
     }
   }
-  compartirCodigo(datos: Formulario) {
+  async compartirCodigo(datos: Formulario) {
     this.error = '';
     this.isLoading = true;
     try {
       if (this.userService.isValidEmail(datos.name)) {
         if (this.popupService.passcode.keyboardPwdType === 1) {//De un uso
-          this.passcodeService.sendEmail_OneUsePasscode(datos.name, this.popupService.passcode.keyboardPwd)
+          await lastValueFrom(this.passcodeService.sendEmail_passcodeOneTime(datos.name, this.popupService.userID, this.popupService.lock_alias, this.popupService.passcode.keyboardPwd));
         }
         else if (this.popupService.passcode.keyboardPwdType === 2) {//Permanente
-          this.passcodeService.sendEmail_PermanentPasscode(datos.name, this.popupService.passcode.keyboardPwd)
+          await lastValueFrom(this.passcodeService.sendEmail_passcodePermanent(datos.name, this.popupService.userID, this.popupService.lock_alias, this.popupService.passcode.keyboardPwd));
         }
-        else if (this.popupService.passcode.keyboardPwdType === 3) {//Peridica
-          this.passcodeService.sendEmail_PeriodPasscode(datos.name, this.popupService.passcode.keyboardPwd, moment(this.popupService.passcode.startDate).format("DD/MM/YYYY HH:mm"), moment(this.popupService.passcode.endDate).format("DD/MM/YYYY HH:mm"))
+        else if (this.popupService.passcode.keyboardPwdType === 3) {//Periodica
+          await lastValueFrom(this.passcodeService.sendEmail_passcodePeriodic(datos.name, this.popupService.userID, this.popupService.lock_alias, this.popupService.passcode.keyboardPwd, moment(this.popupService.passcode.startDate).format("DD/MM/YYYY HH:mm"), moment(this.popupService.passcode.endDate).format("DD/MM/YYYY HH:mm")));
         }
         else if (this.popupService.passcode.keyboardPwdType === 4) {//Borrar
-          this.passcodeService.sendEmail_ErasePasscode(datos.name, this.popupService.passcode.keyboardPwd)
+          await lastValueFrom(this.passcodeService.sendEmail_passcodeDelete(datos.name, this.popupService.userID, this.popupService.lock_alias, this.popupService.passcode.keyboardPwd));
         }
         else {//Recurrente
-          this.passcodeService.sendEmail_RecurringPasscode(datos.name, this.popupService.passcode.keyboardPwd, moment(this.popupService.passcode.startDate).format("HH:mm"), moment(this.popupService.passcode.endDate).format("HH:mm"), this.popupService.passcode.keyboardPwdType);
+          await lastValueFrom(this.passcodeService.sendEmail_passcodeDays(datos.name, this.popupService.userID, this.popupService.lock_alias, this.popupService.passcode.keyboardPwd, moment(this.popupService.passcode.startDate).format("HH:mm"), moment(this.popupService.passcode.endDate).format("HH:mm"), this.popupService.passcode.keyboardPwdType));
         }
         this.popupService.sharePasscode = false;
       } else {
@@ -582,4 +604,34 @@ export class PopUpComponent implements OnInit {
       this.isLoading = false;
     }
   }
+  getCardNumber(datos: Formulario) {
+    console.log(datos.name)
+  }
+  closeEmailPopup() {
+    this.popupService.emailSuccess = false
+    this.router.navigate(["users", this.ekeyService.username, "lock", this.ekeyService.lockID]);
+  }
+  copyToClipboard() {
+    const emailContent = this.popupService.emailMessage;
+    if (emailContent) {
+      const sanitizedContent = this.sanitizer.sanitize(0, emailContent) ?? '';
+      const clipboardAttempt = this.clipboard.beginCopy(sanitizedContent);
+      let remainingAttempts = 5;
+      const attempt = () => {
+        const result = clipboardAttempt.copy();
+        if (result) {
+          this.isCopied = true;
+          setTimeout(() => {
+            this.isCopied = false;
+          }, 2000);
+        } else if (--remainingAttempts) {
+          setTimeout(attempt, 100);
+        } else {
+          clipboardAttempt.destroy();
+        }
+      };
+      attempt();
+    }
+  }
+
 }

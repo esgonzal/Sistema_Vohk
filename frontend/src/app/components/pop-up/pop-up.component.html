@@ -569,3 +569,24 @@
     <div id="actions">
     </div>
 </div>
+<div id="container" *ngIf="popupService.cardReader">
+    Acerque la tarjeta el lector
+</div>
+<div id="container" *ngIf="popupService.emailSuccess">
+    <div id="header">
+        Correo enviado
+    </div>
+    <div id="content">
+        Se ha enviado el siguiente correo:
+    </div>
+    <div id="content" style="margin: 50px; background-color: rgb(245, 245, 245);">
+        <div id="content" [innerHTML]="popupService.emailMessage"></div>
+    </div>
+    <div id="actions">
+        <button (click)="copyToClipboard()">Copiar mensaje</button>
+        <button class="cancel" (click)="closeEmailPopup()">Ok</button>
+    </div>
+    <div *ngIf="isCopied" class="confirmation-message">
+        El mensaje fue copiado.
+    </div>
+</div>

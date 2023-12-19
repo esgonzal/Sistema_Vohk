@@ -124,3 +124,10 @@ button {
   font-size: smaller;
   color: red;
 }
+
+.confirmation-message {
+  font-size: 14px; /* Adjust the font size as needed */
+  text-align: center;
+  margin-top: 10px; /* Add some top margin for spacing */
+  color: #4CAF50; /* Green color or adjust to your preferred color */
+}

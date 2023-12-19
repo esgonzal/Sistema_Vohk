@@ -1196,6 +1196,8 @@ export class LockComponent implements OnInit {
     this.router.navigate(["users", this.username, "lock", this.lockId, "passcode"]);
   }
   compartirPasscode(passcode: Passcode) {
+    this.popupService.userID = this.userID;
+    this.popupService.lock_alias = this.Alias;
     this.popupService.passcode = passcode;
     this.popupService.sharePasscode = true;
   }
@@ -1232,6 +1234,12 @@ export class LockComponent implements OnInit {
     }
   }
   //FUNCIONES FINGERPRINT
+  crearCard(){
+    this.cardService.userID = this.userID;
+    this.cardService.lockID = this.lockId;
+    this.cardService.endDateUser = this.endDateDeUser;
+    this.router.navigate(["users", this.username, "lock", this.lockId, "card"]);
+  }
   borrarFingerprint(fingerID: number) {
     if (this.gateway === '1') {
       this.popupService.userID = this.userID;

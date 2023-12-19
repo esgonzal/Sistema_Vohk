@@ -7,6 +7,8 @@ import { LockServiceService } from '../../services/lock-service.service';
 import { EkeyServiceService } from '../../services/ekey-service.service';
 import { UserRegisterResponse, sendEkeyResponse } from '../../Interfaces/API_responses'
 import { Formulario } from '../../Interfaces/Formulario';
+import { PopUpService } from 'src/app/services/pop-up.service';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-ekey',
@@ -19,7 +21,9 @@ export class EkeyComponent {
     private router: Router,
     private userService: UserServiceService,
     private lockService: LockServiceService,
-    public ekeyService: EkeyServiceService) {
+    public ekeyService: EkeyServiceService,
+    public popupService: PopUpService,
+    private sanitizer: DomSanitizer) {
     if (!this.ekeyService.username || !this.ekeyService.userID || !this.ekeyService.lockID || !this.ekeyService.endDateUser) {
       this.router.navigate(['users', sessionStorage.getItem('user'), 'lock', sessionStorage.getItem('lockID')])
     }
@@ -130,27 +134,33 @@ export class EkeyComponent {
       if (datos.ekeyType === '1') {
         ///////////PERMANENTE////////////////////////////////
         let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, datos.recieverName, datos.name, "0", "0", 1)) as sendEkeyResponse;
-        if (sendEkeyResponse.errcode === 0) {//Ekey permanente se mandó correctamente
-          this.router.navigate(["users", this.ekeyService.username, "lock", this.ekeyService.lockID]);
+        if (sendEkeyResponse.keyId) {//Ekey permanente se mandó correctamente
+          this.popupService.emailMessage = this.sanitizer.bypassSecurityTrustHtml(sendEkeyResponse.emailContent);
+          this.popupService.emailSuccess = true;
         } else if (sendEkeyResponse.errcode === 10003) {
           sessionStorage.clear();
           this.router.navigate(['/login']);
+        } else if (sendEkeyResponse.errcode === -2019) {
+          this.error = "No puedes enviarte una eKey a ti mismo."
         } else {
           console.log(sendEkeyResponse);
         }
       }
       else if (datos.ekeyType === '2') {
         ///////////PERIODICA//////////////////////////////////////////////////////////////////
-        let newStartDay = moment(datos.startDate).valueOf()
-        let newEndDay = moment(datos.endDate).valueOf()
-        let newStartDate = moment(newStartDay).add(this.lockService.transformarHora(datos.startHour), "milliseconds").valueOf()
-        let newEndDate = moment(newEndDay).add(this.lockService.transformarHora(datos.endHour), "milliseconds").valueOf()
+        let newStartDay = moment(datos.startDate).valueOf();
+        let newEndDay = moment(datos.endDate).valueOf();
+        let newStartDate = moment(newStartDay).add(this.lockService.transformarHora(datos.startHour), "milliseconds").valueOf();
+        let newEndDate = moment(newEndDay).add(this.lockService.transformarHora(datos.endHour), "milliseconds").valueOf();
         let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, datos.recieverName, datos.name, newStartDate.toString(), newEndDate.toString(), 1)) as sendEkeyResponse;
-        if (sendEkeyResponse.errcode === 0) {//Ekey periodica se mandó correctamente
-          this.router.navigate(["users", this.ekeyService.username, "lock", this.ekeyService.lockID]);
+        if (sendEkeyResponse.keyId) {//Ekey periodica se mandó correctamente
+          this.popupService.emailMessage = this.sanitizer.bypassSecurityTrustHtml(sendEkeyResponse.emailContent);
+          this.popupService.emailSuccess = true;
         } else if (sendEkeyResponse.errcode === 10003) {
           sessionStorage.clear();
           this.router.navigate(['/login']);
+        } else if (sendEkeyResponse.errcode === -2019) {
+          this.error = "No puedes enviarte una eKey a ti mismo."
         } else {
           console.log(sendEkeyResponse);
         }
@@ -158,16 +168,20 @@ export class EkeyComponent {
       else if (datos.ekeyType === '3') {
         ///////////DE UN USO/////////////////////////////////////////////////////////////////////////////
         let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, datos.recieverName, datos.name, moment().valueOf().toString(), "1", 1)) as sendEkeyResponse;
-        if (sendEkeyResponse.errcode === 0) {//Ekey de un uso se mandó correctamente
-          this.router.navigate(["users", this.ekeyService.username, "lock", this.ekeyService.lockID]);
+        if (sendEkeyResponse.keyId) {//Ekey de un uso se mandó correctamente
+          this.popupService.emailMessage = this.sanitizer.bypassSecurityTrustHtml(sendEkeyResponse.emailContent);
+          this.popupService.emailSuccess = true;
         } else if (sendEkeyResponse.errcode === 10003) {
           sessionStorage.clear();
           this.router.navigate(['/login']);
+        } else if (sendEkeyResponse.errcode === -2019) {
+          this.error = "No puedes enviarte una eKey a ti mismo."
         } else {
           console.log(sendEkeyResponse);
         }
       }
       else if (datos.ekeyType === '4') {
+        console.log(datos)
         ///////////SOLICITANTE////////////////////////////////////////////
         let newStartDay = moment(datos.startDate).valueOf()
         let newEndDay = moment(datos.endDate).valueOf()
@@ -178,11 +192,14 @@ export class EkeyComponent {
           if (day.checked) { selectedDayNumbers.push(day.value) }
         });
         let sendEkeyResponse = await (lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, datos.recieverName, datos.name, newStartDate.toString(), newEndDate.toString(), 1, 4, newStartDay.toString(), newEndDay.toString(), JSON.stringify(selectedDayNumbers)))) as sendEkeyResponse;
-        if (sendEkeyResponse.errcode === 0) {//Ekey solicitante se mandó correctamente
-          this.router.navigate(["users", this.ekeyService.username, "lock", this.ekeyService.lockID]);
+        if (sendEkeyResponse.keyId) {//Ekey solicitante se mandó correctamente
+          this.popupService.emailMessage = this.sanitizer.bypassSecurityTrustHtml(sendEkeyResponse.emailContent);
+          this.popupService.emailSuccess = true;
         } else if (sendEkeyResponse.errcode === 10003) {
           sessionStorage.clear();
           this.router.navigate(['/login']);
+        } else if (sendEkeyResponse.errcode === -2019) {
+          this.error = "No puedes enviarte una eKey a ti mismo."
         } else {
           console.log(sendEkeyResponse);
         }

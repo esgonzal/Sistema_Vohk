@@ -7,6 +7,7 @@ import { UserComponent } from './components/user/user.component';
 import { LockComponent } from './components/lock/lock.component';
 import { PasscodeComponent } from './components/passcode/passcode.component';
 import { EkeyComponent } from './components/ekey/ekey.component';
+import { CardComponent } from './components/card/card.component';
 import { PopUpComponent } from './components/pop-up/pop-up.component';
 import { PassageModeComponent } from './components/passage-mode/passage-mode.component';
 import { TransferLockComponent } from './components/transfer-lock/transfer-lock.component';
@@ -48,6 +49,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { GroupService } from './services/group.service';
 
 
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -67,6 +69,7 @@ import { GroupService } from './services/group.service';
     GrupoCerradurasComponent,
     MultipleEkeyComponent,
     LoaderComponent,
+    CardComponent,
   ],
   imports: [
     BrowserModule,

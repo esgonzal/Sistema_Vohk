@@ -12,6 +12,7 @@ import { HomeComponent } from './components/home/home.component';
 import { PerfilComponent } from './components/perfil/perfil.component';
 import { GrupoCerradurasComponent } from './components/grupo-cerraduras/grupo-cerraduras.component';
 import { MultipleEkeyComponent } from './components/multiple-ekey/multiple-ekey.component';
+import { CardComponent } from './components/card/card.component';
 
 const routes: Routes = [
   { path: 'home', component: HomeComponent },
@@ -23,6 +24,7 @@ const routes: Routes = [
   { path: 'users/:username/lock/:id', component: LockComponent },
   { path: 'users/:username/lock/:id/passcode', component: PasscodeComponent },
   { path: 'users/:username/lock/:id/ekey', component: EkeyComponent },
+  { path: 'users/:username/lock/:id/card', component: CardComponent },
   { path: 'users/:username/lock/:id/ekey/multiple', component: MultipleEkeyComponent },
   { path: 'users/:username/lock/:id/passageMode', component: PassageModeComponent },
   { path: 'users/:username/lock/:id/transferLock', component: TransferLockComponent }
