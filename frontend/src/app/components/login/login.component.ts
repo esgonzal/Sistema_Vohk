@@ -38,7 +38,8 @@ export class LoginComponent {
   async login(data: User) {
     let response;
     if (this.validarInputs(data)) {
-      response = await lastValueFrom(this.userService.getAccessToken(data.username, data.password)) as GetAccessTokenResponse;
+      let md5 = this.userService.getMD5(data.password)
+      response = await lastValueFrom(this.userService.getAccessToken(data.username, md5)) as GetAccessTokenResponse;
       //console.log(response)
       if(response.userID) {
         sessionStorage.setItem('logged', '1')

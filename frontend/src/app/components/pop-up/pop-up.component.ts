@@ -152,12 +152,14 @@ export class PopUpComponent implements OnInit {
     }
   }
   async autorizar() {
-    lastValueFrom(this.ekeyService.AuthorizeEkey(this.popupService.userID, this.popupService.lockID, this.popupService.elementID));
+    let response = await lastValueFrom(this.ekeyService.AuthorizeEkey(this.popupService.userID, this.popupService.lockID, this.popupService.elementID)) as operationResponse;
+    console.log(response)
     this.popupService.autorizar = false;
     window.location.reload();
   }
   async desautorizar() {
-    await lastValueFrom(this.ekeyService.cancelAuthorizeEkey(this.popupService.userID, this.popupService.lockID, this.popupService.elementID));
+    let response = await lastValueFrom(this.ekeyService.cancelAuthorizeEkey(this.popupService.userID, this.popupService.lockID, this.popupService.elementID)) as operationResponse;
+    console.log(response)
     this.popupService.desautorizar = false;
     window.location.reload();
   }
@@ -613,25 +615,38 @@ export class PopUpComponent implements OnInit {
   }
   copyToClipboard() {
     const emailContent = this.popupService.emailMessage;
+
     if (emailContent) {
       const sanitizedContent = this.sanitizer.sanitize(0, emailContent) ?? '';
-      const clipboardAttempt = this.clipboard.beginCopy(sanitizedContent);
+
+      // Create a temporary element to extract text content
+      const tempElement = document.createElement('div');
+      tempElement.innerHTML = sanitizedContent;
+
+      // Extract the text content without HTML tags
+      const textContent = tempElement.textContent || tempElement.innerText;
+
+      const clipboardAttempt = this.clipboard.beginCopy(textContent);
       let remainingAttempts = 5;
+
       const attempt = () => {
         const result = clipboardAttempt.copy();
+
         if (result) {
           this.isCopied = true;
           setTimeout(() => {
             this.isCopied = false;
-          }, 2000);
+          }, 3000);
         } else if (--remainingAttempts) {
           setTimeout(attempt, 100);
         } else {
           clipboardAttempt.destroy();
         }
       };
+
       attempt();
     }
   }
+
 
 }

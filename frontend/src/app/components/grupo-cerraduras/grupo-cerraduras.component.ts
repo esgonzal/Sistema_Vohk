@@ -27,11 +27,7 @@ export class GrupoCerradurasComponent implements OnInit {
   ) { }
 
   async ngOnInit() {
-    if (sessionStorage.getItem('Account') === 'Vohk') {
-      this.userID = this.userService.encodeNombre(this.username);
-    } else {
-      this.userID = this.username
-    }
+    this.userID = this.username
   }
   crearGrupo() {
     this.popupService.userID = this.userID

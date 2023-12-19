@@ -27,11 +27,7 @@ export class SidebarComponent {
   }
 
   async ngOnInit() {
-    if (sessionStorage.getItem('Account') === 'Vohk') {
-      this.userID = this.userService.encodeNombre(this.username);
-    } else {
-      this.userID = this.username
-    }
+    this.userID = this.username
     await this.fetchGroups();
   }
 

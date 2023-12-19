@@ -15,6 +15,7 @@ export class EkeyServiceService {
   userID: string;
   lockID: number;
   username = sessionStorage.getItem('user') ?? ''
+  lockAlias: string;
   endDateUser: string;
   currentLocks: LockData[] = []
   selectedLocks: number[] = [];
@@ -32,8 +33,8 @@ export class EkeyServiceService {
     let url = this.URL.concat('/v0/ekey/getListLock');
     return this.http.post<EkeyResponse>(url, body);
   }
-  sendEkey(userID: string, lockID: number, recieverName: string, keyName: string, startDate: string, endDate: string, keyRight: number, keyType?: number, startDay?: string, endDay?: string, weekDays?: string): Observable<sendEkeyResponse> {
-    let body = { userID, lockID, recieverName, keyName, startDate, endDate, keyRight, keyType, startDay, endDay, weekDays };
+  sendEkey(userID: string, lockID: number, lockAlias: string, recieverName: string, keyName: string, startDate: string, endDate: string, keyRight: number, keyType?: number, startDay?: string, endDay?: string, weekDays?: string): Observable<sendEkeyResponse> {
+    let body = { userID, lockID, lockAlias, recieverName, keyName, startDate, endDate, keyRight, keyType, startDay, endDay, weekDays };
     let url = this.URL.concat('/v0/ekey/send');
     return this.http.post<sendEkeyResponse>(url, body);
   }

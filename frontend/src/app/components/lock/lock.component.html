@@ -53,7 +53,7 @@
                   <button mat-menu-item (click)="HoraDispositivo()">
                     <span>Hora del Dispositivo</span>
                   </button>
-                  <button mat-menu-item *ngIf="!isUserValue && lockService.checkFeature(featureValue, 22)"
+                  <button mat-menu-item *ngIf="(userType==='110301' || (userType==='110302' && keyRight==='1'))  && lockService.checkFeature(featureValue, 22)"
                     (click)="PassageMode()">
                     <span>Modo de Paso</span>
                   </button>
@@ -156,7 +156,7 @@
                         <th mat-header-cell *matHeaderCellDef class="table-cell">Operacion</th>
                         <td mat-cell *matCellDef="let ekey" class="table-cell">
                           <button
-                            *ngIf="( (userType==='110301') || (userType==='110302' && keyRight==='1' && ekey.senderUsername===username) || (userService.decodeNombre(ekey.username)===username) )"
+                            *ngIf=" (userType==='110301') || (userType==='110302' && keyRight==='1' && ekey.senderUsername===username) || ekey.username===username"
                             mat-button class="mat-warn" (click)="borrarEkey(ekey.keyId,ekey.username)">Eliminar</button>
                           <!--
                             <button
@@ -215,7 +215,7 @@
                       <ng-container matColumnDef="senderUsername">
                         <th mat-header-cell *matHeaderCellDef class="table-cell">Creador</th>
                         <td mat-cell *matCellDef="let passcode" class="table-cell">
-                          {{userService.decodeNombre(passcode.senderUsername)}}</td>
+                          {{passcode.senderUsername}}</td>
                       </ng-container>
                       <!---->
                       <ng-container matColumnDef="createDate">
@@ -278,7 +278,7 @@
                       <ng-container matColumnDef="senderUsername">
                         <th mat-header-cell *matHeaderCellDef class="table-cell">Creador</th>
                         <td mat-cell *matCellDef="let card" class="table-cell">
-                          {{userService.decodeNombre(card.senderUsername)}}
+                          {{card.senderUsername}}
                         </td>
                       </ng-container>
                       <!---->
@@ -334,7 +334,7 @@
                       <ng-container matColumnDef="senderUsername">
                         <th mat-header-cell *matHeaderCellDef class="table-cell">Creador</th>
                         <td mat-cell *matCellDef="let fingerprint" class="table-cell">
-                          {{userService.decodeNombre(fingerprint.senderUsername) }}</td>
+                          {{fingerprint.senderUsername}}</td>
                       </ng-container>
                       <!---->
                       <ng-container matColumnDef="createDate">
@@ -383,7 +383,7 @@
                       <ng-container matColumnDef="Operador">
                         <th mat-header-cell *matHeaderCellDef class="table-cell">Operador</th>
                         <td mat-cell *matCellDef="let record" class="table-cell">{{ record.username ?
-                          userService.decodeNombre(record.username) : '' }}</td>
+                          record.username : '' }}</td>
                       </ng-container>
                       <!---->
                       <ng-container matColumnDef="Metodo_Apertura">

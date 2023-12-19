@@ -28,7 +28,7 @@
         Por favor confirme sus acciones
     </div>
     <div id="content">
-        ¿Está seguro que desea autorizar a {{userService.decodeNombre(popupService.elementType)}}?
+        ¿Está seguro que desea autorizar a {{popupService.elementType}}?
     </div>
     <div id="actions">
         <button class="cancel" (click)="popupService.autorizar = false">No</button>
@@ -570,16 +570,19 @@
     </div>
 </div>
 <div id="container" *ngIf="popupService.cardReader">
-    <img src="../../../assets/images/imagenCard.png" alt="Acerque la tarjeta al lector">
+    <div id="header">
+        Acerque la tarjeta al lector
+    </div>
+    <div id="content"> 
+        <img src="../../../assets/images/imagenCard.png" >
+    </div>
 </div>
 <div id="container" *ngIf="popupService.emailSuccess">
-    <div id="header">
-        Correo enviado
-    </div>
+    
     <div id="content">
         Se ha enviado el siguiente correo:
     </div>
-    <div id="content" style="margin: 50px; background-color: rgb(245, 245, 245);">
+    <div id="content" style="background-color: rgb(245, 245, 245);">
         <div id="content" [innerHTML]="popupService.emailMessage"></div>
     </div>
     <div id="actions">

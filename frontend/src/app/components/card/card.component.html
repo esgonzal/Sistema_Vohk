@@ -13,7 +13,7 @@
     <div class="resto">
         <div class="form-area">
             <h2 style="margin-bottom: 50px;">Ingrese los datos para generar una nueva tarjeta</h2>
-            <form #formInput="ngForm" (ngSubmit)="createCard()" class="common-form">
+            <form #formInput="ngForm" class="common-form">
                 <div class="linea">
                     <span class="input-container">
                         Nombre de la Tarjeta
@@ -37,7 +37,7 @@
                         Fecha de Inicio
                         <mat-form-field appearance="fill">
                             <mat-label>Fecha</mat-label>
-                            <input matInput [matDatepicker]="startDatePicker" name="startDate" placeholder="MM/DD/YYYY"
+                            <input matInput [matDatepicker]="startDatePicker" name="startDate" placeholder="DD/MM/YYYY"
                                 [(ngModel)]="startDate" required (dateChange)="startTimePicker.open()">
                             <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
                             <mat-datepicker #startDatePicker></mat-datepicker>
@@ -54,10 +54,9 @@
                 <div class="linea" *ngIf="selectedType === '2'">
                     <span class="input-container">
                         Fecha de Finalización
-                        <!-- Adjust the date and time pickers based on your requirements -->
                         <mat-form-field appearance="fill">
                             <mat-label>Fecha</mat-label>
-                            <input matInput [matDatepicker]="endDatePicker" name="endDate" placeholder="MM/DD/YYYY"
+                            <input matInput [matDatepicker]="endDatePicker" name="endDate" placeholder="DD/MM/YYYY"
                                 [(ngModel)]="endDate" required (dateChange)="endTimePicker.open()">
                             <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
                             <mat-datepicker #endDatePicker></mat-datepicker>
@@ -71,9 +70,8 @@
                         <ngx-material-timepicker #endTimePicker [hoursOnly]="true"></ngx-material-timepicker>
                     </span>
                 </div>
-                <!-- Add other fields based on your requirements -->
                 <p class="error">{{error}}</p>
-                <button class="form-button" type="button" (click)="showCardReaderPopup()">Continuar</button>
+                <button class="form-button" type="button" (click)="botonGenerarCard()">Continuar</button>
             </form>
         </div>
     </div>

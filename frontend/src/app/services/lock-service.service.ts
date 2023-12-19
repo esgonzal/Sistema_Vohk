@@ -12,6 +12,19 @@ export class LockServiceService {
   URL = 'https://api.vohkapp.com';
   userID: string;
   lockID: number;
+  private sessionStorageKey = 'filteredLocks';
+
+  // Getter for filteredLocks
+  get filteredLocks(): { lockId: number; lockAlias: string }[] {
+    const storedValue = sessionStorage.getItem(this.sessionStorageKey);
+    return storedValue ? JSON.parse(storedValue) : [];
+  }
+
+  // Setter for filteredLocks
+  set filteredLocks(value: { lockId: number; lockAlias: string }[]) {
+    sessionStorage.setItem(this.sessionStorageKey, JSON.stringify(value));
+  }
+
 
   constructor(private http: HttpClient) { }
 
