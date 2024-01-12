@@ -150,7 +150,6 @@ router.post('/change', async(req, res) => {
         res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
-
 router.post('/getListLock', async(req, res) => {
     let { userID, lockID, pageNo, pageSize } = req.body;
     try {

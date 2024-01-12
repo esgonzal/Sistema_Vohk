@@ -1,7 +1,5 @@
 const express = require('express');
 const http = require('http');
-const https = require('https');
-const fs = require('fs');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const app = express();
@@ -38,28 +36,28 @@ app.use('/DB/ekeys', EkeyDB);
 const UserRouterV0 = require('../backend/routes/v0/UserAPI.js');
 app.use('/v0/user', UserRouterV0);
 //API de eKeys de TTLock
-const ekeyRouterV0 = require('../backend/routes/v0/ekeyAPI.js')
+const ekeyRouterV0 = require('../backend/routes/v0/ekeyAPI.js');
 app.use('/v0/ekey', ekeyRouterV0);
 //API de Passcodes de TTLock
-const passcodeRouterV0 = require('../backend/routes/v0/passcodeAPI.js')
+const passcodeRouterV0 = require('../backend/routes/v0/passcodeAPI.js');
 app.use('/v0/passcode', passcodeRouterV0);
 //API de Cards de TTLock
-const cardRouterV0 = require('../backend/routes/v0/cardAPI.js')
+const cardRouterV0 = require('../backend/routes/v0/cardAPI.js');
 app.use('/v0/card', cardRouterV0);
 //API de Fingerprints de TTLock
-const fingerprintRouterV0 = require('../backend/routes/v0/fingerprintAPI.js')
+const fingerprintRouterV0 = require('../backend/routes/v0/fingerprintAPI.js');
 app.use('/v0/fingerprint', fingerprintRouterV0);
 //API de Records de TTLock
-const recordRouterV0 = require('../backend/routes/v0/recordAPI.js')
+const recordRouterV0 = require('../backend/routes/v0/recordAPI.js');
 app.use('/v0/record', recordRouterV0);
 //API de Gateway de TTLock
-const gatewayRouterV0 = require('../backend/routes/v0/gatewayAPI.js')
+const gatewayRouterV0 = require('../backend/routes/v0/gatewayAPI.js');
 app.use('/v0/gateway', gatewayRouterV0);
 //API de Grupo de TTLock
-const groupRouterV0 = require('../backend/routes/v0/groupAPI.js')
+const groupRouterV0 = require('../backend/routes/v0/groupAPI.js');
 app.use('/v0/group', groupRouterV0);
 //API de Lock de TTLock
-const lockRouterV0 = require('../backend/routes/v0/lockAPI.js')
+const lockRouterV0 = require('../backend/routes/v0/lockAPI.js');
 app.use('/v0/lock', lockRouterV0);
 
 // API v1
@@ -72,7 +70,7 @@ app.use('/v1/ekey', EkeyRouter);
 const PasscodeRouter = require('../backend/routes/v1/passcodeAPI');
 app.use('/v1/passcode', PasscodeRouter);
 const RecordRouter = require('../backend/routes/v1/recordAPI.js');
-app.use('v1/lockRecord', RecordRouter);
+app.use('/v1/lockRecord', RecordRouter);
 const GroupRouter = require('../backend/routes/v1/groupAPI');
 app.use('/v1/group', GroupRouter);
 

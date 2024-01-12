@@ -70,6 +70,7 @@ router.post('/ekeyPermanentNewUser', async(req, res) => {
         res.status(200).send({ emailContent });
     }
 });
+/*
 router.post('/ekeyOneTime', async(req, res) => {
     const { to, from, lock_alias } = req.body;
     const templatePath = path.join(__dirname, 'templates', 'eKeyOneTime.html');
@@ -174,6 +175,7 @@ router.post('/ekeySolicitanteNewUser', async(req, res) => {
         res.status(200).send({ emailContent });
     });
 });
+*/
 router.post('/ekeyPeriodic', async(req, res) => {
     const { to, from, lock_alias, start, end } = req.body;
     const templatePath = path.join(__dirname, 'templates', 'eKeyPeriodic.html');
@@ -234,6 +236,7 @@ router.post('/ekeyPeriodicNewUser', async(req, res) => {
     }
 });
 //PASSCODES
+/*
 router.post('/passcodeDays', async(req, res) => {
     const { to, from, lock_alias, code, days, start, end } = req.body;
     const templatePath = path.join(__dirname, 'templates', 'passcodeDays.html');
@@ -359,6 +362,7 @@ router.post('/passcodePermanent', async(req, res) => {
         res.status(200).send({ emailContent });
     });
 });
+*/
 
 function validateEmail(email) {
     return email.includes("@");

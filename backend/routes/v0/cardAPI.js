@@ -172,3 +172,5 @@ router.post('/changePeriod', async(req, res) => {
         res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
+
+module.exports = router;
