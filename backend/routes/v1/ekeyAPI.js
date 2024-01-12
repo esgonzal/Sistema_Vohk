@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 
-router.post('/send', async (req, res) => {
+router.post('/send', async(req, res) => {
     let { clientId, accessToken, lockId, receiverUsername, keyName, startDate, endDate, remarks, remoteEnable, keyRight, createUser, date } = req.body;
     try {
         let ttlockData = {
@@ -24,8 +24,7 @@ router.post('/send', async (req, res) => {
         };
         let ttlockResponse = await axios.post(
             'https://euapi.ttlock.com/v3/key/send',
-            ttlockData,
-            { headers }
+            ttlockData, { headers }
         );
         console.log("ekeySend response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
@@ -34,7 +33,7 @@ router.post('/send', async (req, res) => {
         res.status(500).json({ errmsg: 'Error with API' });
     }
 })
-router.get('/list', async (req, res) => {
+router.get('/list', async(req, res) => {
     let { clientId, accessToken, lockAlias, groupId, pageNo, pageSize, date } = req.query;
     try {
         let ttlockData = {
@@ -50,8 +49,7 @@ router.get('/list', async (req, res) => {
             'Content-Type': 'application/x-www-form-urlencoded',
         };
         let ttlockResponse = await axios.get(
-            'https://euapi.ttlock.com/v3/key/list',
-            { params: ttlockData, headers }
+            'https://euapi.ttlock.com/v3/key/list', { params: ttlockData, headers }
         );
         console.log("ekeyList response:", ttlockResponse.data);
         res.json(ttlockResponse.data);
@@ -60,7 +58,7 @@ router.get('/list', async (req, res) => {
         res.status(500).json({ errmsg: 'Error with API' });
     }
 });
-router.post('/delete', async (req, res) => {
+router.post('/delete', async(req, res) => {
     let { clientId, accessToken, keyId, date } = req.body;
     try {
         let ttlockData = {
@@ -74,8 +72,7 @@ router.post('/delete', async (req, res) => {
         };
         let ttlockResponse = await axios.post(
             'https://euapi.ttlock.com/v3/key/delete',
-            ttlockData,
-            { headers }
+            ttlockData, { headers }
         );
         console.log("ekeyDelete response:", ttlockResponse.data);
         res.json(ttlockResponse.data);
@@ -84,7 +81,7 @@ router.post('/delete', async (req, res) => {
         res.status(500).json({ errmsg: 'Error with API' });
     }
 });
-router.post('/freeze', async (req, res) => {
+router.post('/freeze', async(req, res) => {
     let { clientId, accessToken, keyId, date } = req.body;
     try {
         let ttlockData = {
@@ -98,8 +95,7 @@ router.post('/freeze', async (req, res) => {
         };
         let ttlockResponse = await axios.post(
             'https://euapi.ttlock.com/v3/key/freeze',
-            ttlockData,
-            { headers }
+            ttlockData, { headers }
         );
         console.log("ekeyFreeze response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
@@ -108,7 +104,7 @@ router.post('/freeze', async (req, res) => {
         res.status(500).json({ errmsg: 'Error with API' });
     }
 });
-router.post('/unfreeze', async (req, res) => {
+router.post('/unfreeze', async(req, res) => {
     let { clientId, accessToken, keyId, date } = req.body;
     try {
         let ttlockData = {
@@ -122,8 +118,7 @@ router.post('/unfreeze', async (req, res) => {
         };
         let ttlockResponse = await axios.post(
             'https://euapi.ttlock.com/v3/key/unfreeze',
-            ttlockData,
-            { headers }
+            ttlockData, { headers }
         );
         console.log("ekeyUnfreeze response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
@@ -132,7 +127,7 @@ router.post('/unfreeze', async (req, res) => {
         res.status(500).json({ errmsg: 'Error with API' });
     }
 });
-router.post('/modify', async (req, res) => {
+router.post('/modify', async(req, res) => {
     let { clientId, accessToken, keyId, keyName, remoteEnable, date } = req.body;
     try {
         let ttlockData = {
@@ -148,8 +143,7 @@ router.post('/modify', async (req, res) => {
         };
         let ttlockResponse = await axios.post(
             'https://euapi.ttlock.com/v3/key/update',
-            ttlockData,
-            { headers }
+            ttlockData, { headers }
         );
         console.log("ekeyModify response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
@@ -158,7 +152,7 @@ router.post('/modify', async (req, res) => {
         res.status(500).json({ errmsg: 'Error with API' });
     }
 });
-router.post('/changePeriod', async (req, res) => {
+router.post('/changePeriod', async(req, res) => {
     let { clientId, accessToken, keyId, startDate, endDate, date } = req.body;
     try {
         let ttlockData = {
@@ -174,8 +168,7 @@ router.post('/changePeriod', async (req, res) => {
         };
         let ttlockResponse = await axios.post(
             'https://euapi.ttlock.com/v3/key/changePeriod',
-            ttlockData,
-            { headers }
+            ttlockData, { headers }
         );
         console.log("ekeyChangePeriod response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
@@ -184,7 +177,7 @@ router.post('/changePeriod', async (req, res) => {
         res.status(500).json({ errmsg: 'Error with API' });
     }
 });
-router.post('/authorize', async (req, res) => {
+router.post('/authorize', async(req, res) => {
     let { clientId, accessToken, lockId, keyId, date } = req.body;
     try {
         let ttlockData = {
@@ -199,8 +192,7 @@ router.post('/authorize', async (req, res) => {
         };
         let ttlockResponse = await axios.post(
             'https://euapi.ttlock.com/v3/key/authorize',
-            ttlockData,
-            { headers }
+            ttlockData, { headers }
         );
         console.log("ekeyAuthorize response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
@@ -209,7 +201,7 @@ router.post('/authorize', async (req, res) => {
         res.status(500).json({ errmsg: 'Error with API' });
     }
 });
-router.post('/unauthorize', async (req, res) => {
+router.post('/unauthorize', async(req, res) => {
     let { clientId, accessToken, lockId, keyId, date } = req.body;
     try {
         let ttlockData = {
@@ -224,8 +216,7 @@ router.post('/unauthorize', async (req, res) => {
         };
         let ttlockResponse = await axios.post(
             'https://euapi.ttlock.com/v3/key/unauthorize',
-            ttlockData,
-            { headers }
+            ttlockData, { headers }
         );
         console.log("ekeyUnauthorize response:", ttlockResponse.data)
         res.json(ttlockResponse.data);

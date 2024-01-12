@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 
-router.post('/get', async (req, res) => {
+router.post('/get', async(req, res) => {
     let { clientId, accessToken, lockId, keyboardPwdType, keyboardPwdName, startDate, endDate, date } = req.body;
     try {
         let ttlockData = {
@@ -20,8 +20,7 @@ router.post('/get', async (req, res) => {
         };
         let ttlockResponse = await axios.post(
             'https://euapi.ttlock.com/v3/keyboardPwd/get',
-            ttlockData,
-            { headers }
+            ttlockData, { headers }
         );
         console.log("passcodeGet response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
@@ -30,7 +29,7 @@ router.post('/get', async (req, res) => {
         res.status(500).json({ errmsg: 'Error with API' });
     }
 });
-router.post('/add', async (req, res) => {
+router.post('/add', async(req, res) => {
     let { clientId, accessToken, lockId, keyboardPwd, keyboardPwdType, keyboardPwdName, startDate, endDate, addType, date } = req.body;
     try {
         let ttlockData = {
@@ -50,8 +49,7 @@ router.post('/add', async (req, res) => {
         };
         let ttlockResponse = await axios.post(
             'https://euapi.ttlock.com/v3/keyboardPwd/add',
-            ttlockData,
-            { headers }
+            ttlockData, { headers }
         );
         console.log("passcodeAdd response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
@@ -60,7 +58,7 @@ router.post('/add', async (req, res) => {
         res.status(500).json({ errmsg: 'Error with API' });
     }
 });
-router.post('/delete', async (req, res) => {
+router.post('/delete', async(req, res) => {
     let { clientId, accessToken, lockId, keyboardPwdId, deleteType, date } = req.body;
     try {
         let ttlockData = {
@@ -76,8 +74,7 @@ router.post('/delete', async (req, res) => {
         };
         let ttlockResponse = await axios.post(
             'https://euapi.ttlock.com/v3/keyboardPwd/delete',
-            ttlockData,
-            { headers }
+            ttlockData, { headers }
         );
         console.log("passcodeDelete response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
@@ -86,7 +83,7 @@ router.post('/delete', async (req, res) => {
         res.status(500).json({ errmsg: 'Error with API' });
     }
 });
-router.post('/change', async (req, res) => {
+router.post('/change', async(req, res) => {
     let { clientId, accessToken, lockId, keyboardPwdId, keyboardPwdName, newKeyboardPwd, startDate, endDate, changeType, date } = req.body;
     try {
         let ttlockData = {
@@ -106,8 +103,7 @@ router.post('/change', async (req, res) => {
         };
         let ttlockResponse = await axios.post(
             'https://euapi.ttlock.com/v3/keyboardPwd/change',
-            ttlockData,
-            { headers }
+            ttlockData, { headers }
         );
         console.log("passcodeEdit response:", ttlockResponse.data)
         res.json(ttlockResponse.data);

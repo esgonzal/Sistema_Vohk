@@ -1,23 +1,32 @@
 {
-  "name": "backend",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "axios": "^1.5.0",
-    "body-parser": "^1.20.2",
-    "cookie-parser": "^1.4.6",
-    "cors": "^2.8.5",
-    "express": "^4.18.2",
-    "google-libphonenumber": "^3.2.33",
-    "md5": "^2.3.0",
-    "pg": "^8.11.3",
-    "pg-promise": "^11.5.4"
-  }
+    "name": "backend",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "axios": "^1.5.0",
+        "body-parser": "^1.20.2",
+        "cookie-parser": "^1.4.6",
+        "cors": "^2.8.5",
+        "express": "^4.18.2",
+        "ffi-napi": "^4.0.3",
+        "google-libphonenumber": "^3.2.33",
+        "md5": "^2.3.0",
+        "moment": "^2.29.4",
+        "moment-timezone": "^0.5.43",
+        "nodemailer": "^6.9.7",
+        "pg": "^8.11.3",
+        "pg-promise": "^11.5.4",
+        "rc522": "^0.2.0",
+        "ref-napi": "^3.0.3"
+    },
+    "devDependencies": {
+        "pm2": "^5.3.0"
+    }
 }

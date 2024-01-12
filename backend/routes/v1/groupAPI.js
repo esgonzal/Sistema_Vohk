@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 
-router.post('/add', async (req, res) => {
+router.post('/add', async(req, res) => {
     let { clientId, accessToken, name, date } = req.body;
     try {
         let ttlockData = {
@@ -16,8 +16,7 @@ router.post('/add', async (req, res) => {
         };
         let ttlockResponse = await axios.post(
             'https://euapi.ttlock.com/v3/group/add',
-            ttlockData,
-            { headers }
+            ttlockData, { headers }
         );
         console.log("groupAdd response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
@@ -26,7 +25,7 @@ router.post('/add', async (req, res) => {
         res.status(500).json({ errmsg: 'Error with API' });
     }
 });
-router.get('/list', async (req, res) => {
+router.get('/list', async(req, res) => {
     let { clientId, accessToken, date } = req.query;
     try {
         let ttlockData = {
@@ -38,8 +37,7 @@ router.get('/list', async (req, res) => {
             'Content-Type': 'application/x-www-form-urlencoded'
         };
         let ttlockResponse = await axios.get(
-            'https://euapi.ttlock.com/v3/group/list',
-            { params: ttlockData, headers }
+            'https://euapi.ttlock.com/v3/group/list', { params: ttlockData, headers }
         );
         console.log("groupList response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
@@ -48,7 +46,7 @@ router.get('/list', async (req, res) => {
         res.status(500).json({ errmsg: 'Error with API' });
     }
 });
-router.post('/setLock', async (req, res) => {
+router.post('/setLock', async(req, res) => {
     let { clientId, accessToken, lockId, groupId, date } = req.body;
     try {
         let ttlockData = {
@@ -63,8 +61,7 @@ router.post('/setLock', async (req, res) => {
         };
         let ttlockResponse = await axios.post(
             'https://euapi.ttlock.com/v3/lock/setGroup',
-            ttlockData,
-            { headers }
+            ttlockData, { headers }
         );
         console.log("groupSetGroup response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
@@ -73,7 +70,7 @@ router.post('/setLock', async (req, res) => {
         res.status(500).json({ errmsg: 'Error with API' });
     }
 });
-router.post('/delete', async (req, res) => {
+router.post('/delete', async(req, res) => {
     let { clientId, accessToken, groupId, date } = req.body;
     try {
         let ttlockData = {
@@ -87,8 +84,7 @@ router.post('/delete', async (req, res) => {
         };
         let ttlockResponse = await axios.post(
             'https://euapi.ttlock.com/v3/group/delete',
-            ttlockData,
-            { headers }
+            ttlockData, { headers }
         );
         console.log("groupDelete response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
@@ -97,7 +93,7 @@ router.post('/delete', async (req, res) => {
         res.status(500).json({ errmsg: 'Error with API' });
     }
 });
-router.post('/rename', async (req, res) => {
+router.post('/rename', async(req, res) => {
     let { clientId, accessToken, groupId, name, date } = req.body;
     try {
         let ttlockData = {
@@ -112,8 +108,7 @@ router.post('/rename', async (req, res) => {
         };
         let ttlockResponse = await axios.post(
             'https://euapi.ttlock.com/v3/group/update',
-            ttlockData,
-            { headers }
+            ttlockData, { headers }
         );
         console.log("groupUpdate response:", ttlockResponse.data)
         res.json(ttlockResponse.data);

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 
-router.post('/register', async (req, res) => {
+router.post('/register', async(req, res) => {
     let { clientId, clientSecret, username, password, date } = req.body;
     try {
         let ttlockData = {
@@ -17,8 +17,7 @@ router.post('/register', async (req, res) => {
         };
         let ttlockResponse = await axios.post(
             'https://euapi.ttlock.com/v3/user/register',
-            ttlockData,
-            { headers }
+            ttlockData, { headers }
         );
         console.log("userRegister response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
@@ -27,7 +26,7 @@ router.post('/register', async (req, res) => {
         res.status(500).json({ errmsg: 'Error with API' });
     }
 });
-router.post('/resetPassword', async (req, res) => {
+router.post('/resetPassword', async(req, res) => {
     let { clientId, clientSecret, username, password, date } = req.body;
     try {
         let ttlockData = {
@@ -42,8 +41,7 @@ router.post('/resetPassword', async (req, res) => {
         };
         let ttlockResponse = await axios.post(
             'https://euapi.ttlock.com/v3/user/resetPassword',
-            ttlockData,
-            { headers }
+            ttlockData, { headers }
         );
         console.log("userResetPassword response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
@@ -52,7 +50,7 @@ router.post('/resetPassword', async (req, res) => {
         res.status(500).json({ errmsg: 'Error with API' });
     }
 });
-router.get('/list', async (req, res) => {
+router.get('/list', async(req, res) => {
     let { clientId, clientSecret, startDate, endDate, pageNo, pageSize, date } = req.query;
     try {
         let ttlockData = {
@@ -68,8 +66,7 @@ router.get('/list', async (req, res) => {
             'Content-Type': 'application/x-www-form-urlencoded',
         };
         let ttlockResponse = await axios.get(
-            'https://euapi.ttlock.com/v3/user/list',
-            { params: ttlockData, headers }
+            'https://euapi.ttlock.com/v3/user/list', { params: ttlockData, headers }
         );
         console.log("userList response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
@@ -78,7 +75,7 @@ router.get('/list', async (req, res) => {
         res.status(500).json({ errmsg: 'Error with API' });
     }
 });
-router.post('/delete', async (req, res) => {
+router.post('/delete', async(req, res) => {
     let { clientId, clientSecret, username, date } = req.body;
     try {
         let ttlockData = {
@@ -92,8 +89,7 @@ router.post('/delete', async (req, res) => {
         };
         let ttlockResponse = await axios.post(
             'https://euapi.ttlock.com/v3/user/delete',
-            ttlockData,
-            { headers }
+            ttlockData, { headers }
         );
         console.log("userDelete response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
@@ -102,7 +98,7 @@ router.post('/delete', async (req, res) => {
         res.status(500).json({ errmsg: 'Error with API' });
     }
 });
-router.post('/token', async (req, res) => {
+router.post('/token', async(req, res) => {
     let { clientId, clientSecret, username, password } = req.body;
     try {
         let ttlockData = {
@@ -116,8 +112,7 @@ router.post('/token', async (req, res) => {
         };
         let ttlockResponse = await axios.post(
             'https://euapi.ttlock.com/oauth2/token',
-            ttlockData,
-            { headers }
+            ttlockData, { headers }
         );
         console.log("userToken response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
@@ -126,7 +121,7 @@ router.post('/token', async (req, res) => {
         res.status(500).json({ errmsg: 'Error with API' });
     }
 });
-router.post('/refreshToken', async (req, res) => {
+router.post('/refreshToken', async(req, res) => {
     let { clientId, clientSecret, grant_type, refresh_token } = req.body;
     try {
         let ttlockData = {
@@ -140,8 +135,7 @@ router.post('/refreshToken', async (req, res) => {
         };
         let ttlockResponse = await axios.post(
             'https://euapi.ttlock.com/oauth2/token',
-            ttlockData,
-            { headers }
+            ttlockData, { headers }
         );
         console.log("userRefreshToken response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
