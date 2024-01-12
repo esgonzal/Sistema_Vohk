@@ -4,6 +4,7 @@ import { LockData, LockDetails } from '../Interfaces/Lock';
 import { GatewayAccount, GatewayLock } from '../Interfaces/Gateway';
 import { Group } from '../Interfaces/Group';
 import { RecipientList } from '../Interfaces/RecipientList';
+import { SafeHtml } from '@angular/platform-browser';
 
 @Injectable({
   providedIn: 'root'
@@ -38,6 +39,10 @@ export class PopUpService {
   wrongAccountType = false;              //Para cambiar la contraseña, se necesita que la cuenta sea creada dentro del sistema
   transferLockWarning = false;           //Antes de transferir la cerradura a otra cuenta, se muestra un popup para confirmar
   changeNickname = false;
+  cardReader = false;
+  emailSuccess = false;
+  emailMessage: SafeHtml = '';
+  lock_alias: string;
   gatewaysOfLock: GatewayLock[] = []
   gatewaysOfAccount: GatewayAccount[] = []
   detalles: LockDetails;

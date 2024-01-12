@@ -24,7 +24,6 @@ export class PassageModeService {
   setPassageMode(userID: string, lockID: number, passageMode:number, startDate: string, endDate:string, isAllDay:number, weekdays: number[]): Observable<operationResponse> {
     let weekDays = JSON.stringify(weekdays)
     let body = { userID, lockID, passageMode, startDate, endDate, isAllDay, weekDays};
-    console.log(body)
     let url = this.URL.concat('/v0/lock/setPassageMode');
     return this.http.post<operationResponse>(url, body);
   }

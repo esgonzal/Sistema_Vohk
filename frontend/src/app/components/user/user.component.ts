@@ -11,6 +11,7 @@ import { LockListResponse } from '../../Interfaces/API_responses'
 import moment from 'moment';
 import { lastValueFrom } from 'rxjs/internal/lastValueFrom';
 import { UserServiceService } from '../../services/user-service.service';
+import { LockServiceService } from 'src/app/services/lock-service.service';
 
 @Component({
   selector: 'app-user',
@@ -20,12 +21,16 @@ import { UserServiceService } from '../../services/user-service.service';
 })
 export class UserComponent implements OnInit {
 
-  constructor(private router: Router, public groupService: GroupService, private ekeyService: EkeyServiceService, public popupService: PopUpService, private userService: UserServiceService) { }
+  constructor(private router: Router, 
+              public groupService: GroupService, 
+              private ekeyService: EkeyServiceService, 
+              public popupService: PopUpService, 
+              private userService: UserServiceService,
+              private lockService: LockServiceService) { }
 
   username = sessionStorage.getItem('user') ?? '';
   userID: string;
   isLoading: boolean = false;
-  ekeyList: LockListResponse;
   allLocks: LockData[] = [];
   locks: LockData[] = [];
   locksWithoutGroup: LockData[] = [];
@@ -40,17 +45,20 @@ export class UserComponent implements OnInit {
   private selectedGroupSubscription: Subscription;
 
   async ngOnInit() {
-    if (sessionStorage.getItem('Account') === 'Vohk') {
-      this.userID = this.userService.encodeNombre(this.username);
-    } else {
-      this.userID = this.username
-    }
+    this.userID = this.username
     await this.getAllLocks();
     this.groupService.selectedGroupSubject.subscribe(async selectedGroup => {
       if (selectedGroup) {
         await this.fetchLocks(selectedGroup.groupId);
       }
     });
+    const filteredLocks = this.allLocks
+      .filter((lock) => lock.userType === '110301' || (lock.userType === '110302' && lock.keyRight === 1))
+      .map(({ lockId, lockAlias }) => ({ lockId, lockAlias }));
+    // Set the filtered locks in the LockService
+    this.lockService.filteredLocks = filteredLocks;
+    console.log('Filtered locks:', filteredLocks);
+    console.log('All locks:', this.allLocks);
   }
   ngOnDestroy() {
     if (this.selectedGroupSubscription) {
@@ -66,7 +74,6 @@ export class UserComponent implements OnInit {
     } finally {
       this.isLoading = false; // Set isLoading to false when data fetching is complete
     }
-    //console.log("Locks actuales", this.locks)
   }
   async fetchLocksPage(pageNo: number, groupId?: number) {
     this.locks = [];
@@ -87,6 +94,9 @@ export class UserComponent implements OnInit {
     } finally {
       this.isLoading = false; // Set isLoading to false when data fetching is complete
     }
+    console.log("Locks actuales", this.locks)
+    console.log("all locks:", this.allLocks)
+    console.log("locks sin grupo:", this.locksWithoutGroup)
   }
   async getAllLocks() {
     this.isLoading = true;
@@ -121,6 +131,7 @@ export class UserComponent implements OnInit {
     } finally {
       this.isLoading = false;
     }
+    
   }
   onLockButtonClick(lock: LockData) {
     sessionStorage.setItem('lockID', lock.lockId.toString())

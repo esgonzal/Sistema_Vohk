@@ -44,6 +44,7 @@ export interface sendEkeyResponse {
     errmsg: string;
     description: string;
     keyId: number;
+    emailContent: string;
 }
 export interface createPasscodeResponse {
     errcode: number;
@@ -51,6 +52,12 @@ export interface createPasscodeResponse {
     description: string;
     keyboardPwdId: number;
     keyboardPwd: string;
+}
+export interface addCardResponse {
+    errcode: number;
+    errmsg: string;
+    description: string;
+    cardId: number;
 }
 export interface operationResponse {
     errcode: number;

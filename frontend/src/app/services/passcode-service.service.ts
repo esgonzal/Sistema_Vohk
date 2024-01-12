@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { PasscodeResponse, createPasscodeResponse, operationResponse } from '../Interfaces/API_responses';
-import emailjs from 'emailjs-com';
 
 @Injectable({
   providedIn: 'root'
@@ -46,62 +45,27 @@ export class PasscodeServiceService {
     let url = this.URL.concat('/v0/passcode/change');
     return this.http.post<operationResponse>(url, body);
   }
-  sendEmail_PermanentPasscode(recipientEmail: string, code: string) {//Template para passcode permanente
-    //esteban.vohk+4@gmail.com
-    emailjs.send('contact_service', 'PasscodePermanent', {
-      to_email: recipientEmail,
-      from_name: this.username,
-      subject: 'Un código ha sido compartido contigo',
-      to_name: recipientEmail,
-      code: code,
-      lock_alias: this.lockAlias
-    }, 'VVC1yrpkN9n-1Dcc3')
-      .then((response) => { console.log('Email sent successfully:', response); })
-      .catch((error) => { console.error('Error sending email:', error); });
+  sendEmail_passcodePermanent(to: string, from: string, lock_alias: string, code: string) {//Template para passcode permanente
+    let body = { to, from, lock_alias, code };
+    let url = this.URL.concat('/mail/passcodePermanent');
+    return this.http.post(url, body)
   }
-  sendEmail_OneUsePasscode(recipientEmail: string, code: string) {//Template para passcode de un uso
-    //esteban.vohk+4@gmail.com
-    emailjs.send('contact_service', 'PasscodeOneUse', {
-      to_email: recipientEmail,
-      from_name: this.username,
-      subject: 'Un código ha sido compartido contigo',
-      to_name: recipientEmail,
-      code: code,
-      lock_alias: this.lockAlias
-    }, 'VVC1yrpkN9n-1Dcc3')
-      .then((response) => { console.log('Email sent successfully:', response); })
-      .catch((error) => { console.error('Error sending email:', error); });
+  sendEmail_passcodeOneTime(to: string, from: string, alias: string, code: string) {//Template para passcode de un uso
+    let body = { to: to, from: from, lock_alias: alias, code: code };
+    let url = this.URL.concat('/mail/passcodeOneTime');
+    return this.http.post(url, body)
   }
-  sendEmail_PeriodPasscode(recipientEmail: string, code: string, start: string, end: string) {//Template para passcode periodica
-    //esteban.vohk+5@gmail.com
-    emailjs.send('contact_service', 'PasscodePeriodica', {
-      to_email: recipientEmail,
-      from_name: this.username,
-      subject: 'Un código ha sido compartido contigo',
-      to_name: recipientEmail,
-      code: code,
-      lock_alias: this.lockAlias,
-      start: start,
-      end: end
-    }, 'gmWCdpYwocA8wp4sr')
-      .then((response) => { console.log('Email sent successfully:', response); })
-      .catch((error) => { console.error('Error sending email:', error); });
+  sendEmail_passcodePeriodic(to: string, from: string, alias: string, code: string, start: string, end: string) {//Template para passcode periodica
+    let body = { to: to, from: from, lock_alias: alias, code: code, start: start, end: end };
+    let url = this.URL.concat('/mail/passcodePeriodic');
+    return this.http.post(url, body)
   }
-  sendEmail_ErasePasscode(recipientEmail: string, code: string) {//Template para passcode de borrar
-    //esteban.vohk+5@gmail.com
-    emailjs.send('contact_service', 'PasscodeBorrar', {
-      to_email: recipientEmail,
-      from_name: this.username,
-      subject: 'Un código ha sido compartido contigo',
-      to_name: recipientEmail,
-      code: code,
-      lock_alias: this.lockAlias
-    }, 'gmWCdpYwocA8wp4sr')
-      .then((response) => { console.log('Email sent successfully:', response); })
-      .catch((error) => { console.error('Error sending email:', error); });
+  sendEmail_passcodeDelete(to: string, from: string, alias: string, code: string) {//Template para passcode de borrar
+    let body = { to: to, from: from, lock_alias: alias, code: code };
+    let url = this.URL.concat('/mail/passcodeDelete');
+    return this.http.post(url, body)
   }
-  sendEmail_RecurringPasscode(recipientEmail: string, code: string, start: string, end: string, tipo: number) {//Template para passcode recurrente
-    //esteban.vohk+6@gmail.com
+  sendEmail_passcodeDays(to: string, from: string, alias: string, code: string, start: string, end: string, tipo: number) {//Template para passcode recurrente
     let days = '';
     switch (tipo) {
       case 5:
@@ -138,18 +102,8 @@ export class PasscodeServiceService {
         days = '';
         break;
     }
-    emailjs.send('contact_service', 'PasscodeDias', {
-      to_email: recipientEmail,
-      from_name: this.username,
-      subject: 'Un código ha sido compartido contigo',
-      to_name: recipientEmail,
-      code: code,
-      lock_alias: this.lockAlias,
-      start: start,
-      end: end,
-      days: days
-    }, 'bdNkCTZsViZUFZCL9')
-      .then((response) => { console.log('Email sent successfully:', response); })
-      .catch((error) => { console.error('Error sending email:', error); });
+    let body = { to: to, from: from, lock_alias: alias, code: code, days: days, start: start, end: end };
+    let url = this.URL.concat('/mail/passcodeDays');
+    return this.http.post(url, body)
   }
 }

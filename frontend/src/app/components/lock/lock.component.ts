@@ -50,7 +50,6 @@ export class LockComponent implements OnInit {
   Bateria = sessionStorage.getItem('lockBatery') ?? '';
   gateway = sessionStorage.getItem('lockGateway') ?? '';
   featureValue = sessionStorage.getItem('lockFeature') ?? '';
-  isUserValue: boolean;
   pageLoaded = false;
   isLoading: boolean = false;
   lockDetails: LockDetails;
@@ -956,52 +955,6 @@ export class LockComponent implements OnInit {
         return 'Unknown type';
     }
   }
-  async Unlock() {
-    if (this.gateway === '1') {
-      this.isLoading = true;
-      try {
-        let response = await lastValueFrom(this.gatewayService.unlock(this.userID, this.lockId)) as operationResponse;
-        if (response.errcode === 0) {
-          console.log("Cerradura desbloqueada")
-        } else if (response.errcode === 10003) {
-          sessionStorage.clear();
-          this.router.navigate(['/login']);
-        } else {
-          console.log(response)
-        }
-      } catch (error) {
-        console.error("Error unlocking:", error);
-      } finally {
-        this.isLoading = false;
-      }
-    } else {
-      this.popupService.needGateway = true;
-      console.log("Necesita estar conectado a un gateway para usar esta función")
-    }
-  }
-  async Lock() {
-    if (this.gateway === '1') {
-      this.isLoading = true;
-      try {
-        let response = await lastValueFrom(this.gatewayService.lock(this.userID, this.lockId)) as operationResponse;
-        if (response.errcode === 0) {
-          console.log("Cerradura bloqueada")
-        } else if (response.errcode === 10003) {
-          sessionStorage.clear();
-          this.router.navigate(['/login']);
-        } else {
-          console.log(response)
-        }
-      } catch (error) {
-        console.error("Error locking:", error);
-      } finally {
-        this.isLoading = false;
-      }
-    } else {
-      this.popupService.needGateway = true;
-      console.log("Necesita estar conectado a un gateway para usar esta función")
-    }
-  }
   //SETTINGS
   Esencial() {
     this.popupService.detalles = this.lockDetails;
@@ -1082,20 +1035,60 @@ export class LockComponent implements OnInit {
       console.log("Necesita estar conectado a un gateway para usar esta función")
     }
   }
-  //FUNCIONES EKEY
-  congelar(ekeyID: number, user: string) {
-    this.popupService.userID = this.userID;
-    this.popupService.lockID = this.lockId;
-    this.popupService.elementID = ekeyID;
-    this.popupService.elementType = user;
-    this.popupService.congelar = true;
+  async Unlock() {
+    if (this.gateway === '1') {
+      this.isLoading = true;
+      try {
+        let response = await lastValueFrom(this.gatewayService.unlock(this.userID, this.lockId)) as operationResponse;
+        if (response.errcode === 0) {
+          console.log("Cerradura desbloqueada")
+        } else if (response.errcode === 10003) {
+          sessionStorage.clear();
+          this.router.navigate(['/login']);
+        } else {
+          console.log(response)
+        }
+      } catch (error) {
+        console.error("Error unlocking:", error);
+      } finally {
+        this.isLoading = false;
+      }
+    } else {
+      this.popupService.needGateway = true;
+      console.log("Necesita estar conectado a un gateway para usar esta función")
+    }
   }
-  descongelar(ekeyID: number, user: string) {
-    this.popupService.userID = this.userID;
-    this.popupService.lockID = this.lockId;
-    this.popupService.elementID = ekeyID;
-    this.popupService.elementType = user;
-    this.popupService.descongelar = true;
+  async Lock() {
+    if (this.gateway === '1') {
+      this.isLoading = true;
+      try {
+        let response = await lastValueFrom(this.gatewayService.lock(this.userID, this.lockId)) as operationResponse;
+        if (response.errcode === 0) {
+          console.log("Cerradura bloqueada")
+        } else if (response.errcode === 10003) {
+          sessionStorage.clear();
+          this.router.navigate(['/login']);
+        } else {
+          console.log(response)
+        }
+      } catch (error) {
+        console.error("Error locking:", error);
+      } finally {
+        this.isLoading = false;
+      }
+    } else {
+      this.popupService.needGateway = true;
+      console.log("Necesita estar conectado a un gateway para usar esta función")
+    }
+  }
+  //FUNCIONES EKEY
+  crearEkey() {
+    this.ekeyService.userID = this.userID;
+    this.ekeyService.username = this.username;
+    this.ekeyService.lockID = this.lockId;
+    this.ekeyService.endDateUser = this.endDateDeUser;
+    this.ekeyService.lockAlias = this.Alias;
+    this.router.navigate(["users", this.username, "lock", this.lockId, "ekey"]);
   }
   borrarEkey(ekeyID: number, ekeyUsername: string) {
     this.popupService.userID = this.userID;
@@ -1119,12 +1112,19 @@ export class LockComponent implements OnInit {
     this.popupService.elementID = ekeyID;
     this.popupService.cambiarPeriodo = true;
   }
-  crearEkey() {
-    this.ekeyService.userID = this.userID;
-    this.ekeyService.username = this.username;
-    this.ekeyService.lockID = this.lockId;
-    this.ekeyService.endDateUser = this.endDateDeUser;
-    this.router.navigate(["users", this.username, "lock", this.lockId, "ekey"]);
+  congelar(ekeyID: number, user: string) {
+    this.popupService.userID = this.userID;
+    this.popupService.lockID = this.lockId;
+    this.popupService.elementID = ekeyID;
+    this.popupService.elementType = user;
+    this.popupService.congelar = true;
+  }
+  descongelar(ekeyID: number, user: string) {
+    this.popupService.userID = this.userID;
+    this.popupService.lockID = this.lockId;
+    this.popupService.elementID = ekeyID;
+    this.popupService.elementType = user;
+    this.popupService.descongelar = true;
   }
   Autorizar(ekeyID: number, user: string) {
     this.popupService.userID = this.userID;
@@ -1140,16 +1140,6 @@ export class LockComponent implements OnInit {
     this.popupService.elementType = user;
     this.popupService.desautorizar = true;
   }
-  AutorizarFalso(ekeyUsername: string) {
-    this.popupService.elementType = ekeyUsername;;
-    this.popupService.lockID = this.lockId;
-    this.popupService.autorizarFalso = true;
-  }
-  DesautorizarFalso(ekeyUsername: string) {
-    this.popupService.elementType = ekeyUsername;
-    this.popupService.lockID = this.lockId;
-    this.popupService.desautorizarFalso = true;
-  }
   //FUNCIONES PASSCODE
   crearPasscode() {
     this.passcodeService.lockAlias = this.Alias;
@@ -1160,6 +1150,18 @@ export class LockComponent implements OnInit {
     this.passcodeService.gateway = Number(this.gateway)
     this.passcodeService.featureValue = this.featureValue;
     this.router.navigate(["users", this.username, "lock", this.lockId, "passcode"]);
+  }
+  borrarPasscode(passcodeID: number) {
+    if (this.gateway === '1') {
+      this.popupService.userID = this.userID;
+      this.popupService.lockID = this.lockId;
+      this.popupService.elementType = 'passcode';
+      this.popupService.elementID = passcodeID;
+      this.popupService.delete = true;
+    } else {
+      this.popupService.needGateway = true;
+      console.log("Necesita estar conectado a un gateway para usar esta función")
+    }
   }
   cambiarPasscode(passcode: Passcode) {
     if (this.gateway === '1') {
@@ -1174,32 +1176,24 @@ export class LockComponent implements OnInit {
       console.log("Necesita estar conectado a un gateway para usar esta función")
     }
   }
-  borrarPasscode(passcodeID: number) {
+  compartirPasscode(passcode: Passcode) {
+    this.popupService.userID = this.userID;
+    this.popupService.lock_alias = this.Alias;
+    this.popupService.passcode = passcode;
+    this.popupService.sharePasscode = true;
+  }
+  //FUNCIONES CARD
+  crearCard() {
     if (this.gateway === '1') {
-      this.popupService.userID = this.userID;
-      this.popupService.lockID = this.lockId;
-      this.popupService.elementType = 'passcode';
-      this.popupService.elementID = passcodeID;
-      this.popupService.delete = true;
+      this.cardService.userID = this.userID;
+      this.cardService.lockID = this.lockId;
+      this.cardService.endDateUser = this.endDateDeUser;
+      this.router.navigate(["users", this.username, "lock", this.lockId, "card"]);
     } else {
       this.popupService.needGateway = true;
       console.log("Necesita estar conectado a un gateway para usar esta función")
     }
   }
-  crearPasscodeSimple() {
-    this.passcodeService.userID = this.userID;
-    this.passcodeService.username = this.username;
-    this.passcodeService.lockID = this.lockId;
-    this.passcodeService.endDateUser = this.endDateDeUser;
-    this.passcodeService.featureValue = this.featureValue;
-    this.passcodeService.passcodesimple = true;
-    this.router.navigate(["users", this.username, "lock", this.lockId, "passcode"]);
-  }
-  compartirPasscode(passcode: Passcode) {
-    this.popupService.passcode = passcode;
-    this.popupService.sharePasscode = true;
-  }
-  //FUNCIONES CARD
   borrarCard(cardID: number) {
     if (this.gateway === '1') {
       this.popupService.userID = this.userID;

@@ -28,7 +28,7 @@
         Por favor confirme sus acciones
     </div>
     <div id="content">
-        ¿Está seguro que desea autorizar a {{userService.decodeNombre(popupService.elementType)}}?
+        ¿Está seguro que desea autorizar a {{popupService.elementType}}?
     </div>
     <div id="actions">
         <button class="cancel" (click)="popupService.autorizar = false">No</button>
@@ -567,5 +567,31 @@
         </div>
     </div>
     <div id="actions">
+    </div>
+</div>
+<div id="container" *ngIf="popupService.cardReader">
+    <div id="header">
+        Acerque la tarjeta al lector
+    </div>
+    <div id="content"> 
+        <img src="../../../assets/images/imagenCard.png" >
+    </div>
+    <div id="actions">
+        <button class="cancel" (click)="popupService.cardReader=false">Volver</button>    
+    </div>
+</div>
+<div id="container" *ngIf="popupService.emailSuccess">
+    <div id="content">
+        La eKey fue enviada correctamente
+    </div>
+    <div id="content" style="background-color: rgb(245, 245, 245);">
+        <div id="content" [innerHTML]="popupService.emailMessage"></div>
+    </div>
+    <div id="actions">
+        <button (click)="copyToClipboard()">Copiar mensaje</button>
+        <button (click)="closeEmailPopup()">Ok</button>
+    </div>
+    <div *ngIf="isCopied" class="confirmation-message">
+        El mensaje fue copiado.
     </div>
 </div>

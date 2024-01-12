@@ -9,6 +9,12 @@ import { CardResponse, operationResponse } from '../Interfaces/API_responses';
 export class CardServiceService {
 
   URL = 'https://api.vohkapp.com';
+  userID: string;
+  lockAlias: string;
+  lockID: number;
+  endDateUser: string;
+  gateway: number;
+  cardNumber: string;
 
   constructor(private http: HttpClient) { }
 
@@ -16,6 +22,11 @@ export class CardServiceService {
     let body = { userID, lockID, pageNo, pageSize };
     let url = this.URL.concat('/v0/card/getListLock');
     return this.http.post<CardResponse>(url, body);
+  }
+  addCard(userID: string, lockID: number, cardNumber: string, cardName: string, startDate: string, endDate: string): Observable<operationResponse> {
+    let body = { userID, lockID, cardNumber, cardName, startDate, endDate };
+    let url = this.URL.concat('/v0/card/add');
+    return this.http.post<operationResponse>(url, body);
   }
   changeName(userID: string, lockID: number, cardID: number, newName: string): Observable<operationResponse> {
     let body = { userID, lockID, cardID, newName };

@@ -1,4 +1,5 @@
 <div class="pagina_completa">
+    <app-loader [loader]="isLoading"></app-loader>
     <nav aria-label="breadcrumb-space">
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
@@ -19,28 +20,28 @@
             'lock',
             ekeyService.lockID,
             'ekey'
-          ]">Generar Usuario</a>
+          ]">Generar eKey</a>
             </li>
             <li class="breadcrumb-item active" aria-current="page">
-                Generar múltiples Usuarios
+                Generar múltiples eKeys
             </li>
         </ol>
     </nav>
     <div class="resto">
         <div class="form-area">
             <h2 style="margin-bottom: 50px">
-                Ingrese los datos para generar Usuarios
+                Ingrese los datos para generar eKeys
             </h2>
             <table class="ekey-table">
                 <thead>
                     <tr>
-                        <th style="width: 15%">Cuenta</th>
-                        <th style="width: 10%">Nombre de eKey</th>
-                        <th style="width: 10%">Tipo</th>
+                        <th style="width: 15%">Cuenta de Destino</th>
+                        <th style="width: 15%">Nombre de eKey</th>
+                        <th style="width: 15%">Tipo</th>
                         <th style="width: 10%">Inicio</th>
                         <th style="width: 10%">Expiración</th>
-                        <th style="width: 10%">Días</th>
-                        <th style="width: 5%">Acción</th>
+                        <!--<th style="width: 10%">Días</th>-->
+                        <th style="width: 5%">Eliminar</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -50,19 +51,19 @@
                                 style="width: 100%; max-width: 100%; " required
                                 [class.invalid-input]="!isAccountValid(eKey.account)" />
                         </td>
-                        <td style="width: 10%">
+                        <td style="width: 15%">
                             <input type="text" [(ngModel)]="eKey.name" name="name_{{ i }}"
                                 style="width: 100%; max-width: 100%; box-sizing: border-box" required
                                 [class.invalid-input]="!eKey.name" />
                         </td>
-                        <td style="width: 10%">
+                        <td style="width: 15%">
                             <select [(ngModel)]="eKey.type" name="type_{{ i }}" [class.invalid-input]="!eKey.type"
                                 style="width: 100%; max-width: 100%; box-sizing: border-box">
                                 <option default value="">No seleccionado</option>
                                 <option value="1">Permanente</option>
-                                <option value="2">Periódica</option>
-                                <option value="3">De un uso</option>
-                                <option value="4">Solicitante</option>
+                                <option value="2">Temporal</option>
+                                <!--<option value="3">De un uso</option>-->
+                                <!--<option value="4">Solicitante</option>-->
                             </select>
                         </td>
                         <td style="width: 10%" [class.invalid-input]="!isDateAndTimeValid(eKey)">
@@ -103,16 +104,6 @@
                             </mat-form-field>
                             <ngx-material-timepicker #endTimePicker></ngx-material-timepicker>
                         </td>
-                        <td style="width: 10%">
-                            <div class="weekdays-checkboxes" [class.invalid-input]="!isCheckboxesValid(eKey)">
-                                <label *ngFor="let day of eKey.weekDays">
-                                    <input type="checkbox" name="selectedDays" value="day.value" [checked]="day.checked"
-                                        (change)="onCheckboxChange($event, day)" [disabled]="eKey.type !== '4'"
-                                        style="width: 100%; max-width: 100%; box-sizing: border-box" />
-                                    {{ day.name }}
-                                </label>
-                            </div>
-                        </td>
                         <td style="width: 5%">
                             <button (click)="removeEKey(i)">X</button>
                         </td>
@@ -120,7 +111,7 @@
                 </tbody>
             </table>
             <p class="error">{{error}}</p>
-            <button class="form-button" (click)="addEKey()">Agregar Usuario</button>
+            <button class="form-button" (click)="addEKey()">Agregar eKey</button>
             <button class="form-button" (click)="validarInputs(eKeys)">Generar</button>
         </div>
         <!--

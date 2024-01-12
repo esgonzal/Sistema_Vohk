@@ -5,25 +5,25 @@
             <li class="breadcrumb-item"><a [routerLink]="['/users', ekeyService.username]">Mis Dispositivos</a></li>
             <li class="breadcrumb-item"><a [routerLink]="['/users', ekeyService.username, 'lock', ekeyService.lockID]">Informacion sobre la
                     Cerradura</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Generar Usuario</li>
+            <li class="breadcrumb-item active" aria-current="page">Generar eKey</li>
         </ol>
     </nav>
     <div class="resto">
         <div class="form-area">
-            <h2 style="margin-bottom: 50px;">Ingrese los datos para generar a un nuevo Usuario</h2>
+            <h2 style="margin-bottom: 50px;">Ingrese los datos para generar a una nueva eKey</h2>
             <div class="multipleButton">
-                <button (click)="toMultipleEkeys()">Generar múltiples Usuarios</button>
+                <button (click)="toMultipleEkeys()">Generar múltiples eKeys</button>
             </div>
             <form #formInput="ngForm" (ngSubmit)="botonGenerarEkey(formInput.value)" class="common-form">
                 <div class="linea">
                     <span class="input-container">
-                        Nombre del Destinatario
+                        Cuenta de Destino
                         <input type="text" class="form-input" name="recieverName" placeholder="..." ngModel />
                     </span>
                 </div>
                 <div class="linea">
                     <span class="input-container">
-                        Nombre de la Ekey
+                        Nombre de la eKey
                         <input type="text" class="form-input" name="name" placeholder="..." ngModel />
                     </span>
                 </div>
@@ -34,9 +34,9 @@
                             style="width: 202px; height: 35px;">
                             <option default value="">No seleccionado</option>
                             <option value="1">Permanente</option>
-                            <option value="2">Periódica</option>
-                            <option value="3">De un uso</option>
-                            <option value="4">Solicitante</option>
+                            <option value="2">Temporal</option>
+                            <!--<option value="3">De un uso</option>-->
+                            <!--<option value="4">Solicitante</option>-->
                         </select>
                     </span>
                 </div>
@@ -56,7 +56,7 @@
                         Fecha de inicio
                         <mat-form-field appearance="fill">
                             <mat-label>Fecha</mat-label>
-                            <input matInput [matDatepicker]="startDatePicker" name="startDate" placeholder="MM/DD/YYYY"
+                            <input matInput [matDatepicker]="startDatePicker" name="startDate" placeholder="DD/MM/YYYY"
                                 required="required" ngModel (dateChange)="startTimePicker.open()">
                             <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
                             <mat-datepicker #startDatePicker></mat-datepicker>
@@ -75,7 +75,7 @@
                         Fecha de finalización
                         <mat-form-field appearance="fill">
                             <mat-label>Fecha</mat-label>
-                            <input matInput [matDatepicker]="endDatePicker" name="endDate" placeholder="MM/DD/YYYY"
+                            <input matInput [matDatepicker]="endDatePicker" name="endDate" placeholder="DD/MM/YYYY"
                                 required="required" ngModel (dateChange)="endTimePicker.open()">
                             <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
                             <mat-datepicker #endDatePicker></mat-datepicker>
@@ -95,3 +95,4 @@
         </div>
     </div>
 </div>
+<app-pop-up *ngIf="popupService.emailSuccess"></app-pop-up>

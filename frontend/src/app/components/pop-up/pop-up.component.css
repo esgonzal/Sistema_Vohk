@@ -53,6 +53,16 @@
   font-size: 18px;
   max-height: 70vh; 
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#content img {
+  max-width: 100%;
+  height: auto;
+  transform: scale(1.3); 
 }
 
 #actions {
@@ -123,4 +133,11 @@ button {
 .error {
   font-size: smaller;
   color: red;
+}
+
+.confirmation-message {
+  font-size: 14px; /* Adjust the font size as needed */
+  text-align: center;
+  margin-top: 10px; /* Add some top margin for spacing */
+  color: #4CAF50; /* Green color or adjust to your preferred color */
 }

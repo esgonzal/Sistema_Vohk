@@ -23,8 +23,9 @@ router.post('/getListLock', async(req, res) => {
             'Content-Type': 'application/x-www-form-urlencoded',
             'Authorization': `Bearer ${accessToken}`
         };
-        let ttlockResponse = await axios.get(
-            'https://euapi.ttlock.com/v3/gateway/listByLock', { params: ttlockData, headers }
+        let ttlockResponse = await axios.post(
+            'https://euapi.ttlock.com/v3/gateway/listByLock',
+            ttlockData, { headers }
         );
         //console.log(ttlockResponse.data)
         if (typeof ttlockResponse === 'object' && ttlockResponse.data.hasOwnProperty('list')) {
