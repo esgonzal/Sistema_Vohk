@@ -4,8 +4,76 @@ const axios = require('axios');
 const { accessTokenStorage } = require('./accessTokenStorage'); 
 const TTLOCK_CLIENT_ID = 'c4114592f7954ca3b751c44d81ef2c7d';
 
-router.post('/getListLock', async (req, res) => {
-    let { userID, lockID } = req.body;
+router.post('/add', async (req, res) => {
+    let { userID, name } = req.body;
+    try {
+        let date = Date.now()
+        const storedData = accessTokenStorage[userID];
+        const accessToken = storedData ? storedData.accessToken : null;
+        if (!accessToken) {
+            return res.json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
+        }
+        let ttlockData = {
+            clientId: TTLOCK_CLIENT_ID,
+            accessToken: accessToken,
+            name: name,
+            date,
+        };
+        let headers = {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': `Bearer ${accessToken}`
+        };
+        let ttlockResponse = await axios.post(
+            'https://euapi.ttlock.com/v3/group/add',
+            ttlockData,
+            { headers }
+        );
+        //console.log(ttlockResponse.data)
+        if(typeof ttlockResponse === 'object' && ttlockResponse.data.hasOwnProperty('groupId')){
+            res.json({groupID: ttlockResponse.data.groupId});
+        } else {
+            res.json({errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg});
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ errmsg: 'Error with TTLock API' });
+    }
+});
+router.post('/list', async (req, res) => {
+    let { userID } = req.body;
+    try {
+        let date = Date.now()
+        const storedData = accessTokenStorage[userID];
+        const accessToken = storedData ? storedData.accessToken : null;
+        if (!accessToken) {
+            return res.json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
+        }
+        let ttlockData = {
+            clientId: TTLOCK_CLIENT_ID,
+            accessToken: accessToken,
+            date,
+        };
+        let headers = {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': `Bearer ${accessToken}`
+        };
+        let ttlockResponse = await axios.get(
+            'https://euapi.ttlock.com/v3/group/list',
+            { params: ttlockData, headers }
+        );
+        //console.log(ttlockResponse.data)
+        if(typeof ttlockResponse === 'object' && ttlockResponse.data.hasOwnProperty('list')){
+            res.json(ttlockResponse.data);
+        } else {
+            res.json({errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg});
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ errmsg: 'Error with TTLock API' });
+    }
+});
+router.post('/setLock', async (req, res) => {
+    let { userID, lockID, groupID } = req.body;
     try {
         let date = Date.now()
         const storedData = accessTokenStorage[userID];
@@ -17,6 +85,7 @@ router.post('/getListLock', async (req, res) => {
             clientId: TTLOCK_CLIENT_ID,
             accessToken: accessToken,
             lockId: lockID,
+            groupId: groupID,
             date,
         };
         let headers = {
@@ -24,78 +93,7 @@ router.post('/getListLock', async (req, res) => {
             'Authorization': `Bearer ${accessToken}`
         };
         let ttlockResponse = await axios.post(
-            'https://euapi.ttlock.com/v3/gateway/listByLock',
-            ttlockData,
-            { headers }
-        );
-        //console.log(ttlockResponse.data)
-        if (typeof ttlockResponse === 'object' && ttlockResponse.data.hasOwnProperty('list')) {
-            res.json(ttlockResponse.data);
-        } else {
-            res.json({ errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg });
-        }
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ errmsg: 'Error with TTLock API' });
-    }
-});
-router.post('/getListAccount', async (req, res) => {
-    let { userID, pageNo, pageSize } = req.body;
-    try {
-        let date = Date.now()
-        const storedData = accessTokenStorage[userID];
-        const accessToken = storedData ? storedData.accessToken : null;
-        if (!accessToken) {
-            return res.json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
-        }
-        let ttlockData = {
-            clientId: TTLOCK_CLIENT_ID,
-            accessToken: accessToken,
-            pageNo: pageNo,
-            pageSize: pageSize,
-            date,
-        };
-        let headers = {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Authorization': `Bearer ${accessToken}`
-        };
-        let ttlockResponse = await axios.post(
-            'https://euapi.ttlock.com/v3/gateway/list',
-            ttlockData,
-            { headers }
-        );
-        //console.log(ttlockResponse.data)
-        if (typeof ttlockResponse === 'object' && ttlockResponse.data.hasOwnProperty('list')) {
-            res.json(ttlockResponse.data);
-        } else {
-            res.json({ errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg });
-        }
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ errmsg: 'Error with TTLock API' });
-    }
-});
-router.post('/unlock', async (req, res) => {
-    let { userID, lockID } = req.body;
-    try {
-        let date = Date.now()
-        const storedData = accessTokenStorage[userID];
-        const accessToken = storedData ? storedData.accessToken : null;
-        if (!accessToken) {
-            return res.json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
-        }
-        let ttlockData = {
-            clientId: TTLOCK_CLIENT_ID,
-            accessToken: accessToken,
-            lockId: lockID,
-            date,
-        };
-        let headers = {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Authorization': `Bearer ${accessToken}`
-        };
-        let ttlockResponse = await axios.post(
-            'https://euapi.ttlock.com/v3/lock/unlock',
+            'https://euapi.ttlock.com/v3/lock/setGroup',
             ttlockData,
             { headers }
         );
@@ -106,8 +104,8 @@ router.post('/unlock', async (req, res) => {
         res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
-router.post('/lock', async (req, res) => {
-    let { userID, lockID } = req.body;
+router.post('/delete', async (req, res) => {
+    let { userID, groupID } = req.body;
     try {
         let date = Date.now()
         const storedData = accessTokenStorage[userID];
@@ -118,7 +116,7 @@ router.post('/lock', async (req, res) => {
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
             accessToken: accessToken,
-            lockId: lockID,
+            groupId: groupID,
             date,
         };
         let headers = {
@@ -126,7 +124,7 @@ router.post('/lock', async (req, res) => {
             'Authorization': `Bearer ${accessToken}`
         };
         let ttlockResponse = await axios.post(
-            'https://euapi.ttlock.com/v3/lock/lock',
+            'https://euapi.ttlock.com/v3/group/delete',
             ttlockData,
             { headers }
         );
@@ -137,8 +135,8 @@ router.post('/lock', async (req, res) => {
         res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
-router.post('/getTime', async (req, res) => {
-    let { userID, lockID } = req.body;
+router.post('/rename', async (req, res) => {
+    let { userID, groupID, newName } = req.body;
     try {
         let date = Date.now()
         const storedData = accessTokenStorage[userID];
@@ -149,7 +147,8 @@ router.post('/getTime', async (req, res) => {
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
             accessToken: accessToken,
-            lockId: lockID,
+            groupId: groupID,
+            name: newName,
             date,
         };
         let headers = {
@@ -157,51 +156,12 @@ router.post('/getTime', async (req, res) => {
             'Authorization': `Bearer ${accessToken}`
         };
         let ttlockResponse = await axios.post(
-            'https://euapi.ttlock.com/v3/lock/queryDate',
+            'https://euapi.ttlock.com/v3/group/update',
             ttlockData,
             { headers }
         );
         //console.log(ttlockResponse.data)
-        if (typeof ttlockResponse === 'object' && ttlockResponse.data.hasOwnProperty('date')) {
-            res.json(ttlockResponse.data);
-        } else {
-            res.json({ errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg });
-        }
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ errmsg: 'Error with TTLock API' });
-    }
-});
-router.post('/adjustTime', async (req, res) => {
-    let { userID, lockID } = req.body;
-    try {
-        let date = Date.now()
-        const storedData = accessTokenStorage[userID];
-        const accessToken = storedData ? storedData.accessToken : null;
-        if (!accessToken) {
-            return res.json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
-        }
-        let ttlockData = {
-            clientId: TTLOCK_CLIENT_ID,
-            accessToken: accessToken,
-            lockId: lockID,
-            date,
-        };
-        let headers = {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Authorization': `Bearer ${accessToken}`
-        };
-        let ttlockResponse = await axios.post(
-            'https://euapi.ttlock.com/v3/lock/updateDate',
-            ttlockData,
-            { headers }
-        );
-        //console.log(ttlockResponse.data)
-        if (typeof ttlockResponse === 'object' && ttlockResponse.data.hasOwnProperty('date')) {
-            res.json(ttlockResponse.data);
-        } else {
-            res.json({ errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg });
-        }
+        res.json({ errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg });
     } catch (error) {
         console.error(error);
         res.status(500).json({ errmsg: 'Error with TTLock API' });
