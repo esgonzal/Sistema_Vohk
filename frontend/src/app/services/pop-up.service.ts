@@ -41,7 +41,7 @@ export class PopUpService {
   changeNickname = false;
   cardReader = false;
   emailSuccess = false;
-  emailMessage: SafeHtml | undefined;
+  emailMessage: SafeHtml = '';
   lock_alias: string;
   gatewaysOfLock: GatewayLock[] = []
   gatewaysOfAccount: GatewayAccount[] = []

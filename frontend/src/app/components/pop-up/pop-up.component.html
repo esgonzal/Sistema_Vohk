@@ -576,18 +576,20 @@
     <div id="content"> 
         <img src="../../../assets/images/imagenCard.png" >
     </div>
+    <div id="actions">
+        <button class="cancel" (click)="popupService.cardReader=false">Volver</button>    
+    </div>
 </div>
 <div id="container" *ngIf="popupService.emailSuccess">
-    
     <div id="content">
-        Se ha enviado el siguiente correo:
+        La eKey fue enviada correctamente
     </div>
     <div id="content" style="background-color: rgb(245, 245, 245);">
         <div id="content" [innerHTML]="popupService.emailMessage"></div>
     </div>
     <div id="actions">
         <button (click)="copyToClipboard()">Copiar mensaje</button>
-        <button class="cancel" (click)="closeEmailPopup()">Ok</button>
+        <button (click)="closeEmailPopup()">Ok</button>
     </div>
     <div *ngIf="isCopied" class="confirmation-message">
         El mensaje fue copiado.

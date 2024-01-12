@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, SecurityContext } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 
@@ -19,7 +19,7 @@ import { operationResponse, addGroupResponse, GetLockTimeResponse } from '../../
 import { lastValueFrom } from 'rxjs';
 import moment from 'moment';
 import { Clipboard } from '@angular/cdk/clipboard';
-import { DomSanitizer } from '@angular/platform-browser';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 
 @Component({
@@ -42,6 +42,7 @@ export class PopUpComponent implements OnInit {
   confirmPassword: string = '';
   URL = 'https://api.vohkapp.com';
   cardNumber: string = '';
+  trustedHtml: SafeHtml;
   public isCopied: boolean = false;
 
   constructor(
@@ -615,38 +616,27 @@ export class PopUpComponent implements OnInit {
   }
   copyToClipboard() {
     const emailContent = this.popupService.emailMessage;
-
     if (emailContent) {
-      const sanitizedContent = this.sanitizer.sanitize(0, emailContent) ?? '';
-
-      // Create a temporary element to extract text content
+      const sanitizedContent = this.sanitizer.sanitize(SecurityContext.HTML, emailContent) || '';
       const tempElement = document.createElement('div');
       tempElement.innerHTML = sanitizedContent;
-
-      // Extract the text content without HTML tags
       const textContent = tempElement.textContent || tempElement.innerText;
-
       const clipboardAttempt = this.clipboard.beginCopy(textContent);
       let remainingAttempts = 5;
-
       const attempt = () => {
         const result = clipboardAttempt.copy();
-
         if (result) {
           this.isCopied = true;
           setTimeout(() => {
             this.isCopied = false;
-          }, 3000);
+          }, 2000);
         } else if (--remainingAttempts) {
           setTimeout(attempt, 100);
         } else {
           clipboardAttempt.destroy();
         }
       };
-
       attempt();
     }
   }
-
-
 }
