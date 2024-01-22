@@ -89,6 +89,18 @@
                         <ngx-material-timepicker #endTimePicker></ngx-material-timepicker>
                     </span>
                 </div>
+                <div class="linea">
+                    <span class="input-container">
+                        Apertura Remota
+                        <mat-slide-toggle name="remoteUnlock" ngModel ></mat-slide-toggle>
+                    </span>
+                </div>
+                <div class="linea">
+                    <span class="input-container">
+                        eKey Autorizada
+                        <mat-slide-toggle name="keyRight" ngModel ></mat-slide-toggle>
+                    </span>
+                </div>
                 <p class="error">{{error}}</p>
                 <button class="form-button" type="submit">Generar</button>
             </form>

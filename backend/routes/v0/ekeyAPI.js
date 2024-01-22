@@ -9,8 +9,10 @@ const TTLOCK_CLIENT_SECRET = '33b556bdb803763f2e647fc7a357dedf';
 const URL = 'https://api.vohkapp.com';
 
 router.post('/send', async(req, res) => {
-    let { userID, lockID, lockAlias, recieverName, keyName, startDate, endDate, keyType, startDay, endDay, weekDays } = req.body;
+    let { userID, lockID, lockAlias, recieverName, keyName, startDate, endDate, remoteEnable, keyRight, keyType, startDay, endDay, weekDays } = req.body;
     try {
+        console.log("remoteEnable: ", remoteEnable);
+        console.log("keyRight: ", keyRight);
         let emailResponse;
         let date = Date.now()
         const storedData = accessTokenStorage[userID];
@@ -26,13 +28,14 @@ router.post('/send', async(req, res) => {
             keyName: keyName,
             startDate: startDate,
             endDate: endDate,
-            keyRight: 0,
+            remoteEnable: remoteEnable,
+            keyRight: keyRight,
             createUser: 1,
             keyType: keyType,
             startDay: startDay,
             endDay: endDay,
             weekDays: weekDays,
-            date,
+            date: date,
         };
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded',

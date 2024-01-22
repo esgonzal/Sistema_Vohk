@@ -1,10 +1,9 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { EkeyResponse, operationResponse, sendEkeyResponse, LockListResponse, getByUserAndLockIdResponse } from '../Interfaces/API_responses';
 import { LockData } from '../Interfaces/Lock';
 import { RecipientList } from '../Interfaces/RecipientList';
-import emailjs from 'emailjs-com';
 
 @Injectable({
   providedIn: 'root'
@@ -33,8 +32,10 @@ export class EkeyServiceService {
     let url = this.URL.concat('/v0/ekey/getListLock');
     return this.http.post<EkeyResponse>(url, body);
   }
-  sendEkey(userID: string, lockID: number, lockAlias: string, recieverName: string, keyName: string, startDate: string, endDate: string, keyRight: number, keyType?: number, startDay?: string, endDay?: string, weekDays?: string): Observable<sendEkeyResponse> {
-    let body = { userID, lockID, lockAlias, recieverName, keyName, startDate, endDate, keyRight, keyType, startDay, endDay, weekDays };
+  sendEkey(userID: string, lockID: number, lockAlias: string, recieverName: string, keyName: string, 
+           startDate: string, endDate: string, keyRight: number, remoteEnable: number, 
+           keyType?: number, startDay?: string, endDay?: string, weekDays?: string): Observable<sendEkeyResponse> {
+    let body = { userID, lockID, lockAlias, recieverName, keyName, startDate, endDate, keyRight, remoteEnable, keyType, startDay, endDay, weekDays };
     let url = this.URL.concat('/v0/ekey/send');
     return this.http.post<sendEkeyResponse>(url, body);
   }

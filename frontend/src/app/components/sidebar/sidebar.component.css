@@ -1,47 +1,47 @@
 .sidebar {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 100%;
-  box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    box-sizing: border-box;
 }
 
 .lista-grupos {
-  margin: 0;
-  padding: 0;
-  list-style-type: none;
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
 }
 
 .lista-grupos li {
-  display: block;
-  margin-bottom: 5px;
+    display: block;
+    margin-bottom: 5px;
 }
 
 .lista-grupos li span {
-  display: block;
-  padding: 5px;
-  padding-left: 10px;
-  cursor: pointer;
+    display: block;
+    padding: 5px;
+    padding-left: 10px;
+    cursor: pointer;
 }
 
 .lista-grupos li span:hover {
-  color: rgb(126, 101, 235);
+    color: rgb(126, 101, 235);
 }
 
 .boton-grupos {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 25px;
-  color: rgb(126, 101, 235);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 25px;
+    color: rgb(126, 101, 235);
 }
 
 .boton-grupos span {
-  font-size: small;
-  cursor: pointer;
+    font-size: small;
+    cursor: pointer;
 }
 
 .selected {
-  background-color: rgb(215, 215, 243);
-  color: rgb(126, 101, 235);
+    background-color: rgb(215, 215, 243);
+    color: rgb(126, 101, 235);
 }

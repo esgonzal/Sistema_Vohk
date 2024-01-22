@@ -226,7 +226,7 @@ export class PopUpComponent implements OnInit {
         if (this.popupService.cambiarNombre) {
           switch (this.popupService.elementType) {
             case 'ekey':
-              response = await lastValueFrom(this.ekeyService.modifyEkey(this.popupService.userID, this.popupService.elementID, datos.name, this.transformarRemoteEnable(datos.ekeyRemoteEnable))) as operationResponse;
+              response = await lastValueFrom(this.ekeyService.modifyEkey(this.popupService.userID, this.popupService.elementID, datos.name)) as operationResponse;
               break;
             case 'card':
               response = await lastValueFrom(this.cardService.changeName(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, datos.name)) as operationResponse;

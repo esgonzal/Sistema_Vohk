@@ -143,7 +143,7 @@ export class MultipleEkeyComponent implements OnInit {
     try {
       if (eKey.type === '1') {
         ///////////PERMANENTE////////////////////////////////
-        let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, this.ekeyService.lockAlias, eKey.account, eKey.name, "0", "0", 1)) as sendEkeyResponse;
+        let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, this.ekeyService.lockAlias, eKey.account, eKey.name, "0", "0", 0, 0)) as sendEkeyResponse;
         if (sendEkeyResponse.keyId) {//Ekey permanente se mandó correctamente
           this.popupService.emailMessage = this.sanitizer.bypassSecurityTrustHtml(sendEkeyResponse.emailContent);
           this.popupService.emailSuccess = true;
@@ -162,7 +162,7 @@ export class MultipleEkeyComponent implements OnInit {
         let newEndDay = moment(eKey.endDatepicker).valueOf();
         let newStartDate = moment(newStartDay).add(this.lockService.transformarHora(eKey.startTimepicker), "milliseconds").valueOf();
         let newEndDate = moment(newEndDay).add(this.lockService.transformarHora(eKey.endTimepicker), "milliseconds").valueOf();
-        let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, this.ekeyService.lockAlias, eKey.account, eKey.name, newStartDate.toString(), newEndDate.toString(), 1)) as sendEkeyResponse;
+        let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, this.ekeyService.lockAlias, eKey.account, eKey.name, newStartDate.toString(), newEndDate.toString(), 0, 0)) as sendEkeyResponse;
         if (sendEkeyResponse.keyId) {//Ekey periodica se mandó correctamente
           this.popupService.emailMessage = this.sanitizer.bypassSecurityTrustHtml(sendEkeyResponse.emailContent);
           this.popupService.emailSuccess = true;
@@ -174,7 +174,7 @@ export class MultipleEkeyComponent implements OnInit {
         } else {
           console.log(sendEkeyResponse);
         }
-      }
+      }/*
       else if (eKey.type === '3') {
         ///////////DE UN USO/////////////////////////////////////////////////////////////////////////////
         let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, this.ekeyService.lockAlias, eKey.account, eKey.name, moment().valueOf().toString(), "1", 1)) as sendEkeyResponse;
@@ -189,7 +189,7 @@ export class MultipleEkeyComponent implements OnInit {
         } else {
           console.log(sendEkeyResponse);
         }
-      }/*
+      }
       else if (eKey.type === '4') {
         ///////////SOLICITANTE////////////////////////////////////////////
         let newStartDay = moment(eKey.startDatepicker).valueOf()

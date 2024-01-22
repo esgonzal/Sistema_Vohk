@@ -1,35 +1,40 @@
 .form-area {
-  text-align: center;
+    text-align: center;
+    background: url('../../../assets/images/background_login/back.jpg') no-repeat center center fixed;
+    background-size: cover;
+    position: relative;
+    height: 100vh;
 }
 
 .form-area h1 {
-  font-size: 36px;
-  margin-top: 50px;
-  margin-bottom: 80px;
+    font-size: 36px;
+    margin-top: 50px;
+    margin-bottom: 80px;
 }
 
 .common-form {
-  display: flex;
-  flex-direction: column;
-  width: 300px;
-  margin: auto;
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+    margin: auto;
+    background-color: rgba(255, 255, 255, 0.8);
 }
 
 .form-input {
-  height: 35px;
-  margin-bottom: 20px;
-  border: 1px solid black;
-  padding-left: 15px;
-  font-size: 16px;
+    height: 35px;
+    margin-bottom: 20px;
+    border: 1px solid black;
+    padding-left: 15px;
+    font-size: 16px;
 }
 
 .form-button {
-  height: 45px;
-  border: 1px solid black;
-  cursor: pointer;
-  font-size: 18px;
+    height: 45px;
+    border: 1px solid black;
+    cursor: pointer;
+    font-size: 18px;
 }
 
 .loginError {
-  color: red;
+    color: red;
 }

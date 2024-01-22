@@ -119,6 +119,20 @@ export class EkeyComponent {
     }
     return this.error === '';
   }
+  mapRemoteEnable(valor: boolean) {
+    if (valor === true){
+      return 1;
+    } else {
+      return 2;
+    }
+  }
+  mapKeyRight(valor: boolean) {
+    if (valor === true){
+      return 1;
+    } else {
+      return 0;
+    }
+  }
   botonGenerarEkey(datos: Formulario) {//Combina las validaciones con la creacion de eKey
     if (this.validarInputs(datos)) {
       if (this.validarFechaInicio(datos.startDate, datos.startHour, datos.endDate, datos.endHour, datos.ekeyType)) {
@@ -130,10 +144,12 @@ export class EkeyComponent {
   }
   async crearEkey(datos: Formulario) {//Dependiendo del tipo de eKey se dan los datos necesarios para generarla
     this.isLoading = true;
+    console.log(datos)
     try {
       if (datos.ekeyType === '1') {
         ///////////PERMANENTE////////////////////////////////
-        let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, this.ekeyService.lockAlias, datos.recieverName, datos.name, "0", "0", 1)) as sendEkeyResponse;
+        
+        let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, this.ekeyService.lockAlias, datos.recieverName, datos.name, "0", "0", this.mapKeyRight(datos.keyRight), this.mapRemoteEnable(datos.remoteEnable))) as sendEkeyResponse;
         if (sendEkeyResponse.keyId) {//Ekey permanente se mandó correctamente
           this.popupService.emailMessage = this.sanitizer.bypassSecurityTrustHtml(sendEkeyResponse.emailContent);
           this.popupService.emailSuccess = true;
@@ -152,7 +168,7 @@ export class EkeyComponent {
         let newEndDay = moment(datos.endDate).valueOf();
         let newStartDate = moment(newStartDay).add(this.lockService.transformarHora(datos.startHour), "milliseconds").valueOf();
         let newEndDate = moment(newEndDay).add(this.lockService.transformarHora(datos.endHour), "milliseconds").valueOf();
-        let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, this.ekeyService.lockAlias, datos.recieverName, datos.name, newStartDate.toString(), newEndDate.toString(), 1)) as sendEkeyResponse;
+        let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, this.ekeyService.lockAlias, datos.recieverName, datos.name, newStartDate.toString(), newEndDate.toString(), this.mapKeyRight(datos.keyRight), this.mapRemoteEnable(datos.remoteEnable))) as sendEkeyResponse;
         if (sendEkeyResponse.keyId) {//Ekey periodica se mandó correctamente
           this.popupService.emailMessage = this.sanitizer.bypassSecurityTrustHtml(sendEkeyResponse.emailContent);
           this.popupService.emailSuccess = true;
@@ -164,10 +180,10 @@ export class EkeyComponent {
         } else {
           console.log(sendEkeyResponse);
         }
-      }
+      }/*
       else if (datos.ekeyType === '3') {
         ///////////DE UN USO/////////////////////////////////////////////////////////////////////////////
-        let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, this.ekeyService.lockAlias, datos.recieverName, datos.name, moment().valueOf().toString(), "1", 1)) as sendEkeyResponse;
+        let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, this.ekeyService.lockAlias, datos.recieverName, datos.name, moment().valueOf().toString(), "1", this.mapKeyRight(datos.keyRight), this.mapRemoteEnable(datos.remoteEnable))) as sendEkeyResponse;
         if (sendEkeyResponse.keyId) {//Ekey de un uso se mandó correctamente
           this.popupService.emailMessage = this.sanitizer.bypassSecurityTrustHtml(sendEkeyResponse.emailContent);
           this.popupService.emailSuccess = true;
@@ -191,7 +207,7 @@ export class EkeyComponent {
         this.weekDays.forEach(day => {
           if (day.checked) { selectedDayNumbers.push(day.value) }
         });
-        let sendEkeyResponse = await (lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, this.ekeyService.lockAlias, datos.recieverName, datos.name, newStartDate.toString(), newEndDate.toString(), 1, 4, newStartDay.toString(), newEndDay.toString(), JSON.stringify(selectedDayNumbers)))) as sendEkeyResponse;
+        let sendEkeyResponse = await (lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, this.ekeyService.lockAlias, datos.recieverName, datos.name, newStartDate.toString(), newEndDate.toString(), this.mapKeyRight(datos.keyRight), this.mapRemoteEnable(datos.remoteEnable)))) as sendEkeyResponse;
         if (sendEkeyResponse.keyId) {//Ekey solicitante se mandó correctamente
           this.popupService.emailMessage = this.sanitizer.bypassSecurityTrustHtml(sendEkeyResponse.emailContent);
           this.popupService.emailSuccess = true;
@@ -203,7 +219,7 @@ export class EkeyComponent {
         } else {
           console.log(sendEkeyResponse);
         }
-      }
+      }*/
     } catch (error) {
       console.error("Error while creating Ekey:", error);
     } finally {

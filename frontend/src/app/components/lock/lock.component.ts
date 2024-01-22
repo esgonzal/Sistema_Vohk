@@ -68,7 +68,7 @@ export class LockComponent implements OnInit {
   cardsDataSource: MatTableDataSource<Card>;
   fingerprintsDataSource: MatTableDataSource<Fingerprint>;
   recordsDataSource: MatTableDataSource<Record>;
-  displayedColumnsEkey: string[] = ['username', 'rol', 'senderUsername', 'date', 'Asignacion', 'Estado', 'Operacion']
+  displayedColumnsEkey: string[] = ['username', 'keyName', 'rol', 'senderUsername', 'date', 'Asignacion', 'Estado', 'Operacion']
   displayedColumnsPasscode: string[] = ['keyboardPwd', 'senderUsername', 'createDate', 'Asignacion', 'Estado', 'Operacion']
   displayedColumnsCard: string[] = ['cardName', 'cardNumber', 'senderUsername', 'createDate', 'Asignacion', 'Estado', 'Operacion']
   displayedColumnsFingerprint: string[] = ['fingerprintName', 'senderUsername', 'createDate', 'Asignacion', 'Estado', 'Operacion']
