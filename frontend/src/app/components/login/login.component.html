@@ -1,16 +1,19 @@
 <!-- login.component.html -->
-<div class="form-area">
-  <h1>Login</h1>
-  <p class="loginError">{{loginError}}</p>
-  <form #userSignIn="ngForm" (ngSubmit)="login(userSignIn.value)" class="common-form">
-    <p>
-      Ingrese su email o celular
-      <input type="text" class="form-input" name="username" placeholder="Username" required="required" ngModel />
-    </p>
-    <p>
-      Ingrese su contraseña
-      <input type="password" class="form-input" name="password" placeholder="Password" required="required" ngModel />
-    </p>
-    <button class="form-button" type="submit">Log In</button>
-  </form>
+<div class="pagina_completa">
+    <form #userSignIn="ngForm" (ngSubmit)="login(userSignIn.value)" class="cuadro">
+        <div class="login_texto">
+            Email / Celular
+        </div>
+        <div>
+            <input type="text" class="login_input" name="username" required="required" ngModel />
+        </div>
+        <div class="login_texto">
+            Contraseña
+        </div>
+        <div>
+            <input type="password" class="login_input" name="password" required="required" ngModel />
+        </div>
+        <p class="login_error">{{loginError}}</p>
+        <button class="login_boton" type="submit">Log In</button>
+    </form>
 </div>

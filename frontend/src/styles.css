@@ -1,14 +1,16 @@
-@import '~@angular/material/prebuilt-themes/deeppurple-amber.css';/* You can add global styles to this file, and also import other style files */
+@import '~@angular/material/prebuilt-themes/deeppurple-amber.css';
+
+/* You can add global styles to this file, and also import other style files */
 
 .mat-datepicker-panel,
 .ngx-material-timepicker-overlay {
-  z-index: 9999; /* Adjust the z-index value as needed */
+    z-index: 9999;
 }
 
-html, body {
-  height: 100%;
-  background-color:rgb(245, 245, 245); /* Replace with your desired color code */
-  margin: 0; /* Reset margin to ensure the color covers the entire viewport */
-  padding: 0;
-  overflow: hidden;
+html,
+body {
+    height: 100%;
+    background-color: rgb(245, 245, 245);
+    margin: 0;
+    padding: 0;
 }

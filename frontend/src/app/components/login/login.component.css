@@ -1,40 +1,48 @@
-.form-area {
+.pagina_completa {
     text-align: center;
-    background: url('../../../assets/images/background_login/back.jpg') no-repeat center center fixed;
+    background: url('../../../assets/images/background_login/back2.webp') no-repeat center center fixed;
     background-size: cover;
     position: relative;
-    height: 100vh;
+    height: calc( 100vh - 80px);
+    padding-top: 1px;
 }
 
-.form-area h1 {
-    font-size: 36px;
-    margin-top: 50px;
-    margin-bottom: 80px;
-}
-
-.common-form {
+.cuadro {
     display: flex;
     flex-direction: column;
-    width: 300px;
+    width: 400px;
     margin: auto;
+    padding: 30px;
+    margin-top: 30px;
     background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
 }
 
-.form-input {
+.login_texto {
+    display: flex;
+    font-weight: bold;
+}
+
+.login_input {
     height: 35px;
+    width: 340px;
     margin-bottom: 20px;
     border: 1px solid black;
     padding-left: 15px;
     font-size: 16px;
+    border-radius: 5px;
 }
 
-.form-button {
+.login_boton {
     height: 45px;
     border: 1px solid black;
     cursor: pointer;
+    margin-top: 15px;
     font-size: 18px;
+    border-radius: 5px;
+    background-color: #f9c114;
 }
 
-.loginError {
+.login_error {
     color: red;
 }
