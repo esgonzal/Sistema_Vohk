@@ -1,11 +1,16 @@
-<div class="navBar">
-    <app-navbar></app-navbar>
+<div *ngIf="returnLogged()">
+    <div class="navBar">
+        <app-navbar></app-navbar>
+    </div>
+    <div class="contenido">
+        <div class="barra-lateral" *ngIf="returnLogged()">
+            <app-sidebar></app-sidebar>
+        </div>
+        <div class="principal">
+            <router-outlet></router-outlet>
+        </div>
+    </div>
 </div>
-<div class="contenido">
-    <div class="barra-lateral" *ngIf="returnLogged()">
-        <app-sidebar></app-sidebar>
-    </div>
-    <div class="principal">
-        <router-outlet></router-outlet>
-    </div>
+<div *ngIf="!returnLogged()">
+    <app-login></app-login>
 </div>
