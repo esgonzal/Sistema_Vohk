@@ -96,10 +96,21 @@ app-pop-up {
 
 .mat-mdc-tab-group.mat-warn,
 .mat-mdc-tab-nav-bar.mat-warn {
-    --mdc-tab-indicator-active-indicator-color: #0b0ebe;
-    --mat-tab-header-active-label-text-color: #0b0ebe;
-    --mat-tab-header-active-focus-label-text-color: #0b0ebe;
-    --mat-tab-header-active-focus-indicator-color: #0b0ebe;
+    --mdc-tab-indicator-active-indicator-color: white;
+    --mat-tab-header-active-label-text-color: white;
+    --mat-tab-header-active-focus-label-text-color: white;
+    --mat-tab-header-active-focus-indicator-color: white;
+}
+
+.mdc-tab.mdc-tab--active {
+    background-color: black;
+    color: black;
+    border: 1px solid white;
+}
+
+.mdc-tab:not(.mdc-tab--active) {
+    background-color: #f9c114;
+    color: #f9c114;
 }
 
 .contenido {

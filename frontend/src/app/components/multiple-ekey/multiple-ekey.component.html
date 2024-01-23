@@ -6,21 +6,10 @@
                 <a [routerLink]="['/users', ekeyService.username]">Mis Dispositivos</a>
             </li>
             <li class="breadcrumb-item">
-                <a [routerLink]="[
-            '/users',
-            ekeyService.username,
-            'lock',
-            ekeyService.lockID
-          ]">Informacion sobre la Cerradura</a>
+                <a [routerLink]="['/users',ekeyService.username,'lock', ekeyService.lockID]">Informacion sobre la Cerradura</a>
             </li>
             <li class="breadcrumb-item">
-                <a [routerLink]="[
-            '/users',
-            ekeyService.username,
-            'lock',
-            ekeyService.lockID,
-            'ekey'
-          ]">Generar eKey</a>
+                <a [routerLink]="['/users',ekeyService.username,'lock',ekeyService.lockID,'ekey']">Generar eKey</a>
             </li>
             <li class="breadcrumb-item active" aria-current="page">
                 Generar múltiples eKeys
@@ -40,67 +29,47 @@
                         <th style="width: 15%">Tipo</th>
                         <th style="width: 10%">Inicio</th>
                         <th style="width: 10%">Expiración</th>
-                        <!--<th style="width: 10%">Días</th>-->
                         <th style="width: 5%">Eliminar</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr *ngFor="let eKey of eKeys; let i = index">
                         <td style="width: 15%">
-                            <input type="text" [(ngModel)]="eKey.account" name="account_{{ i }}"
-                                style="width: 100%; max-width: 100%; " required
-                                [class.invalid-input]="!isAccountValid(eKey.account)" />
+                            <input type="text" [(ngModel)]="eKey.account" name="account_{{ i }}" style="width: 100%; max-width: 100%; " required [class.invalid-input]="!isAccountValid(eKey.account)" />
                         </td>
                         <td style="width: 15%">
-                            <input type="text" [(ngModel)]="eKey.name" name="name_{{ i }}"
-                                style="width: 100%; max-width: 100%; box-sizing: border-box" required
-                                [class.invalid-input]="!eKey.name" />
+                            <input type="text" [(ngModel)]="eKey.name" name="name_{{ i }}" style="width: 100%; max-width: 100%; box-sizing: border-box" required [class.invalid-input]="!eKey.name" />
                         </td>
                         <td style="width: 15%">
-                            <select [(ngModel)]="eKey.type" name="type_{{ i }}" [class.invalid-input]="!eKey.type"
-                                style="width: 100%; max-width: 100%; box-sizing: border-box">
-                                <option default value="">No seleccionado</option>
-                                <option value="1">Permanente</option>
-                                <option value="2">Temporal</option>
-                                <!--<option value="3">De un uso</option>-->
-                                <!--<option value="4">Solicitante</option>-->
-                            </select>
+                            <select [(ngModel)]="eKey.type" name="type_{{ i }}" [class.invalid-input]="!eKey.type" style="width: 100%; max-width: 100%; box-sizing: border-box">
+                <option default value="">No seleccionado</option>
+                <option value="1">Permanente</option>
+                <option value="2">Temporal</option>
+              </select>
                         </td>
                         <td style="width: 10%" [class.invalid-input]="!isDateAndTimeValid(eKey)">
                             <!-- Date and time input for start -->
-                            <mat-form-field appearance="fill"
-                                style="width: 55%; max-width: 55%; box-sizing: border-box">
-                                <input matInput [matDatepicker]="startDatePicker" name="startDatepicker{{ i }}"
-                                    [(ngModel)]="eKey.startDatepicker"
-                                    [required]="eKey.type !== '1' && eKey.type !== '3'"
-                                    [disabled]="eKey.type === '1' || eKey.type === '3' || !eKey.type"
-                                    (dateChange)="startTimePicker.open()" />
+                            <mat-form-field appearance="fill" style="width: 55%; max-width: 55%; box-sizing: border-box">
+                                <input matInput [matDatepicker]="startDatePicker" name="startDatepicker{{ i }}" [(ngModel)]="eKey.startDatepicker" [required]="eKey.type !== '1' && eKey.type !== '3'" [disabled]="eKey.type === '1' || eKey.type === '3' || !eKey.type" (dateChange)="startTimePicker.open()"
+                                />
                                 <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
                                 <mat-datepicker #startDatePicker></mat-datepicker>
                             </mat-form-field>
-                            <mat-form-field appearance="fill"
-                                style="width: 30%; max-width: 30%; box-sizing: border-box">
-                                <input matInput [ngxTimepicker]="startTimePicker" name="startTimepicker{{ i }}"
-                                    [(ngModel)]="eKey.startTimepicker"
-                                    [required]="eKey.type !== '1' && eKey.type !== '3'"
-                                    [disabled]="eKey.type === '1' || eKey.type === '3' || !eKey.type" [format]="24" />
+                            <mat-form-field appearance="fill" style="width: 30%; max-width: 30%; box-sizing: border-box">
+                                <input matInput [ngxTimepicker]="startTimePicker" name="startTimepicker{{ i }}" [(ngModel)]="eKey.startTimepicker" [required]="eKey.type !== '1' && eKey.type !== '3'" [disabled]="eKey.type === '1' || eKey.type === '3' || !eKey.type" [format]="24" />
                             </mat-form-field>
                             <ngx-material-timepicker #startTimePicker></ngx-material-timepicker>
                         </td>
                         <td style="width: 10%" [class.invalid-input]="!isDateAndTimeValid(eKey)">
                             <!-- Date and time input for end -->
                             <mat-form-field appearance="fill" style="width: 55%">
-                                <input matInput [matDatepicker]="endDatePicker" name="endDatepicker{{ i }}"
-                                    [(ngModel)]="eKey.endDatepicker" [required]="eKey.type !== '1' && eKey.type !== '3'"
-                                    [disabled]="eKey.type === '1' || eKey.type === '3' || !eKey.type"
-                                    (dateChange)="endTimePicker.open()" />
+                                <input matInput [matDatepicker]="endDatePicker" name="endDatepicker{{ i }}" [(ngModel)]="eKey.endDatepicker" [required]="eKey.type !== '1' && eKey.type !== '3'" [disabled]="eKey.type === '1' || eKey.type === '3' || !eKey.type" (dateChange)="endTimePicker.open()"
+                                />
                                 <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
                                 <mat-datepicker #endDatePicker></mat-datepicker>
                             </mat-form-field>
                             <mat-form-field appearance="fill" style="width: 30%">
-                                <input matInput [ngxTimepicker]="endTimePicker" name="endTimepicker{{ i }}"
-                                    [(ngModel)]="eKey.endTimepicker" [required]="eKey.type !== '1' && eKey.type !== '3'"
-                                    [disabled]="eKey.type === '1' || eKey.type === '3' || !eKey.type" [format]="24" />
+                                <input matInput [ngxTimepicker]="endTimePicker" name="endTimepicker{{ i }}" [(ngModel)]="eKey.endTimepicker" [required]="eKey.type !== '1' && eKey.type !== '3'" [disabled]="eKey.type === '1' || eKey.type === '3' || !eKey.type" [format]="24" />
                             </mat-form-field>
                             <ngx-material-timepicker #endTimePicker></ngx-material-timepicker>
                         </td>
@@ -114,92 +83,6 @@
             <button class="form-button" (click)="addEKey()">Agregar eKey</button>
             <button class="form-button" (click)="validarInputs(eKeys)">Generar</button>
         </div>
-        <!--
-            <div class="form-area">
-                <h2 style="margin-bottom: 50px;">Ingrese los datos para generar Usuarios</h2>
-                <form #formInput="ngForm" class="common-form">
-                    <div class="linea">
-                        <span class="input-container">
-                            Cerradura
-                            <button (click)="popupService.selectLocksForMultipleEkeys=true">Seleccionar Cerradura</button>
-                        </span>
-                    </div>
-                    <div class="linea">
-                        <span class="input-container">
-                            Destinatario
-                            <button (click)="popupService.addRecipientsForMultipleEkeys=true">Agregar Destinatario</button>
-                        </span>
-                    </div>
-                    <div class="linea">
-                        <span class="input-container">
-                            Tipo de eKey
-                            <select #types name="ekeyType" (change)="onSelected(types.value)" ngModel
-                                style="width: 202px; height: 35px;">
-                                <option default value="">No seleccionado</option>
-                                <option value="1">Permanente</option>
-                                <option value="2">Periódica</option>
-                                <option value="3">De un uso</option>
-                                <option value="4">Solicitante</option>
-                            </select>
-                        </span>
-                    </div>
-                    <div class="linea" *ngIf="selectedType==='4'">
-                        <span class="input-container">
-                            <div *ngFor="let day of weekDays">
-                                <label>
-                                    <input type="checkbox" name="selectedDays" value="day.value" [checked]="day.checked"
-                                        (change)="onCheckboxChange($event, day)" />
-                                    {{ day.name }}
-                                </label>
-                            </div>
-                        </span>
-                    </div>
-                    <div class="linea" *ngIf="selectedType==='2' || selectedType==='4'">
-                        <span class="input-container">
-                            Fecha de inicio
-                            <mat-form-field appearance="fill">
-                                <mat-label>Fecha</mat-label>
-                                <input matInput [matDatepicker]="startDatePicker" name="startDate" placeholder="MM/DD/YYYY"
-                                    required="required" ngModel (dateChange)="startTimePicker.open()">
-                                <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
-                                <mat-datepicker #startDatePicker></mat-datepicker>
-                            </mat-form-field>
-                            Hora de inicio
-                            <mat-form-field appearance="fill">
-                                <mat-label>Hora</mat-label>
-                                <input matInput [ngxTimepicker]="startTimePicker" name="startHour" placeholder="HH:mm"
-                                    required="required" [format]="24" ngModel>
-                            </mat-form-field>
-                            <ngx-material-timepicker #startTimePicker></ngx-material-timepicker>
-                        </span>
-                    </div>
-                    <div class="linea" *ngIf="selectedType==='2' || selectedType==='4'">
-                        <span class="input-container">
-                            Fecha de finalización
-                            <mat-form-field appearance="fill">
-                                <mat-label>Fecha</mat-label>
-                                <input matInput [matDatepicker]="endDatePicker" name="endDate" placeholder="MM/DD/YYYY"
-                                    required="required" ngModel (dateChange)="endTimePicker.open()">
-                                <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
-                                <mat-datepicker #endDatePicker></mat-datepicker>
-                            </mat-form-field>
-                            Hora de finalización
-                            <mat-form-field appearance="fill">
-                                <mat-label>Hora</mat-label>
-                                <input matInput [ngxTimepicker]="endTimePicker" name="endHour" placeholder="HH:mm"
-                                    required="required" [format]="24" ngModel>
-                            </mat-form-field>
-                            <ngx-material-timepicker #endTimePicker></ngx-material-timepicker>
-                        </span>
-                    </div>
-                    <p class="error">{{error}}</p>
-                    <button class="form-button" type="submit" (click)="generarMultiple(formInput.value)">Generar</button>
-                </form>
-            </div>
-             -->
     </div>
 </div>
-<app-pop-up *ngIf="
-    this.popupService.selectLocksForMultipleEkeys ||
-    this.popupService.addRecipientsForMultipleEkeys
-  " style="z-index: 10"></app-pop-up>
+<app-pop-up *ngIf="this.popupService.selectLocksForMultipleEkeys || this.popupService.addRecipientsForMultipleEkeys" style="z-index: 10"></app-pop-up>
