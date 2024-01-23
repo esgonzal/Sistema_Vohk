@@ -33,6 +33,7 @@ export class PopUpComponent implements OnInit {
   redWiFi: string | undefined;
   displayedColumnsGateway: string[] = ['NombreGateway', 'NombreWifi', 'Signal']
   autoLockToggle = false;
+  remoteEnableToggle = false;
   customAutoLockTime: number = 0;
   selectedType = '';
   error = '';
@@ -102,6 +103,9 @@ export class PopUpComponent implements OnInit {
           }
         }
       });
+    }
+    if (this.popupService.remoteEnable !== null) {
+      this.remoteEnableToggle = this.popupService.remoteEnable === 1; // Adjust as needed
     }
   }
   navigateToLogin() {
@@ -381,6 +385,31 @@ export class PopUpComponent implements OnInit {
     this.selectedType = this.autoLockToggle ? '1' : '6';
     if (!this.autoLockToggle) { this.customAutoLockTime = 0; }
     this.cdr.detectChanges()
+  }
+  remoteEnableToggleChange(event: any) {
+    this.remoteEnableToggle = event.checked;
+    this.cdr.detectChanges()
+  }
+  async cambiarRemoteUnlock() {
+    let remote = '2';
+    if (this.remoteEnableToggle === true) {
+      remote = '1';
+    }
+    this.isLoading = true;
+    try {
+      let response = await lastValueFrom(this.ekeyService.modifyEkey(this.popupService.userID, this.popupService.elementID, undefined, remote)) as operationResponse;
+      console.log(response);
+      if (response.errcode === 0){
+        this.popupService.changeRemoteEnable = false;
+        window.location.reload();
+      } else {
+        console.log(response);
+      }
+    } catch (error) {
+      console.error("Error while changing remote unlock:", error);
+    } finally {
+      this.isLoading = false;
+    }
   }
   transformarAsegundos(value: string) {
     switch (value) {

@@ -15,8 +15,7 @@ export class PopUpService {
   delete = false;                        //Antes de borrar algo, se muestra un pop up para confirmar la accion
   autorizar = false;                     //Antes de autorizar a alguien, se muestra un pop up para confirmar la accion
   desautorizar = false;                  //Antes de desautorizar a alguien, se muestra un pop up para confirmar la accion
-  autorizarFalso = false;                //Antes de autorizar a alguien, se muestra un pop up para confirmar la accion
-  desautorizarFalso = false;             //Antes de desautorizar a alguien, se muestra un pop up para confirmar la accion
+  changeRemoteEnable = false;            //Antes de cambiar la apertura remota, se muestra un pop up para confirmar la accion
   congelar = false;                      //Antes de congelar a alguien, se muestra un pop up para confirmar la accion
   descongelar = false;                   //Antes de descongelar a alguien, se muestra un pop up para confirmar la accion
   cambiarNombre = false;                 //La accion de cambiar nombre se hace en un pop up
@@ -62,6 +61,7 @@ export class PopUpService {
   newIsUser: boolean;
   accountName: string;
   password: string;
+  remoteEnable: number;
 
   toggleLockSelection(lockId: number) {
     const index = this.selectedLockIds_forMultipleEkeys.indexOf(lockId);

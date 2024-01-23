@@ -3,7 +3,8 @@ import { UserServiceService } from '../../services/user-service.service';
 import { Router } from '@angular/router';
 import { User } from '../../Interfaces/User';
 import { lastValueFrom } from 'rxjs';
-import { GetAccessTokenResponse } from '../../Interfaces/API_responses'
+import { GetAccessTokenResponse } from '../../Interfaces/API_responses';
+import { faUser, faKey, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-login',
@@ -14,6 +15,11 @@ import { GetAccessTokenResponse } from '../../Interfaces/API_responses'
 export class LoginComponent {
 
   loginError: string = "";
+  faUser = faUser;
+  faKey = faKey;
+  faEye = faEye;
+  faEyeSlash = faEyeSlash;
+  showPassword = false;
 
   constructor(private router: Router, public userService: UserServiceService) { }
 
@@ -50,7 +56,10 @@ export class LoginComponent {
       } 
     }
   }
+  togglePasswordVisibility() {
+    this.showPassword = !this.showPassword;
+  }
+  maskPassword(password: string) {
+    return '*'.repeat(password.length);
+  }
 }
-
-
-

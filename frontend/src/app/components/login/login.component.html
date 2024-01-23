@@ -2,18 +2,23 @@
 <div class="pagina_completa">
     <form #userSignIn="ngForm" (ngSubmit)="login(userSignIn.value)" class="cuadro">
         <div class="login_texto">
+            <fa-icon [icon]="faUser" class="icon"></fa-icon>
             Email / Celular
         </div>
         <div>
             <input type="text" class="login_input" name="username" required="required" ngModel />
         </div>
         <div class="login_texto">
+            <fa-icon [icon]="faKey" class="icon"></fa-icon>
             Contraseña
         </div>
-        <div>
-            <input type="password" class="login_input" name="password" required="required" ngModel />
+        <div class="password-input">
+            <input type="{{ showPassword ? 'text' : 'password' }}" class="login_input" name="password" required="required" ngModel />
+            <button type="button" (click)="togglePasswordVisibility()">
+                <fa-icon [icon]="showPassword ? faEye : faEyeSlash"></fa-icon>
+            </button>
         </div>
         <p class="login_error">{{loginError}}</p>
-        <button class="login_boton" type="submit">Log In</button>
+        <button class="login_boton" type="submit">Iniciar Sesión</button>
     </form>
 </div>

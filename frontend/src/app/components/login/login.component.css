@@ -21,6 +21,9 @@
 .login_texto {
     display: flex;
     font-weight: bold;
+    align-items: center;
+    padding-left: 5px;
+    font-size: 20px;
 }
 
 .login_input {
@@ -33,12 +36,26 @@
     border-radius: 5px;
 }
 
+.password-input {
+    position: relative;
+}
+
+.password-input button {
+    position: absolute;
+    top: 33%;
+    right: 10px;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
 .login_boton {
     height: 45px;
     border: 1px solid black;
     cursor: pointer;
     margin-top: 15px;
-    font-size: 18px;
+    font-size: 28px;
     border-radius: 5px;
     background-color: #f9c114;
 }

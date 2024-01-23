@@ -68,10 +68,10 @@ export class LockComponent implements OnInit {
   cardsDataSource: MatTableDataSource<Card>;
   fingerprintsDataSource: MatTableDataSource<Fingerprint>;
   recordsDataSource: MatTableDataSource<Record>;
-  displayedColumnsEkey: string[] = ['username', 'keyName', 'rol', 'senderUsername', 'date', 'Asignacion', 'Estado', 'Operacion']
-  displayedColumnsPasscode: string[] = ['keyboardPwd', 'senderUsername', 'createDate', 'Asignacion', 'Estado', 'Operacion']
-  displayedColumnsCard: string[] = ['cardName', 'cardNumber', 'senderUsername', 'createDate', 'Asignacion', 'Estado', 'Operacion']
-  displayedColumnsFingerprint: string[] = ['fingerprintName', 'senderUsername', 'createDate', 'Asignacion', 'Estado', 'Operacion']
+  displayedColumnsEkey: string[] = ['Nombre', 'Destinatario', 'Rol', 'Responsable', 'Fecha', 'Periodo_validez', 'Valido', 'Botones']
+  displayedColumnsPasscode: string[] = ['Nombre', 'Contrasena', 'Responsable', 'Fecha', 'Periodo_validez', 'Valido', 'Botones']
+  displayedColumnsCard: string[] = ['Nombre', 'Numero_tarjeta', 'Responsable', 'Fecha', 'Periodo_validez', 'Valido', 'Botones']
+  displayedColumnsFingerprint: string[] = ['Nombre', 'Responsable', 'Fecha', 'Periodo_validez', 'Valido', 'Botones']
   displayedColumnsRecord: string[] = ['Operador', 'Metodo_Apertura', 'Horario_Apertura', 'Estado']
   featureList = [
     { bit: 0, feature: "Passcode" },
@@ -495,7 +495,7 @@ export class LockComponent implements OnInit {
         this.ekeys = [];
         await this.fetchEkeys();
         this.ekeysDataSource = new MatTableDataSource(this.ekeys);
-        console.log("eKeys: ", this.ekeys)
+        //console.log("eKeys: ", this.ekeys)
         break;
       case 1:
         this.passcodes = [];
@@ -1139,6 +1139,13 @@ export class LockComponent implements OnInit {
     this.popupService.elementID = ekeyID;
     this.popupService.elementType = user;
     this.popupService.desautorizar = true;
+  }
+  aperturaRemota(ekeyID: number, remoteEnable: number){
+    this.popupService.userID = this.userID;
+    this.popupService.lockID = this.lockId;
+    this.popupService.elementID = ekeyID;
+    this.popupService.remoteEnable = remoteEnable;
+    this.popupService.changeRemoteEnable = true;
   }
   //FUNCIONES PASSCODE
   crearPasscode() {

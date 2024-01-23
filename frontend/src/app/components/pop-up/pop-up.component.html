@@ -47,6 +47,26 @@
         <button (click)="desautorizar()">Si</button>
     </div>
 </div>
+<div id="container" *ngIf="popupService.changeRemoteEnable">
+    <div id="header">
+        Por favor confirme sus acciones
+    </div>
+    <div id="content">
+        <div class="linea_alternative">
+            <span class="input-container">
+                Apertura Remota
+            </span>
+            <span class="input-container">
+                <mat-slide-toggle [(ngModel)]="remoteEnableToggle"
+                    (change)="remoteEnableToggleChange($event)"></mat-slide-toggle>
+            </span>
+        </div>
+    </div>
+    <div id="actions">
+        <button class="cancel" (click)="popupService.changeRemoteEnable = false">Cancelar</button>
+        <button (click)="cambiarRemoteUnlock()">Guardar</button>
+    </div>
+</div>
 <div id="container" *ngIf="popupService.congelar">
     <div id="header">
         Por favor confirme sus acciones
@@ -207,8 +227,7 @@
                         <ngx-material-timepicker #endTimePicker [hoursOnly]="true"></ngx-material-timepicker>
                     </span>
                 </div>
-                <div *ngIf="popupService.passcode.keyboardPwdType !== 1 && popupService.passcode.keyboardPwdType !== 2 && popupService.passcode.keyboardPwdType !== 3 && popupService.passcode.keyboardPwdType !== 4"
-                    class="linea">
+                <div *ngIf="popupService.passcode.keyboardPwdType !== 1 && popupService.passcode.keyboardPwdType !== 2 && popupService.passcode.keyboardPwdType !== 3 && popupService.passcode.keyboardPwdType !== 4" class="linea">
                     Hora de inicio
                     <span class="input-container">
                         <mat-form-field appearance="fill">
@@ -219,8 +238,7 @@
                         <ngx-material-timepicker #startTimePicker [hoursOnly]="true"></ngx-material-timepicker>
                     </span>
                 </div>
-                <div *ngIf="popupService.passcode.keyboardPwdType !== 1 && popupService.passcode.keyboardPwdType !== 2 && popupService.passcode.keyboardPwdType !== 3 && popupService.passcode.keyboardPwdType !== 4"
-                    class="linea">
+                <div *ngIf="popupService.passcode.keyboardPwdType !== 1 && popupService.passcode.keyboardPwdType !== 2 && popupService.passcode.keyboardPwdType !== 3 && popupService.passcode.keyboardPwdType !== 4" class="linea">
                     Hora de finalización
                     <span class="input-container">
                         <mat-form-field appearance="fill">
@@ -241,40 +259,6 @@
     </div>
     <div id="actions">
 
-    </div>
-</div>
-<div id="container" *ngIf="popupService.esencial">
-    <div id="header">
-        Esencial
-    </div>
-    <div id="content">
-        <div class="linea_alternative">
-            Número de la cerradura
-            <span class="input-container">
-                {{popupService.detalles.lockName}}
-            </span>
-        </div>
-        <div class="linea_alternative">
-            MAC
-            <span class="input-container">
-                {{popupService.detalles.lockMac}}
-            </span>
-        </div>
-        <div class="linea_alternative">
-            LockID
-            <span class="input-container">
-                {{popupService.detalles.lockId}}
-            </span>
-        </div>
-        <div class="linea_alternative">
-            Firmware
-            <span class="input-container">
-                {{popupService.detalles.firmwareRevision}}
-            </span>
-        </div>
-    </div>
-    <div id="actions">
-        <button (click)="popupService.esencial= false">Ok</button>
     </div>
 </div>
 <div id="container" *ngIf="popupService.gateway">
@@ -384,8 +368,7 @@
         Accesso Denegado
     </div>
     <div id="content">
-        No tiene permiso para acceder a esta cerradura. Comuníquese con el administrador de la cerradura para solucionar
-        este problema.
+        No tiene permiso para acceder a esta cerradura. Comuníquese con el administrador de la cerradura para solucionar este problema.
     </div>
     <div id="actions">
         <button (click)="popupService.invalidLock = false">Ok</button>
@@ -458,8 +441,7 @@
         </div>
     </div>
     <div id="actions">
-        <button class="cancel"
-            (click)="popupService.addLockGROUP = false; popupService.addRemoveLockGROUP = true">Volver</button>
+        <button class="cancel" (click)="popupService.addLockGROUP = false; popupService.addRemoveLockGROUP = true">Volver</button>
         <button (click)="addSelectedLocksToGroup()">OK</button>
     </div>
 </div>
@@ -483,8 +465,7 @@
         </div>
     </div>
     <div id="actions">
-        <button class="cancel"
-            (click)="popupService.removeLockGROUP = false; popupService.addRemoveLockGROUP = true">Volver</button>
+        <button class="cancel" (click)="popupService.removeLockGROUP = false; popupService.addRemoveLockGROUP = true">Volver</button>
         <button (click)="removeSelectedLocksFromGroup()">OK</button>
     </div>
 </div>
@@ -515,18 +496,15 @@
     <div id="content">
         <div class="form-area">
             <form #addRecipient="ngForm" class="common-form">
-                <div *ngFor="let recipient of popupService.recipients; let i = index" class="recipient-pair"
-                    style="display: flex;">
+                <div *ngFor="let recipient of popupService.recipients; let i = index" class="recipient-pair" style="display: flex;">
                     <div>
                         <p>
                             Cuenta del Destinatario
-                            <input type="text" class="form-input" required [(ngModel)]="recipient.username"
-                                name="recipientAccount{{i}}" (ngModelChange)="validateEmailPhone(recipient.username)">
+                            <input type="text" class="form-input" required [(ngModel)]="recipient.username" name="recipientAccount{{i}}" (ngModelChange)="validateEmailPhone(recipient.username)">
                         </p>
                         <p>
                             Nombre de ekey
-                            <input type="text" class="form-input" required [(ngModel)]="recipient.ekeyName"
-                                name="ekeyName{{i}}">
+                            <input type="text" class="form-input" required [(ngModel)]="recipient.ekeyName" name="ekeyName{{i}}">
                         </p>
                     </div>
                     <div style="display: flex; flex-direction: column; justify-content: center;">
@@ -573,11 +551,11 @@
     <div id="header">
         Acerque la tarjeta al lector
     </div>
-    <div id="content"> 
-        <img src="../../../assets/images/imagenCard.png" >
+    <div id="content">
+        <img src="../../../assets/images/imagenCard.png">
     </div>
     <div id="actions">
-        <button class="cancel" (click)="popupService.cardReader=false">Volver</button>    
+        <button class="cancel" (click)="popupService.cardReader=false">Volver</button>
     </div>
 </div>
 <div id="container" *ngIf="popupService.emailSuccess">
