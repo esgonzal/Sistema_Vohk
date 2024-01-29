@@ -44,6 +44,7 @@ import { RouterModule } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 import { GroupService } from './services/group.service';
+import { CameraStreamComponent } from './components/camera-stream/camera-stream.component';
 
 
 
@@ -64,6 +65,7 @@ import { GroupService } from './services/group.service';
     MultipleEkeyComponent,
     LoaderComponent,
     CardComponent,
+    CameraStreamComponent,
   ],
   imports: [
     BrowserModule,
