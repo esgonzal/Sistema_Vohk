@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { AppComponent } from './app.component';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { LoginComponent } from './components/login/login.component';
-import { RegisterComponent } from './components/register/register.component';
 import { UserComponent } from './components/user/user.component';
 import { LockComponent } from './components/lock/lock.component';
 import { PasscodeComponent } from './components/passcode/passcode.component';
@@ -11,8 +10,6 @@ import { CardComponent } from './components/card/card.component';
 import { PopUpComponent } from './components/pop-up/pop-up.component';
 import { PassageModeComponent } from './components/passage-mode/passage-mode.component';
 import { TransferLockComponent } from './components/transfer-lock/transfer-lock.component';
-import { HomeComponent } from './components/home/home.component';
-import { PerfilComponent } from './components/perfil/perfil.component';
 import { MultipleEkeyComponent } from './components/multiple-ekey/multiple-ekey.component';
 import { LoaderComponent } from './components/loader/loader.component';
 import { SidebarComponent } from './components/sidebar/sidebar.component';
@@ -55,7 +52,6 @@ import { GroupService } from './services/group.service';
     AppComponent,
     NavbarComponent,
     LoginComponent,
-    RegisterComponent,
     UserComponent,
     LockComponent,
     PasscodeComponent,
@@ -63,8 +59,6 @@ import { GroupService } from './services/group.service';
     PopUpComponent,
     PassageModeComponent,
     TransferLockComponent,
-    HomeComponent,
-    PerfilComponent,
     SidebarComponent,
     GrupoCerradurasComponent,
     MultipleEkeyComponent,

@@ -57,8 +57,8 @@ export class UserComponent implements OnInit {
       .map(({ lockId, lockAlias }) => ({ lockId, lockAlias }));
     // Set the filtered locks in the LockService
     this.lockService.filteredLocks = filteredLocks;
-    console.log('Filtered locks:', filteredLocks);
-    console.log('All locks:', this.allLocks);
+    //console.log('Filtered locks:', filteredLocks);
+    //console.log('All locks:', this.allLocks);
   }
   ngOnDestroy() {
     if (this.selectedGroupSubscription) {
@@ -94,9 +94,9 @@ export class UserComponent implements OnInit {
     } finally {
       this.isLoading = false; // Set isLoading to false when data fetching is complete
     }
-    console.log("Locks actuales", this.locks)
-    console.log("all locks:", this.allLocks)
-    console.log("locks sin grupo:", this.locksWithoutGroup)
+    //console.log("Locks actuales", this.locks)
+    //console.log("all locks:", this.allLocks)
+    //console.log("locks sin grupo:", this.locksWithoutGroup)
   }
   async getAllLocks() {
     this.isLoading = true;

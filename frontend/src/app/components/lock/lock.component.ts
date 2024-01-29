@@ -157,8 +157,8 @@ export class LockComponent implements OnInit {
   async ngOnInit() {
     this.userID = this.username;
     await this.fetchEkeys();
-    await this.fetchPasscodes();
-    this.updatePasscodeUsage();
+    //await this.fetchPasscodes();
+    //this.updatePasscodeUsage();
     //await this.getAllLocks();
     //await this.fetchGroups();
     for (const feature of this.featureList) {
