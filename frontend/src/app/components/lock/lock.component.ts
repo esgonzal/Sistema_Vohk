@@ -417,51 +417,6 @@ export class LockComponent implements OnInit {
       this.isLoading = false;
     }
   }
-  async fetchGatewaysAccount() {
-    this.isLoading = true;
-    try {
-      await this.fetchGatewaysAccountPage(1);
-    } catch (error) {
-      console.error("Error while fetching gateways of an account:", error)
-    } finally {
-      this.isLoading = false;
-    }
-  }
-  async fetchGatewaysAccountPage(pageNo: number) {
-    this.isLoading = true;
-    try {
-      const response = await lastValueFrom(this.gatewayService.getGatewaysAccount(this.userID, pageNo, 100))
-      const typedResponse = response as GatewayAccountResponse;
-      if (typedResponse?.list) {
-        this.popupService.gatewaysOfAccount.push(...typedResponse.list);
-        if (typedResponse.pages > pageNo) {
-          await this.fetchGatewaysAccountPage(pageNo + 1)
-        }
-      } else {
-        console.log("Gateways not yet available");
-      }
-    } catch (error) {
-      console.error("Error while fetching gateways page:", error);
-    } finally {
-      this.isLoading = false;
-    }
-  }
-  async fetchGatewaysLock() {
-    this.isLoading = true;
-    try {
-      const response = await lastValueFrom(this.gatewayService.getGatewayListOfLock(this.userID, this.lockId));
-      const typedResponse = response as GatewayLockResponse;
-      if (typedResponse.list) {
-        this.popupService.gatewaysOfLock.push(...typedResponse.list)
-      } else {
-        console.log("Gateways of the lock not yet available");
-      }
-    } catch (error) {
-      console.error("Error while fetching gateways of a lock:", error)
-    } finally {
-      this.isLoading = false; // Set isLoading to false when data fetching is complete
-    }
-  }
   async fetchLockDetails() {
     this.isLoading = true;
     try {
@@ -956,45 +911,10 @@ export class LockComponent implements OnInit {
     }
   }
   //SETTINGS
-  Esencial() {
-    this.popupService.detalles = this.lockDetails;
-    this.popupService.esencial = true;
-  }
   TransferirLock() {
     this.lockService.userID = this.userID;
     this.lockService.lockID = this.lockId;
     this.router.navigate(["users", this.username, "lock", this.lockId, "transferLock"]);
-  }
-  async Gateway() {
-    //Traer Gateways
-    await this.fetchGatewaysLock()
-    await this.fetchGatewaysAccount()
-    this.popupService.gateway = true;
-  }
-  async HoraDispositivo() {
-    if (this.gateway === '1') {
-      this.gatewayService.userID = this.userID;
-      this.gatewayService.lockID = this.lockId;
-      this.isLoading = true;
-      try {
-        let response = await lastValueFrom(this.gatewayService.getLockTime(this.userID, this.lockId)) as GetLockTimeResponse;
-        if (response.date) {
-          this.popupService.currentTime = response.date;
-        } else if (response.errcode === 10003) {
-          sessionStorage.clear();
-          this.router.navigate(['/login']);
-        } else {
-          console.log(response)
-        }
-      } catch (error) {
-        console.error("Error while fetching lock's time:", error)
-      } finally {
-        this.isLoading = false; // Set isLoading to false when data fetching is complete
-      }
-      this.popupService.mostrarHora = true;
-    } else {
-      this.popupService.needGateway = true;
-    }
   }
   async PassageMode() {
     if (this.gateway === '1') {
@@ -1093,7 +1013,7 @@ export class LockComponent implements OnInit {
   borrarEkey(ekeyID: number, ekeyUsername: string) {
     this.popupService.userID = this.userID;
     this.popupService.lockID = this.lockId;
-    this.popupService.elementType = 'ekey';
+    this.popupService.elementType = 'la ekey';
     this.popupService.elementID = ekeyID;
     this.popupService.ekeyUsername = ekeyUsername;
     this.popupService.delete = true;
@@ -1162,7 +1082,7 @@ export class LockComponent implements OnInit {
     if (this.gateway === '1') {
       this.popupService.userID = this.userID;
       this.popupService.lockID = this.lockId;
-      this.popupService.elementType = 'passcode';
+      this.popupService.elementType = 'el código';
       this.popupService.elementID = passcodeID;
       this.popupService.delete = true;
     } else {
@@ -1205,7 +1125,7 @@ export class LockComponent implements OnInit {
     if (this.gateway === '1') {
       this.popupService.userID = this.userID;
       this.popupService.lockID = this.lockId;
-      this.popupService.elementType = 'card';
+      this.popupService.elementType = 'la tarjeta';
       this.popupService.elementID = cardID;
       this.popupService.delete = true;
     } else {
@@ -1237,7 +1157,7 @@ export class LockComponent implements OnInit {
     if (this.gateway === '1') {
       this.popupService.userID = this.userID;
       this.popupService.lockID = this.lockId;
-      this.popupService.elementType = 'fingerprint';
+      this.popupService.elementType = 'la huella';
       this.popupService.elementID = fingerID;
       this.popupService.delete = true;
     } else {

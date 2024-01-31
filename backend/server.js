@@ -2,7 +2,6 @@ const express = require('express');
 const http = require('http');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const MjpegServer = require('mjpeg-server');
 const app = express();
 
 // Middleware
@@ -12,9 +11,6 @@ const corsOptions = {
     origin: ['https://www.vohkapp.com', 'https://vohkapp.com', /^http:\/\/localhost:\d+$/],
 };
 app.use(cors(corsOptions));
-
-// Create an instance of MjpegServer
-const mjpegServer = new MjpegServer();
 
 // API v0
 const { accessTokenStorage, storeAccessToken } = require('../backend/routes/v0/accessTokenStorage.js');
@@ -82,13 +78,9 @@ app.use('/v1/group', GroupRouter);
 const emailRouter = require('../backend/routes/nodemailer/emailRoutes.js');
 app.use('/mail', emailRouter);
 
-// Add the /stream endpoint
-app.get('/stream', (req, res) => {
-    // Replace with the actual camera stream URL
-    const cameraStreamUrl = 'http://82.134.72.194/mjpg/video.mjpg';
-    mjpegServer.addClient(req, res);
-    mjpegServer.start(cameraStreamUrl);
-});
+//Camera
+const cameraRouter = require('../backend/routes/camera/cameraRoutes.js');
+app.use('/camera', cameraRouter);
 
 // HTTP Configuration
 const httpPort = 8080;

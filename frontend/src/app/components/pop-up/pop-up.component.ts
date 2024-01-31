@@ -29,6 +29,12 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 })
 export class PopUpComponent implements OnInit {
   isLoading: boolean = false;
+  name: string;
+  passcodePwd: string;
+  startDate: string;
+  startHour: string;
+  endDate: string;
+  endHour: string;
   gatewayEncontrado: GatewayAccount | undefined
   redWiFi: string | undefined;
   displayedColumnsGateway: string[] = ['NombreGateway', 'NombreWifi', 'Signal']
@@ -219,27 +225,27 @@ export class PopUpComponent implements OnInit {
       return '2'
     }
   }
-  async cambiarNombre(datos: Formulario) {
+  async cambiarNombre() {
     this.error = '';
     let response;
     this.isLoading = true;
     try {
-      if (!datos.name) {
+      if (!this.name) {
         this.error = "Por favor ingrese un nombre"
       } else {
         if (this.popupService.cambiarNombre) {
           switch (this.popupService.elementType) {
             case 'ekey':
-              response = await lastValueFrom(this.ekeyService.modifyEkey(this.popupService.userID, this.popupService.elementID, datos.name)) as operationResponse;
+              response = await lastValueFrom(this.ekeyService.modifyEkey(this.popupService.userID, this.popupService.elementID, this.name)) as operationResponse;
               break;
             case 'card':
-              response = await lastValueFrom(this.cardService.changeName(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, datos.name)) as operationResponse;
+              response = await lastValueFrom(this.cardService.changeName(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, this.name)) as operationResponse;
               break;
             case 'fingerprint':
-              response = await lastValueFrom(this.fingerprintService.changeName(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, datos.name)) as operationResponse;
+              response = await lastValueFrom(this.fingerprintService.changeName(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, this.name)) as operationResponse;
               break;
             case 'grupo':
-              response = await lastValueFrom(this.groupService.renameGroup(this.popupService.userID, this.popupService.elementID.toString(), datos.name)) as operationResponse;
+              response = await lastValueFrom(this.groupService.renameGroup(this.popupService.userID, this.popupService.elementID.toString(), this.name)) as operationResponse;
               break;
             default:
               console.error('Invalid element type for deletion:', this.popupService.elementID);
@@ -250,7 +256,6 @@ export class PopUpComponent implements OnInit {
         if (response?.errcode === 0) {
           this.popupService.cambiarNombre = false;
           window.location.reload();
-          console.log("Se ha cambiado el nombre de", this.popupService.elementType, "exitosamente")
         } else if (response?.errcode === -3) {
           this.error = "El nombre ingresado es muy largo"
         } else if (response?.errcode === 10003) {
@@ -315,7 +320,7 @@ export class PopUpComponent implements OnInit {
       this.isLoading = false;
     }
   }
-  async editarPasscode(datos: Formulario) {
+  async editarPasscode() {
     let response;
     let newStartDate;
     let newEndDate;
@@ -323,20 +328,20 @@ export class PopUpComponent implements OnInit {
     this.isLoading = true;
     try {
       if (this.popupService.passcode.keyboardPwdType === 1 || this.popupService.passcode.keyboardPwdType === 2 || this.popupService.passcode.keyboardPwdType === 4) {
-        response = await lastValueFrom(this.passcodeService.changePasscode(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, datos.name, datos.passcodePwd)) as operationResponse;
+        response = await lastValueFrom(this.passcodeService.changePasscode(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, this.name, this.passcodePwd)) as operationResponse;
       }
       if (this.popupService.passcode.keyboardPwdType === 3) {
-        let newStartDay = moment(datos.startDate).valueOf()
-        let newEndDay = moment(datos.endDate).valueOf()
-        newStartDate = moment(newStartDay).add(this.lockService.transformarHora(datos.startHour), "milliseconds").valueOf()
-        newEndDate = moment(newEndDay).add(this.lockService.transformarHora(datos.endHour), "milliseconds").valueOf()
-        response = await lastValueFrom(this.passcodeService.changePasscode(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, datos.name, datos.passcodePwd, newStartDate.toString(), newEndDate.toString())) as operationResponse
+        let newStartDay = moment(this.startDate).valueOf()
+        let newEndDay = moment(this.endDate).valueOf()
+        newStartDate = moment(newStartDay).add(this.lockService.transformarHora(this.startHour), "milliseconds").valueOf()
+        newEndDate = moment(newEndDay).add(this.lockService.transformarHora(this.endHour), "milliseconds").valueOf()
+        response = await lastValueFrom(this.passcodeService.changePasscode(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, this.name, this.passcodePwd, newStartDate.toString(), newEndDate.toString())) as operationResponse
       }
       if (this.popupService.passcode.keyboardPwdType === 5 || this.popupService.passcode.keyboardPwdType === 6 || this.popupService.passcode.keyboardPwdType === 7 || this.popupService.passcode.keyboardPwdType === 8 || this.popupService.passcode.keyboardPwdType === 9 || this.popupService.passcode.keyboardPwdType === 10 || this.popupService.passcode.keyboardPwdType === 11 || this.popupService.passcode.keyboardPwdType === 12 || this.popupService.passcode.keyboardPwdType === 13 || this.popupService.passcode.keyboardPwdType === 14) {
         let today = moment({ hour: 0, minute: 0 }).valueOf()
-        let newStartDate = moment(today).add(this.lockService.transformarHora(datos.startHour), "milliseconds").valueOf()
-        let newEndDate = moment(today).add(this.lockService.transformarHora(datos.endHour), "milliseconds").valueOf()
-        response = await lastValueFrom(this.passcodeService.changePasscode(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, datos.name, datos.passcodePwd, newStartDate.toString(), newEndDate.toString()))
+        let newStartDate = moment(today).add(this.lockService.transformarHora(this.startHour), "milliseconds").valueOf()
+        let newEndDate = moment(today).add(this.lockService.transformarHora(this.endHour), "milliseconds").valueOf()
+        response = await lastValueFrom(this.passcodeService.changePasscode(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, this.name, this.passcodePwd, newStartDate.toString(), newEndDate.toString()))
       }
       //console.log(response)
       if (response?.errcode === 0) {
@@ -358,22 +363,6 @@ export class PopUpComponent implements OnInit {
       console.error("Error while editing a passcode:", error);
     } finally {
       this.isLoading = false;
-    }
-  }
-  encontrarRed(gatewayID: number) {
-    this.gatewayEncontrado = this.popupService.gatewaysOfAccount.find((gw: { gatewayId: number }) => gw.gatewayId === gatewayID)
-    this.redWiFi = this.gatewayEncontrado?.networkName;
-    return this.redWiFi;
-  }
-  displayrssi(rssi: number) {
-    if (rssi > -75) {
-      return 'Fuerte '.concat(rssi.toString());
-    }
-    if (rssi < -85) {
-      return 'Debil '.concat(rssi.toString());
-    }
-    else {
-      return 'Mediana '.concat(rssi.toString());
     }
   }
   onSelected(value: string): void {
@@ -455,14 +444,14 @@ export class PopUpComponent implements OnInit {
   formatearHora() {
     return moment(this.popupService.currentTime).format("DD/MM/YYYY HH:mm:ss")
   }
-  async crearGrupo(datos: Formulario) {
+  async crearGrupo() {
     this.error = '';
     this.isLoading = true;
     try {
-      if (!datos.name) {
+      if (!this.name) {
         this.error = "Por favor ingrese el dato requerido"
       } else {
-        let response = await lastValueFrom(this.groupService.addGroup(this.popupService.userID, datos.name)) as addGroupResponse;
+        let response = await lastValueFrom(this.groupService.addGroup(this.popupService.userID, this.name)) as addGroupResponse;
         //console.log(response)
         if (response.groupID) {
           this.popupService.newGroup = false;

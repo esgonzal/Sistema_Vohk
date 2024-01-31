@@ -41,8 +41,8 @@
                                 <button [matMenuTriggerFor]="menu" aria-label="Settings" style="background-color: #f9c114;"><fa-icon [icon]="faGear"></fa-icon></button>
                                 <mat-menu #menu="matMenu">
                                     <button mat-menu-item *ngIf="userType==='110301'" (click)="TransferirLock()"><span>Transferir Dispositivo</span></button>
-                                    <button mat-menu-item *ngIf="userType==='110301'" (click)="Gateway()"><span>Gateway</span></button>
-                                    <button mat-menu-item (click)="HoraDispositivo()"><span>Hora del Dispositivo</span></button>
+                                    <!--<button mat-menu-item *ngIf="userType==='110301'" (click)="Gateway()"><span>Gateway</span></button>-->
+                                    <!--<button mat-menu-item (click)="HoraDispositivo()"><span>Hora del Dispositivo</span></button>-->
                                     <button mat-menu-item *ngIf="(userType==='110301' || (userType==='110302' && keyRight==='1'))  && lockService.checkFeature(featureValue, 22)" (click)="PassageMode()"><span>Modo de Paso</span></button>
                                 </mat-menu>
                             </div>
@@ -383,4 +383,4 @@
 <app-pop-up *ngIf="this.popupService.delete || this.popupService.cambiarNombre || this.popupService.cambiarPeriodo || this.popupService.editarPasscode || 
                   this.popupService.autorizar || this.popupService.desautorizar || this.popupService.changeRemoteEnable || this.popupService.congelar || 
                   this.popupService.descongelar || this.popupService.esencial || this.popupService.gateway || 
-                  this.popupService.cerradoAutomatico || this.popupService.mostrarHora || this.popupService.needGateway || this.popupService.sharePasscode" style="z-index: 10;"></app-pop-up>
+                  this.popupService.cerradoAutomatico || this.popupService.mostrarHora || this.popupService.needGateway || this.popupService.sharePasscode" style="z-index: 1001;"></app-pop-up>

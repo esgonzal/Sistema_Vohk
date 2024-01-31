@@ -14,6 +14,7 @@ import { MultipleEkeyComponent } from './components/multiple-ekey/multiple-ekey.
 import { LoaderComponent } from './components/loader/loader.component';
 import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { GrupoCerradurasComponent } from './components/grupo-cerraduras/grupo-cerraduras.component';
+import { CameraStreamComponent } from './components/camera-stream/camera-stream.component';
 
 import { DatePipe } from '@angular/common';
 import { HttpClientModule } from "@angular/common/http";
@@ -44,7 +45,7 @@ import { RouterModule } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 import { GroupService } from './services/group.service';
-import { CameraStreamComponent } from './components/camera-stream/camera-stream.component';
+
 
 
 
@@ -65,7 +66,7 @@ import { CameraStreamComponent } from './components/camera-stream/camera-stream.
     MultipleEkeyComponent,
     LoaderComponent,
     CardComponent,
-    CameraStreamComponent,
+    CameraStreamComponent
   ],
   imports: [
     BrowserModule,

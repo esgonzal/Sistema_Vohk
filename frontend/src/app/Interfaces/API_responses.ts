@@ -134,3 +134,9 @@ export interface getByUserAndLockIdResponse {
 export interface logoutResponse {
     message: string;
 }
+export interface cameraFeedResponse {
+    success: boolean;
+    streamUrl: string;
+    message: string;
+    error: string;
+}

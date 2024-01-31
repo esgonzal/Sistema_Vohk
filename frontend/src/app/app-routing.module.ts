@@ -10,6 +10,7 @@ import { TransferLockComponent } from './components/transfer-lock/transfer-lock.
 import { GrupoCerradurasComponent } from './components/grupo-cerraduras/grupo-cerraduras.component';
 import { MultipleEkeyComponent } from './components/multiple-ekey/multiple-ekey.component';
 import { CardComponent } from './components/card/card.component';
+import { CameraStreamComponent } from './components/camera-stream/camera-stream.component';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -21,7 +22,8 @@ const routes: Routes = [
   { path: 'users/:username/lock/:id/card', component: CardComponent },
   { path: 'users/:username/lock/:id/ekey/multiple', component: MultipleEkeyComponent },
   { path: 'users/:username/lock/:id/passageMode', component: PassageModeComponent },
-  { path: 'users/:username/lock/:id/transferLock', component: TransferLockComponent }
+  { path: 'users/:username/lock/:id/transferLock', component: TransferLockComponent },
+  { path: 'testing/camera', component: CameraStreamComponent}
 ];
 
 @NgModule({
