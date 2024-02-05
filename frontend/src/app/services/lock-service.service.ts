@@ -4,6 +4,8 @@ import { Observable } from 'rxjs';
 import { LockListResponse, operationResponse } from '../Interfaces/API_responses';
 import { LockDetails } from '../Interfaces/Lock';
 import moment from 'moment';
+import { Ekey, Fingerprint, Passcode } from '../Interfaces/Elements';
+import { DomSanitizer } from '@angular/platform-browser';
 
 @Injectable({
   providedIn: 'root'
@@ -27,7 +29,7 @@ export class LockServiceService {
   }
 
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private sanitizer: DomSanitizer) { }
 
   public transformarHora(Tiempo: string) {//Esta funcion está encargada de convertir el resultado del timepicker, un string de formato ("HH:mm"), en un number que representa el tiempo en milisegundos
     let tiempoHora = Tiempo.split(":")[0]
@@ -39,27 +41,236 @@ export class LockServiceService {
     const reversedBinary = binaryValue.split('').reverse().join('');
     return reversedBinary[bit] === '1';
   }
-  getLockListAccount(userID: string): Observable<LockListResponse> {
-    let pageNo = 1;
-    let pageSize = 100;
-    let body = {userID, pageNo, pageSize};
-    let url = this.URL.concat('/v0/lock/getListAccount');
-    return this.http.post<LockListResponse>(url, body)
+  periodoValidez(start: number, end: number) {
+    if (end === 0) { return 'Permanente' }
+    else {
+      var inicio = moment(start).format("YYYY/MM/DD HH:mm")
+      var final = moment(end).format("YYYY/MM/DD HH:mm")
+      var retorno = inicio.toString().concat(' - ').concat(final.toString());
+      return retorno
+    }
   }
-  getLockDetails(userID: string, lockID: number): Observable<LockDetails> {
-    let body = {userID, lockID};
-    let url = this.URL.concat('/v0/lock/details');
-    return this.http.post<LockDetails>(url, body)
+  periodoValidezEkey(ekey: Ekey) {
+    if (Number(ekey.endDate) === 1) {//UNA VEZ
+      let retorno = moment(ekey.startDate).format('DD/MM/YYYY HH:mm').concat(" Una vez");
+      return retorno;
+    } else if (ekey.keyType === 4) {//SOLICITANTE
+      const dayNames = ["Sabado", "Domingo", "Lunes", "Martes", "Miercoles", "Jueves", "Viernes"];
+      let HoraInicio = moment(ekey.startDate).format('HH:mm');
+      let HoraFinal = moment(ekey.endDate).format('HH:mm');
+      let DiaInicio = moment(ekey.startDay).format('DD/MM/YYYY');
+      let DiaFinal = moment(ekey.endDay).format('DD/MM/YYYY');
+      let selectedDays = JSON.parse(ekey.weekDays);
+      let formattedSelectedDays = selectedDays.map((day: number) => dayNames[day]).join(', ');
+      let formattedResult = `${DiaInicio} - ${DiaFinal}, ${formattedSelectedDays}, ${HoraInicio} ~ ${HoraFinal}`;
+      return formattedResult
+    } else {
+      return this.periodoValidez(Number(ekey.startDate), Number(ekey.endDate))
+    }
   }
-  setAutoLock(userID: string, lockID: number, seconds: number): Observable<operationResponse> {
-    let body = {userID, lockID, seconds}
-    let url = this.URL.concat('/v0/lock/setAutoLock');
-    return this.http.post<operationResponse>(url, body);
+  periodoValidezPasscode(passcode: Passcode) {
+    var respuesta
+    if (passcode.keyboardPwdType === 1) {
+      respuesta = moment(passcode.sendDate).format("DD/MM/YYYY HH:mm").concat(' Una Vez');
+    } else if (passcode.keyboardPwdType === 2) {
+      respuesta = 'Permanente'
+    } else if (passcode.keyboardPwdType === 3) {
+      var inicio = moment(passcode.startDate).format("DD/MM/YYYY HH:mm")
+      var final = moment(passcode.endDate).format("DD/MM/YYYY HH:mm")
+      respuesta = inicio.toString().concat(' - ').concat(final.toString());
+    } else if (passcode.keyboardPwdType === 4) {
+      respuesta = moment(passcode.sendDate).format("DD/MM/YYYY HH:mm").concat(' Borrar');
+    } else if (passcode.keyboardPwdType === 5) {
+      var inicio = moment(passcode.startDate).format(" HH:mm")
+      var final = moment(passcode.endDate).format(" HH:mm")
+      respuesta = moment(passcode.sendDate).format("DD/MM/YYYY HH:mm").concat(", ", inicio, " - ", final, " Fin de Semana")
+    } else if (passcode.keyboardPwdType === 6) {
+      var inicio = moment(passcode.startDate).format(" HH:mm")
+      var final = moment(passcode.endDate).format(" HH:mm")
+      respuesta = moment(passcode.sendDate).format("DD/MM/YYYY HH:mm").concat(", ", inicio, " - ", final, " Diaria")
+    } else if (passcode.keyboardPwdType === 7) {
+      var inicio = moment(passcode.startDate).format(" HH:mm")
+      var final = moment(passcode.endDate).format(" HH:mm")
+      respuesta = moment(passcode.sendDate).format("DD/MM/YYYY HH:mm").concat(", ", inicio, " - ", final, " Dia de Trabajo")
+    } else if (passcode.keyboardPwdType === 8) {
+      var inicio = moment(passcode.startDate).format(" HH:mm")
+      var final = moment(passcode.endDate).format(" HH:mm")
+      respuesta = moment(passcode.sendDate).format("DD/MM/YYYY HH:mm").concat(", ", inicio, " - ", final, " Lunes")
+    } else if (passcode.keyboardPwdType === 9) {
+      var inicio = moment(passcode.startDate).format(" HH:mm")
+      var final = moment(passcode.endDate).format(" HH:mm")
+      respuesta = moment(passcode.sendDate).format("DD/MM/YYYY HH:mm").concat(", ", inicio, " - ", final, " Martes")
+    } else if (passcode.keyboardPwdType === 10) {
+      var inicio = moment(passcode.startDate).format(" HH:mm")
+      var final = moment(passcode.endDate).format(" HH:mm")
+      respuesta = moment(passcode.sendDate).format("DD/MM/YYYY HH:mm").concat(", ", inicio, " - ", final, " Miercoles")
+    } else if (passcode.keyboardPwdType === 11) {
+      var inicio = moment(passcode.startDate).format(" HH:mm")
+      var final = moment(passcode.endDate).format(" HH:mm")
+      respuesta = moment(passcode.sendDate).format("DD/MM/YYYY HH:mm").concat(", ", inicio, " - ", final, " Jueves")
+    } else if (passcode.keyboardPwdType === 12) {
+      var inicio = moment(passcode.startDate).format(" HH:mm")
+      var final = moment(passcode.endDate).format(" HH:mm")
+      respuesta = moment(passcode.sendDate).format("DD/MM/YYYY HH:mm").concat(", ", inicio, " - ", final, " Viernes")
+    } else if (passcode.keyboardPwdType === 13) {
+      var inicio = moment(passcode.startDate).format(" HH:mm")
+      var final = moment(passcode.endDate).format(" HH:mm")
+      respuesta = moment(passcode.sendDate).format("DD/MM/YYYY HH:mm").concat(", ", inicio, " - ", final, " Sabado")
+    } else {
+      var inicio = moment(passcode.startDate).format(" HH:mm")
+      var final = moment(passcode.endDate).format(" HH:mm")
+      respuesta = moment(passcode.sendDate).format("DD/MM/YYYY HH:mm").concat(", ", inicio, " - ", final, " Domingo")
+    }
+    return respuesta;
   }
-  transferLock(userID: string, receiverUsername: string, lockID: string): Observable<operationResponse> {
-    let body = {userID, receiverUsername, lockID}
-    let url = this.URL.concat('/v0/lock/transfer');
-    return this.http.post<operationResponse>(url, body);
+  periodoValidezFingerprint(fingerprint: Fingerprint) {
+    if (fingerprint.fingerprintType === 1) {
+      return this.periodoValidez(fingerprint.startDate, fingerprint.endDate)
+    }
+    else {
+      let HoraInicio: string;
+      let HoraFinal: string;
+      let minutosInicio;
+      let minutosFinal;
+      let fechaInicio = moment(fingerprint.startDate)
+      let fechaFinal = moment(fingerprint.endDate)
+      let retorno = fechaInicio.format("DD/MM/YYYY").toString().concat(' - ').concat(fechaFinal.format("DD/MM/YYYY").toString().concat("\n"));
+      for (let index = 0; index < fingerprint.cyclicConfig.length; index++) {
+        if (fingerprint.cyclicConfig[index].weekDay === 1) {
+          retorno += ', Lunes';
+        }
+        if (fingerprint.cyclicConfig[index].weekDay === 2) {
+          retorno += ', Martes';
+        }
+        if (fingerprint.cyclicConfig[index].weekDay === 3) {
+          retorno += ', Miercoles';
+        }
+        if (fingerprint.cyclicConfig[index].weekDay === 4) {
+          retorno += ', Jueves';
+        }
+        if (fingerprint.cyclicConfig[index].weekDay === 5) {
+          retorno += ', Viernes';
+        }
+        if (fingerprint.cyclicConfig[index].weekDay === 6) {
+          retorno += ', Sabado';
+        }
+        if (fingerprint.cyclicConfig[index].weekDay === 7) {
+          retorno += ', Domingo';
+        }
+        minutosInicio = fingerprint.cyclicConfig[index].startTime
+        minutosFinal = fingerprint.cyclicConfig[index].endTime
+      }
+      //SE AGREGA EL TIEMPO DE CICLO A LA FECHA
+      fechaInicio.add(minutosInicio, 'minutes')
+      fechaFinal.add(minutosFinal, 'minutes')
+      fechaFinal.add(1, 'minutes');//POR ALGUNA RAZON LE FALTA UN MINUTO A LA HORA FINAL TALVEZ REDONDEA MAL
+      //AGREGAR UN 0 AL INICIO PARA QUE QUEDE 09:00 EN VEZ DE 9:00
+      if (fechaInicio.hours() < 10) {
+        let cero = "0";
+        cero = cero.concat(fechaInicio.hours().toString())
+        HoraInicio = cero
+      } else {
+        HoraInicio = fechaInicio.hours().toString()
+      }
+      //SE HACE LO MISMO CON MINUTOS Y SE JUNTAN PARA QUE QUEDE 09:08 EN VEZ DE 09:8
+      if (fechaInicio.minutes() < 10) {
+        let cero = "0";
+        cero = cero.concat(fechaInicio.minutes().toString())
+        HoraInicio = HoraInicio.concat(":").concat(cero);
+      } else {
+        HoraInicio = HoraInicio.concat(":").concat(fechaInicio.minutes().toString())
+      }
+      //HACER LO MISMO CON HORA FINAL
+      if (fechaFinal.hours() < 10) {
+        let cero = "0";
+        cero = cero.concat(fechaFinal.hours().toString())
+        HoraFinal = cero
+      } else {
+        HoraFinal = fechaFinal.hours().toString()
+      }
+      if (fechaFinal.minutes() < 10) {
+        let cero = "0";
+        cero = cero.concat(fechaFinal.minutes().toString())
+        HoraFinal = HoraFinal.concat(":").concat(cero);
+      } else {
+        HoraFinal = HoraFinal.concat(":").concat(fechaFinal.minutes().toString())
+      }
+      retorno = retorno.concat("\n").concat(HoraInicio).concat(" ~ ").concat(HoraFinal)
+      return retorno
+    }
+  }
+  consultarEstado(end: number) {
+    if (end === 0) { return this.sanitizer.bypassSecurityTrustHtml('<span style="color: green;">Valido</span>'); }
+    else {
+      var ahora = moment()
+      var final = moment(end)
+      if (moment(final).isBefore(ahora)) {
+        return this.sanitizer.bypassSecurityTrustHtml('<span style="color: red;">Caducado</span>');
+      }
+      else { return this.sanitizer.bypassSecurityTrustHtml('<span style="color: green;">Valido</span>'); }
+    }
+  }
+  consultarEstadoEkey(ekey: Ekey) {
+    if (ekey.keyStatus === "110402") {//PENDING
+      return this.sanitizer.bypassSecurityTrustHtml('<span style="color: gray;">Pendiente</span>');
+    }
+    if (ekey.keyStatus === "110405") {//FREEZED
+      return this.sanitizer.bypassSecurityTrustHtml('<span style="color: blue;">Congelada</span>');
+    }
+    else {//NORMAL
+      if (!ekey.endDay) {//MIENTRAS NO SEA SOLICITANTE 
+        if (Number(ekey.endDate) === 0) {//PERMANENTE
+          return this.sanitizer.bypassSecurityTrustHtml('<span style="color: green;">Valido</span>');
+        }
+        if (Number(ekey.endDate) === 1) {//UNA VEZ
+          if (moment(ekey.startDate).add(1, "hour").isAfter(moment())) {
+            return this.sanitizer.bypassSecurityTrustHtml('<span style="color: green;">Valido</span>');
+          } else {
+            return this.sanitizer.bypassSecurityTrustHtml('<span style="color: red;">Invalido</span>');
+          }
+        }
+        else {//PERIODICA
+          return this.consultarEstado(Number(ekey.endDate))
+        }
+      }
+      else {//SOLICITANTE
+        let fecha = moment(ekey.endDay).format("YYYY-MM-DD");
+        let tiempo = moment(ekey.endDate).format("YYYY-MM-DD/HH:mm")
+        tiempo = tiempo.split("/")[1];
+        let end = fecha.concat(" ", tiempo);
+        return this.consultarEstado(moment(end).valueOf())
+      }
+    }
+  }
+  consultarEstadoPasscode(passcode: Passcode) {
+    if (passcode.keyboardPwdType === 1) {
+      let seisHoras = moment(passcode.startDate).add(6, 'hours')
+      let ahora = moment()
+      if (ahora.isAfter(seisHoras)) {
+        return 'Caducado'
+      } else {
+        return 'Valido'
+      }
+    }
+    if (passcode.keyboardPwdType === 2) {
+      return 'Valido'
+    }
+    if (passcode.keyboardPwdType === 3) {
+      let ahora = moment()
+      let inicio = moment(passcode.startDate)
+      let final = moment(passcode.endDate)
+      if (ahora.isBefore(inicio) || ahora.isAfter(final) || final.isBefore(inicio)) {
+        return 'Inactivo'
+      } else {
+        return 'Valido'
+      }
+    }
+    if (passcode.keyboardPwdType === 4) {
+      return 'Valido'
+    }
+    else {
+      return 'Valido'
+    }
   }
   consultarSuccess(success: number) {
     if (success == 0) { return 'Fallido' }
@@ -250,4 +461,27 @@ export class LockServiceService {
     const formattedMoment = moment(date).format('DD/MM/YYYY HH:mm');
     return formattedMoment; 
   }
+  getLockListAccount(userID: string): Observable<LockListResponse> {
+    let pageNo = 1;
+    let pageSize = 100;
+    let body = {userID, pageNo, pageSize};
+    let url = this.URL.concat('/v0/lock/getListAccount');
+    return this.http.post<LockListResponse>(url, body)
+  }
+  getLockDetails(userID: string, lockID: number): Observable<LockDetails> {
+    let body = {userID, lockID};
+    let url = this.URL.concat('/v0/lock/details');
+    return this.http.post<LockDetails>(url, body)
+  }
+  setAutoLock(userID: string, lockID: number, seconds: number): Observable<operationResponse> {
+    let body = {userID, lockID, seconds}
+    let url = this.URL.concat('/v0/lock/setAutoLock');
+    return this.http.post<operationResponse>(url, body);
+  }
+  transferLock(userID: string, receiverUsername: string, lockID: string): Observable<operationResponse> {
+    let body = {userID, receiverUsername, lockID}
+    let url = this.URL.concat('/v0/lock/transfer');
+    return this.http.post<operationResponse>(url, body);
+  }
+  
 }

@@ -53,11 +53,17 @@ export class LockComponent implements OnInit {
   pageLoaded = false;
   isLoading: boolean = false;
   lockDetails: LockDetails;
-  ekeys: Ekey[] = []
-  passcodes: Passcode[] = []
-  fingerprints: Fingerprint[] = []
-  cards: Card[] = []
+  textoBusqueda: string = '';
+  ekeys: Ekey[] = [];
+  ekeys_filtradas: Ekey[] = [];
+  passcodes: Passcode[] = [];
+  passcodes_filtradas: Passcode[] = [];
+  fingerprints: Fingerprint[] = [];
+  fingerprints_filtradas: Fingerprint[] = [];
+  cards: Card[] = [];
+  cards_filtradas: Card[] = [];
   records: Record[] = []
+  records_filtradas: Record[] = [];
   allLocks: LockData[] = [];
   locks: LockData[] = [];
   locksWithoutGroup: LockData[] = [];
@@ -277,6 +283,7 @@ export class LockComponent implements OnInit {
     }
   }
   async fetchEkeys() {
+    this.ekeys = [];
     this.isLoading = true;
     try {
       await this.fetchEkeysPage(1);
@@ -284,6 +291,8 @@ export class LockComponent implements OnInit {
       console.error("Error while fetching ekeys:", error);
     } finally {
       this.isLoading = false;
+      this.ekeysDataSource = new MatTableDataSource(this.ekeys);
+      //console.log("eKeys: ", this.ekeys)
     }
   }
   async fetchEkeysPage(pageNo: number) {
@@ -308,13 +317,17 @@ export class LockComponent implements OnInit {
     }
   }
   async fetchPasscodes() {
+    this.passcodes = [];
     this.isLoading = true;
     try {
       await this.fetchPasscodesPage(1);
     } catch (error) {
       console.error("Error while fetching passcodes:", error);
     } finally {
+      this.updatePasscodeUsage()
+      this.passcodesDataSource = new MatTableDataSource(this.passcodes);
       this.isLoading = false;
+      //console.log("Passcodes: ", this.passcodes)
     }
   }
   async fetchPasscodesPage(pageNo: number) {
@@ -339,12 +352,15 @@ export class LockComponent implements OnInit {
     }
   }
   async fetchCards() {
+    this.cards = [];
     this.isLoading = true;
     try {
       await this.fetchCardsPage(1);
     } catch (error) {
       console.error("Error while fetching cards:", error);
     } finally {
+      this.cardsDataSource = new MatTableDataSource(this.cards);
+      //console.log("Cards: ", this.cards)
       this.isLoading = false;
     }
   }
@@ -370,12 +386,15 @@ export class LockComponent implements OnInit {
     }
   }
   async fetchFingerprints() {
+    this.fingerprints = [];
     this.isLoading = true;
     try {
       await this.fetchFingerprintsPage(1);
     } catch (error) {
       console.error("Error while fetching fingerprints:", error);
     } finally {
+      this.fingerprintsDataSource = new MatTableDataSource(this.fingerprints);
+      //console.log("Fingerprints: ", this.fingerprints)
       this.isLoading = false;
     }
   }
@@ -401,12 +420,15 @@ export class LockComponent implements OnInit {
     }
   }
   async fetchRecords() {
+    this.records = [];
     this.isLoading = true;
     try {
       await this.fetchRecordsPage(1);
     } catch (error) {
       console.error("Error while fetching records:", error);
     } finally {
+      this.recordsDataSource = new MatTableDataSource(this.records);
+      //console.log("Records: ", this.records)
       this.isLoading = false;
     }
   }
@@ -460,473 +482,29 @@ export class LockComponent implements OnInit {
     this.selectedTabIndex = event.index;
     switch (this.selectedTabIndex) {
       case 0:
-        this.ekeys = [];
+        this.textoBusqueda = '';
         await this.fetchEkeys();
-        this.ekeysDataSource = new MatTableDataSource(this.ekeys);
-        //console.log("eKeys: ", this.ekeys)
         break;
       case 1:
-        this.passcodes = [];
+        this.textoBusqueda = '';
         await this.fetchPasscodes();
-        this.updatePasscodeUsage()
-        this.passcodesDataSource = new MatTableDataSource(this.passcodes);
-        //console.log("Passcodes: ", this.passcodes)
         break;
       case 2:
-        this.cards = [];
+        this.textoBusqueda = '';
         await this.fetchCards();
-        this.cardsDataSource = new MatTableDataSource(this.cards);
-        //console.log("Cards: ", this.cards)
         break;
       case 3:
-        this.fingerprints = [];
+        this.textoBusqueda = '';
         await this.fetchFingerprints();
-        this.fingerprintsDataSource = new MatTableDataSource(this.fingerprints);
-        //console.log("Fingerprints: ", this.fingerprints)
         break;
       case 4:
-        this.records = [];
+        this.textoBusqueda = '';
         await this.fetchRecords();
-        this.recordsDataSource = new MatTableDataSource(this.records);
-        //console.log("Records: ", this.records)
         break;
     }
   }
   Number(palabra: string) {
     return Number(palabra)
-  }
-  periodoValidez(start: number, end: number) {
-    if (end === 0) { return 'Permanente' }
-    else {
-      var inicio = moment(start).format("YYYY/MM/DD HH:mm")
-      var final = moment(end).format("YYYY/MM/DD HH:mm")
-      var retorno = inicio.toString().concat(' - ').concat(final.toString());
-      return retorno
-    }
-  }
-  periodoValidezEkey(ekey: Ekey) {
-    if (Number(ekey.endDate) === 1) {//UNA VEZ
-      let retorno = moment(ekey.startDate).format('YYYY/MM/DD HH:mm').concat(" Una vez");
-      return retorno;
-    } else if (ekey.keyType === 4) {//SOLICITANTE
-      const dayNames = ["Sabado", "Domingo", "Lunes", "Martes", "Miercoles", "Jueves", "Viernes"];
-      let HoraInicio = moment(ekey.startDate).format('HH:mm');
-      let HoraFinal = moment(ekey.endDate).format('HH:mm');
-      let DiaInicio = moment(ekey.startDay).format('YYYY/MM/DD');
-      let DiaFinal = moment(ekey.endDay).format('YYYY/MM/DD');
-      let selectedDays = JSON.parse(ekey.weekDays);
-      let formattedSelectedDays = selectedDays.map((day: number) => dayNames[day]).join(', ');
-      let formattedResult = `${DiaInicio} - ${DiaFinal}, ${formattedSelectedDays}, ${HoraInicio} ~ ${HoraFinal}`;
-      return formattedResult
-    } else {
-      return this.periodoValidez(Number(ekey.startDate), Number(ekey.endDate))
-    }
-  }
-  periodoValidezPasscode(passcode: Passcode) {
-    var respuesta
-    if (passcode.keyboardPwdType === 1) {
-      respuesta = moment(passcode.sendDate).format("YYYY/MM/DD HH:mm").concat(' Una Vez');
-    }
-    if (passcode.keyboardPwdType === 2) {
-      respuesta = 'Permanente'
-    }
-    if (passcode.keyboardPwdType === 3) {
-      var inicio = moment(passcode.startDate).format("YYYY/MM/DD HH:mm")
-      var final = moment(passcode.endDate).format("YYYY/MM/DD HH:mm")
-      respuesta = inicio.toString().concat(' - ').concat(final.toString());
-    }
-    if (passcode.keyboardPwdType === 4) {
-      respuesta = moment(passcode.sendDate).format("YYYY/MM/DD HH:mm").concat(' Borrar');
-    }
-    if (passcode.keyboardPwdType === 5) {
-      var inicio = moment(passcode.startDate).format(" HH:mm")
-      var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = moment(passcode.sendDate).format("YYYY/MM/DD HH:mm").concat(", ", inicio, " - ", final, " Fin de Semana")
-    }
-    if (passcode.keyboardPwdType === 6) {
-      var inicio = moment(passcode.startDate).format(" HH:mm")
-      var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = moment(passcode.sendDate).format("YYYY/MM/DD HH:mm").concat(", ", inicio, " - ", final, " Diaria")
-    }
-    if (passcode.keyboardPwdType === 7) {
-      var inicio = moment(passcode.startDate).format(" HH:mm")
-      var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = moment(passcode.sendDate).format("YYYY/MM/DD HH:mm").concat(", ", inicio, " - ", final, " Dia de Trabajo")
-    }
-    if (passcode.keyboardPwdType === 8) {
-      var inicio = moment(passcode.startDate).format(" HH:mm")
-      var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = moment(passcode.sendDate).format("YYYY/MM/DD HH:mm").concat(", ", inicio, " - ", final, " Lunes")
-    }
-    if (passcode.keyboardPwdType === 9) {
-      var inicio = moment(passcode.startDate).format(" HH:mm")
-      var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = moment(passcode.sendDate).format("YYYY/MM/DD HH:mm").concat(", ", inicio, " - ", final, " Martes")
-    }
-    if (passcode.keyboardPwdType === 10) {
-      var inicio = moment(passcode.startDate).format(" HH:mm")
-      var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = moment(passcode.sendDate).format("YYYY/MM/DD HH:mm").concat(", ", inicio, " - ", final, " Miercoles")
-    }
-    if (passcode.keyboardPwdType === 11) {
-      var inicio = moment(passcode.startDate).format(" HH:mm")
-      var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = moment(passcode.sendDate).format("YYYY/MM/DD HH:mm").concat(", ", inicio, " - ", final, " Jueves")
-    }
-    if (passcode.keyboardPwdType === 12) {
-      var inicio = moment(passcode.startDate).format(" HH:mm")
-      var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = moment(passcode.sendDate).format("YYYY/MM/DD HH:mm").concat(", ", inicio, " - ", final, " Viernes")
-    }
-    if (passcode.keyboardPwdType === 13) {
-      var inicio = moment(passcode.startDate).format(" HH:mm")
-      var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = moment(passcode.sendDate).format("YYYY/MM/DD HH:mm").concat(", ", inicio, " - ", final, " Sabado")
-    }
-    if (passcode.keyboardPwdType === 14) {
-      var inicio = moment(passcode.startDate).format(" HH:mm")
-      var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = moment(passcode.sendDate).format("YYYY/MM/DD HH:mm").concat(", ", inicio, " - ", final, " Domingo")
-    }
-    return respuesta;
-  }
-  periodoValidezFingerprint(fingerprint: Fingerprint) {
-    if (fingerprint.fingerprintType === 1) {
-      return this.periodoValidez(fingerprint.startDate, fingerprint.endDate)
-    }
-    else {
-      let HoraInicio: string;
-      let HoraFinal: string;
-      let minutosInicio;
-      let minutosFinal;
-      let fechaInicio = moment(fingerprint.startDate)
-      let fechaFinal = moment(fingerprint.endDate)
-      let retorno = fechaInicio.format("YYYY/MM/DD").toString().concat(' - ').concat(fechaFinal.format("YYYY/MM/DD").toString().concat("\n"));
-      for (let index = 0; index < fingerprint.cyclicConfig.length; index++) {
-        if (fingerprint.cyclicConfig[index].weekDay === 1) {
-          retorno += ', Lunes';
-        }
-        if (fingerprint.cyclicConfig[index].weekDay === 2) {
-          retorno += ', Martes';
-        }
-        if (fingerprint.cyclicConfig[index].weekDay === 3) {
-          retorno += ', Miercoles';
-        }
-        if (fingerprint.cyclicConfig[index].weekDay === 4) {
-          retorno += ', Jueves';
-        }
-        if (fingerprint.cyclicConfig[index].weekDay === 5) {
-          retorno += ', Viernes';
-        }
-        if (fingerprint.cyclicConfig[index].weekDay === 6) {
-          retorno += ', Sabado';
-        }
-        if (fingerprint.cyclicConfig[index].weekDay === 7) {
-          retorno += ', Domingo';
-        }
-        minutosInicio = fingerprint.cyclicConfig[index].startTime
-        minutosFinal = fingerprint.cyclicConfig[index].endTime
-      }
-      //SE AGREGA EL TIEMPO DE CICLO A LA FECHA
-      fechaInicio.add(minutosInicio, 'minutes')
-      fechaFinal.add(minutosFinal, 'minutes')
-      fechaFinal.add(1, 'minutes');//POR ALGUNA RAZON LE FALTA UN MINUTO A LA HORA FINAL TALVEZ REDONDEA MAL
-      //AGREGAR UN 0 AL INICIO PARA QUE QUEDE 09:00 EN VEZ DE 9:00
-      if (fechaInicio.hours() < 10) {
-        let cero = "0";
-        cero = cero.concat(fechaInicio.hours().toString())
-        HoraInicio = cero
-      } else {
-        HoraInicio = fechaInicio.hours().toString()
-      }
-      //SE HACE LO MISMO CON MINUTOS Y SE JUNTAN PARA QUE QUEDE 09:08 EN VEZ DE 09:8
-      if (fechaInicio.minutes() < 10) {
-        let cero = "0";
-        cero = cero.concat(fechaInicio.minutes().toString())
-        HoraInicio = HoraInicio.concat(":").concat(cero);
-      } else {
-        HoraInicio = HoraInicio.concat(":").concat(fechaInicio.minutes().toString())
-      }
-      //HACER LO MISMO CON HORA FINAL
-      if (fechaFinal.hours() < 10) {
-        let cero = "0";
-        cero = cero.concat(fechaFinal.hours().toString())
-        HoraFinal = cero
-      } else {
-        HoraFinal = fechaFinal.hours().toString()
-      }
-      if (fechaFinal.minutes() < 10) {
-        let cero = "0";
-        cero = cero.concat(fechaFinal.minutes().toString())
-        HoraFinal = HoraFinal.concat(":").concat(cero);
-      } else {
-        HoraFinal = HoraFinal.concat(":").concat(fechaFinal.minutes().toString())
-      }
-      retorno = retorno.concat("\n").concat(HoraInicio).concat(" ~ ").concat(HoraFinal)
-      return retorno
-    }
-  }
-  consultarEstado(end: number) {
-    if (end === 0) { return this.sanitizer.bypassSecurityTrustHtml('<span style="color: green;">Valido</span>'); }
-    else {
-      var ahora = moment()
-      var final = moment(end)
-      if (moment(final).isBefore(ahora)) {
-        return this.sanitizer.bypassSecurityTrustHtml('<span style="color: red;">Caducado</span>');
-      }
-      else { return this.sanitizer.bypassSecurityTrustHtml('<span style="color: green;">Valido</span>'); }
-    }
-  }
-  consultarEstadoEkey(ekey: Ekey) {
-    if (ekey.keyStatus === "110402") {//PENDING
-      return this.sanitizer.bypassSecurityTrustHtml('<span style="color: gray;">Pendiente</span>');
-    }
-    if (ekey.keyStatus === "110405") {//FREEZED
-      return this.sanitizer.bypassSecurityTrustHtml('<span style="color: blue;">Congelada</span>');
-    }
-    else {//NORMAL
-      if (!ekey.endDay) {//MIENTRAS NO SEA SOLICITANTE 
-        if (this.Number(ekey.endDate) === 0) {//PERMANENTE
-          return this.sanitizer.bypassSecurityTrustHtml('<span style="color: green;">Valido</span>');
-        }
-        if (this.Number(ekey.endDate) === 1) {//UNA VEZ
-          if (moment(ekey.startDate).add(1, "hour").isAfter(moment())) {
-            return this.sanitizer.bypassSecurityTrustHtml('<span style="color: green;">Valido</span>');
-          } else {
-            return this.sanitizer.bypassSecurityTrustHtml('<span style="color: red;">Invalido</span>');
-          }
-        }
-        else {//PERIODICA
-          return this.consultarEstado(this.Number(ekey.endDate))
-        }
-      }
-      else {//SOLICITANTE
-        let fecha = moment(ekey.endDay).format("YYYY-MM-DD");
-        let tiempo = moment(ekey.endDate).format("YYYY-MM-DD/HH:mm")
-        tiempo = tiempo.split("/")[1];
-        let end = fecha.concat(" ", tiempo);
-        return this.consultarEstado(moment(end).valueOf())
-      }
-    }
-  }
-  consultarEstadoPasscode(passcode: Passcode) {
-    if (passcode.keyboardPwdType === 1) {
-      let seisHoras = moment(passcode.startDate).add(6, 'hours')
-      let ahora = moment()
-      if (ahora.isAfter(seisHoras)) {
-        return 'Caducado'
-      } else {
-        return 'Valido'
-      }
-    }
-    if (passcode.keyboardPwdType === 2) {
-      return 'Valido'
-    }
-    if (passcode.keyboardPwdType === 3) {
-      let ahora = moment()
-      let inicio = moment(passcode.startDate)
-      let final = moment(passcode.endDate)
-      if (ahora.isBefore(inicio) || ahora.isAfter(final) || final.isBefore(inicio)) {
-        return 'Inactivo'
-      } else {
-        return 'Valido'
-      }
-    }
-    if (passcode.keyboardPwdType === 4) {
-      return 'Valido'
-    }
-    else {
-      return 'Valido'
-    }
-  }
-  consultarSuccess(success: number) {
-    if (success == 0) { return 'Fallido' }
-    else { return 'Exito' }
-  }
-  consultarMetodo(tipo: number, operador: string) {
-    switch (tipo) {
-      case 1:
-        return 'Abrir con la aplicación';
-      case 4:
-        return 'Abrir con código de acceso';
-      case 5:
-        return 'modify a passcode on the lock';
-      case 6:
-        return 'delete a passcode on the lock';
-      case 7:
-        var retorno = 'Abrir con código de acceso—'.concat(operador)
-        return retorno;
-      case 8:
-        return 'clear passcodes from the lock';
-      case 9:
-        return 'passcode be squeezed out';
-      case 10:
-        return 'unlock with passcode with delete function, passcode before it will all be deleted';
-      case 11:
-        var retorno = 'Abrir con código de acceso—'.concat(operador)
-        return retorno;
-      case 12:
-        var retorno = 'Abrir con código de acceso—'.concat(operador)
-        return retorno;
-      case 13:
-        var retorno = 'Abrir con código de acceso—'.concat(operador)
-        return retorno;
-      case 14:
-        return 'lock power on';
-      case 15:
-        return 'add card success';
-      case 16:
-        return 'clear cards';
-      case 17:
-        return 'Abrir con Tarjeta RF';
-      case 18:
-        return 'delete an card';
-      case 19:
-        return 'unlock by wrist strap success';
-      case 20:
-        return 'Abrir con huella digital';
-      case 21:
-        return 'add fingerprint';
-      case 22:
-        return 'Abrir con huella digital';
-      case 23:
-        return 'delete a fingerprint';
-      case 24:
-        return 'clear fingerprints';
-      case 25:
-        return 'Abrir con Tarjeta RF';
-      case 26:
-        return 'Cerrar con Aplicación';
-      case 27:
-        return 'unlock by Mechanical key';
-      case 28:
-        return 'Abrir de forma remota';
-      case 29:
-        return 'apply some force on the Lock';
-      case 30:
-        return 'Door sensor closed';
-      case 31:
-        return 'Door sensor open';
-      case 32:
-        return 'open from inside';
-      case 33:
-        return 'lock by fingerprint';
-      case 34:
-        return 'lock by passcode';
-      case 35:
-        return 'lock by card';
-      case 36:
-        return 'lock by Mechanical key';
-      case 37:
-        return 'Remote Control';
-      case 38:
-        return 'unlock by passcode failed—The door has been double locked';
-      case 39:
-        return 'unlock by IC card failed—The door has been double locked';
-      case 40:
-        return 'Abrir con huella digital';
-      case 41:
-        return 'unlock by app failed—The door has been double locked';
-      case 42:
-        return 'received new local mail';
-      case 43:
-        return 'received new other cities\' mail';
-      case 44:
-        return 'Tamper alert';
-      case 45:
-        return 'Se cierra automáticamente al final del Modo de Paso';
-      case 46:
-        return 'unlock by unlock key';
-      case 47:
-        return 'lock by lock key';
-      case 48:
-        return '¡Detectados intentos de acceso no autorizados!';
-      case 49:
-        return 'unlock by hotel card';
-      case 50:
-        return 'Unlocked due to the high temperature';
-      case 51:
-        return 'unlock by card failed—card in blacklist';
-      case 52:
-        return 'Dead lock with APP';
-      case 53:
-        return 'Dead lock with passcode';
-      case 54:
-        return 'The car left (for parking lock)';
-      case 55:
-        return 'unlock with key fob';
-      case 57:
-        return 'Unlock with QR code success';
-      case 58:
-        return 'Unlock with QR code failed, it\'s expired';
-      case 59:
-        return 'Double locked';
-      case 60:
-        return 'Cancel double lock';
-      case 61:
-        return 'Lock with QR code success';
-      case 62:
-        return 'Lock with QR code failed, the lock is double locked';
-      case 63:
-        return 'Auto unlock at passage mode';
-      case 64:
-        return 'Door unclosed alarm';
-      case 65:
-        return 'Failed to unlock';
-      case 66:
-        return 'Failed to lock';
-      case 67:
-        return 'Face unlock success';
-      case 68:
-        return 'Face unlock failed - door locked from inside';
-      case 69:
-        return 'Lock with face';
-      case 70:
-        return 'Face registration success';
-      case 71:
-        return 'Face unlock failed - expired or ineffective';
-      case 72:
-        return 'Delete face success';
-      case 73:
-        return 'Clear face success';
-      case 74:
-        return 'IC card unlock failed - CPU secure information error';
-      case 75:
-        return 'App authorized button unlock success';
-      case 76:
-        return 'Gateway authorized button unlock success';
-      case 77:
-        return 'Dual authentication Bluetooth unlock verification success, waiting for second user';
-      case 78:
-        return 'Dual authentication password unlock verification success, waiting for second user';
-      case 79:
-        return 'Dual authentication fingerprint unlock verification success, waiting for second user';
-      case 80:
-        return 'Dual authentication IC card unlock verification success, waiting for second user';
-      case 81:
-        return 'Dual authentication face card unlock verification success, waiting for second user';
-      case 82:
-        return 'Dual authentication wireless key unlock verification success, waiting for second user';
-      case 83:
-        return 'Dual authentication palm vein unlock verification success, waiting for second user';
-      case 84:
-        return 'Palm vein unlock success';
-      case 85:
-        return 'Palm vein unlock success';
-      case 86:
-        return 'Lock with palm vein';
-      case 87:
-        return 'Register palm vein success';
-      case 88:
-        return 'Palm vein unlock failed - expired or ineffective';
-      default:
-        return 'Unknown type';
-    }
-  }
-  formatTimestamp(timestamp: string): string {
-    const date = new Date(timestamp);
-    const formattedMoment = moment(date).format('DD/MM/YYYY HH:mm');
-    return formattedMoment; 
   }
   //SETTINGS
   TransferirLock() {
@@ -1082,6 +660,23 @@ export class LockComponent implements OnInit {
     this.popupService.remoteEnable = remoteEnable;
     this.popupService.changeRemoteEnable = true;
   }
+  searchEkeys() {
+    this.filtrarEkeys();
+    this.ekeysDataSource = new MatTableDataSource(this.ekeys_filtradas);
+  }
+  filtrarEkeys() {
+    this.ekeys_filtradas = this.ekeys.filter(ekey => {
+      return (
+        (ekey.keyName.toLowerCase().includes(this.textoBusqueda.toLowerCase())) || 
+        ekey.username.toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
+        ekey.senderUsername.toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
+        this.lockService.formatTimestamp(ekey.date).includes(this.textoBusqueda) ||
+        this.lockService.periodoValidezEkey(ekey).toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
+        this.lockService.consultarEstadoEkey(ekey).toString().toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
+        (ekey.keyRight === 0 ? 'Usuario' : 'Administrador Secundario').toLowerCase().includes(this.textoBusqueda.toLowerCase())
+      );
+    });
+  }
   //FUNCIONES PASSCODE
   crearPasscode() {
     this.passcodeService.lockAlias = this.Alias;
@@ -1123,6 +718,22 @@ export class LockComponent implements OnInit {
     this.popupService.lock_alias = this.Alias;
     this.popupService.passcode = passcode;
     this.popupService.sharePasscode = true;
+  }
+  searchPasscodes() {
+    this.filtrarPasscodes();
+    this.passcodesDataSource = new MatTableDataSource(this.passcodes_filtradas);
+  }
+  filtrarPasscodes() {
+    this.passcodes_filtradas = this.passcodes.filter(passcode => {
+      return (
+        (passcode.keyboardPwdName && passcode.keyboardPwdName.toLowerCase().includes(this.textoBusqueda.toLowerCase())) || 
+        passcode.keyboardPwd.toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
+        passcode.senderUsername.toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
+        this.lockService.formatTimestamp(passcode.sendDate).includes(this.textoBusqueda) ||
+        this.lockService.periodoValidezPasscode(passcode).toLowerCase().includes(this.textoBusqueda.toLowerCase())
+        //this.consultarEstado()
+      );
+    });
   }
   //FUNCIONES CARD
   crearCard() {
@@ -1167,6 +778,21 @@ export class LockComponent implements OnInit {
       console.log("Necesita estar conectado a un gateway para usar esta función")
     }
   }
+  searchCards() {
+    this.filtrarCards();
+    this.cardsDataSource = new MatTableDataSource(this.cards_filtradas);
+  }
+  filtrarCards() {
+    this.cards_filtradas = this.cards.filter(card => {
+      return (
+        card.cardName.toLowerCase().includes(this.textoBusqueda.toLowerCase()) || 
+        card.senderUsername.toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
+        this.lockService.formatTimestamp(card.createDate).includes(this.textoBusqueda) ||
+        this.lockService.periodoValidez(card.startDate, card.endDate).toLowerCase().includes(this.textoBusqueda.toLowerCase())
+        //this.consultarEstado()
+      );
+    });
+  }
   //FUNCIONES FINGERPRINT
   borrarFingerprint(fingerID: number) {
     if (this.gateway === '1') {
@@ -1194,10 +820,39 @@ export class LockComponent implements OnInit {
     this.popupService.elementID = fingerID;
     this.popupService.cambiarPeriodo = true;
   }
+  searchFingerprints() {
+    this.filtrarFingerprints();
+    this.fingerprintsDataSource = new MatTableDataSource(this.fingerprints_filtradas);
+  }
+  filtrarFingerprints() {
+    this.fingerprints_filtradas = this.fingerprints.filter(finger => {
+      return (
+        finger.fingerprintName.toLowerCase().includes(this.textoBusqueda.toLowerCase()) || 
+        finger.senderUsername.toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
+        this.lockService.formatTimestamp(finger.createDate).includes(this.textoBusqueda) ||
+        this.lockService.periodoValidezFingerprint(finger).toLowerCase().includes(this.textoBusqueda.toLowerCase())
+        //this.consultarEstado()
+      );
+    });
+  }
   //FUNCIONES RECORD
-  openExcelNameWindow(){
+  openExcelNameWindow() {
     this.popupService.excelNameWindow = true;
     this.popupService.records = this.records;
+  }
+  searchRecords() {
+    this.filtrarRecords();
+    this.recordsDataSource = new MatTableDataSource(this.records_filtradas);
+  }
+  filtrarRecords(){
+    this.records_filtradas = this.records.filter(record => {
+      return (
+        (record.username && record.username.toLowerCase().includes(this.textoBusqueda.toLowerCase())) ||
+        this.lockService.consultarSuccess(record.success).toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
+        this.lockService.formatTimestamp(record.serverDate).includes(this.textoBusqueda) || 
+        this.lockService.consultarMetodo(record.recordTypeFromLock, record.username).toLowerCase().includes(this.textoBusqueda.toLowerCase())
+      );
+    });
   }
   
 }

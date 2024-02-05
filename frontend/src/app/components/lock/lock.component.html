@@ -60,24 +60,20 @@
                                 Administrador Principal
                             </div>
                             <div *ngIf="userType==='110302' && keyRight==='1'">
-                                Administrador Secundario // {{periodoValidez(Number(startDateDeUser),Number(endDateDeUser))}}
+                                Administrador Secundario // {{lockService.periodoValidez(Number(startDateDeUser),Number(endDateDeUser))}}
                             </div>
                             <div *ngIf="userType==='110302' && keyRight==='0'">
-                                Usuario // {{periodoValidez(Number(startDateDeUser),Number(endDateDeUser))}}
+                                Usuario // {{lockService.periodoValidez(Number(startDateDeUser),Number(endDateDeUser))}}
                             </div>
                         </div>
                     </div>
                     <div class="derecho">
                         <div class="lock-unlock">
                             <div>
-                                <button (click)="Unlock()" *ngIf="lockService.checkFeature(featureValue, 10)">
-                  Abrir
-                </button>
+                                <button (click)="Unlock()" *ngIf="lockService.checkFeature(featureValue, 10)">Abrir</button>
                             </div>
                             <div>
-                                <button (click)="Lock()" *ngIf="lockService.checkFeature(featureValue, 8)">
-                  Cerrar
-                </button>
+                                <button (click)="Lock()" *ngIf="lockService.checkFeature(featureValue, 8)">Cerrar</button>
                             </div>
                         </div>
                     </div>
@@ -90,9 +86,11 @@
                             <mat-tab label="Ekeys">
                                 <div class="contenido">
                                     <div class="button-container">
-                                        <!--     BOTON DE NUEVA EKEY     -->
-                                        <button (click)="crearEkey()" class="nueva-button">Generar</button>
-                                        <!--------------------------------->
+                                        <input type="text" [(ngModel)]="textoBusqueda" placeholder="Buscar Ekeys..." (input)="searchEkeys()"/>
+                                        <div>
+                                            <button (click)="crearEkey()" class="nueva-button">Generar</button>
+                                            <button (click)="fetchEkeys()">Actualizar</button>
+                                        </div>
                                     </div>
                                     <div>
                                         <table mat-table [dataSource]="ekeysDataSource" class="table">
@@ -123,17 +121,17 @@
                                             <!---->
                                             <ng-container matColumnDef="Fecha">
                                                 <th mat-header-cell *matHeaderCellDef class="table-cell">Tiempo de asignación</th>
-                                                <td mat-cell *matCellDef="let ekey" class="table-cell">{{formatTimestamp(ekey.date)}} </td>
+                                                <td mat-cell *matCellDef="let ekey" class="table-cell">{{lockService.formatTimestamp(ekey.date)}} </td>
                                             </ng-container>
                                             <!---->
                                             <ng-container matColumnDef="Periodo_validez">
                                                 <th mat-header-cell *matHeaderCellDef class="table-cell">Período de Validez</th>
-                                                <td mat-cell *matCellDef="let ekey" class="table-cell">{{periodoValidezEkey(ekey)}}</td>
+                                                <td mat-cell *matCellDef="let ekey" class="table-cell">{{lockService.periodoValidezEkey(ekey)}}</td>
                                             </ng-container>
                                             <!---->
                                             <ng-container matColumnDef="Valido">
                                                 <th mat-header-cell *matHeaderCellDef class="table-cell">Estado</th>
-                                                <td mat-cell *matCellDef="let ekey" class="table-cell" [innerHTML]="consultarEstadoEkey(ekey)">
+                                                <td mat-cell *matCellDef="let ekey" class="table-cell" [innerHTML]="lockService.consultarEstadoEkey(ekey)">
                                                 </td>
                                             </ng-container>
                                             <!---->
@@ -169,9 +167,11 @@
                             <mat-tab label="Códigos" *ngIf="lockService.checkFeature(featureValue, 0)">
                                 <div class="contenido">
                                     <div class="button-container">
-                                        <!--   BOTON DE NUEVA PASSCODE   -->
-                                        <button (click)="crearPasscode()" class="nueva-button">Generar</button>
-                                        <!--------------------------------->
+                                        <input type="text" [(ngModel)]="textoBusqueda" placeholder="Buscar Códigos..." (input)="searchPasscodes()"/>
+                                        <div>
+                                            <button (click)="crearPasscode()" class="nueva-button">Generar</button>
+                                            <button (click)="fetchPasscodes()">Actualizar</button>
+                                        </div>
                                     </div>
                                     <div>
                                         <table mat-table [dataSource]="passcodesDataSource" class="table">
@@ -194,20 +194,20 @@
                                             <!---->
                                             <ng-container matColumnDef="Fecha">
                                                 <th mat-header-cell *matHeaderCellDef class="table-cell">Tiempo de asignación</th>
-                                                <td mat-cell *matCellDef="let passcode" class="table-cell">{{formatTimestamp(passcode.sendDate)}}
+                                                <td mat-cell *matCellDef="let passcode" class="table-cell">{{lockService.formatTimestamp(passcode.sendDate)}}
                                                 </td>
                                             </ng-container>
                                             <!---->
                                             <ng-container matColumnDef="Periodo_validez">
                                                 <th mat-header-cell *matHeaderCellDef class="table-cell">Período de Validez</th>
                                                 <td mat-cell *matCellDef="let passcode" class="table-cell">
-                                                    {{periodoValidezPasscode(passcode)}}</td>
+                                                    {{lockService.periodoValidezPasscode(passcode)}}</td>
                                             </ng-container>
                                             <!---->
                                             <ng-container matColumnDef="Valido">
                                                 <th mat-header-cell *matHeaderCellDef class="table-cell">Estado</th>
-                                                <td mat-cell *matCellDef="let passcode" class="table-cell" [style.color]="consultarEstadoPasscode(passcode) === 'Valido' ? 'green' : 'red'">
-                                                    {{consultarEstadoPasscode(passcode)}}</td>
+                                                <td mat-cell *matCellDef="let passcode" class="table-cell" [style.color]="lockService.consultarEstadoPasscode(passcode) === 'Valido' ? 'green' : 'red'">
+                                                    {{lockService.consultarEstadoPasscode(passcode)}}</td>
                                             </ng-container>
                                             <!---->
                                             <ng-container matColumnDef="Botones">
@@ -228,9 +228,11 @@
                             <mat-tab label="Tarjetas RF" *ngIf="lockService.checkFeature(featureValue, 1)">
                                 <div class="contenido">
                                     <div class="button-container">
-                                        <!--     BOTON DE NUEVA CARD     -->
-                                        <button (click)="crearCard()" class="nueva-button">Generar</button>
-                                        <!--------------------------------->
+                                        <input type="text" [(ngModel)]="textoBusqueda" placeholder="Buscar Tarjetas..." (input)="searchCards()"/>
+                                        <div>
+                                            <button (click)="crearCard()" class="nueva-button">Generar</button>
+                                            <button (click)="fetchCards()">Actualizar</button>
+                                        </div>
                                     </div>
                                     <div>
                                         <table mat-table [dataSource]="cardsDataSource" class="table">
@@ -254,29 +256,27 @@
                                             <!---->
                                             <ng-container matColumnDef="Fecha">
                                                 <th mat-header-cell *matHeaderCellDef class="table-cell">Tiempo de asignación</th>
-                                                <td mat-cell *matCellDef="let card" class="table-cell">{{formatTimestamp(card.createDate)}}
+                                                <td mat-cell *matCellDef="let card" class="table-cell">{{lockService.formatTimestamp(card.createDate)}}
                                                 </td>
                                             </ng-container>
                                             <!---->
                                             <ng-container matColumnDef="Periodo_validez">
                                                 <th mat-header-cell *matHeaderCellDef class="table-cell">Período de Validez</th>
-                                                <td mat-cell *matCellDef="let card" class="table-cell">{{periodoValidez(card.startDate, card.endDate)}}
+                                                <td mat-cell *matCellDef="let card" class="table-cell">{{lockService.periodoValidez(card.startDate, card.endDate)}}
                                                 </td>
                                             </ng-container>
                                             <!---->
                                             <ng-container matColumnDef="Valido">
                                                 <th mat-header-cell *matHeaderCellDef class="table-cell">Estado</th>
-                                                <td mat-cell *matCellDef="let card" class="table-cell" [innerHTML]="consultarEstado(card.endDate)"></td>
+                                                <td mat-cell *matCellDef="let card" class="table-cell" [innerHTML]="lockService.consultarEstado(card.endDate)"></td>
                                             </ng-container>
                                             <!---->
                                             <ng-container matColumnDef="Botones">
                                                 <th mat-header-cell *matHeaderCellDef class="table-cell">Operacion</th>
                                                 <td mat-cell *matCellDef="let card" class="table-cell">
                                                     <button mat-button class="mat-warn" (click)="borrarCard(card.cardId)">Eliminar</button>
-                                                    <button mat-button class="mat-primary" (click)="cambiarNombreCard(card.cardId)">Editar
-                            Nombre</button>
-                                                    <button mat-button class="mat-primary" (click)="cambiarPeriodoCard(card.cardId)">Editar
-                            Periodo</button>
+                                                    <button mat-button class="mat-primary" (click)="cambiarNombreCard(card.cardId)">Editar Nombre</button>
+                                                    <button mat-button class="mat-primary" (click)="cambiarPeriodoCard(card.cardId)">Editar Periodo</button>
                                                 </td>
                                             </ng-container>
                                             <!---->
@@ -288,7 +288,11 @@
                             </mat-tab>
                             <mat-tab label="Huellas" *ngIf="lockService.checkFeature(featureValue, 2)">
                                 <div class="contenido">
-                                    <div class="space-divider">
+                                    <div class="button-container">
+                                        <input type="text" [(ngModel)]="textoBusqueda" placeholder="Buscar Huellas..." (input)="searchFingerprints()"/>
+                                        <div>
+                                            <button (click)="fetchFingerprints()">Actualizar</button>
+                                        </div>
                                     </div>
                                     <div>
                                         <table mat-table [dataSource]="fingerprintsDataSource" class="table">
@@ -307,18 +311,18 @@
                                             <!---->
                                             <ng-container matColumnDef="Fecha">
                                                 <th mat-header-cell *matHeaderCellDef class="table-cell">Tiempo de asignación</th>
-                                                <td mat-cell *matCellDef="let fingerprint" class="table-cell">{{formatTimestamp(fingerprint.createDate)}}</td>
+                                                <td mat-cell *matCellDef="let fingerprint" class="table-cell">{{lockService.formatTimestamp(fingerprint.createDate)}}</td>
                                             </ng-container>
                                             <!---->
                                             <ng-container matColumnDef="Periodo_validez">
                                                 <th mat-header-cell *matHeaderCellDef class="table-cell">Período de Validez</th>
                                                 <td mat-cell *matCellDef="let fingerprint" class="table-cell">
-                                                    {{periodoValidezFingerprint(fingerprint)}}</td>
+                                                    {{lockService.periodoValidezFingerprint(fingerprint)}}</td>
                                             </ng-container>
                                             <!---->
                                             <ng-container matColumnDef="Valido">
                                                 <th mat-header-cell *matHeaderCellDef class="table-cell">Estado</th>
-                                                <td mat-cell *matCellDef="let fingerprint" class="table-cell" [innerHTML]="consultarEstado(fingerprint.endDate)"></td>
+                                                <td mat-cell *matCellDef="let fingerprint" class="table-cell" [innerHTML]="lockService.consultarEstado(fingerprint.endDate)"></td>
                                             </ng-container>
                                             <!---->
                                             <ng-container matColumnDef="Botones">
@@ -339,9 +343,11 @@
                             <mat-tab label="Registros">
                                 <div class="contenido">
                                     <div class="button-container">
-                                        <!--     BOTON DE NUEVA CARD     -->
-                                        <button (click)="openExcelNameWindow()" class="nueva-button">Exportar a Excel</button>
-                                        <!--------------------------------->
+                                        <input type="text" [(ngModel)]="textoBusqueda" placeholder="Buscar Registros..." (input)="searchRecords()"/>
+                                        <div>
+                                            <button (click)="openExcelNameWindow()" class="nueva-button">Exportar</button>
+                                            <button (click)="fetchRecords()">Actualizar</button>
+                                        </div>
                                     </div>
                                     <div>
                                         <table mat-table [dataSource]="recordsDataSource" class="table">
@@ -354,20 +360,20 @@
                                             <ng-container matColumnDef="Metodo_Apertura">
                                                 <th mat-header-cell *matHeaderCellDef class="table-cell">Método de Apertura</th>
                                                 <td mat-cell *matCellDef="let record" class="table-cell">
-                                                    {{consultarMetodo(record.recordTypeFromLock, record.username)}}
+                                                    {{lockService.consultarMetodo(record.recordTypeFromLock, record.username)}}
                                                 </td>
                                             </ng-container>
                                             <!---->
                                             <ng-container matColumnDef="Horario_Apertura">
                                                 <th mat-header-cell *matHeaderCellDef class="table-cell">Horario de apertura</th>
-                                                <td mat-cell *matCellDef="let record" class="table-cell">{{formatTimestamp(record.lockDate)}}
+                                                <td mat-cell *matCellDef="let record" class="table-cell">{{lockService.formatTimestamp(record.lockDate)}}
                                                 </td>
                                             </ng-container>
                                             <!---->
                                             <ng-container matColumnDef="Estado">
                                                 <th mat-header-cell *matHeaderCellDef class="table-cell">Estado</th>
-                                                <td mat-cell *matCellDef="let record" class="table-cell" [style.color]="consultarSuccess(record.success) === 'Exito' ? 'green' : 'red'">
-                                                    {{consultarSuccess(record.success)}}</td>
+                                                <td mat-cell *matCellDef="let record" class="table-cell" [style.color]="lockService.consultarSuccess(record.success) === 'Exito' ? 'green' : 'red'">
+                                                    {{lockService.consultarSuccess(record.success)}}</td>
                                             </ng-container>
                                             <!---->
                                             <tr mat-header-row *matHeaderRowDef="displayedColumnsRecord"></tr>

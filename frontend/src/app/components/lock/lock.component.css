@@ -1,11 +1,9 @@
 app-pop-up {
     z-index: 9999;
 }
-
 .pagina_completa {
     position: relative;
 }
-
 .breadcrumb {
     background-color: white;
     margin: 30px;
@@ -13,66 +11,51 @@ app-pop-up {
     padding-bottom: 5px;
     padding-left: 20px;
 }
-
 .resto {
     margin-left: 30px;
     margin-right: 30px;
 }
-
 .cerradura {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    justify-content: space-between;
     background-color: white;
     margin: 5px;
     margin-bottom: 30px;
     padding-top: 5px;
     padding-bottom: 5px;
 }
-
-.cerradura {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-}
-
 .izquierdo {
     display: flex;
     flex-direction: column;
 }
-
 .info_cerradura {
     display: flex;
     align-items: baseline;
     margin-left: 20px;
 }
-
 .nombre_cerradura {
     font-size: xx-large;
     font-weight: bold;
     margin-right: 15px;
 }
-
 .bateria_cerradura {
     gap: 5px;
     display: flex;
     margin-right: 15px;
 }
-
 .settings_cerradura {
     margin-right: 15px;
 }
-
 .rol_usuario {
     margin-left: 20px;
     color: rgb(160, 156, 156);
     font-size: medium;
 }
-
 .lock-unlock {
     display: flex;
     flex-direction: row;
 }
-
 .lock-unlock div button {
     height: 72px;
     margin-right: 20px;
@@ -81,19 +64,16 @@ app-pop-up {
     border-radius: 10px;
     border: solid 1px black;
 }
-
 .funciones_cerradura {
     background-color: white;
     padding: 20px;
     height: calc( 100vh - 80px);
 }
-
 .mat-mdc-tab-group.mat-background-primary,
 .mat-mdc-tab-nav-bar.mat-background-primary {
     --mat-tab-header-with-background-background-color: #f9c114;
     --mat-tab-header-with-background-foreground-color: black;
 }
-
 .mat-mdc-tab-group.mat-warn,
 .mat-mdc-tab-nav-bar.mat-warn {
     --mdc-tab-indicator-active-indicator-color: white;
@@ -101,47 +81,39 @@ app-pop-up {
     --mat-tab-header-active-focus-label-text-color: white;
     --mat-tab-header-active-focus-indicator-color: white;
 }
-
 .mdc-tab.mdc-tab--active {
     background-color: black;
     color: black;
     border: 1px solid white;
 }
-
 .mdc-tab:not(.mdc-tab--active) {
     background-color: #f9c114;
     color: #f9c114;
 }
-
 .contenido {
     display: flex;
     flex-direction: column;
 }
-
 .button-container {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     margin-top: 10px;
     margin-bottom: 10px;
 }
-
-.button-container button {
+.button-container div{
+    display: flex;
+    gap: 5px;
+}
+.button-container div button {
     background-color: #ffdd78;
     border-radius: 10px;
     border: solid 1px black;
 }
-
-.space-divider {
-    margin-top: 10px;
-    margin-bottom: 40px;
-}
-
 .table {
     table-layout: fixed;
     width: 80%;
     border-collapse: collapse;
 }
-
 .table-cell {
     border: 1px solid #dddddd;
     text-align: left;

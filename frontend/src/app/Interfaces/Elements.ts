@@ -43,8 +43,8 @@ export interface Card {
     cardNumber: string;
     cardName: string;
     cardType: number;
-    startDate: string;
-    endDate: string;
+    startDate: number;
+    endDate: number;
     createDate: string;
     senderUsername: string;
 }
@@ -53,7 +53,7 @@ export interface Fingerprint {
     lockId: number;
     fingerprintNumber: string;
     fingerprintType: number;
-    fingerprintName: number;
+    fingerprintName: string;
     startDate: number;
     endDate: number;
     cyclicConfig: recurringPeriodFingerprint[];
