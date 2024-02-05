@@ -123,7 +123,7 @@
                                             <!---->
                                             <ng-container matColumnDef="Fecha">
                                                 <th mat-header-cell *matHeaderCellDef class="table-cell">Tiempo de asignación</th>
-                                                <td mat-cell *matCellDef="let ekey" class="table-cell">{{ekey.date | date: 'yyyy-MM-dd HH:mm'}} </td>
+                                                <td mat-cell *matCellDef="let ekey" class="table-cell">{{formatTimestamp(ekey.date)}} </td>
                                             </ng-container>
                                             <!---->
                                             <ng-container matColumnDef="Periodo_validez">
@@ -194,7 +194,7 @@
                                             <!---->
                                             <ng-container matColumnDef="Fecha">
                                                 <th mat-header-cell *matHeaderCellDef class="table-cell">Tiempo de asignación</th>
-                                                <td mat-cell *matCellDef="let passcode" class="table-cell">{{passcode.sendDate | date: 'yyyy-MM-dd HH:mm'}}
+                                                <td mat-cell *matCellDef="let passcode" class="table-cell">{{formatTimestamp(passcode.sendDate)}}
                                                 </td>
                                             </ng-container>
                                             <!---->
@@ -254,7 +254,7 @@
                                             <!---->
                                             <ng-container matColumnDef="Fecha">
                                                 <th mat-header-cell *matHeaderCellDef class="table-cell">Tiempo de asignación</th>
-                                                <td mat-cell *matCellDef="let card" class="table-cell">{{card.createDate | date: 'yyyy-MM-dd HH:mm' }}
+                                                <td mat-cell *matCellDef="let card" class="table-cell">{{formatTimestamp(card.createDate)}}
                                                 </td>
                                             </ng-container>
                                             <!---->
@@ -307,7 +307,7 @@
                                             <!---->
                                             <ng-container matColumnDef="Fecha">
                                                 <th mat-header-cell *matHeaderCellDef class="table-cell">Tiempo de asignación</th>
-                                                <td mat-cell *matCellDef="let fingerprint" class="table-cell">{{fingerprint.createDate | date: 'yyyy-MM-dd HH:mm'}}</td>
+                                                <td mat-cell *matCellDef="let fingerprint" class="table-cell">{{formatTimestamp(fingerprint.createDate)}}</td>
                                             </ng-container>
                                             <!---->
                                             <ng-container matColumnDef="Periodo_validez">
@@ -338,7 +338,10 @@
                             </mat-tab>
                             <mat-tab label="Registros">
                                 <div class="contenido">
-                                    <div class="space-divider">
+                                    <div class="button-container">
+                                        <!--     BOTON DE NUEVA CARD     -->
+                                        <button (click)="openExcelNameWindow()" class="nueva-button">Exportar a Excel</button>
+                                        <!--------------------------------->
                                     </div>
                                     <div>
                                         <table mat-table [dataSource]="recordsDataSource" class="table">
@@ -351,13 +354,13 @@
                                             <ng-container matColumnDef="Metodo_Apertura">
                                                 <th mat-header-cell *matHeaderCellDef class="table-cell">Método de Apertura</th>
                                                 <td mat-cell *matCellDef="let record" class="table-cell">
-                                                    {{consultarMetodo(record.recordTypeFromLock, record.username)}},{{record.recordTypeFromLock}}
+                                                    {{consultarMetodo(record.recordTypeFromLock, record.username)}}
                                                 </td>
                                             </ng-container>
                                             <!---->
                                             <ng-container matColumnDef="Horario_Apertura">
                                                 <th mat-header-cell *matHeaderCellDef class="table-cell">Horario de apertura</th>
-                                                <td mat-cell *matCellDef="let record" class="table-cell">{{record.lockDate | date: 'yyyy-MM-dd HH:mm'}}
+                                                <td mat-cell *matCellDef="let record" class="table-cell">{{formatTimestamp(record.lockDate)}}
                                                 </td>
                                             </ng-container>
                                             <!---->
@@ -383,4 +386,5 @@
 <app-pop-up *ngIf="this.popupService.delete || this.popupService.cambiarNombre || this.popupService.cambiarPeriodo || this.popupService.editarPasscode || 
                   this.popupService.autorizar || this.popupService.desautorizar || this.popupService.changeRemoteEnable || this.popupService.congelar || 
                   this.popupService.descongelar || this.popupService.esencial || this.popupService.gateway || 
-                  this.popupService.cerradoAutomatico || this.popupService.mostrarHora || this.popupService.needGateway || this.popupService.sharePasscode" style="z-index: 1001;"></app-pop-up>
+                  this.popupService.cerradoAutomatico || this.popupService.mostrarHora || this.popupService.needGateway || this.popupService.sharePasscode ||
+                  this.popupService.excelNameWindow" style="z-index: 1001;"></app-pop-up>

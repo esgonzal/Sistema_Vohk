@@ -149,7 +149,6 @@ export class MultipleEkeyComponent implements OnInit {
           this.popupService.emailSuccess = true;
         } else if (sendEkeyResponse.errcode === 10003) {
           sessionStorage.clear();
-          this.router.navigate(['/login']);
         } else if (sendEkeyResponse.errcode === -2019) {
           this.error = "No puedes enviarte una eKey a ti mismo."
         } else {
@@ -168,7 +167,6 @@ export class MultipleEkeyComponent implements OnInit {
           this.popupService.emailSuccess = true;
         } else if (sendEkeyResponse.errcode === 10003) {
           sessionStorage.clear();
-          this.router.navigate(['/login']);
         } else if (sendEkeyResponse.errcode === -2019) {
           this.error = "No puedes enviarte una eKey a ti mismo."
         } else {

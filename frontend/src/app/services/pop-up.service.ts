@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Passcode } from '../Interfaces/Elements';
+import { Passcode, Record } from '../Interfaces/Elements';
 import { LockData, LockDetails } from '../Interfaces/Lock';
 import { GatewayAccount, GatewayLock } from '../Interfaces/Gateway';
 import { Group } from '../Interfaces/Group';
@@ -40,6 +40,7 @@ export class PopUpService {
   changeNickname = false;
   cardReader = false;
   emailSuccess = false;
+  excelNameWindow = false;
   emailMessage: SafeHtml = '';
   lock_alias: string;
   gatewaysOfLock: GatewayLock[] = []
@@ -62,6 +63,7 @@ export class PopUpService {
   accountName: string;
   password: string;
   remoteEnable: number;
+  records: Record[] = [];
 
   toggleLockSelection(lockId: number) {
     const index = this.selectedLockIds_forMultipleEkeys.indexOf(lockId);

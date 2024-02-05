@@ -183,6 +183,9 @@ export class LockComponent implements OnInit {
           } else {
             break;
           }
+        } else if (locksTypedResponse.errcode === 10003){
+          sessionStorage.clear();
+          break;
         } else {
           break;
         }
@@ -207,6 +210,8 @@ export class LockComponent implements OnInit {
         for (const group of this.groups) {
           group.lockCount = await this.calculateLockCountForGroup(group);
         }
+      } else if (typedResponse.errcode === 10003){
+        sessionStorage.clear();
       } else {
         console.log("Groups not yet available");
       }
@@ -260,6 +265,8 @@ export class LockComponent implements OnInit {
         if (typedResponse.pages > pageNo) {
           await this.fetchLocksPage(pageNo + 1, groupId);
         }
+      } else if (typedResponse.errcode === 10003){
+        sessionStorage.clear();
       } else {
         console.log("Locks not yet available")
       }
@@ -291,7 +298,6 @@ export class LockComponent implements OnInit {
         }
       } else if (typedResponse.errcode === 10003) {
         sessionStorage.clear();
-        this.router.navigate(['/login']);
       } else {
         console.log("Ekeys not yet available");
       }
@@ -321,6 +327,8 @@ export class LockComponent implements OnInit {
         if (typedResponse.pages > pageNo) {
           await this.fetchPasscodesPage(pageNo + 1);
         }
+      } else if (typedResponse.errcode === 10003){
+        sessionStorage.clear();
       } else {
         console.log("Passcodes not yet available");
       }
@@ -350,6 +358,8 @@ export class LockComponent implements OnInit {
         if (typedResponse.pages > pageNo) {
           await this.fetchCardsPage(pageNo + 1);
         }
+      } else if (typedResponse.errcode === 10003){
+        sessionStorage.clear();
       } else {
         console.log("Cards not yet available");
       }
@@ -379,6 +389,8 @@ export class LockComponent implements OnInit {
         if (typedResponse.pages > pageNo) {
           await this.fetchFingerprintsPage(pageNo + 1);
         }
+      } else if (typedResponse.errcode === 10003){
+        sessionStorage.clear();
       } else {
         console.log("Fingerprints not yet available");
       }
@@ -408,6 +420,8 @@ export class LockComponent implements OnInit {
         if (typedResponse.pages > pageNo) {
           await this.fetchRecordsPage(pageNo + 1);
         }
+      } else if (typedResponse.errcode === 10003){
+        sessionStorage.clear();
       } else {
         console.log("Records not yet available");
       }
@@ -425,7 +439,6 @@ export class LockComponent implements OnInit {
         this.lockDetails = response;
       } else if (response.errcode === 10003) {
         sessionStorage.clear();
-        this.router.navigate(['/login']);
       } else {
         console.log(response)
       }
@@ -910,6 +923,11 @@ export class LockComponent implements OnInit {
         return 'Unknown type';
     }
   }
+  formatTimestamp(timestamp: string): string {
+    const date = new Date(timestamp);
+    const formattedMoment = moment(date).format('DD/MM/YYYY HH:mm');
+    return formattedMoment; 
+  }
   //SETTINGS
   TransferirLock() {
     this.lockService.userID = this.userID;
@@ -929,7 +947,6 @@ export class LockComponent implements OnInit {
           this.router.navigate(["users", this.username, "lock", this.lockId, "passageMode"]);
         } else if (response.errcode === 10003) {
           sessionStorage.clear();
-          this.router.navigate(['/login']);
         } else {
           console.log(response)
         }
@@ -964,7 +981,6 @@ export class LockComponent implements OnInit {
           console.log("Cerradura desbloqueada")
         } else if (response.errcode === 10003) {
           sessionStorage.clear();
-          this.router.navigate(['/login']);
         } else {
           console.log(response)
         }
@@ -987,7 +1003,6 @@ export class LockComponent implements OnInit {
           console.log("Cerradura bloqueada")
         } else if (response.errcode === 10003) {
           sessionStorage.clear();
-          this.router.navigate(['/login']);
         } else {
           console.log(response)
         }
@@ -1179,4 +1194,10 @@ export class LockComponent implements OnInit {
     this.popupService.elementID = fingerID;
     this.popupService.cambiarPeriodo = true;
   }
+  //FUNCIONES RECORD
+  openExcelNameWindow(){
+    this.popupService.excelNameWindow = true;
+    this.popupService.records = this.records;
+  }
+  
 }

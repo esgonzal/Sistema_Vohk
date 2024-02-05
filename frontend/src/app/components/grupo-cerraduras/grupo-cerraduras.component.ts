@@ -73,11 +73,10 @@ export class GrupoCerradurasComponent implements OnInit {
           } else {
             break; // No more pages to fetch
           }
-        } else if (locksTypedResponse.errcode === 10003) {
-          sessionStorage.clear;
-          this.router.navigate(['login'])
-        }
-        else {
+        } else if (locksTypedResponse.errcode === 10003){
+          sessionStorage.clear();
+          break;
+        } else {
           break; // No more locks to fetch
         }
       }

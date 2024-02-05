@@ -16,28 +16,32 @@ export interface PasscodeResponse {
     pageNo: number;
     pageSize: number;
     pages: number;
-    total: number
+    total: number;
+    errcode: number;
 }
 export interface CardResponse {
     list: Card[];
     pageNo: number;
     pageSize: number;
     pages: number;
-    total: number
+    total: number;
+    errcode: number;
 }
 export interface FingerprintResponse {
     list: Fingerprint[];
     pageNo: number;
     pageSize: number;
     pages: number;
-    total: number
+    total: number;
+    errcode: number;
 }
 export interface RecordResponse {
     list: Record[];
     pageNo: number;
     pageSize: number;
     pages: number;
-    total: number
+    total: number;
+    errcode: number;
 }
 export interface sendEkeyResponse {
     errcode: number;
@@ -72,6 +76,7 @@ export interface addGroupResponse {
 }
 export interface GroupResponse {
     list: Group[];
+    errcode: number;
 }
 export interface LockListResponse {
     list: LockData[];
@@ -104,9 +109,11 @@ export interface GatewayAccountResponse {
     pageSize: number;
     pages: number;
     total: number;
+    errcode: number;
 }
 export interface GatewayLockResponse {
     list: GatewayLock[];
+    errcode: number;
 }
 export interface GetLockTimeResponse {
     date: number;

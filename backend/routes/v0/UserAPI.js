@@ -137,7 +137,6 @@ router.post('/resetPassword', async (req, res) => {
 router.post('/login', async(req, res) => {
     let { nombre, clave } = req.body;
     try {
-        let encryptedPassword = md5(clave);
         let ttlockData = {
             clientId: TTLOCK_CLIENT_ID,
             clientSecret: TTLOCK_CLIENT_SECRET,

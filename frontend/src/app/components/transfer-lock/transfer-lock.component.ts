@@ -38,7 +38,6 @@ export class TransferLockComponent {
         console.log("La cerradura se transfirió a la cuenta exitosamente")
       } else if (response.errcode === 10003) {
         sessionStorage.clear();
-        this.router.navigate(['/login']);
       } else {
         console.log(response)
       }

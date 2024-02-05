@@ -20,6 +20,7 @@ import { lastValueFrom } from 'rxjs';
 import moment from 'moment';
 import { Clipboard } from '@angular/cdk/clipboard';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import * as XLSX from 'xlsx';
 
 
 @Component({
@@ -152,7 +153,6 @@ export class PopUpComponent implements OnInit {
       } else if (response?.errcode === 10003) {
         sessionStorage.clear();
         this.popupService.delete = false;
-        this.router.navigate(['/login']);
       } else {
         this.error = "La acción eliminar no pudo ser completada, intente nuevamente mas tarde."
       }
@@ -164,13 +164,13 @@ export class PopUpComponent implements OnInit {
   }
   async autorizar() {
     let response = await lastValueFrom(this.ekeyService.AuthorizeEkey(this.popupService.userID, this.popupService.lockID, this.popupService.elementID)) as operationResponse;
-    console.log(response)
+    //console.log(response)
     this.popupService.autorizar = false;
     window.location.reload();
   }
   async desautorizar() {
     let response = await lastValueFrom(this.ekeyService.cancelAuthorizeEkey(this.popupService.userID, this.popupService.lockID, this.popupService.elementID)) as operationResponse;
-    console.log(response)
+    //console.log(response)
     this.popupService.desautorizar = false;
     window.location.reload();
   }
@@ -178,15 +178,13 @@ export class PopUpComponent implements OnInit {
     this.isLoading = true;
     try {
       let response = await lastValueFrom(this.ekeyService.freezeEkey(this.popupService.userID, this.popupService.elementID)) as operationResponse;
-      console.log(response)
+      //console.log(response)
       if (response.errcode === 0) {
         this.popupService.congelar = false;
-        console.log("eKey congelada exitosamente")
         window.location.reload();
       } else if (response?.errcode === 10003) {
         sessionStorage.clear();
         this.popupService.congelar = false;
-        this.router.navigate(['/login']);
       } else {
         this.error = "La acción congelar no pudo ser completada, intente nuevamente mas tarde."
       }
@@ -204,11 +202,9 @@ export class PopUpComponent implements OnInit {
       if (response.errcode === 0) {
         this.popupService.descongelar = false;
         window.location.reload();
-        console.log("eKey descongelada exitosamente")
       } else if (response?.errcode === 10003) {
         sessionStorage.clear();
         this.popupService.descongelar = false;
-        this.router.navigate(['/login']);
       } else {
         this.error = "La acción descongelar no pudo ser completada, intente nuevamente mas tarde."
       }
@@ -261,7 +257,6 @@ export class PopUpComponent implements OnInit {
         } else if (response?.errcode === 10003) {
           sessionStorage.clear();
           this.popupService.cambiarNombre = false;
-          this.router.navigate(['/login']);
         } else {
           this.error = "La acción cambiar nombre no pudo ser completada, intente nuevamente mas tarde."
         }
@@ -306,7 +301,6 @@ export class PopUpComponent implements OnInit {
           } else if (response?.errcode === 10003) {
             sessionStorage.clear();
             this.popupService.cambiarPeriodo = false;
-            this.router.navigate(['/login']);
           } else {
             this.error = "La acción cambiar periodo no pudo ser completada, intente nuevamente mas tarde"
           }
@@ -357,7 +351,6 @@ export class PopUpComponent implements OnInit {
       } else if (response?.errcode === 10003) {
         sessionStorage.clear();
         this.popupService.editarPasscode = false;
-        this.router.navigate(['/login']);
       }
     } catch (error) {
       console.error("Error while editing a passcode:", error);
@@ -387,10 +380,13 @@ export class PopUpComponent implements OnInit {
     this.isLoading = true;
     try {
       let response = await lastValueFrom(this.ekeyService.modifyEkey(this.popupService.userID, this.popupService.elementID, undefined, remote)) as operationResponse;
-      console.log(response);
+      //console.log(response);
       if (response.errcode === 0){
         this.popupService.changeRemoteEnable = false;
         window.location.reload();
+      } else if (response.errcode === 10003) {
+        this.popupService.changeRemoteEnable = false;
+        sessionStorage.clear();
       } else {
         console.log(response);
       }
@@ -430,7 +426,6 @@ export class PopUpComponent implements OnInit {
       } else if (response.errcode === 10003) {
         sessionStorage.clear();
         this.popupService.cerradoAutomatico = false;
-        this.router.navigate(['/login']);
       } else {
         this.error = "No se pudo completar la acción, intente nuevamente más tarde"
         console.log(response);
@@ -463,7 +458,6 @@ export class PopUpComponent implements OnInit {
         } else if (response.errcode === 10003) {
           sessionStorage.clear();
           this.popupService.newGroup = false;
-          this.router.navigate(['/login']);
         } else {
           this.error = "No se pudo completar la acción, intente nuevamente más tarde";
         }
@@ -497,16 +491,13 @@ export class PopUpComponent implements OnInit {
     this.isLoading = true;
     try {
       if (this.selectedLockIds.length === 0) {
-        console.log("Seleccione al menos una cerradura para remover");
       } else {
         for (const lockId of this.selectedLockIds) {
           let response = await lastValueFrom(this.groupService.setGroupofLock(this.popupService.userID, lockId.toString(), "0")) as operationResponse;
           if (response.errcode === 0) {
-            console.log("Se removió la cerradura exitosamente")
           } else if (response?.errcode === 10003) {
             sessionStorage.clear();
             this.popupService.removeLockGROUP = false;
-            this.router.navigate(['/login']);
           } else {
             console.log(response)
           }
@@ -524,16 +515,13 @@ export class PopUpComponent implements OnInit {
     this.isLoading = true;
     try {
       if (this.selectedLockIds.length === 0) {
-        console.log("Seleccione al menos una cerradura para añadir");
       } else {
         for (const lockId of this.selectedLockIds) {
           let response = await lastValueFrom(this.groupService.setGroupofLock(this.popupService.userID, lockId.toString(), this.popupService.group.groupId.toString())) as operationResponse;
           if (response.errcode === 0) {
-            console.log("Se removió la cerradura exitosamente")
           } else if (response.errcode === 10003) {
             sessionStorage.clear();
             this.popupService.addLockGROUP = false;
-            this.router.navigate(['/login']);
           } else {
             console.log(response)
           }
@@ -615,7 +603,6 @@ export class PopUpComponent implements OnInit {
       } else if (response?.errcode === 10003) {
         sessionStorage.clear();
         this.popupService.congelar = false;
-        this.router.navigate(['/login']);
       } else {
         console.log(response)
       }
@@ -655,6 +642,23 @@ export class PopUpComponent implements OnInit {
         }
       };
       attempt();
+    }
+  }
+  exportToExcel(): void {
+    if (this.name !== undefined ){
+      const cleanedRecords = this.popupService.records.map(record => ({
+        Operador: record.username,
+        Metodo_Apertura: this.lockService.consultarMetodo(record.recordTypeFromLock, record.username),
+        Horario_Apertura: this.lockService.formatTimestamp(record.lockDate),
+        Estado: this.lockService.consultarSuccess(record.success),
+      }));
+      const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(cleanedRecords);
+      const wb: XLSX.WorkBook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+      XLSX.writeFile(wb, this.name.concat('.xlsx'));
+      this.popupService.excelNameWindow = false;
+    } else {
+      this.error = "Por favor ingrese un nombre"
     }
   }
 }

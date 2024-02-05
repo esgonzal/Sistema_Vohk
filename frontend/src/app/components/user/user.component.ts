@@ -86,6 +86,8 @@ export class UserComponent implements OnInit {
         if (typedResponse.pages > pageNo) {
           await this.fetchLocksPage(pageNo + 1, groupId);
         }
+      } else if (typedResponse.errcode === 10003){
+        sessionStorage.clear();
       } else {
         console.log("Locks not yet available")
       }
@@ -116,9 +118,8 @@ export class UserComponent implements OnInit {
           }
         } else if (locksTypedResponse.errcode === 10003) {
           sessionStorage.clear;
-          this.router.navigate(['login'])
-        }
-        else {
+          break;
+        } else {
           break; // No more locks to fetch
         }
       }

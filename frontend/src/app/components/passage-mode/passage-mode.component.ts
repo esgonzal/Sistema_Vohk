@@ -101,7 +101,6 @@ export class PassageModeComponent implements OnInit {
           this.router.navigate(["users", this.username, "lock", this.lockId]);
         } else if (response.errcode === 10003) {
           sessionStorage.clear();
-          this.router.navigate(['/login']);
         }  else {
           console.log(response)
         }

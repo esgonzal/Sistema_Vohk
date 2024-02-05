@@ -41,6 +41,8 @@ export class SidebarComponent {
         for (const group of this.groups) {
           group.lockCount = await this.calculateLockCountForGroup(group);
         }
+      } else if (typedResponse.errcode === 10003) {
+        sessionStorage.clear;
       } else {
         console.log("Groups not yet available");
       }

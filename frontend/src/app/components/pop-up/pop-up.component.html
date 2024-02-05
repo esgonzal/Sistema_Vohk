@@ -455,7 +455,7 @@
     </div>
 </div>
 <div id="container" *ngIf="popupService.emailSuccess">
-    <div id="content">
+    <div id="header">
         La eKey fue enviada correctamente
     </div>
     <div id="content" style="background-color: rgb(245, 245, 245);">
@@ -467,6 +467,24 @@
     </div>
     <div *ngIf="isCopied" class="confirmation-message">
         El mensaje fue copiado.
+    </div>
+</div>
+<div id="container" *ngIf="popupService.excelNameWindow">
+    <div id="header">
+        Introduzca un nombre para el archivo
+    </div>
+    <div id="content">
+        <div class="form-area">
+            <form class="common-form">
+                Nombre
+                <input type="text" class="form-input" name="name" [(ngModel)]="name" />
+                <p class="error">{{error}}</p>
+            </form>
+        </div>
+    </div>
+    <div id="actions">
+        <button (click)="this.popupService.excelNameWindow=false">Cancelar</button>
+        <button (click)="exportToExcel()">Exportar</button>
     </div>
 </div>
 <!--

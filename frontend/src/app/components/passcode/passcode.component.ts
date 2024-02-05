@@ -132,7 +132,6 @@ export class PasscodeComponent{
         console.log("Se creó la passcode con exito")
       } else if (response?.errcode === 10003) {
         sessionStorage.clear();
-        this.router.navigate(['/login']);
       } else {
         console.log("ERROR:", response)
       }
@@ -186,7 +185,6 @@ export class PasscodeComponent{
       } else if (response.errcode === 10003) {
         sessionStorage.clear();
         this.passcodeService.passcodesimple = false;
-        this.router.navigate(['/login']);
       }  else {
         console.log("Algo salió mal", response)
       }

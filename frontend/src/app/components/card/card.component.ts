@@ -113,7 +113,6 @@ export class CardComponent {
             this.router.navigate(["users", this.cardService.userID, "lock", this.cardService.lockID]);
           } else if (addCardResponse.errcode === 10003) {
             sessionStorage.clear();
-            this.router.navigate(['/login']);
           } else {
             console.log("ERROR:", addCardResponse)
           }
