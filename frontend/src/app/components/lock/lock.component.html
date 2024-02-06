@@ -225,7 +225,7 @@
                                     </div>
                                 </div>
                             </mat-tab>
-                            <mat-tab label="Tarjetas RF" *ngIf="lockService.checkFeature(featureValue, 1)">
+                            <mat-tab label="Tarjetas" *ngIf="lockService.checkFeature(featureValue, 1)">
                                 <div class="contenido">
                                     <div class="button-container">
                                         <input type="text" [(ngModel)]="textoBusqueda" placeholder="Buscar Tarjetas..." (input)="searchCards()"/>
@@ -343,7 +343,29 @@
                             <mat-tab label="Registros">
                                 <div class="contenido">
                                     <div class="button-container">
-                                        <input type="text" [(ngModel)]="textoBusqueda" placeholder="Buscar Registros..." (input)="searchRecords()"/>
+                                        <!--
+                                        <input type="text" [(ngModel)]="textoBusqueda" placeholder="Buscar Registros..." />
+                                        -->
+                                        <div>
+                                            <select #recordType name="recordType" (change)="onSelected(recordType.value)" style="height: 56px;">
+                                                <option default value=undefined>Todos</option>
+                                                <option value="4">Código</option>
+                                                <option value="7">Tarjeta</option>
+                                                <option value="8">Huella</option>
+                                            </select>
+                                            <mat-form-field>
+                                                <mat-label>Inicio</mat-label>
+                                                <input matInput [matDatepicker]="startDatePicker" [(ngModel)]="recordStartDate">
+                                                <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
+                                                <mat-datepicker #startDatePicker></mat-datepicker>
+                                            </mat-form-field>
+                                            <mat-form-field>
+                                                <mat-label>Final</mat-label>
+                                                <input matInput [matDatepicker]="endDatePicker" [(ngModel)]="recordEndDate">
+                                                <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
+                                                <mat-datepicker #endDatePicker></mat-datepicker>
+                                            </mat-form-field>
+                                        </div>
                                         <div>
                                             <button (click)="openExcelNameWindow()" class="nueva-button">Exportar</button>
                                             <button (click)="fetchRecords()">Actualizar</button>
@@ -353,25 +375,25 @@
                                         <table mat-table [dataSource]="recordsDataSource" class="table">
                                             <!---->
                                             <ng-container matColumnDef="Operador">
-                                                <th mat-header-cell *matHeaderCellDef class="table-cell">Operador</th>
+                                                <th mat-header-cell *matHeaderCellDef class="table-cell header" style="font-weight: bolder;">Operador</th>
                                                 <td mat-cell *matCellDef="let record" class="table-cell">{{ record.username ? record.username : '' }}</td>
                                             </ng-container>
                                             <!---->
                                             <ng-container matColumnDef="Metodo_Apertura">
-                                                <th mat-header-cell *matHeaderCellDef class="table-cell">Método de Apertura</th>
+                                                <th mat-header-cell *matHeaderCellDef class="table-cell header">Método de Apertura</th>
                                                 <td mat-cell *matCellDef="let record" class="table-cell">
                                                     {{lockService.consultarMetodo(record.recordTypeFromLock, record.username)}}
                                                 </td>
                                             </ng-container>
                                             <!---->
                                             <ng-container matColumnDef="Horario_Apertura">
-                                                <th mat-header-cell *matHeaderCellDef class="table-cell">Horario de apertura</th>
+                                                <th mat-header-cell *matHeaderCellDef class="table-cell header">Horario de apertura</th>
                                                 <td mat-cell *matCellDef="let record" class="table-cell">{{lockService.formatTimestamp(record.lockDate)}}
                                                 </td>
                                             </ng-container>
                                             <!---->
                                             <ng-container matColumnDef="Estado">
-                                                <th mat-header-cell *matHeaderCellDef class="table-cell">Estado</th>
+                                                <th mat-header-cell *matHeaderCellDef class="header">Estado</th>
                                                 <td mat-cell *matCellDef="let record" class="table-cell" [style.color]="lockService.consultarSuccess(record.success) === 'Exito' ? 'green' : 'red'">
                                                     {{lockService.consultarSuccess(record.success)}}</td>
                                             </ng-container>
@@ -379,6 +401,9 @@
                                             <tr mat-header-row *matHeaderRowDef="displayedColumnsRecord"></tr>
                                             <tr mat-row *matRowDef="let row; columns: displayedColumnsRecord"></tr>
                                         </table>
+                                        <button (click)="fetchPreviousPage()" [disabled]="recordCurrentPage === 1"><</button>
+                                        {{recordCurrentPage}}
+                                        <button (click)="fetchNextPage()" [disabled]="recordCurrentPage === recordTotalPages">></button>
                                     </div>
                                 </div>
                             </mat-tab>

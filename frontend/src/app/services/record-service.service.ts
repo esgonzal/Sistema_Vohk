@@ -12,8 +12,8 @@ export class RecordServiceService {
 
   constructor(private http: HttpClient) { }
 
-  getRecords(userID: string, lockID: number, pageNo: number, pageSize: number): Observable<RecordResponse> {
-   let body = {userID, lockID, pageNo, pageSize};
+  getRecords(userID: string, lockID: number, pageNo: number, pageSize: number,startDate?:number, endDate?:number, recordType?: string): Observable<RecordResponse> {
+   let body = {userID, lockID, pageNo, pageSize, startDate, endDate, recordType};
    let url = this.URL.concat('/v0/record/getListLock');
    return this.http.post<RecordResponse>(url, body);
   }

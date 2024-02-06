@@ -64,6 +64,7 @@ export class LockComponent implements OnInit {
   cards_filtradas: Card[] = [];
   records: Record[] = []
   records_filtradas: Record[] = [];
+  allRecords: Record[] = [];
   allLocks: LockData[] = [];
   locks: LockData[] = [];
   locksWithoutGroup: LockData[] = [];
@@ -142,6 +143,14 @@ export class LockComponent implements OnInit {
     { bit: 69, feature: "Support Zhiantec face module" },
     { bit: 70, feature: "Support palm vein" },
   ];
+  recordCurrentPage: number = 1;
+  recordTotalPages: number;
+  recordStartDate: Date;
+  startDate: number;
+  recordEndDate: Date;
+  endDate: number;
+  selectedType = '';
+  onSelected(value: string): void { this.selectedType = value }
 
   constructor(
     private router: Router,
@@ -163,10 +172,6 @@ export class LockComponent implements OnInit {
   async ngOnInit() {
     this.userID = this.username;
     await this.fetchEkeys();
-    //await this.fetchPasscodes();
-    //this.updatePasscodeUsage();
-    //await this.getAllLocks();
-    //await this.fetchGroups();
     for (const feature of this.featureList) {
       this.lockService.checkFeature(this.featureValue, feature.bit);
     }
@@ -428,21 +433,51 @@ export class LockComponent implements OnInit {
       console.error("Error while fetching records:", error);
     } finally {
       this.recordsDataSource = new MatTableDataSource(this.records);
-      //console.log("Records: ", this.records)
       this.isLoading = false;
     }
   }
   async fetchRecordsPage(pageNo: number) {
     this.isLoading = true;
     try {
-      const response = await lastValueFrom(this.recordService.getRecords(this.userID, this.lockId, pageNo, 100))
+      if (this.recordStartDate instanceof Date) {
+        this.startDate = this.recordStartDate.getTime(); // Convert to timestamp
+      }
+      if (this.recordEndDate instanceof Date) {
+        this.endDate = this.recordEndDate.getTime(); // Convert to timestamp
+      }
+      const response = await lastValueFrom(this.recordService.getRecords(this.userID, this.lockId, pageNo, 20,this.startDate, this.endDate, this.selectedType))
       const typedResponse = response as RecordResponse;
       if (typedResponse?.list) {
+        this.records = [];
         this.records.push(...typedResponse.list);
-        if (typedResponse.pages > pageNo) {
+        this.recordCurrentPage = pageNo;
+        this.recordTotalPages = typedResponse.pages;
+        this.recordsDataSource = new MatTableDataSource(this.records);
+        /*if (typedResponse.pages > pageNo) {
           await this.fetchRecordsPage(pageNo + 1);
-        }
+        }*/
       } else if (typedResponse.errcode === 10003){
+        sessionStorage.clear();
+      } else {
+        console.log("Records not yet available");
+      }
+    } catch (error) {
+      console.error("Error while fetching records page:", error);
+    } finally {
+      this.isLoading = false;
+    }
+  }
+  async fetchAllRecords(pageNo: number) {
+    this.isLoading = true;
+    try {
+      const response = await lastValueFrom(this.recordService.getRecords(this.userID, this.lockId, pageNo, 100)) as RecordResponse
+      if (response?.list) {
+        this.allRecords = [];
+        this.allRecords.push(...response.list);
+        if (response.pages > pageNo) {
+          await this.fetchAllRecords(pageNo + 1);
+        }
+      } else if (response.errcode === 10003){
         sessionStorage.clear();
       } else {
         console.log("Records not yet available");
@@ -499,6 +534,7 @@ export class LockComponent implements OnInit {
         break;
       case 4:
         this.textoBusqueda = '';
+        this.recordCurrentPage = 1;
         await this.fetchRecords();
         break;
     }
@@ -836,9 +872,10 @@ export class LockComponent implements OnInit {
     });
   }
   //FUNCIONES RECORD
-  openExcelNameWindow() {
+  async openExcelNameWindow() {
+    await this.fetchAllRecords(1);
     this.popupService.excelNameWindow = true;
-    this.popupService.records = this.records;
+    this.popupService.records = this.allRecords;
   }
   searchRecords() {
     this.filtrarRecords();
@@ -853,6 +890,18 @@ export class LockComponent implements OnInit {
         this.lockService.consultarMetodo(record.recordTypeFromLock, record.username).toLowerCase().includes(this.textoBusqueda.toLowerCase())
       );
     });
+  }
+  fetchNextPage() {
+    const nextPage = this.recordCurrentPage + 1;
+    if (nextPage <= this.recordTotalPages) {
+      this.fetchRecordsPage(nextPage);
+    }
+  }
+  fetchPreviousPage() {
+    const previousPage = this.recordCurrentPage - 1;
+    if (previousPage >= 1) {
+      this.fetchRecordsPage(previousPage);
+    }
   }
   
 }
