@@ -83,43 +83,43 @@ export class LockServiceService {
     } else if (passcode.keyboardPwdType === 5) {
       var inicio = moment(passcode.startDate).format(" HH:mm")
       var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = moment(passcode.sendDate).format("DD/MM/YYYY HH:mm").concat(", ", inicio, " - ", final, " Fin de Semana")
+      respuesta = inicio.concat(" - ", final," Fin de Semana");
     } else if (passcode.keyboardPwdType === 6) {
       var inicio = moment(passcode.startDate).format(" HH:mm")
       var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = moment(passcode.sendDate).format("DD/MM/YYYY HH:mm").concat(", ", inicio, " - ", final, " Diaria")
+      respuesta = inicio.concat(" - ", final," Diaria");
     } else if (passcode.keyboardPwdType === 7) {
       var inicio = moment(passcode.startDate).format(" HH:mm")
       var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = moment(passcode.sendDate).format("DD/MM/YYYY HH:mm").concat(", ", inicio, " - ", final, " Dia de Trabajo")
+      respuesta = inicio.concat(" - ", final," Dia de Trabajo");
     } else if (passcode.keyboardPwdType === 8) {
       var inicio = moment(passcode.startDate).format(" HH:mm")
       var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = moment(passcode.sendDate).format("DD/MM/YYYY HH:mm").concat(", ", inicio, " - ", final, " Lunes")
+      respuesta = inicio.concat(" - ", final," Lunes")
     } else if (passcode.keyboardPwdType === 9) {
       var inicio = moment(passcode.startDate).format(" HH:mm")
       var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = moment(passcode.sendDate).format("DD/MM/YYYY HH:mm").concat(", ", inicio, " - ", final, " Martes")
+      respuesta = inicio.concat(" - ", final," Martes")
     } else if (passcode.keyboardPwdType === 10) {
       var inicio = moment(passcode.startDate).format(" HH:mm")
       var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = moment(passcode.sendDate).format("DD/MM/YYYY HH:mm").concat(", ", inicio, " - ", final, " Miercoles")
+      respuesta = inicio.concat(" - ", final," Miercoles")
     } else if (passcode.keyboardPwdType === 11) {
       var inicio = moment(passcode.startDate).format(" HH:mm")
       var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = moment(passcode.sendDate).format("DD/MM/YYYY HH:mm").concat(", ", inicio, " - ", final, " Jueves")
+      respuesta = inicio.concat(" - ", final," Jueves")
     } else if (passcode.keyboardPwdType === 12) {
       var inicio = moment(passcode.startDate).format(" HH:mm")
       var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = moment(passcode.sendDate).format("DD/MM/YYYY HH:mm").concat(", ", inicio, " - ", final, " Viernes")
+      respuesta = inicio.concat(" - ", final," Viernes")
     } else if (passcode.keyboardPwdType === 13) {
       var inicio = moment(passcode.startDate).format(" HH:mm")
       var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = moment(passcode.sendDate).format("DD/MM/YYYY HH:mm").concat(", ", inicio, " - ", final, " Sabado")
+      respuesta = inicio.concat(" - ", final," Sabado")
     } else {
       var inicio = moment(passcode.startDate).format(" HH:mm")
       var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = moment(passcode.sendDate).format("DD/MM/YYYY HH:mm").concat(", ", inicio, " - ", final, " Domingo")
+      respuesta = inicio.concat(" - ", final," Domingo")
     }
     return respuesta;
   }

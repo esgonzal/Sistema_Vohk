@@ -736,6 +736,30 @@ export class LockComponent implements OnInit {
       console.log("Necesita estar conectado a un gateway para usar esta función")
     }
   }
+  cambiarNombrePasscode(passcode: Passcode){
+    if (this.gateway === '1') {
+      this.popupService.userID = this.userID;
+      this.popupService.lockID = this.lockId;
+      this.popupService.elementType = 'passcode';
+      this.popupService.elementID = passcode.keyboardPwdId;
+      this.popupService.passcode = passcode;
+      this.popupService.cambiarNombre = true;
+    } else {
+      this.popupService.needGateway = true;
+    }
+  }
+  cambiarPeriodoPasscode(passcode: Passcode) {
+    if (this.gateway === '1') {
+      this.popupService.userID = this.userID;
+      this.popupService.lockID = this.lockId;
+      this.popupService.elementType = 'passcode';
+      this.popupService.elementID = passcode.keyboardPwdId;
+      this.popupService.passcode = passcode;
+      this.popupService.cambiarPeriodo = true;
+    } else {
+      this.popupService.needGateway = true;
+    }
+  }
   cambiarPasscode(passcode: Passcode) {
     if (this.gateway === '1') {
       this.popupService.userID = this.userID;

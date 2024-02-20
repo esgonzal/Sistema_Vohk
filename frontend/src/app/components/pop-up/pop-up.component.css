@@ -18,7 +18,7 @@
     background-color: #fff;
     display: flex;
     flex-direction: column;
-    z-index: 10;
+    z-index: 1003;
 }
 
 #container_60 {
@@ -28,7 +28,6 @@
     background-color: #fff;
     display: flex;
     flex-direction: column;
-    z-index: 10;
 }
 
 #header {
@@ -181,4 +180,9 @@ button {
     /* Add some top margin for spacing */
     color: #4CAF50;
     /* Green color or adjust to your preferred color */
+}
+
+.mat-datepicker-content {
+    position: relative; /* Ensure z-index works */
+    z-index: 10000; /* Set a higher z-index value than the popup window */
 }

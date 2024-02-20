@@ -38,7 +38,6 @@ export class PopUpComponent implements OnInit {
   endHour: string;
   gatewayEncontrado: GatewayAccount | undefined
   redWiFi: string | undefined;
-  displayedColumnsGateway: string[] = ['NombreGateway', 'NombreWifi', 'Signal']
   autoLockToggle = false;
   remoteEnableToggle = false;
   customAutoLockTime: number = 0;
@@ -125,16 +124,16 @@ export class PopUpComponent implements OnInit {
     try {
       if (this.popupService.delete) {
         switch (this.popupService.elementType) {
-          case 'passcode':
+          case 'el código':
             response = await lastValueFrom(this.passcodeService.deletePasscode(this.popupService.userID, this.popupService.lockID, this.popupService.elementID)) as operationResponse;
             break;
-          case 'ekey':
+          case 'la ekey':
             response = await lastValueFrom(this.ekeyService.deleteEkey(this.popupService.userID, this.popupService.elementID, this.popupService.lockID, this.popupService.ekeyUsername)) as operationResponse;
             break;
-          case 'card':
+          case 'la tarjeta':
             response = await lastValueFrom(this.cardService.deleteCard(this.popupService.userID, this.popupService.lockID, this.popupService.elementID)) as operationResponse;
             break;
-          case 'fingerprint':
+          case 'la huella':
             response = await lastValueFrom(this.fingerprintService.deleteFingerprint(this.popupService.userID, this.popupService.lockID, this.popupService.elementID)) as operationResponse;
             break;
           case 'grupo':
@@ -145,15 +144,14 @@ export class PopUpComponent implements OnInit {
             break;
         }
       }
-      //console.log(response)
       if (response?.errcode === 0) {
         this.popupService.delete = false;
-        console.log(this.popupService.elementType, "borrada exitosamente")
         window.location.reload();
       } else if (response?.errcode === 10003) {
         sessionStorage.clear();
         this.popupService.delete = false;
       } else {
+        console.log(response)
         this.error = "La acción eliminar no pudo ser completada, intente nuevamente mas tarde."
       }
     } catch (error) {
@@ -234,6 +232,9 @@ export class PopUpComponent implements OnInit {
             case 'ekey':
               response = await lastValueFrom(this.ekeyService.modifyEkey(this.popupService.userID, this.popupService.elementID, this.name)) as operationResponse;
               break;
+            case 'passcode':
+              response = await lastValueFrom(this.passcodeService.changePasscode(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, this.name)) as operationResponse;
+              break;
             case 'card':
               response = await lastValueFrom(this.cardService.changeName(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, this.name)) as operationResponse;
               break;
@@ -257,6 +258,8 @@ export class PopUpComponent implements OnInit {
         } else if (response?.errcode === 10003) {
           sessionStorage.clear();
           this.popupService.cambiarNombre = false;
+        } else if (response?.errcode === -3008) {
+          this.error = "No se puede editar una passcode que no haya sido usada antes";
         } else {
           this.error = "La acción cambiar nombre no pudo ser completada, intente nuevamente mas tarde."
         }
@@ -284,6 +287,9 @@ export class PopUpComponent implements OnInit {
             case 'ekey':
               response = await lastValueFrom(this.ekeyService.changePeriod(this.popupService.userID, this.popupService.elementID, newStartDate.toString(), newEndDate.toString())) as operationResponse;
               break;
+            case 'passcode':
+              response = await lastValueFrom(this.passcodeService.changePasscode(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, undefined, undefined, newStartDate.toString(), newEndDate.toString())) as operationResponse;
+              break;
             case 'card':
               response = await lastValueFrom(this.cardService.changePeriod(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, newStartDate.toString(), newEndDate.toString())) as operationResponse;
               break;
@@ -294,15 +300,17 @@ export class PopUpComponent implements OnInit {
               console.error('Invalid element type for deletion:', this.popupService.elementID);
               break;
           }
-          //console.log(response)
           if (response?.errcode === 0) {
             this.popupService.cambiarPeriodo = false;
             window.location.reload();
           } else if (response?.errcode === 10003) {
             sessionStorage.clear();
             this.popupService.cambiarPeriodo = false;
+          } else if (response?.errcode === -3008) {
+            this.error = "No se puede editar una passcode que no haya sido usada antes";
           } else {
             this.error = "La acción cambiar periodo no pudo ser completada, intente nuevamente mas tarde"
+            console.log(response)
           }
         } else {
           this.error = 'La fecha de término no puede ser antes que la fecha de inicio';
@@ -320,7 +328,7 @@ export class PopUpComponent implements OnInit {
     let newEndDate;
     this.error = '';
     this.isLoading = true;
-    try {
+    try {/*
       if (this.popupService.passcode.keyboardPwdType === 1 || this.popupService.passcode.keyboardPwdType === 2 || this.popupService.passcode.keyboardPwdType === 4) {
         response = await lastValueFrom(this.passcodeService.changePasscode(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, this.name, this.passcodePwd)) as operationResponse;
       }
@@ -336,12 +344,12 @@ export class PopUpComponent implements OnInit {
         let newStartDate = moment(today).add(this.lockService.transformarHora(this.startHour), "milliseconds").valueOf()
         let newEndDate = moment(today).add(this.lockService.transformarHora(this.endHour), "milliseconds").valueOf()
         response = await lastValueFrom(this.passcodeService.changePasscode(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, this.name, this.passcodePwd, newStartDate.toString(), newEndDate.toString()))
-      }
+      }*/
+      response = await lastValueFrom(this.passcodeService.changePasscode(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, undefined, this.passcodePwd, undefined, undefined))
       //console.log(response)
       if (response?.errcode === 0) {
         this.popupService.editarPasscode = false;
         window.location.reload();
-        console.log("passcode editada correctamente");
       } else if (response?.errcode === -3008) {
         this.error = "No se puede editar una passcode que no haya sido usada antes";
       } else if (response?.errcode === -3007) {
