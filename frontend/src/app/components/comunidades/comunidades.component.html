@@ -7,7 +7,7 @@
     <div *ngFor="let group of groups">
       <div class="comunidad">
         <div class="info_comunidad">
-          <div class="nombre_comunidad">
+          <div class="nombre_comunidad" (click)="toggleGroupVisibility(group)">
             <h1>{{ group.groupName }}</h1>
           </div>
           <div class="derecha"> 
@@ -126,7 +126,7 @@
   </div>
   <div *ngIf="locksWithoutGroup.length > 0">
     <div class="info_comunidad">
-      <h1 class="nombre_comunidad">Dispositivos no asociados a una Comunidad</h1>
+      <h1 class="nombre_comunidad">Sin Asociar</h1>
     </div>
     <div class="listado_cerraduras">
       <mat-grid-list [cols]="cols" rowHeight="150px">

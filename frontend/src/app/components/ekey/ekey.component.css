@@ -55,7 +55,7 @@
 .input-container {
   display: flex;
   flex-direction: row;
-  height: 30px;
+  gap: 10px;
   justify-content: space-between;
   width: 600px;
 }
