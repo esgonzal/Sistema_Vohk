@@ -1,5 +1,11 @@
 <div class="listado_objetos">
   <app-loader [loader]="isLoading"></app-loader>
+  <nav aria-label="breadcrumb-space">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a [routerLink]="['']">Mis Comunidades</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Dispositivos de la comunidad</li>
+    </ol>
+</nav>
   <div *ngIf="locks.length > 0">
     <mat-grid-list cols="3" rowHeight="150px">
       <mat-grid-tile *ngFor="let lock of locks">

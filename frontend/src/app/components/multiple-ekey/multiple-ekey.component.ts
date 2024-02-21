@@ -6,7 +6,7 @@ import { EkeyServiceService } from '../../services/ekey-service.service';
 import { RecipientList } from '../../Interfaces/RecipientList';
 import { PopUpService } from '../../services/pop-up.service';
 import { LockServiceService } from '../../services/lock-service.service';
-import { lastValueFrom } from 'rxjs';
+import { lastValueFrom, retry } from 'rxjs';
 import { UserServiceService } from '../../services/user-service.service';
 import { checkUserInDBResponse, sendEkeyResponse, UserRegisterResponse } from '../../Interfaces/API_responses';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -17,6 +17,11 @@ import { DomSanitizer } from '@angular/platform-browser';
   styleUrls: ['./multiple-ekey.component.css']
 })
 export class MultipleEkeyComponent implements OnInit {
+
+  isLoading: boolean = false;
+  error = "";
+  eKeys: any[] = [];
+  results: any[] = [];
 
   constructor(private router: Router,
     public ekeyService: EkeyServiceService,
@@ -31,7 +36,7 @@ export class MultipleEkeyComponent implements OnInit {
 
   ngOnInit() {
     this.eKeys = [{
-      account: '', name: '', type: '', startDatepicker: null, startTimepicker: '', endDatepicker: null, endTimepicker: '', weekDays: [
+      account: '', name: '', type: '', startDatepicker: null, startTimepicker: '', endDatepicker: null, endTimepicker: '', email: '', weekDays: [
         { name: 'L', value: 2, checked: false },
         { name: 'M', value: 3, checked: false },
         { name: 'M', value: 4, checked: false },
@@ -42,11 +47,6 @@ export class MultipleEkeyComponent implements OnInit {
       ]
     }];
   }
-
-  isLoading: boolean = false;
-  error = "";
-  eKeys: any[] = [];
-  results: any[] = []
   onCheckboxChange(event: any, day: any) {
     day.checked = event.target.checked
   }
@@ -62,6 +62,7 @@ export class MultipleEkeyComponent implements OnInit {
       startTimepicker: '',
       endDatepicker: null,
       endTimepicker: '',
+      email: '',
       weekDays: [
         { name: 'L', value: 2, checked: false },
         { name: 'M', value: 3, checked: false },
@@ -75,11 +76,24 @@ export class MultipleEkeyComponent implements OnInit {
     this.eKeys.push(newEKey);
   }
   isAccountValid(account: string) {
-    if (this.userService.isValidEmail(account) || this.userService.isValidPhone(account).isValid) {
+    if (this.isAccountEmail(account) || this.isAccountPhone(account)) {
       return true;
     } else {
       return false
     }
+  }
+  isAccountPhone(account: string) {
+    if (this.userService.isValidPhone(account).isValid) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  isAccountEmail(account: string) {
+    if (this.userService.isValidEmail(account)) {
+      return true;
+    } else
+      return false;
   }
   isDateAndTimeValid(eKey: { type: string; startDatepicker: any; startTimepicker: any; endDatepicker: any; endTimepicker: any; }): boolean {
     if (eKey.type === '2' || eKey.type === '4') {
@@ -109,25 +123,22 @@ export class MultipleEkeyComponent implements OnInit {
       if (!this.isAccountValid(eKey.account)) {
         this.error = "La cuenta de destinatario debe ser un correo electrónico o número de celular con código (+569)";
         break;
-      }
-      if (!eKey.name) {
+      } else if (!eKey.name) {
         this.error = "Por favor rellene el campo 'Nombre de eKey'";
         break;
-      }
-      if (!eKey.type) {
+      } else if (!eKey.type) {
         this.error = "Debe seleccionar un tipo de eKey";
         break;
-      }
-      if (!this.isDateAndTimeValid(eKey)) {
+      } else if (!this.isDateAndTimeValid(eKey)) {
         this.error = "Por favor rellene los datos de fecha y/o hora";
         break;
-      }
-      if (!this.isCheckboxesValid(eKey)) {
+      } else if (!this.isCheckboxesValid(eKey)) {
         this.error = "Si va a crear una ekey solicitante, debe seleccionar al menos un día de habilitación";
         break;
-      }
-      if (!this.isEndDateValid(eKey)) {
+      } else if (!this.isEndDateValid(eKey)) {
         this.error = 'La fecha de finalización debe ser posterior a la fecha de inicio';
+      } else if (!eKey.email) {
+        this.error = 'Por favor rellene el campo Correo'
       }
     }
     if (this.error === '') {
@@ -138,12 +149,12 @@ export class MultipleEkeyComponent implements OnInit {
       this.router.navigate(["users", this.ekeyService.username, "lock", this.ekeyService.lockID]);
     }
   }
-  async crearEkey(eKey: {account: string; name: string; type: string; startDatepicker: string; startTimepicker: string, endDatepicker: string, endTimepicker: string }) {//Dependiendo del tipo de eKey se dan los datos necesarios para generarla
+  async crearEkey(eKey: { account: string; name: string; type: string; startDatepicker: string; startTimepicker: string, endDatepicker: string, endTimepicker: string, email: string }) {//Dependiendo del tipo de eKey se dan los datos necesarios para generarla
     this.isLoading = true;
     try {
       if (eKey.type === '1') {
         ///////////PERMANENTE////////////////////////////////
-        let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, this.ekeyService.lockAlias, eKey.account, eKey.name, "0", "0", 0, 0)) as sendEkeyResponse;
+        let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, this.ekeyService.lockAlias, eKey.account, eKey.name, "0", "0", 0, 0, eKey.email)) as sendEkeyResponse;
         if (sendEkeyResponse.keyId) {//Ekey permanente se mandó correctamente
           this.popupService.emailMessage = this.sanitizer.bypassSecurityTrustHtml(sendEkeyResponse.emailContent);
           this.popupService.emailSuccess = true;
@@ -161,7 +172,7 @@ export class MultipleEkeyComponent implements OnInit {
         let newEndDay = moment(eKey.endDatepicker).valueOf();
         let newStartDate = moment(newStartDay).add(this.lockService.transformarHora(eKey.startTimepicker), "milliseconds").valueOf();
         let newEndDate = moment(newEndDay).add(this.lockService.transformarHora(eKey.endTimepicker), "milliseconds").valueOf();
-        let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, this.ekeyService.lockAlias, eKey.account, eKey.name, newStartDate.toString(), newEndDate.toString(), 0, 0)) as sendEkeyResponse;
+        let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, this.ekeyService.lockAlias, eKey.account, eKey.name, newStartDate.toString(), newEndDate.toString(), 0, 0, eKey.email)) as sendEkeyResponse;
         if (sendEkeyResponse.keyId) {//Ekey periodica se mandó correctamente
           this.popupService.emailMessage = this.sanitizer.bypassSecurityTrustHtml(sendEkeyResponse.emailContent);
           this.popupService.emailSuccess = true;
@@ -172,7 +183,8 @@ export class MultipleEkeyComponent implements OnInit {
         } else {
           console.log(sendEkeyResponse);
         }
-      }/*
+      }
+      /*
       else if (eKey.type === '3') {
         ///////////DE UN USO/////////////////////////////////////////////////////////////////////////////
         let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, this.ekeyService.lockAlias, eKey.account, eKey.name, moment().valueOf().toString(), "1", 1)) as sendEkeyResponse;
@@ -217,13 +229,12 @@ export class MultipleEkeyComponent implements OnInit {
     } finally {
       this.isLoading = false;
     }
-    
-  }
 
+  }
   getSelectedDayNames(selectedDayNumbers: number[], weekDays: { name: string; value: number; checked: boolean }[]): string {//Guarda el nombre de los dias seleccionados para mandarlos por correo
     const selectedDays = weekDays.filter(day => selectedDayNumbers.includes(day.value));
     const selectedDayNames = selectedDays.map(day => day.name);
     return selectedDayNames.join(', ');
   }
-  
+
 }

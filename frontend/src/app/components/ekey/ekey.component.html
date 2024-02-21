@@ -2,7 +2,7 @@
     <app-loader [loader]="isLoading"></app-loader>
     <nav aria-label="breadcrumb-space">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a [routerLink]="['/users', ekeyService.username]">Mis Dispositivos</a></li>
+            <li class="breadcrumb-item"><a [routerLink]="['']">Mis Dispositivos</a></li>
             <li class="breadcrumb-item"><a [routerLink]="['/users', ekeyService.username, 'lock', ekeyService.lockID]">Informacion sobre la
                     Cerradura</a></li>
             <li class="breadcrumb-item active" aria-current="page">Generar eKey</li>
@@ -16,9 +16,9 @@
             </div>
             <form #formInput="ngForm" (ngSubmit)="botonGenerarEkey(formInput.value)" class="common-form">
                 <div class="linea">
-                    <span class="input-container">
+                    <span class="input-container" [title]="''">
                         Cuenta de Destino
-                        <input type="text" class="form-input" name="recieverName" placeholder="..." ngModel />
+                        <input type="text" class="form-input" name="recieverName" placeholder="..." [(ngModel)]="recieverName" />
                     </span>
                 </div>
                 <div class="linea">
@@ -90,15 +90,21 @@
                     </span>
                 </div>
                 <div class="linea">
-                    <span class="input-container">
+                    <span class="input-container" >
                         Apertura Remota
                         <mat-slide-toggle name="remoteUnlock" ngModel ></mat-slide-toggle>
                     </span>
                 </div>
                 <div class="linea">
-                    <span class="input-container">
+                    <span class="input-container" [title]="'Un Administrador Autorizado es capaz de crear y borrar más accesos(eKeys, códigos, tarjetas, etc)'">
                         Administrador Autorizado
-                        <mat-slide-toggle name="keyRight" ngModel ></mat-slide-toggle>
+                        <mat-slide-toggle name="keyRight" ngModel></mat-slide-toggle>
+                    </span>
+                </div>
+                <div class="linea" *ngIf="isEmailNotificationRequired()">
+                    <span class="input-container" [title]="'Rellena este campo si quieres que el destinatario reciba una notificación por correo'">
+                        Correo de notificación
+                        <input type="text" class="form-input" name="email" placeholder="..." ngModel />
                     </span>
                 </div>
                 <p class="error">{{error}}</p>

@@ -1,35 +1,20 @@
-<nav class="navbar navbar-expand-lg bg-body-tertiary">
+<nav class="navbar ">
     <div class="container-fluid">
-        <a class="navbar-brand" [routerLink]="['/users', returnNombre()]">
-            <img src="../../../assets/images/logo/logo.png" alt="Vöhk Logo" width="auto" height="50" style="display: flex;">
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div *ngIf="returnLogged()!=='1'" class="collapse navbar-collapse" id="navbarNavDropdown">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <!--<a class="nav-link active" routerLink="register">Registrarse</a>-->
+        <!-- Logo -->
+        <a [routerLink]="['']" class="logo">
+            <img src="../../../assets/images/logo/logo.png" alt="Vöhk Logo" width="auto" height="60">
+        </a> 
+        <!-- Dropdown -->
+        <div class="dropdown">
+            <button type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                {{ returnNombre() }}
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <li *ngIf="returnLogged() === '1'">
+                    <button class="dropdown-item" (click)="mostrarCerraduras()">Mis Dispositivos</button>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link active" routerLink="login">Iniciar Sesión</a>
-                </li>
-            </ul>
-        </div>
-        <div *ngIf="returnLogged()==='1'" class="collapse navbar-collapse" id="navbarNavDropdown">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link active" [matMenuTriggerFor]="menu" aria-label="Settings">
-                        {{ returnNombre() }}
-                    </a>
-                    <mat-menu #menu="matMenu">
-                        <button mat-menu-item (click)="mostrarCerraduras()">
-                            <span>Mis Dispositivos</span>
-                        </button>
-                        <button mat-menu-item (click)="cerrarSesion()">
-                            <span>Cerrar Sesion</span>
-                        </button>
-                    </mat-menu>
+                <li *ngIf="returnLogged() === '1'">
+                    <button class="dropdown-item" (click)="cerrarSesion()">Cerrar Sesión</button>
                 </li>
             </ul>
         </div>

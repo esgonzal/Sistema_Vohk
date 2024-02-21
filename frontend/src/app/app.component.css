@@ -4,23 +4,19 @@
     width: 100%;
     z-index: 1000;
 }
-
 .contenido {
-    display: flex;
-    flex-direction: row;
-    height: calc(100vh - 80px);
     padding-top: 80px;
-}
-
-.barra-lateral {
-    max-width: 15%;
-    background-color: white;
-    overflow-y: auto;
-    height: calc(100vh - 80px);
-}
-
-.principal {
     flex: 1;
     overflow-y: auto;
-    height: calc(100vh - 80px);
+}
+/* Define styles for smaller devices */
+@media screen and (max-width: 768px) {
+    .navBar {
+        position: static;
+        width: 100%;
+    }
+    
+    .contenido {
+        padding-top: 20px; /* Adjust this value for smaller devices */
+    }
 }

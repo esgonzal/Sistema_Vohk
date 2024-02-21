@@ -42,7 +42,6 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  margin-bottom: 20px;
 }
 
 .linea label {
@@ -56,7 +55,7 @@
 .input-container {
   display: flex;
   flex-direction: row;
-  gap: 10px;
+  height: 30px;
   justify-content: space-between;
   width: 600px;
 }

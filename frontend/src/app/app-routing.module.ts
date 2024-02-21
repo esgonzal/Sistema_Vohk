@@ -11,9 +11,11 @@ import { GrupoCerradurasComponent } from './components/grupo-cerraduras/grupo-ce
 import { MultipleEkeyComponent } from './components/multiple-ekey/multiple-ekey.component';
 import { CardComponent } from './components/card/card.component';
 import { CameraStreamComponent } from './components/camera-stream/camera-stream.component';
+import { ComunidadesComponent } from './components/comunidades/comunidades.component';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
+  { path: '', component: ComunidadesComponent },
   { path: 'users/:username', component: UserComponent },
   { path: 'users/:username/grupos', component: GrupoCerradurasComponent },
   { path: 'users/:username/lock/:id', component: LockComponent },

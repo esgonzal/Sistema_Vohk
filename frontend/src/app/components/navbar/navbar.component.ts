@@ -25,7 +25,7 @@ export class NavbarComponent {
     return sessionStorage.getItem('logged') ?? '';
   }
   mostrarCerraduras() {
-    this.router.navigate(['users', this.returnNombre()]);
+    this.router.navigate(['']);
   }
   toPerfil() {
     this.router.navigate(['users', this.returnNombre(), 'perfil']);

@@ -34,14 +34,14 @@ export class SidebarComponent {
   async fetchGroups() {
     this.isLoading = true;
     try {
-      const typedResponse = await lastValueFrom(this.groupService.getGroupofAccount(this.userID)) as GroupResponse;
-      if (typedResponse?.list) {
-        this.groups = typedResponse.list;
+      let response = await lastValueFrom(this.groupService.getGroupofAccount(this.userID)) as GroupResponse;
+      if (response.list) {
+        this.groups = response.list;
         // Fetch locks and calculate lock counts for each group
         for (const group of this.groups) {
           group.lockCount = await this.calculateLockCountForGroup(group);
         }
-      } else if (typedResponse.errcode === 10003) {
+      } else if (response.errcode === 10003) {
         sessionStorage.clear;
       } else {
         console.log("Groups not yet available");
@@ -59,18 +59,17 @@ export class SidebarComponent {
     const pageSize = 100;
     group.locks = [];
     while (true) {
-      const locksResponse = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.userID, pageNo, pageSize, group.groupId));
-      const locksTypedResponse = locksResponse as LockListResponse;
-      if (locksTypedResponse?.list && locksTypedResponse.list.length > 0) {
-        lockCount += locksTypedResponse.list.length;
-        group.locks.push(...locksTypedResponse.list);
-        if (locksTypedResponse.pages > pageNo) {
+      let response = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.userID, pageNo, pageSize, group.groupId)) as LockListResponse;
+      if (response.list && response.list.length > 0) {
+        lockCount += response.list.length;
+        group.locks.push(...response.list);
+        if (response.pages > pageNo) {
           pageNo++;
         } else {
-          break; // No more pages to fetch
+          break;
         }
       } else {
-        break; // No more locks to fetch
+        break;
       }
     }
     return lockCount;
@@ -79,11 +78,10 @@ export class SidebarComponent {
     let pageNo = 1;
     const pageSize = 100;
     while (true) {
-      const locksResponse = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.userID, pageNo, pageSize, 0));
-      const locksTypedResponse = locksResponse as LockListResponse;
-      if (locksTypedResponse?.list) {
-        this.locksWithoutGroup.push(...locksTypedResponse.list.filter(lock => !lock.groupId))
-        if (locksTypedResponse.pages > pageNo) {
+      let response = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.userID, pageNo, pageSize, 0)) as LockListResponse;
+      if (response.list) {
+        this.locksWithoutGroup.push(...response.list.filter(lock => !lock.groupId))
+        if (response.pages > pageNo) {
           pageNo++;
         } else {
           break; // No more pages to fetch

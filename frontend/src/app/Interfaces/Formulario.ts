@@ -12,4 +12,5 @@ export interface Formulario {
     endHour: string;
     remoteEnable: boolean;
     keyRight: boolean;
+    email: string;
 }

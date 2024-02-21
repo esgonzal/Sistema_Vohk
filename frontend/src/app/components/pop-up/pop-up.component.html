@@ -276,9 +276,10 @@
             </tbody>
         </table>
     </div>
+    <p class="error">{{error}}</p>
     <div id="actions">
-        <button (click)="popupService.addLockGROUP = false; popupService.addRemoveLockGROUP = true">Volver</button>
-        <button (click)="addSelectedLocksToGroup()">OK</button>
+        <button (click)="popupService.addLockGROUP = false">Volver</button>
+        <button (click)="addSelectedLocksToGroup()">Agregar</button>
     </div>
 </div>
 <div id="container" *ngIf="popupService.removeLockGROUP">
@@ -311,9 +312,10 @@
             </tbody>
         </table>
     </div>
+    <p class="error">{{error}}</p>
     <div id="actions">
-        <button (click)="popupService.removeLockGROUP = false; popupService.addRemoveLockGROUP = true">Volver</button>
-        <button (click)="removeSelectedLocksFromGroup()">OK</button>
+        <button (click)="popupService.removeLockGROUP = false">Volver</button>
+        <button (click)="removeSelectedLocksFromGroup()">Remover</button>
     </div>
 </div>
 <div id="container" *ngIf="popupService.selectLocksForMultipleEkeys">

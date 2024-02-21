@@ -1,0 +1,118 @@
+.pagina_completa {
+    position: relative;
+}
+
+.button-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    margin-right: 30px;
+}
+
+.button-container button {
+    background-color: #ffdd78;
+    border-radius: 10px;
+    border: solid 1px black;
+}
+
+.info_comunidad {
+    display: flex;
+    background-color: white;
+    margin-top: 30px;
+    margin-left: 30px;
+    margin-right: 30px;
+    padding: 5px;
+    padding-left: 15px;
+    padding-right: 15px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.derecha {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.valid_lock {
+    background-color: rgb(255, 255, 255);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 300px;
+}
+
+.valid_lock:hover {
+    background-color: #f9c114;
+    cursor: pointer;
+}
+
+.invalid_lock {
+    background-color: rgb(255, 255, 255);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 300px;
+}
+
+.invalid_lock:hover {
+    background-color: #c41818;
+    cursor: pointer;
+}
+
+.title-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.lock-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: calc(100% - 50px);
+}
+
+.bateria_cerradura {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+}
+
+.numero_bateria {
+    font-weight: bold;
+}
+
+.nombre_comunidad {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 820px;
+}
+
+@media only screen and (max-width: 600px) {
+    .info_comunidad {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .nombre_comunidad {
+        flex: 1 1 100%;
+        /* Take full width */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 250px;
+        /* Adjust as needed */
+    }
+
+    .derecha {
+        flex: 1 1 100%;
+        /* Take full width */
+        display: flex;
+        justify-content: space-between;
+    }
+}

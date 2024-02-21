@@ -29,6 +29,7 @@ export class EkeyComponent {
     }
   }
 
+  recieverName: string;
   isLoading: boolean = false;
   error = "";
   selectedType = '';
@@ -72,6 +73,13 @@ export class EkeyComponent {
     const selectedDayNames = selectedDays.map(day => day.name);
     return selectedDayNames.join(', ');
   }
+  isEmailNotificationRequired(): boolean {
+    if (this.userService.isValidPhone(this.recieverName).isValid) {
+      return true;
+    } else {
+      return false;
+    }
+  }
   validaFechaUsuario(diaFinal: string, horaFinal: string, tipo: string): boolean {//Calcula si el usuario puede crear una eKey dependiendo de su tiempo restante de validacion
     if (this.ekeyService.endDateUser !== '0') {
       if (tipo === '1' || tipo === '3') {//La ekey es permanente
@@ -109,25 +117,25 @@ export class EkeyComponent {
   validarInputs(datos: Formulario): boolean {//Verifica que el usuario rellenó los campos necesarios para crear una eKey
     this.error = '';
     if (!datos.recieverName) {
-      this.error = "Por favor llene el campo 'Nombre del Destinatario'";
+      this.error = "Por favor llene el campo 'Cuenta de Destino'";
     } else if (!datos.ekeyType) {
       this.error = "Por favor elija un tipo de eKey";
     } else if ((datos.ekeyType === '2' || datos.ekeyType === '4') && (!datos.startDate || !datos.endDate || !datos.startHour || !datos.endHour)) {
       this.error = "Por favor rellene los datos de fecha y/o hora";
     } else if (!this.userService.isValidEmail(datos.recieverName) && !this.userService.isValidPhone(datos.recieverName).isValid) {
-      this.error = 'El usuario ingresado debe ser un email o número de telefono'
+      this.error = 'La Cuenta de Destino debe ser un email o número de telefono (+569)'
     }
     return this.error === '';
   }
   mapRemoteEnable(valor: boolean) {
-    if (valor === true){
+    if (valor === true) {
       return 1;
     } else {
       return 2;
     }
   }
   mapKeyRight(valor: boolean) {
-    if (valor === true){
+    if (valor === true) {
       return 1;
     } else {
       return 0;
@@ -148,8 +156,8 @@ export class EkeyComponent {
     try {
       if (datos.ekeyType === '1') {
         ///////////PERMANENTE////////////////////////////////
-        
-        let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, this.ekeyService.lockAlias, datos.recieverName, datos.name, "0", "0", this.mapKeyRight(datos.keyRight), this.mapRemoteEnable(datos.remoteEnable))) as sendEkeyResponse;
+
+        let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, this.ekeyService.lockAlias, datos.recieverName, datos.name, "0", "0", this.mapKeyRight(datos.keyRight), this.mapRemoteEnable(datos.remoteEnable), datos.email)) as sendEkeyResponse;
         if (sendEkeyResponse.keyId) {//Ekey permanente se mandó correctamente
           this.popupService.emailMessage = this.sanitizer.bypassSecurityTrustHtml(sendEkeyResponse.emailContent);
           this.popupService.emailSuccess = true;
@@ -167,7 +175,7 @@ export class EkeyComponent {
         let newEndDay = moment(datos.endDate).valueOf();
         let newStartDate = moment(newStartDay).add(this.lockService.transformarHora(datos.startHour), "milliseconds").valueOf();
         let newEndDate = moment(newEndDay).add(this.lockService.transformarHora(datos.endHour), "milliseconds").valueOf();
-        let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, this.ekeyService.lockAlias, datos.recieverName, datos.name, newStartDate.toString(), newEndDate.toString(), this.mapKeyRight(datos.keyRight), this.mapRemoteEnable(datos.remoteEnable))) as sendEkeyResponse;
+        let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, this.ekeyService.lockID, this.ekeyService.lockAlias, datos.recieverName, datos.name, newStartDate.toString(), newEndDate.toString(), this.mapKeyRight(datos.keyRight), this.mapRemoteEnable(datos.remoteEnable), datos.email)) as sendEkeyResponse;
         if (sendEkeyResponse.keyId) {//Ekey periodica se mandó correctamente
           this.popupService.emailMessage = this.sanitizer.bypassSecurityTrustHtml(sendEkeyResponse.emailContent);
           this.popupService.emailSuccess = true;

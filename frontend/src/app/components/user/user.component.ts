@@ -46,16 +46,11 @@ export class UserComponent implements OnInit {
 
   async ngOnInit() {
     this.userID = this.username
-    await this.getAllLocks();
-    this.groupService.selectedGroupSubject.subscribe(async selectedGroup => {
-      if (selectedGroup) {
-        await this.fetchLocks(selectedGroup.groupId);
-      }
-    });
+    //await this.getAllLocks();
+    this.fetchLocks(Number(sessionStorage.getItem('group')));
     const filteredLocks = this.allLocks
       .filter((lock) => lock.userType === '110301' || (lock.userType === '110302' && lock.keyRight === 1))
       .map(({ lockId, lockAlias }) => ({ lockId, lockAlias }));
-    // Set the filtered locks in the LockService
     this.lockService.filteredLocks = filteredLocks;
     //console.log('Filtered locks:', filteredLocks);
     //console.log('All locks:', this.allLocks);

@@ -194,7 +194,7 @@ export class LockComponent implements OnInit {
           } else {
             break;
           }
-        } else if (locksTypedResponse.errcode === 10003){
+        } else if (locksTypedResponse.errcode === 10003) {
           sessionStorage.clear();
           break;
         } else {
@@ -221,7 +221,7 @@ export class LockComponent implements OnInit {
         for (const group of this.groups) {
           group.lockCount = await this.calculateLockCountForGroup(group);
         }
-      } else if (typedResponse.errcode === 10003){
+      } else if (typedResponse.errcode === 10003) {
         sessionStorage.clear();
       } else {
         console.log("Groups not yet available");
@@ -276,7 +276,7 @@ export class LockComponent implements OnInit {
         if (typedResponse.pages > pageNo) {
           await this.fetchLocksPage(pageNo + 1, groupId);
         }
-      } else if (typedResponse.errcode === 10003){
+      } else if (typedResponse.errcode === 10003) {
         sessionStorage.clear();
       } else {
         console.log("Locks not yet available")
@@ -345,7 +345,7 @@ export class LockComponent implements OnInit {
         if (typedResponse.pages > pageNo) {
           await this.fetchPasscodesPage(pageNo + 1);
         }
-      } else if (typedResponse.errcode === 10003){
+      } else if (typedResponse.errcode === 10003) {
         sessionStorage.clear();
       } else {
         console.log("Passcodes not yet available");
@@ -379,7 +379,7 @@ export class LockComponent implements OnInit {
         if (typedResponse.pages > pageNo) {
           await this.fetchCardsPage(pageNo + 1);
         }
-      } else if (typedResponse.errcode === 10003){
+      } else if (typedResponse.errcode === 10003) {
         sessionStorage.clear();
       } else {
         console.log("Cards not yet available");
@@ -413,7 +413,7 @@ export class LockComponent implements OnInit {
         if (typedResponse.pages > pageNo) {
           await this.fetchFingerprintsPage(pageNo + 1);
         }
-      } else if (typedResponse.errcode === 10003){
+      } else if (typedResponse.errcode === 10003) {
         sessionStorage.clear();
       } else {
         console.log("Fingerprints not yet available");
@@ -445,7 +445,7 @@ export class LockComponent implements OnInit {
       if (this.recordEndDate instanceof Date) {
         this.endDate = this.recordEndDate.getTime(); // Convert to timestamp
       }
-      const response = await lastValueFrom(this.recordService.getRecords(this.userID, this.lockId, pageNo, 20,this.startDate, this.endDate, this.selectedType))
+      const response = await lastValueFrom(this.recordService.getRecords(this.userID, this.lockId, pageNo, 20, this.startDate, this.endDate, this.selectedType))
       const typedResponse = response as RecordResponse;
       if (typedResponse?.list) {
         this.records = [];
@@ -456,7 +456,7 @@ export class LockComponent implements OnInit {
         /*if (typedResponse.pages > pageNo) {
           await this.fetchRecordsPage(pageNo + 1);
         }*/
-      } else if (typedResponse.errcode === 10003){
+      } else if (typedResponse.errcode === 10003) {
         sessionStorage.clear();
       } else {
         console.log("Records not yet available");
@@ -477,7 +477,7 @@ export class LockComponent implements OnInit {
         if (response.pages > pageNo) {
           await this.fetchAllRecords(pageNo + 1);
         }
-      } else if (response.errcode === 10003){
+      } else if (response.errcode === 10003) {
         sessionStorage.clear();
       } else {
         console.log("Records not yet available");
@@ -689,7 +689,7 @@ export class LockComponent implements OnInit {
     this.popupService.elementType = user;
     this.popupService.desautorizar = true;
   }
-  aperturaRemota(ekeyID: number, remoteEnable: number){
+  aperturaRemota(ekeyID: number, remoteEnable: number) {
     this.popupService.userID = this.userID;
     this.popupService.lockID = this.lockId;
     this.popupService.elementID = ekeyID;
@@ -703,7 +703,7 @@ export class LockComponent implements OnInit {
   filtrarEkeys() {
     this.ekeys_filtradas = this.ekeys.filter(ekey => {
       return (
-        (ekey.keyName.toLowerCase().includes(this.textoBusqueda.toLowerCase())) || 
+        (ekey.keyName.toLowerCase().includes(this.textoBusqueda.toLowerCase())) ||
         ekey.username.toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
         ekey.senderUsername.toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
         this.lockService.formatTimestamp(ekey.date).includes(this.textoBusqueda) ||
@@ -736,7 +736,7 @@ export class LockComponent implements OnInit {
       console.log("Necesita estar conectado a un gateway para usar esta función")
     }
   }
-  cambiarNombrePasscode(passcode: Passcode){
+  cambiarNombrePasscode(passcode: Passcode) {
     if (this.gateway === '1') {
       this.popupService.userID = this.userID;
       this.popupService.lockID = this.lockId;
@@ -786,7 +786,7 @@ export class LockComponent implements OnInit {
   filtrarPasscodes() {
     this.passcodes_filtradas = this.passcodes.filter(passcode => {
       return (
-        (passcode.keyboardPwdName && passcode.keyboardPwdName.toLowerCase().includes(this.textoBusqueda.toLowerCase())) || 
+        (passcode.keyboardPwdName && passcode.keyboardPwdName.toLowerCase().includes(this.textoBusqueda.toLowerCase())) ||
         passcode.keyboardPwd.toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
         passcode.senderUsername.toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
         this.lockService.formatTimestamp(passcode.sendDate).includes(this.textoBusqueda) ||
@@ -845,7 +845,7 @@ export class LockComponent implements OnInit {
   filtrarCards() {
     this.cards_filtradas = this.cards.filter(card => {
       return (
-        card.cardName.toLowerCase().includes(this.textoBusqueda.toLowerCase()) || 
+        card.cardName.toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
         card.senderUsername.toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
         this.lockService.formatTimestamp(card.createDate).includes(this.textoBusqueda) ||
         this.lockService.periodoValidez(card.startDate, card.endDate).toLowerCase().includes(this.textoBusqueda.toLowerCase())
@@ -887,7 +887,7 @@ export class LockComponent implements OnInit {
   filtrarFingerprints() {
     this.fingerprints_filtradas = this.fingerprints.filter(finger => {
       return (
-        finger.fingerprintName.toLowerCase().includes(this.textoBusqueda.toLowerCase()) || 
+        finger.fingerprintName.toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
         finger.senderUsername.toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
         this.lockService.formatTimestamp(finger.createDate).includes(this.textoBusqueda) ||
         this.lockService.periodoValidezFingerprint(finger).toLowerCase().includes(this.textoBusqueda.toLowerCase())
@@ -905,12 +905,12 @@ export class LockComponent implements OnInit {
     this.filtrarRecords();
     this.recordsDataSource = new MatTableDataSource(this.records_filtradas);
   }
-  filtrarRecords(){
+  filtrarRecords() {
     this.records_filtradas = this.records.filter(record => {
       return (
         (record.username && record.username.toLowerCase().includes(this.textoBusqueda.toLowerCase())) ||
         this.lockService.consultarSuccess(record.success).toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
-        this.lockService.formatTimestamp(record.serverDate).includes(this.textoBusqueda) || 
+        this.lockService.formatTimestamp(record.serverDate).includes(this.textoBusqueda) ||
         this.lockService.consultarMetodo(record.recordTypeFromLock, record.username).toLowerCase().includes(this.textoBusqueda.toLowerCase())
       );
     });
@@ -927,5 +927,5 @@ export class LockComponent implements OnInit {
       this.fetchRecordsPage(previousPage);
     }
   }
-  
+
 }

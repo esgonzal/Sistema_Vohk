@@ -170,6 +170,7 @@ button {
 .error {
     font-size: smaller;
     color: red;
+    text-align: center;
 }
 
 .confirmation-message {

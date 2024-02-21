@@ -328,30 +328,22 @@ export class PopUpComponent implements OnInit {
     let newEndDate;
     this.error = '';
     this.isLoading = true;
-    try {/*
-      if (this.popupService.passcode.keyboardPwdType === 1 || this.popupService.passcode.keyboardPwdType === 2 || this.popupService.passcode.keyboardPwdType === 4) {
-        response = await lastValueFrom(this.passcodeService.changePasscode(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, this.name, this.passcodePwd)) as operationResponse;
-      }
-      if (this.popupService.passcode.keyboardPwdType === 3) {
-        let newStartDay = moment(this.startDate).valueOf()
-        let newEndDay = moment(this.endDate).valueOf()
-        newStartDate = moment(newStartDay).add(this.lockService.transformarHora(this.startHour), "milliseconds").valueOf()
-        newEndDate = moment(newEndDay).add(this.lockService.transformarHora(this.endHour), "milliseconds").valueOf()
-        response = await lastValueFrom(this.passcodeService.changePasscode(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, this.name, this.passcodePwd, newStartDate.toString(), newEndDate.toString())) as operationResponse
-      }
+    try {
+      /*
       if (this.popupService.passcode.keyboardPwdType === 5 || this.popupService.passcode.keyboardPwdType === 6 || this.popupService.passcode.keyboardPwdType === 7 || this.popupService.passcode.keyboardPwdType === 8 || this.popupService.passcode.keyboardPwdType === 9 || this.popupService.passcode.keyboardPwdType === 10 || this.popupService.passcode.keyboardPwdType === 11 || this.popupService.passcode.keyboardPwdType === 12 || this.popupService.passcode.keyboardPwdType === 13 || this.popupService.passcode.keyboardPwdType === 14) {
         let today = moment({ hour: 0, minute: 0 }).valueOf()
         let newStartDate = moment(today).add(this.lockService.transformarHora(this.startHour), "milliseconds").valueOf()
         let newEndDate = moment(today).add(this.lockService.transformarHora(this.endHour), "milliseconds").valueOf()
         response = await lastValueFrom(this.passcodeService.changePasscode(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, this.name, this.passcodePwd, newStartDate.toString(), newEndDate.toString()))
-      }*/
+      }
+      */
       response = await lastValueFrom(this.passcodeService.changePasscode(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, undefined, this.passcodePwd, undefined, undefined))
       //console.log(response)
       if (response?.errcode === 0) {
         this.popupService.editarPasscode = false;
         window.location.reload();
       } else if (response?.errcode === -3008) {
-        this.error = "No se puede editar una passcode que no haya sido usada antes";
+        this.error = "Para editar este código necesita usarlo al menos una vez";
       } else if (response?.errcode === -3007) {
         this.error = "Por favor ingresa un código diferente";
       } else if (response?.errcode === -3006) {
@@ -359,6 +351,8 @@ export class PopUpComponent implements OnInit {
       } else if (response?.errcode === 10003) {
         sessionStorage.clear();
         this.popupService.editarPasscode = false;
+      } else {
+        console.log(response);
       }
     } catch (error) {
       console.error("Error while editing a passcode:", error);
@@ -452,7 +446,7 @@ export class PopUpComponent implements OnInit {
     this.isLoading = true;
     try {
       if (!this.name) {
-        this.error = "Por favor ingrese el dato requerido"
+        this.error = "Por favor ingrese el nombre"
       } else {
         let response = await lastValueFrom(this.groupService.addGroup(this.popupService.userID, this.name)) as addGroupResponse;
         //console.log(response)
@@ -468,6 +462,7 @@ export class PopUpComponent implements OnInit {
           this.popupService.newGroup = false;
         } else {
           this.error = "No se pudo completar la acción, intente nuevamente más tarde";
+          console.log(response)
         }
       }
     } catch (error) {
@@ -499,6 +494,7 @@ export class PopUpComponent implements OnInit {
     this.isLoading = true;
     try {
       if (this.selectedLockIds.length === 0) {
+        this.error = "No seleccionó ninguna cerradura para remover"
       } else {
         for (const lockId of this.selectedLockIds) {
           let response = await lastValueFrom(this.groupService.setGroupofLock(this.popupService.userID, lockId.toString(), "0")) as operationResponse;
@@ -523,6 +519,7 @@ export class PopUpComponent implements OnInit {
     this.isLoading = true;
     try {
       if (this.selectedLockIds.length === 0) {
+        this.error = "No seleccionó ninguna cerradura para agregar"
       } else {
         for (const lockId of this.selectedLockIds) {
           let response = await lastValueFrom(this.groupService.setGroupofLock(this.popupService.userID, lockId.toString(), this.popupService.group.groupId.toString())) as operationResponse;

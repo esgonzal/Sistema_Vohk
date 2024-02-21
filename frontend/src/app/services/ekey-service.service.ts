@@ -33,9 +33,9 @@ export class EkeyServiceService {
     return this.http.post<EkeyResponse>(url, body);
   }
   sendEkey(userID: string, lockID: number, lockAlias: string, recieverName: string, keyName: string, 
-           startDate: string, endDate: string, keyRight: number, remoteEnable: number, 
+           startDate: string, endDate: string, keyRight: number, remoteEnable: number, email: string, 
            keyType?: number, startDay?: string, endDay?: string, weekDays?: string): Observable<sendEkeyResponse> {
-    let body = { userID, lockID, lockAlias, recieverName, keyName, startDate, endDate, keyRight, remoteEnable, keyType, startDay, endDay, weekDays };
+    let body = { userID, lockID, lockAlias, recieverName, keyName, startDate, endDate, keyRight, remoteEnable, email, keyType, startDay, endDay, weekDays };
     let url = this.URL.concat('/v0/ekey/send');
     return this.http.post<sendEkeyResponse>(url, body);
   }

@@ -50,7 +50,8 @@ export class LoginComponent {
       if(response.userID) {
         sessionStorage.setItem('logged', '1')
         sessionStorage.setItem('user', data.username)
-        this.router.navigate(['/users/', data.username]);
+        //this.router.navigate(['/users/', data.username]);
+        this.router.navigate(['']);
       } else if(response.description) {
         this.loginError = "Nombre de usuario y/o contraseña inválidos";
       } 
