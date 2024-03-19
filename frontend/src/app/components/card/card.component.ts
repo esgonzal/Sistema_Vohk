@@ -6,6 +6,8 @@ import moment from 'moment';
 import { LockServiceService } from 'src/app/services/lock-service.service';
 import { lastValueFrom } from 'rxjs';
 import { addCardResponse } from 'src/app/Interfaces/API_responses';
+import { faHome, faLock, faCreditCard } from '@fortawesome/free-solid-svg-icons'
+
 
 @Component({
   selector: 'app-card',
@@ -22,7 +24,10 @@ export class CardComponent {
       this.router.navigate(['users', sessionStorage.getItem('user'), 'lock', sessionStorage.getItem('lockID')])
     }
   }
-
+  
+  faHome = faHome
+  faLock = faLock
+  faCreditCard = faCreditCard
   isLoading: boolean = false;
   error = '';
   cardName: string = '';

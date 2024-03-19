@@ -1,0 +1,36 @@
+<div class="pagina_completa">
+    <app-loader [loader]="isLoading"></app-loader>
+    <div class="sidebar">
+        <a [routerLink]="['']" class="not-current" [title]="'Mis Comunidades'">
+            <fa-icon [icon]="faHome"></fa-icon>
+        </a>
+        <a [routerLink]="['/users', passcodeService.username, 'lock', passcodeService.lockID]" class="not-current" [title]="'Informacion sobre la Cerradura'">
+            <fa-icon [icon]="faLock"></fa-icon>
+        </a>
+        <a class="current" [title]="'Generar código temporal'">
+            <fa-icon [icon]="faHashtag"></fa-icon>
+        </a>
+    </div>
+    <div class="resto">
+        <div class="form-area">
+            <h2 style="margin-bottom: 50px;">Ingrese los datos para generar un nuevo código</h2>
+            <form #formInput="ngForm" (ngSubmit)="validarNuevaPass(formInput.value)" class="common-form">
+                <div class="linea">
+                    <span class="input-container">
+                        Nombre del Destinatario
+                        <input type="text" class="form-input" name="name" placeholder="..." ngModel/>
+                    </span>
+                </div>
+                <div class="linea">
+                    <span class="input-container" [title]="'Rellena este campo si quieres que el destinatario reciba una notificación por correo'">
+                        Correo de notificación
+                        <input type="text" class="form-input" name="email" placeholder="..." ngModel />
+                    </span>
+                </div>
+                <p class="error">{{error}}</p>
+                <button class="form-button" type="submit">Generar</button>
+            </form>
+        </div>
+    </div>
+</div>
+<app-pop-up *ngIf="this.popupService.needGateway"></app-pop-up>

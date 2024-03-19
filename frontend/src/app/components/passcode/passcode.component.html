@@ -1,13 +1,16 @@
 <div class="pagina_completa">
     <app-loader [loader]="isLoading"></app-loader>
-    <nav aria-label="breadcrumb-space">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a [routerLink]="['']">Mis Dispositivos</a></li>
-            <li class="breadcrumb-item"><a [routerLink]="['/users', passcodeService.username, 'lock', passcodeService.lockID]">Informacion sobre la
-                    Cerradura</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Generar código</li>
-        </ol>
-    </nav>
+    <div class="sidebar">
+        <a [routerLink]="['']" class="not-current" [title]="'Mis Comunidades'">
+            <fa-icon [icon]="faHome"></fa-icon>
+        </a>
+        <a [routerLink]="['/users', passcodeService.username, 'lock', passcodeService.lockID]" class="not-current" [title]="'Informacion sobre la Cerradura'">
+            <fa-icon [icon]="faLock"></fa-icon>
+        </a>
+        <a class="current" [title]="'Generar código'">
+            <fa-icon [icon]="faHashtag"></fa-icon>
+        </a>
+    </div>
     <div class="resto" *ngIf="this.passcodeService.passcodesimple===false">
         <div class="form-area">
             <h2 style="margin-bottom: 50px;">Ingrese los datos para generar un nuevo código</h2>
@@ -127,8 +130,7 @@
                     </span>
                 </div>
                 <!--SOLO PREGUNTAR HORA-->
-                <div class="linea"
-                    *ngIf="selectedType !== '' && selectedType !== '1' && selectedType !== '2' && selectedType !== '3' && selectedType !== '4' && selectedType !== 'Custom_Permanent' && selectedType !== 'Custom_Period'">
+                <div class="linea" *ngIf="selectedType !== '' && selectedType !== '1' && selectedType !== '2' && selectedType !== '3' && selectedType !== '4' && selectedType !== 'Custom_Permanent' && selectedType !== 'Custom_Period'">
                     <span class="input-container">
                         Hora de inicio
                         <mat-form-field appearance="fill">

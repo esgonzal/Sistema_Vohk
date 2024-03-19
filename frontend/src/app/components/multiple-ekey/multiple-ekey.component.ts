@@ -10,6 +10,7 @@ import { lastValueFrom, retry } from 'rxjs';
 import { UserServiceService } from '../../services/user-service.service';
 import { checkUserInDBResponse, sendEkeyResponse, UserRegisterResponse } from '../../Interfaces/API_responses';
 import { DomSanitizer } from '@angular/platform-browser';
+import { faHome, faLock, faKey, faPerson, faPeopleGroup  } from '@fortawesome/free-solid-svg-icons'
 
 @Component({
   selector: 'app-multiple-ekey',
@@ -22,6 +23,11 @@ export class MultipleEkeyComponent implements OnInit {
   error = "";
   eKeys: any[] = [];
   results: any[] = [];
+  faHome = faHome;
+  faLock = faLock;
+  faKey = faKey;
+  faPerson = faPerson
+  faPeopleGroup = faPeopleGroup
 
   constructor(private router: Router,
     public ekeyService: EkeyServiceService,

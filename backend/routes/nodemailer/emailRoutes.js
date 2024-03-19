@@ -177,12 +177,13 @@ router.post('/ekeySolicitanteNewUser', async(req, res) => {
 });
 */
 router.post('/ekeyPeriodic', async(req, res) => {
-    const { to, from, lock_alias, start, end } = req.body;
+    const { to, from, lock_alias, start, end, comunidad } = req.body;
     const templatePath = path.join(__dirname, 'templates', 'eKeyPeriodic.html');
     const templateContent = await fs.readFile(templatePath, 'utf8');
     const emailContent = templateContent
         .replace(/{{to}}/g, to)
         .replace(/{{from}}/g, from)
+        .replace(/{{comunidad}}/g, comunidad)
         .replace(/{{lock_alias}}/g, lock_alias)
         .replace(/{{start}}/g, start)
         .replace(/{{end}}/g, end)

@@ -14,7 +14,7 @@ import { GatewayService } from 'src/app/services/gateway.service';
 
 import { GatewayAccount } from '../../Interfaces/Gateway';
 import { Formulario } from '../../Interfaces/Formulario';
-import { operationResponse, addGroupResponse, GetLockTimeResponse } from '../../Interfaces/API_responses';
+import { operationResponse, addGroupResponse, GetLockTimeResponse, createPasscodeResponse } from '../../Interfaces/API_responses';
 
 import { lastValueFrom } from 'rxjs';
 import moment from 'moment';
@@ -51,6 +51,7 @@ export class PopUpComponent implements OnInit {
   cardNumber: string = '';
   trustedHtml: SafeHtml;
   public isCopied: boolean = false;
+  email: string;
 
   constructor(
     private router: Router,
@@ -113,6 +114,7 @@ export class PopUpComponent implements OnInit {
     if (this.popupService.remoteEnable !== null) {
       this.remoteEnableToggle = this.popupService.remoteEnable === 1; // Adjust as needed
     }
+    this.selectedLockIds = this.ekeyService.selectedLocks;
   }
   navigateToLogin() {
     this.popupService.registro = false;
@@ -383,7 +385,7 @@ export class PopUpComponent implements OnInit {
     try {
       let response = await lastValueFrom(this.ekeyService.modifyEkey(this.popupService.userID, this.popupService.elementID, undefined, remote)) as operationResponse;
       //console.log(response);
-      if (response.errcode === 0){
+      if (response.errcode === 0) {
         this.popupService.changeRemoteEnable = false;
         window.location.reload();
       } else if (response.errcode === 10003) {
@@ -650,7 +652,7 @@ export class PopUpComponent implements OnInit {
     }
   }
   exportToExcel(): void {
-    if (this.name !== undefined ){
+    if (this.name !== undefined) {
       const cleanedRecords = this.popupService.records.map(record => ({
         Operador: record.username,
         Metodo_Apertura: this.lockService.consultarMetodo(record.recordTypeFromLock, record.username),
@@ -665,5 +667,35 @@ export class PopUpComponent implements OnInit {
     } else {
       this.error = "Por favor ingrese un nombre"
     }
+  }
+  async createTemporalPasscode() {
+    let response;
+    this.isLoading = true;
+    if (!this.name) {
+      this.error = "Por favor ingrese un nombre para el código"
+    } else {
+      try {
+        //PERIODIC PASSCODE
+        let ahora = moment().valueOf();
+        let final = moment(ahora).add(3, 'hours').valueOf();
+        response = (await lastValueFrom(this.passcodeService.generatePasscode(this.popupService.userID, this.popupService.lockID, '3', ahora.toString(), this.name, final.toString()))) as createPasscodeResponse;
+        if (response?.keyboardPwdId) {
+          this.popupService.temporalPasscode = false;
+          window.location.reload();
+        } else if (response?.errcode === 10003) {
+          sessionStorage.clear();
+        } else {
+          console.log('ERROR:', response);
+        }
+      } catch (error) {
+        console.error('Error while creating Passcode:', error);
+      } finally {
+        this.isLoading = false;
+      }
+    }
+  }
+  confirmLockSelection(){
+    this.ekeyService.selectedLocks = this.selectedLockIds;
+    this.popupService.selectLocksForEkey = false;
   }
 }

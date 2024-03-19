@@ -31,7 +31,7 @@ export class ComunidadesComponent implements OnInit {
   faAngleUp = faAngleUp
   faAngleDown = faAngleDown
   visibleGroups: { [groupId: string]: boolean } = {};
-  cols: number = 3;
+  cols: number = 6;
 
   constructor(private groupService: GroupService,
     private ekeyService: EkeyServiceService,
@@ -43,8 +43,12 @@ export class ComunidadesComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     await this.fetchGroups();
     await this.getLocksWithoutGroup();
-    //console.log(this.groups)
-    //console.log(this.locksWithoutGroup)
+    const lockGroupID = sessionStorage.getItem('lockGroupID');
+    if (lockGroupID) {
+      this.visibleGroups[lockGroupID] = true;
+    }
+    //console.log("This.groups: ",this.groups)
+    //console.log("This.locksWithoutGroup",this.locksWithoutGroup)
   }
   async fetchGroups() {
     this.isLoading = true;
@@ -126,6 +130,8 @@ export class ComunidadesComponent implements OnInit {
     sessionStorage.setItem('lockBatery', lock.electricQuantity.toString())
     sessionStorage.setItem('lockGateway', lock.hasGateway.toString())
     sessionStorage.setItem('lockFeature', lock.featureValue.toString())
+    sessionStorage.setItem('lockGroup', lock.groupName);
+    sessionStorage.setItem('lockGroupID', lock.groupId?.toString());
     this.router.navigate(['users', this.userID, 'lock', lock.lockId])
   }
   onInvalidButtonClick() {
@@ -174,10 +180,10 @@ export class ComunidadesComponent implements OnInit {
     const screenWidth = window.innerWidth;
 
     if (screenWidth <= 600) { // Mobile breakpoint
-      this.cols = 1;
+      this.cols = 2;
     } else {
       // Calculate number of columns based on screen width
-      const numColumns = Math.min(Math.floor(screenWidth / 350), 3);
+      const numColumns = Math.min(Math.floor(screenWidth / 200), 6);
       this.cols = numColumns;
     }
   }

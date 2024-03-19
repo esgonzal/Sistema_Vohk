@@ -1,20 +1,23 @@
 <div class="pagina_completa">
     <app-loader [loader]="isLoading"></app-loader>
-    <nav aria-label="breadcrumb-space">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a [routerLink]="['']">Mis Dispositivos</a></li>
-            <li class="breadcrumb-item"><a [routerLink]="['/users', ekeyService.username, 'lock', ekeyService.lockID]">Informacion sobre la
-                    Cerradura</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Generar eKey</li>
-        </ol>
-    </nav>
+    <div class="sidebar">
+        <a [routerLink]="['']" class="not-current" [title]="'Mis Comunidades'">
+            <fa-icon [icon]="faHome"></fa-icon>
+        </a>
+        <a [routerLink]="['/users', ekeyService.username, 'lock', ekeyService.lockID]" class="not-current" [title]="'Informacion sobre la Cerradura'">
+            <fa-icon [icon]="faLock"></fa-icon>
+        </a>
+        <a class="current" [title]="'Generar eKey'">
+            <fa-icon [icon]="faPerson"></fa-icon>
+        </a>
+    </div>
     <div class="resto">
         <div class="form-area">
             <h2 style="margin-bottom: 50px;">Ingrese los datos para generar a una nueva eKey</h2>
             <div class="multipleButton">
-                <button (click)="toMultipleEkeys()">Generar múltiples eKeys</button>
+                <button (click)="toMultipleEkeys()" title="Crear más de una eKey al mismo tiempo para la(s) cerradura(s) designada(s)">Generar múltiples eKeys</button>
             </div>
-            <form #formInput="ngForm" (ngSubmit)="botonGenerarEkey(formInput.value)" class="common-form">
+            <form #formInput="ngForm" class="common-form">
                 <div class="linea">
                     <span class="input-container" [title]="''">
                         Cuenta de Destino
@@ -38,6 +41,12 @@
                             <!--<option value="3">De un uso</option>-->
                             <!--<option value="4">Solicitante</option>-->
                         </select>
+                    </span>
+                </div>
+                <div class="linea">
+                    <span class="input-container">
+                        Cerradura
+                        <button (click)="openLockSelector()">+</button>
                     </span>
                 </div>
                 <div class="linea" *ngIf="selectedType==='4'">
@@ -90,7 +99,7 @@
                     </span>
                 </div>
                 <div class="linea">
-                    <span class="input-container" >
+                    <span class="input-container">
                         Apertura Remota
                         <mat-slide-toggle name="remoteUnlock" ngModel ></mat-slide-toggle>
                     </span>
@@ -108,9 +117,9 @@
                     </span>
                 </div>
                 <p class="error">{{error}}</p>
-                <button class="form-button" type="submit">Generar</button>
+                <button class="form-button" type="submit" (click)="botonGenerarEkey(formInput.value)">Generar</button>
             </form>
         </div>
     </div>
 </div>
-<app-pop-up *ngIf="popupService.emailSuccess"></app-pop-up>
+<app-pop-up *ngIf="popupService.emailSuccess || popupService.selectLocksForEkey"></app-pop-up>

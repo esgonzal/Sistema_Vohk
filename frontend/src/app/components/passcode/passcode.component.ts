@@ -7,6 +7,7 @@ import { LockServiceService } from '../../services/lock-service.service';
 import { PopUpService } from '../../services/pop-up.service';
 import { createPasscodeResponse } from '../../Interfaces/API_responses';
 import { lastValueFrom } from 'rxjs';
+import { faHome, faLock, faHashtag } from '@fortawesome/free-solid-svg-icons'
 
 @Component({
   selector: 'app-passcode',
@@ -20,7 +21,10 @@ export class PasscodeComponent{
       this.router.navigate(['users', sessionStorage.getItem('user'), 'lock', sessionStorage.getItem('lockID')])
     }
    }
-
+  
+  faHome = faHome;
+  faLock = faLock;
+  faHashtag = faHashtag
   isLoading: boolean = false;
   howManyHours = '';
   error = '';

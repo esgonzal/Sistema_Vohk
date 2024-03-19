@@ -6,6 +6,7 @@ import { EkeyServiceService } from 'src/app/services/ekey-service.service';
 import { LockServiceService } from 'src/app/services/lock-service.service';
 import { PopUpService } from 'src/app/services/pop-up.service';
 import { UserServiceService } from 'src/app/services/user-service.service';
+import { faHome, faLock, faRightLeft } from '@fortawesome/free-solid-svg-icons'
 
 @Component({
   selector: 'app-transfer-lock',
@@ -21,6 +22,9 @@ export class TransferLockComponent {
     private ekeyService: EkeyServiceService,
     private router: Router) { }
 
+  faHome = faHome;
+  faLock = faLock;
+  faRightLeft = faRightLeft
   error: string = '';
   username = sessionStorage.getItem('user') ?? ''
   lockId: number = Number(sessionStorage.getItem('lockID') ?? '')

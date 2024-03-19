@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { DomSanitizer } from '@angular/platform-browser';
 import moment from 'moment';
 import { lastValueFrom } from 'rxjs';
-import { faBatteryFull, faBatteryThreeQuarters, faBatteryHalf, faBatteryQuarter, faBatteryEmpty, faGear, faWifi } from '@fortawesome/free-solid-svg-icons'
+import { faBatteryFull, faBatteryThreeQuarters, faBatteryHalf, faBatteryQuarter, faBatteryEmpty, faGear, faWifi, faHome, faLock } from '@fortawesome/free-solid-svg-icons'
 import { MatTableDataSource } from '@angular/material/table';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { LockServiceService } from '../../services/lock-service.service';
@@ -39,6 +39,8 @@ export class LockComponent implements OnInit {
   faBatteryEmpty = faBatteryEmpty
   faGear = faGear
   faWifi = faWifi
+  faHome = faHome
+  faLock = faLock
   username = sessionStorage.getItem('user') ?? ''
   userID: string;
   lockId: number = Number(sessionStorage.getItem('lockID') ?? '')
@@ -50,6 +52,7 @@ export class LockComponent implements OnInit {
   Bateria = sessionStorage.getItem('lockBatery') ?? '';
   gateway = sessionStorage.getItem('lockGateway') ?? '';
   featureValue = sessionStorage.getItem('lockFeature') ?? '';
+  lockGroup = sessionStorage.getItem('lockGroup') ?? '';
   pageLoaded = false;
   isLoading: boolean = false;
   lockDetails: LockDetails;
@@ -629,6 +632,12 @@ export class LockComponent implements OnInit {
       this.popupService.needGateway = true;
       console.log("Necesita estar conectado a un gateway para usar esta función")
     }
+  }
+  toTemporalPasscode() {
+    this.popupService.userID = this.userID;
+    this.popupService.lockID = this.lockId;
+    this.popupService.endDateUser = this.endDateDeUser;
+    this.popupService.temporalPasscode = true;
   }
   //FUNCIONES EKEY
   crearEkey() {

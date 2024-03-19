@@ -41,6 +41,8 @@ export class PopUpService {
   cardReader = false;
   emailSuccess = false;
   excelNameWindow = false;
+  temporalPasscode = false;
+  selectLocksForEkey = false;
   emailMessage: SafeHtml = '';
   lock_alias: string;
   gatewaysOfLock: GatewayLock[] = []
@@ -56,6 +58,7 @@ export class PopUpService {
   passcode: Passcode;
   group: Group;
   locksWithoutGroup: LockData[];
+  locksOfGroup: LockData[];
   selectedLockIds_forMultipleEkeys: number[] = [];
   recipients: RecipientList[] = [];
   transferLockReciever: string;
@@ -64,6 +67,7 @@ export class PopUpService {
   password: string;
   remoteEnable: number;
   records: Record[] = [];
+  endDateUser: string;
 
   toggleLockSelection(lockId: number) {
     const index = this.selectedLockIds_forMultipleEkeys.indexOf(lockId);

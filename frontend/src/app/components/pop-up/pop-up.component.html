@@ -440,6 +440,65 @@
         <button (click)="exportToExcel()">Exportar</button>
     </div>
 </div>
+<div id="container" *ngIf="popupService.temporalPasscode">
+    <div id="header">
+        Crear código temporal
+    </div>
+    <div id="content">
+        <div class="form-area">
+            <form class="common-form">
+                <p>
+                    Nombre de Destinatario
+                    <input type="text" class="form-input" name="name" [(ngModel)]="name" />
+                </p>
+                <p>
+                    Correo de notificación
+                    <input type="text" class="form-input" name="name" [(ngModel)]="email" />
+                </p>
+                <p class="error">{{error}}</p>
+            </form>
+        </div>
+    </div>
+    <div id="actions">
+        <button (click)="popupService.temporalPasscode = false">Volver</button>
+        <button (click)="createTemporalPasscode()">Guardar</button>
+    </div>
+</div>
+<div id="container" *ngIf="popupService.selectLocksForEkey">
+    <div id="header">
+        A cuales cerraduras quiere crearle una eKey?
+    </div>
+    <div id="content" style="justify-content: flex-start; ">
+        <table class="lock-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Seleccionado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <ng-container *ngIf="popupService.locksOfGroup.length > 0; else noLocks">
+                    <tr *ngFor="let lock of popupService.locksOfGroup">
+                        <td>{{ lock.lockAlias }}</td>
+                        <td style="text-align: center">
+                            <input type="checkbox" [checked]="isLockSelected(lock.lockId)" (change)="toggleLockSelection(lock.lockId)">
+                        </td>
+                    </tr>
+                </ng-container>
+                <ng-template #noLocks>
+                    <tr>
+                        <td colspan="2">No existen cerraduras disponibles para agregar a este grupo.</td>
+                    </tr>
+                </ng-template>
+            </tbody>
+        </table>
+    </div>
+    <p class="error">{{error}}</p>
+    <div id="actions">
+        <button (click)="popupService.selectLocksForEkey = false">Volver</button>
+        <button (click)="confirmLockSelection()">Confirmar</button>
+    </div>
+</div>
 <!--
 <div id="container" *ngIf="popupService.cerradoAutomatico">
     <div id="header">
