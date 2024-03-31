@@ -38,6 +38,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { AppRoutingModule } from './app-routing.module';
 import { RouterModule } from '@angular/router';
@@ -94,6 +95,7 @@ import { TemporalPasscodeComponent } from './components/temporal-passcode/tempor
     MatIconModule,
     MatSlideToggleModule,
     AppRoutingModule,
+    MatTooltipModule,
     RouterModule.forRoot([])
   ],
   providers: [DatePipe, GroupService],

@@ -39,10 +39,10 @@
                             </div>
                         </div>
                         <div class="hasGateway">
-                            <div *ngIf="gateway==='1'">
+                            <div *ngIf="gateway==='1'" matTooltip="La cerradura está conectada a un dispositivo hub">
                                 <fa-icon style="color: rgb(56, 206, 56);" [icon]="faWifi"></fa-icon>
                             </div>
-                            <div *ngIf="gateway==='0'">
+                            <div *ngIf="gateway==='0'" matTooltip="La cerradura no está conectada a un dispositivo hub">
                                 <fa-icon style="color: rgb(255, 0, 0);" [icon]="faWifi"></fa-icon>
                             </div>
                         </div>
@@ -54,7 +54,7 @@
                             </mat-menu>
                         </div>
                     </div>
-                    <div class="segundo">
+                    <div class="segundo" matTooltip="Comunidad a la que pertenece la cerradura">
                         Comunidad: {{lockGroup}}
                     </div>
                     <div class="tercero">
@@ -74,13 +74,13 @@
                 <div class="derecho">
                     <div class="lock-unlock">
                         <div>
-                            <button (click)="toTemporalPasscode()">Invitación rápida</button>
+                            <button (click)="toTemporalPasscode()" [title]="'Crea un código con duración de 3 horas'">Invitación rápida</button>
                         </div>
                         <div>
-                            <button (click)="Unlock()" *ngIf="lockService.checkFeature(featureValue, 10)">Abrir</button>
+                            <button (click)="Unlock()" *ngIf="lockService.checkFeature(featureValue, 10)" [title]="'Presiona para abrir la cerradura si es que está conectada a un dispositivo hub'">Abrir</button>
                         </div>
                         <div>
-                            <button (click)="Lock()" *ngIf="lockService.checkFeature(featureValue, 8)">Cerrar</button>
+                            <button (click)="Lock()" *ngIf="lockService.checkFeature(featureValue, 8)" [title]="'Presiona para cerrar la cerradura si es que está conectada a un dispositivo hub'">Cerrar</button>
                         </div>
                     </div>
                 </div>
@@ -89,7 +89,7 @@
                 <div>
                     <div class="tablist">
                         <mat-tab-group backgroundColor="primary" color="warn" (selectedTabChange)="onTabChanged($event)">
-                            <mat-tab label="Ekeys">
+                            <mat-tab label="Ekeys" matTooltip="Método de apertura de la aplicación móvil Vöhk">
                                 <div class="contenido">
                                     <div class="button-container">
                                         <input type="text" [(ngModel)]="textoBusqueda" placeholder="Buscar Ekeys..." (input)="searchEkeys()" />
@@ -179,7 +179,7 @@
                                     </div>
                                 </div>
                             </mat-tab>
-                            <mat-tab label="Códigos" *ngIf="lockService.checkFeature(featureValue, 0)">
+                            <mat-tab label="Códigos" *ngIf="lockService.checkFeature(featureValue, 0)" matTooltip="Introduce una secuencia numérica en la pantalla táctil de la cerradura">
                                 <div class="contenido">
                                     <div class="button-container">
                                         <input type="text" [(ngModel)]="textoBusqueda" placeholder="Buscar Códigos..." (input)="searchPasscodes()" />
@@ -255,7 +255,7 @@
                                     </div>
                                 </div>
                             </mat-tab>
-                            <mat-tab label="Tarjetas" *ngIf="lockService.checkFeature(featureValue, 1)">
+                            <mat-tab label="Tarjetas" *ngIf="lockService.checkFeature(featureValue, 1)" matTooltip="Acerca una tarjeta de proximidad a la cerradura para abrirla">
                                 <div class="contenido">
                                     <div class="button-container">
                                         <input type="text" [(ngModel)]="textoBusqueda" placeholder="Buscar Tarjetas..." (input)="searchCards()" />
@@ -323,7 +323,7 @@
                                     </div>
                                 </div>
                             </mat-tab>
-                            <mat-tab label="Huellas" *ngIf="lockService.checkFeature(featureValue, 2)">
+                            <mat-tab label="Huellas" *ngIf="lockService.checkFeature(featureValue, 2)" matTooltip="Usa la huella digital de tus dedos para abrir una cerradura">
                                 <div class="contenido">
                                     <div class="button-container">
                                         <input type="text" [(ngModel)]="textoBusqueda" placeholder="Buscar Huellas..." (input)="searchFingerprints()" />
@@ -383,7 +383,7 @@
                                     </div>
                                 </div>
                             </mat-tab>
-                            <mat-tab label="Registros">
+                            <mat-tab label="Registros" matTooltip="Revisa las aperturas exitosas y fallidas de la cerradura">
                                 <div class="contenido">
                                     <div class="button-container">
                                         <!--
@@ -462,4 +462,6 @@
                   this.popupService.autorizar || this.popupService.desautorizar || this.popupService.changeRemoteEnable || this.popupService.congelar || 
                   this.popupService.descongelar || this.popupService.esencial || this.popupService.gateway || 
                   this.popupService.cerradoAutomatico || this.popupService.mostrarHora || this.popupService.needGateway || this.popupService.sharePasscode ||
-                  this.popupService.excelNameWindow || this.popupService.temporalPasscode" style="z-index: 10;"></app-pop-up>
+                  this.popupService.excelNameWindow || this.popupService.temporalPasscode || this.popupService.selectLocksForDelete || this.popupService.selectLocksForAutorizar ||
+                  this.popupService.selectLocksForDesautorizar || this.popupService.selectLocksForCongelar || this.popupService.selectLocksForDescongelar || 
+                  this.popupService.selectLocksForCambiarNombre" style="z-index: 10;"></app-pop-up>

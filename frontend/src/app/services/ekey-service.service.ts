@@ -18,6 +18,7 @@ export class EkeyServiceService {
   endDateUser: string;
   currentLocks: LockData[] = []
   selectedLocks: number[] = [];
+  selectedEkeys: number[] = [];
   recipients: RecipientList[] = [];
 
   constructor(private http: HttpClient) { }
@@ -37,6 +38,7 @@ export class EkeyServiceService {
            keyType?: number, startDay?: string, endDay?: string, weekDays?: string): Observable<sendEkeyResponse> {
     let body = { userID, lockID, lockAlias, recieverName, keyName, startDate, endDate, keyRight, remoteEnable, email, keyType, startDay, endDay, weekDays };
     let url = this.URL.concat('/v0/ekey/send');
+    console.log(body)
     return this.http.post<sendEkeyResponse>(url, body);
   }
   deleteEkey(userID: string, keyID: number, lockID: number, keyUsername: string): Observable<operationResponse> {

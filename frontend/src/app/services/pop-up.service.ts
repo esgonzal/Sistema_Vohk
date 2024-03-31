@@ -43,6 +43,12 @@ export class PopUpService {
   excelNameWindow = false;
   temporalPasscode = false;
   selectLocksForEkey = false;
+  selectLocksForDelete = false;
+  selectLocksForAutorizar = false;
+  selectLocksForDesautorizar = false;
+  selectLocksForCongelar = false;
+  selectLocksForDescongelar = false;
+  selectLocksForCambiarNombre = false;
   emailMessage: SafeHtml = '';
   lock_alias: string;
   gatewaysOfLock: GatewayLock[] = []
@@ -59,6 +65,7 @@ export class PopUpService {
   group: Group;
   locksWithoutGroup: LockData[];
   locksOfGroup: LockData[];
+  ekeysOFGroup: LockData[];
   selectedLockIds_forMultipleEkeys: number[] = [];
   recipients: RecipientList[] = [];
   transferLockReciever: string;

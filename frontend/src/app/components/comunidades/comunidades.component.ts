@@ -37,7 +37,7 @@ export class ComunidadesComponent implements OnInit {
     private ekeyService: EkeyServiceService,
     private router: Router,
     public popupService: PopUpService) {
-      this.updateCols(); 
+    this.updateCols();
   }
 
   async ngOnInit(): Promise<void> {
@@ -46,20 +46,22 @@ export class ComunidadesComponent implements OnInit {
     const lockGroupID = sessionStorage.getItem('lockGroupID');
     if (lockGroupID) {
       this.visibleGroups[lockGroupID] = true;
+      let openGroup: Group = {groupId: Number(lockGroupID), groupName: '', lockCount: 0, locks: []}
+      await this.fetchLocksOfGroup(openGroup)
     }
-    //console.log("This.groups: ",this.groups)
-    //console.log("This.locksWithoutGroup",this.locksWithoutGroup)
+    console.log("This.groups: ",this.groups)
+    console.log("This.locksWithoutGroup",this.locksWithoutGroup)
   }
   async fetchGroups() {
     this.isLoading = true;
     try {
       let response = await lastValueFrom(this.groupService.getGroupofAccount(this.userID)) as GroupResponse;
       if (response.list) {
-        this.groups = response.list;
-        for (const group of this.groups) {
-          group.lockCount = await this.calculateLockCountForGroup(group);
-        }
-        this.groups.sort((a, b) => b.lockCount - a.lockCount);
+        this.groups = response.list.map(group => ({
+          ...group,
+          locks: [] as LockData[],  // Initialize locks array for each group
+          lockCount: 0
+        }));
       } else if (response.errcode === 10003) {
         sessionStorage.clear;
       } else {
@@ -72,26 +74,38 @@ export class ComunidadesComponent implements OnInit {
       this.groupService.groups = this.groups;
     }
   }
-  async calculateLockCountForGroup(group: Group): Promise<number> {
+  async fetchLocksOfGroup(clickedGroup: Group) {
     let lockCount = 0;
     let pageNo = 1;
     const pageSize = 100;
-    group.locks = [];
-    while (true) {
-      let response = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.userID, pageNo, pageSize, group.groupId)) as LockListResponse;
-      if (response.list && response.list.length > 0) {
-        lockCount += response.list.length;
-        group.locks.push(...response.list);
-        if (response.pages > pageNo) {
-          pageNo++;
-        } else {
-          break;
+    const targetGroupIndex = this.groups.findIndex(group => group.groupId === clickedGroup.groupId);
+    if (targetGroupIndex !== -1) {
+      if (this.groups[targetGroupIndex].locks.length === 0) {
+        while (true) {
+          this.isLoading = true;
+          let response = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.userID, pageNo, pageSize, clickedGroup.groupId)) as LockListResponse;
+          if (response.list && response.list.length > 0) {
+            lockCount += response.list.length;
+            this.groups[targetGroupIndex].locks.push(...response.list);
+            if (response.pages > pageNo) {
+              pageNo++;
+            } else {
+              break;
+            }
+          } else {
+            break;
+          }
+          console.log(this.groups)
         }
+        this.isLoading = false;
+        this.groups[targetGroupIndex].lockCount = lockCount;
+        this.groupService.groups = this.groups;
       } else {
-        break;
+        console.log('Locks already fetched for the clicked group.');
       }
+    } else {
+      console.error('Clicked group not found in the groups array.');
     }
-    return lockCount;
   }
   async getLocksWithoutGroup() {
     let pageNo = 1;
@@ -112,6 +126,19 @@ export class ComunidadesComponent implements OnInit {
       }
     }
     this.groupService.locksWithoutGroup = this.locksWithoutGroup;
+  }
+  async toggleGroupVisibility(group: Group): Promise<void> {
+    
+    const groupId = group.groupId.toString();
+    this.visibleGroups[groupId] = !this.visibleGroups[groupId];
+    if (this.visibleGroups[groupId]) {
+      console.log("se abre")
+      await this.fetchLocksOfGroup(group)
+    } else {console.log("se cierra")}
+  }
+  isGroupVisible(group: Group): boolean {
+    const groupId = group.groupId.toString();
+    return this.visibleGroups[groupId];
   }
   hasValidAccess(lock: LockData): boolean {
     if ((Number(lock.endDate) === 0 || moment(lock.endDate).isAfter(moment())) && (lock.userType === '110301' || (lock.userType === '110302' && lock.keyRight === 1))) {
@@ -164,14 +191,7 @@ export class ComunidadesComponent implements OnInit {
     this.popupService.userID = this.userID;
     this.popupService.removeLockGROUP = true;
   }
-  toggleGroupVisibility(group: Group): void {
-    const groupId = group.groupId.toString();
-    this.visibleGroups[groupId] = !this.visibleGroups[groupId];
-  }
-  isGroupVisible(group: Group): boolean {
-    const groupId = group.groupId.toString(); 
-    return this.visibleGroups[groupId];
-  }
+  
   @HostListener('window:resize', ['$event'])
   onResize(event: Event) {
     this.updateCols(); // Update cols value on resize

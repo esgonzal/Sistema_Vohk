@@ -1,10 +1,11 @@
 <app-loader [loader]="isLoading"></app-loader>
 <div id="container" *ngIf="popupService.delete">
     <div id="header">
-        Por favor confirme sus acciones
+        ¿Está seguro que desea eliminar {{popupService.elementType}}?
     </div>
     <div id="content">
-        ¿Está seguro que desea eliminar {{popupService.elementType}}?
+        Aplicar para más cerraduras?
+        <button (click)="openLockSelector('delete')">+</button>
         <p class="error">{{error}}</p>
     </div>
     <div id="actions">
@@ -12,28 +13,134 @@
         <button (click)="delete()">Si</button>
     </div>
 </div>
+<div id="container" *ngIf="popupService.selectLocksForDelete">
+    <div id="header">
+        Seleccione las cerraduras
+    </div>
+    <div id="content" style="justify-content: flex-start; ">
+        <table class="lock-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Seleccionado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <ng-container *ngIf="popupService.locksOfGroup.length > 0; else noLocks">
+                    <tr *ngFor="let lock of popupService.locksOfGroup">
+                        <td>{{ lock.lockAlias }}</td>
+                        <td style="text-align: center">
+                            <input type="checkbox" [checked]="isLockSelected(lock.lockId)" (change)="toggleLockSelection(lock.lockId)">
+                        </td>
+                    </tr>
+                </ng-container>
+                <ng-template #noLocks>
+                    <tr>
+                        <td colspan="2">No existen cerraduras disponibles para agregar a este grupo.</td>
+                    </tr>
+                </ng-template>
+            </tbody>
+        </table>
+    </div>
+    <p class="error">{{error}}</p>
+    <div id="actions">
+        <button (click)="popupService.selectLocksForDelete = false; popupService.delete = true">Volver</button>
+        <button (click)="this.popupService.selectLocksForDelete = false; popupService.delete = true; confirmLockSelection()">Confirmar</button>
+    </div>
+</div>
 <div id="container" *ngIf="popupService.autorizar">
     <div id="header">
-        Por favor confirme sus acciones
+        ¿Está seguro que desea autorizar a {{popupService.elementType}}?
     </div>
     <div id="content">
-        ¿Está seguro que desea autorizar a {{popupService.elementType}}?
+        Aplicar para más cerraduras?
+        <button (click)="openLockSelector('autorizar')">+</button>
     </div>
     <div id="actions">
         <button (click)="popupService.autorizar = false">No</button>
         <button (click)="autorizar()">Si</button>
     </div>
 </div>
+<div id="container" *ngIf="popupService.selectLocksForAutorizar">
+    <div id="header">
+        Seleccione las cerraduras
+    </div>
+    <div id="content" style="justify-content: flex-start; ">
+        <table class="lock-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Seleccionado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <ng-container *ngIf="popupService.locksOfGroup.length > 0; else noLocks">
+                    <tr *ngFor="let lock of popupService.locksOfGroup">
+                        <td>{{ lock.lockAlias }}</td>
+                        <td style="text-align: center">
+                            <input type="checkbox" [checked]="isLockSelected(lock.lockId)" (change)="toggleLockSelection(lock.lockId)">
+                        </td>
+                    </tr>
+                </ng-container>
+                <ng-template #noLocks>
+                    <tr>
+                        <td colspan="2">No existen cerraduras disponibles para agregar a este grupo.</td>
+                    </tr>
+                </ng-template>
+            </tbody>
+        </table>
+    </div>
+    <p class="error">{{error}}</p>
+    <div id="actions">
+        <button (click)="popupService.selectLocksForAutorizar = false; popupService.autorizar = true">Volver</button>
+        <button (click)="this.popupService.selectLocksForAutorizar = false; popupService.autorizar = true; confirmLockSelection()">Confirmar</button>
+    </div>
+</div>
 <div id="container" *ngIf="popupService.desautorizar">
     <div id="header">
-        Por favor confirme sus acciones
+        ¿Está seguro que desea desautorizar a {{popupService.elementType}}?
     </div>
     <div id="content">
-        ¿Está seguro que desea desautorizar a {{popupService.elementType}}?
+        <button (click)="openLockSelector('desautorizar')">+</button>
     </div>
     <div id="actions">
         <button (click)="popupService.desautorizar = false">No</button>
         <button (click)="desautorizar()">Si</button>
+    </div>
+</div>
+<div id="container" *ngIf="popupService.selectLocksForDesautorizar">
+    <div id="header">
+        Seleccione las cerraduras
+    </div>
+    <div id="content" style="justify-content: flex-start; ">
+        <table class="lock-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Seleccionado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <ng-container *ngIf="popupService.locksOfGroup.length > 0; else noLocks">
+                    <tr *ngFor="let lock of popupService.locksOfGroup">
+                        <td>{{ lock.lockAlias }}</td>
+                        <td style="text-align: center">
+                            <input type="checkbox" [checked]="isLockSelected(lock.lockId)" (change)="toggleLockSelection(lock.lockId)">
+                        </td>
+                    </tr>
+                </ng-container>
+                <ng-template #noLocks>
+                    <tr>
+                        <td colspan="2">No existen cerraduras disponibles para agregar a este grupo.</td>
+                    </tr>
+                </ng-template>
+            </tbody>
+        </table>
+    </div>
+    <p class="error">{{error}}</p>
+    <div id="actions">
+        <button (click)="popupService.selectLocksForDesautorizar = false; popupService.desautorizar = true">Volver</button>
+        <button (click)="this.popupService.selectLocksForDesautorizar = false; popupService.desautorizar = true; confirmLockSelection()">Confirmar</button>
     </div>
 </div>
 <div id="container" *ngIf="popupService.changeRemoteEnable">
@@ -58,26 +165,97 @@
 </div>
 <div id="container" *ngIf="popupService.congelar">
     <div id="header">
-        Por favor confirme sus acciones
+        ¿Está seguro que desea congelar a {{popupService.elementType}}?
     </div>
     <div id="content">
-        ¿Está seguro que desea congelar a {{popupService.elementType}}?
+
+        <button (click)="openLockSelector('congelar')">+</button>
     </div>
     <div id="actions">
         <button (click)="popupService.congelar = false">No</button>
         <button (click)="congelar()">Si</button>
     </div>
 </div>
+<div id="container" *ngIf="popupService.selectLocksForCongelar">
+    <div id="header">
+        Seleccione las cerraduras
+    </div>
+    <div id="content" style="justify-content: flex-start; ">
+        <table class="lock-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Seleccionado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <ng-container *ngIf="popupService.locksOfGroup.length > 0; else noLocks">
+                    <tr *ngFor="let lock of popupService.locksOfGroup">
+                        <td>{{ lock.lockAlias }}</td>
+                        <td style="text-align: center">
+                            <input type="checkbox" [checked]="isLockSelected(lock.lockId)" (change)="toggleLockSelection(lock.lockId)">
+                        </td>
+                    </tr>
+                </ng-container>
+                <ng-template #noLocks>
+                    <tr>
+                        <td colspan="2">No existen cerraduras disponibles para agregar a este grupo.</td>
+                    </tr>
+                </ng-template>
+            </tbody>
+        </table>
+    </div>
+    <p class="error">{{error}}</p>
+    <div id="actions">
+        <button (click)="popupService.selectLocksForCongelar = false; popupService.congelar = true">Volver</button>
+        <button (click)="this.popupService.selectLocksForCongelar = false; popupService.congelar = true; confirmLockSelection()">Confirmar</button>
+    </div>
+</div>
 <div id="container" *ngIf="popupService.descongelar">
     <div id="header">
-        Por favor confirme sus acciones
+        ¿Está seguro que desea descongelar a {{popupService.elementType}}?
     </div>
     <div id="content">
-        ¿Está seguro que desea descongelar a {{popupService.elementType}}?
+        <button (click)="openLockSelector('descongelar')">+</button>
     </div>
     <div id="actions">
         <button (click)="popupService.descongelar = false">No</button>
         <button (click)="descongelar()">Si</button>
+    </div>
+</div>
+<div id="container" *ngIf="popupService.selectLocksForDescongelar">
+    <div id="header">
+        Seleccione las cerraduras
+    </div>
+    <div id="content" style="justify-content: flex-start; ">
+        <table class="lock-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Seleccionado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <ng-container *ngIf="popupService.locksOfGroup.length > 0; else noLocks">
+                    <tr *ngFor="let lock of popupService.locksOfGroup">
+                        <td>{{ lock.lockAlias }}</td>
+                        <td style="text-align: center">
+                            <input type="checkbox" [checked]="isLockSelected(lock.lockId)" (change)="toggleLockSelection(lock.lockId)">
+                        </td>
+                    </tr>
+                </ng-container>
+                <ng-template #noLocks>
+                    <tr>
+                        <td colspan="2">No existen cerraduras disponibles para agregar a este grupo.</td>
+                    </tr>
+                </ng-template>
+            </tbody>
+        </table>
+    </div>
+    <p class="error">{{error}}</p>
+    <div id="actions">
+        <button (click)="popupService.selectLocksForDescongelar = false; popupService.descongelar = true">Volver</button>
+        <button (click)="this.popupService.selectLocksForDescongelar = false; popupService.descongelar = true; confirmLockSelection()">Confirmar</button>
     </div>
 </div>
 <div id="container" *ngIf="popupService.cambiarNombre">
@@ -89,6 +267,7 @@
             <form class="common-form">
                 Nombre
                 <input type="text" class="form-input" name="name" [(ngModel)]="name" />
+                <button (click)="openLockSelector('cambiarNombre')">+</button>
                 <p class="error">{{error}}</p>
             </form>
         </div>
@@ -96,6 +275,41 @@
     <div id="actions">
         <button (click)="popupService.cambiarNombre = false">Volver</button>
         <button (click)="cambiarNombre()">Guardar</button>
+    </div>
+</div>
+<div id="container" *ngIf="popupService.selectLocksForCambiarNombre">
+    <div id="header">
+        Seleccione las cerraduras
+    </div>
+    <div id="content" style="justify-content: flex-start; ">
+        <table class="lock-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Seleccionado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <ng-container *ngIf="popupService.locksOfGroup.length > 0; else noLocks">
+                    <tr *ngFor="let lock of popupService.locksOfGroup">
+                        <td>{{ lock.lockAlias }}</td>
+                        <td style="text-align: center">
+                            <input type="checkbox" [checked]="isEkeySelected(lock.keyId)" (change)="toggleEkeySelection(lock.keyId)">
+                        </td>
+                    </tr>
+                </ng-container>
+                <ng-template #noLocks>
+                    <tr>
+                        <td colspan="2">No existen cerraduras disponibles para agregar a este grupo.</td>
+                    </tr>
+                </ng-template>
+            </tbody>
+        </table>
+    </div>
+    <p class="error">{{error}}</p>
+    <div id="actions">
+        <button (click)="popupService.selectLocksForCambiarNombre = false; popupService.cambiarNombre = true">Volver</button>
+        <button (click)="this.popupService.selectLocksForCambiarNombre = false; popupService.cambiarNombre = true; confirmLockSelection()">Confirmar</button>
     </div>
 </div>
 <div id="container" *ngIf="popupService.cambiarPeriodo">
@@ -466,7 +680,7 @@
 </div>
 <div id="container" *ngIf="popupService.selectLocksForEkey">
     <div id="header">
-        A cuales cerraduras quiere crearle una eKey?
+        Seleccione las cerraduras
     </div>
     <div id="content" style="justify-content: flex-start; ">
         <table class="lock-table">
@@ -496,9 +710,10 @@
     <p class="error">{{error}}</p>
     <div id="actions">
         <button (click)="popupService.selectLocksForEkey = false">Volver</button>
-        <button (click)="confirmLockSelection()">Confirmar</button>
+        <button (click)="this.popupService.selectLocksForEkey = false; confirmLockSelection()">Confirmar</button>
     </div>
 </div>
+
 <!--
 <div id="container" *ngIf="popupService.cerradoAutomatico">
     <div id="header">
