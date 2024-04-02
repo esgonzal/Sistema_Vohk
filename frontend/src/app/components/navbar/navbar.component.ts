@@ -1,22 +1,34 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 import { logoutResponse } from 'src/app/Interfaces/API_responses';
 import { UserServiceService } from 'src/app/services/user-service.service';
+import { DarkModeService } from '../../services/dark-mode.service';
 
 @Component({
   selector: 'app-navbar',
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css']
 })
-export class NavbarComponent {
+export class NavbarComponent implements OnInit {
 
   nickname= '';
   dataLoaded = false;
+  darkMode: boolean;
 
   constructor(
     private router: Router,
-    private userService: UserServiceService) { }
+    private userService: UserServiceService,
+    private DarkModeService: DarkModeService) { }
+    
+  ngOnInit(): void {
+    this.darkMode = localStorage.getItem('darkMode') === 'true';  
+  }
+
+  updateDarkMode() {
+    localStorage.setItem('darkMode', this.darkMode.toString());
+    this.DarkModeService.setDarkMode(this.darkMode)
+  }
 
   returnNombre() {
     return sessionStorage.getItem('user') ?? '';

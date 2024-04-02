@@ -4,19 +4,21 @@
     width: 100%;
     z-index: 1000;
 }
+
 .contenido {
-    padding-top: 80px;
-    flex: 1;
-    overflow-y: auto;
+    padding-top: 60px;
 }
+
+
 /* Define styles for smaller devices */
+
 @media screen and (max-width: 768px) {
     .navBar {
         position: static;
         width: 100%;
     }
-    
     .contenido {
-        padding-top: 20px; /* Adjust this value for smaller devices */
+        padding-top: 20px;
+        /* Adjust this value for smaller devices */
     }
 }

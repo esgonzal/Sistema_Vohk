@@ -1,0 +1,66 @@
+<div class="pagina_completa" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <app-loader [loader]="isLoading"></app-loader>
+    <div class="sidebar-grupos">
+        <div class="userName">
+            {{userID}}
+        </div>
+        <div class="searchBar">
+            <input type="text" placeholder="Busqueda" />
+        </div>
+        <div class="groupList" *ngFor="let group of groups" (click)="chooseGroup(group)">
+            <div class="icono">
+                <fa-icon [icon]="faHome"></fa-icon>
+            </div>
+            <div class="grupo">
+                <span>{{ group.groupName }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="resto" *ngIf="chosenGroup">
+        <div class="top">
+            <div class="groupName">
+                {{chosenGroup.groupName}}
+            </div>
+            <div>
+                <button [matMenuTriggerFor]="editarMenu" class="menuButton" style="margin-right: 5px;">Editar</button>
+                <mat-menu #editarMenu="matMenu">
+                    <button mat-menu-item (click)="cambiarNombre(chosenGroup.groupId)"><span>Editar Nombre</span></button>
+                    <button mat-menu-item style="color: red;" (click)="eliminar(chosenGroup.groupId)"><span>Eliminar Comunidad</span></button>
+                </mat-menu>
+                <button [matMenuTriggerFor]="adminMenu" class="menuButton">Administrar Cerraduras</button>
+                <mat-menu #adminMenu="matMenu">
+                    <button mat-menu-item (click)="agregar(chosenGroup)"><span>Agregar Dispositivo</span></button>
+                    <button mat-menu-item (click)="remover(chosenGroup)"><span>Remover Dispositivo</span></button>
+                </mat-menu>
+            </div>
+        </div>
+        <div class="listado_cerraduras">
+            <div *ngIf="chosenGroup.lockCount > 0">
+                <mat-grid-list [cols]="cols" rowHeight="350px">
+                    <mat-grid-tile *ngFor="let lock of chosenGroup.locks">
+                        <div *ngIf="hasValidAccess(lock)===true">
+                            <mat-card class="valid_lock" (click)="onLockButtonClick(lock)">
+                                <img class="custom-image" src="../../../assets/images/door.jpg" alt="Image Description">
+                                <mat-card-header>
+                                    <div mat-card-title>{{lock.lockAlias}}</div>
+                                    <div mat-card-subtitle>{{ lock.hasGateway === 1 ? 'Online' : 'Offline' }}</div>
+                                </mat-card-header>
+                            </mat-card>
+                        </div>
+                        <div *ngIf="hasValidAccess(lock)===false">
+                            <mat-card class="valid_lock" (click)="onInvalidButtonClick()">
+                                <img class="custom-image" src="../../../assets/images/door.jpg" alt="Image Description">
+                                <mat-card-header>
+                                    <div mat-card-title>{{lock.lockAlias}}</div>
+                                    <div mat-card-subtitle>{{ lock.hasGateway === 1 ? 'Online' : 'Offline' }}</div>
+                                </mat-card-header>
+                            </mat-card>
+                        </div>
+                    </mat-grid-tile>
+                </mat-grid-list>
+            </div>
+        </div>
+    </div>
+</div>
+<app-pop-up *ngIf="this.popupService.delete || this.popupService.cambiarNombre || this.popupService.addLockGROUP ||
+                    this.popupService.removeLockGROUP || this.popupService.newGroup || this.popupService.invalidLock" style="z-index: 1001;"></app-pop-up>

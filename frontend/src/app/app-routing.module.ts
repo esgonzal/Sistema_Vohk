@@ -13,6 +13,9 @@ import { CardComponent } from './components/card/card.component';
 import { CameraStreamComponent } from './components/camera-stream/camera-stream.component';
 import { ComunidadesComponent } from './components/comunidades/comunidades.component';
 import { TemporalPasscodeComponent } from './components/temporal-passcode/temporal-passcode.component';
+import { Loginv2Component } from './components/loginv2/loginv2.component';
+import { Comunidadesv2Component } from './components/comunidadesv2/comunidadesv2.component';
+import { Lockv2Component } from './components/lockv2/lockv2.component';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -27,7 +30,10 @@ const routes: Routes = [
   { path: 'users/:username/lock/:id/ekey/multiple', component: MultipleEkeyComponent },
   { path: 'users/:username/lock/:id/passageMode', component: PassageModeComponent },
   { path: 'users/:username/lock/:id/transferLock', component: TransferLockComponent },
-  { path: 'testing/camera', component: CameraStreamComponent}
+  { path: 'testing/camera', component: CameraStreamComponent},
+  { path: 'loginv2', component: Loginv2Component },
+  { path: 'comunidadesv2', component: Comunidadesv2Component },
+  { path: 'lockv2', component: Lockv2Component },
 ];
 
 @NgModule({

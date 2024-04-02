@@ -48,6 +48,9 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { GroupService } from './services/group.service';
 import { ComunidadesComponent } from './components/comunidades/comunidades.component';
 import { TemporalPasscodeComponent } from './components/temporal-passcode/temporal-passcode.component';
+import { Loginv2Component } from './components/loginv2/loginv2.component';
+import { Comunidadesv2Component } from './components/comunidadesv2/comunidadesv2.component';
+import { Lockv2Component } from './components/lockv2/lockv2.component';
 
 
 
@@ -71,7 +74,10 @@ import { TemporalPasscodeComponent } from './components/temporal-passcode/tempor
     CardComponent,
     CameraStreamComponent,
     ComunidadesComponent,
-    TemporalPasscodeComponent
+    TemporalPasscodeComponent,
+    Loginv2Component,
+    Comunidadesv2Component,
+    Lockv2Component,
   ],
   imports: [
     BrowserModule,

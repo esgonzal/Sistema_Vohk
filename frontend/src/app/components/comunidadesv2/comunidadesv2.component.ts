@@ -8,14 +8,15 @@ import { LockData } from 'src/app/Interfaces/Lock';
 import { EkeyServiceService } from 'src/app/services/ekey-service.service';
 import { GroupService } from 'src/app/services/group.service';
 import { PopUpService } from 'src/app/services/pop-up.service';
-import { faBatteryFull, faBatteryThreeQuarters, faBatteryHalf, faBatteryQuarter, faBatteryEmpty, faGear, faWifi, faAngleUp, faAngleDown } from '@fortawesome/free-solid-svg-icons'
+import { faBatteryFull, faBatteryThreeQuarters, faBatteryHalf, faBatteryQuarter, faBatteryEmpty, faGear, faWifi, faAngleUp, faAngleDown, faHome } from '@fortawesome/free-solid-svg-icons'
+import { DarkModeService } from '../../services/dark-mode.service';
 
 @Component({
-  selector: 'app-comunidades',
-  templateUrl: './comunidades.component.html',
-  styleUrls: ['./comunidades.component.css']
+  selector: 'app-comunidadesv2',
+  templateUrl: './comunidadesv2.component.html',
+  styleUrls: ['./comunidadesv2.component.css']
 })
-export class ComunidadesComponent implements OnInit {
+export class Comunidadesv2Component implements OnInit {
 
   isLoading: boolean = false;
   userID = sessionStorage.getItem('user') ?? '';
@@ -30,28 +31,26 @@ export class ComunidadesComponent implements OnInit {
   faWifi = faWifi
   faAngleUp = faAngleUp
   faAngleDown = faAngleDown
+  faHome = faHome
   visibleGroups: { [groupId: string]: boolean } = {};
-  cols: number = 6;
-
+  cols: number = 4;
+  chosenGroup : Group
+  darkMode: boolean;
   constructor(private groupService: GroupService,
     private ekeyService: EkeyServiceService,
     private router: Router,
-    public popupService: PopUpService) {
+    public popupService: PopUpService,
+    public DarkModeService: DarkModeService) {
     this.updateCols();
   }
 
   async ngOnInit(): Promise<void> {
     await this.fetchGroups();
     await this.getLocksWithoutGroup();
-    const lockGroupID = sessionStorage.getItem('lockGroupID');
-    if (lockGroupID) {
-      this.visibleGroups[lockGroupID] = true;
-      let openGroup: Group = {groupId: Number(lockGroupID), groupName: '', lockCount: 0, locks: []}
-      await this.fetchLocksOfGroup(openGroup)
-    }
-    console.log("This.groups: ",this.groups)
-    //console.log("This.locksWithoutGroup",this.locksWithoutGroup)
+    //console.log("This.groups: ", this.groups)
+    //console.log("This.locksWithoutGroup", this.locksWithoutGroup)
   }
+
   async fetchGroups() {
     this.isLoading = true;
     try {
@@ -127,14 +126,17 @@ export class ComunidadesComponent implements OnInit {
     }
     this.groupService.locksWithoutGroup = this.locksWithoutGroup;
   }
+  async chooseGroup(group: Group) {
+    await this.fetchLocksOfGroup(group);
+    this.chosenGroup = group;
+    console.log(this.groups)
+  }
   async toggleGroupVisibility(group: Group): Promise<void> {
-    
     const groupId = group.groupId.toString();
     this.visibleGroups[groupId] = !this.visibleGroups[groupId];
     if (this.visibleGroups[groupId]) {
-      console.log("se abre")
       await this.fetchLocksOfGroup(group)
-    } else {console.log("se cierra")}
+    }
   }
   isGroupVisible(group: Group): boolean {
     const groupId = group.groupId.toString();
@@ -160,7 +162,7 @@ export class ComunidadesComponent implements OnInit {
     sessionStorage.setItem('lockFeature', lock.featureValue.toString())
     sessionStorage.setItem('lockGroup', lock.groupName);
     sessionStorage.setItem('lockGroupID', lock.groupId?.toString());
-    this.router.navigate(['users', this.userID, 'lock', lock.lockId])
+    this.router.navigate(['lockv2'])
   }
   onInvalidButtonClick() {
     this.popupService.invalidLock = true;
@@ -192,7 +194,7 @@ export class ComunidadesComponent implements OnInit {
     this.popupService.userID = this.userID;
     this.popupService.removeLockGROUP = true;
   }
-  
+
   @HostListener('window:resize', ['$event'])
   onResize(event: Event) {
     this.updateCols(); // Update cols value on resize
@@ -203,8 +205,7 @@ export class ComunidadesComponent implements OnInit {
     if (screenWidth <= 600) { // Mobile breakpoint
       this.cols = 2;
     } else {
-      // Calculate number of columns based on screen width
-      const numColumns = Math.min(Math.floor(screenWidth / 200), 6);
+      const numColumns = Math.min(Math.floor(screenWidth / 200), 4);
       this.cols = numColumns;
     }
   }

@@ -119,35 +119,6 @@ export class PopUpComponent implements OnInit {
     if (this.popupService.remoteEnable !== null) {
       this.remoteEnableToggle = this.popupService.remoteEnable === 1; // Adjust as needed
     }
-    if (this.popupService.delete || this.popupService.cambiarNombre || this.popupService.cambiarPeriodo || this.popupService.autorizar ||
-      this.popupService.desautorizar || this.popupService.congelar || this.popupService.descongelar) {
-      let pageNo = 1;
-      try {
-        while (true) {
-          let response = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.ekeyService.username, pageNo, 100, Number(this.currentGroup))) as LockListResponse;
-          const filteredLocks = response.list.filter(lock => lock.keyRight === 1 || lock.userType === "110301");
-          this.currentEkey = filteredLocks.find(lock => lock.lockId === this.popupService.lockID);
-          console.log(this.currentEkey?.keyId)
-          console.log(filteredLocks)
-          this.locksOfGroup.push(...filteredLocks);
-          if (response.pages > pageNo) {
-            pageNo++;
-          } else {
-            break;
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching locks:', error);
-      } finally {
-        this.popupService.locksOfGroup = this.locksOfGroup;
-        this.isLoading = false;
-        this.ekeyService.selectedLocks = [this.popupService.lockID]
-        if (this.currentEkey?.keyId) {
-          this.ekeyService.selectedEkeys = [this.currentEkey?.keyId]
-        }
-        console.log("selected keyids: ", this.ekeyService.selectedEkeys)
-      }
-    }
     this.selectedLockIds = this.ekeyService.selectedLocks;
   }
   navigateToLogin() {
@@ -164,14 +135,7 @@ export class PopUpComponent implements OnInit {
             response = await lastValueFrom(this.passcodeService.deletePasscode(this.popupService.userID, this.popupService.lockID, this.popupService.elementID)) as operationResponse;
             break;
           case 'la ekey':
-            const deletePromises = this.ekeyService.selectedLocks.map(async (lockId) => {
-                return this.ekeyService.deleteEkey(this.popupService.userID, this.popupService.elementID, lockId, this.popupService.ekeyUsername).toPromise(); // Convert Observable to Promise
-            });
-            const deleteResponses = await Promise.all(deletePromises);
-            const failedResponses = deleteResponses.filter(res => res?.errcode !== 0); // Find all failed responses
-            if (failedResponses.length === 0) {
-                response = { errcode: 0 }; // Set response to success if no failures
-            }
+            response = await lastValueFrom(this.ekeyService.deleteEkey(this.popupService.userID, this.popupService.elementID, this.popupService.lockID, this.popupService.ekeyUsername)) as operationResponse;
             break;
           case 'la tarjeta':
             response = await lastValueFrom(this.cardService.deleteCard(this.popupService.userID, this.popupService.lockID, this.popupService.elementID)) as operationResponse;
@@ -204,17 +168,13 @@ export class PopUpComponent implements OnInit {
     }
   }
   async autorizar() {
-    this.ekeyService.selectedLocks.forEach(async (lockId) => {
-      let response = await lastValueFrom(this.ekeyService.AuthorizeEkey(this.popupService.userID, lockId, this.popupService.elementID)) as operationResponse;
-    })
+    let response = await lastValueFrom(this.ekeyService.AuthorizeEkey(this.popupService.userID, this.popupService.lockID, this.popupService.elementID)) as operationResponse;
     //console.log(response)
     this.popupService.autorizar = false;
     window.location.reload();
   }
   async desautorizar() {
-    this.ekeyService.selectedLocks.forEach(async (lockId) => {
-      let response = await lastValueFrom(this.ekeyService.cancelAuthorizeEkey(this.popupService.userID, lockId, this.popupService.elementID)) as operationResponse;
-    })
+    let response = await lastValueFrom(this.ekeyService.cancelAuthorizeEkey(this.popupService.userID, this.popupService.lockID, this.popupService.elementID)) as operationResponse;
     //console.log(response)
     this.popupService.desautorizar = false;
     window.location.reload();
@@ -222,9 +182,6 @@ export class PopUpComponent implements OnInit {
   async congelar() {
     this.isLoading = true;
     try {
-      this.ekeyService.selectedLocks.forEach(async (lockId) => {
-
-      })
       let response = await lastValueFrom(this.ekeyService.freezeEkey(this.popupService.userID, this.popupService.elementID)) as operationResponse;
       //console.log(response)
       if (response.errcode === 0) {
@@ -245,7 +202,6 @@ export class PopUpComponent implements OnInit {
   async descongelar() {
     this.isLoading = true;
     try {
-      this.ekeyService.selectedLocks.forEach(async (lockId) => { })
       let response = await lastValueFrom(this.ekeyService.unfreezeEkey(this.popupService.userID, this.popupService.elementID));
       //console.log(response)
       if (response.errcode === 0) {
@@ -272,6 +228,7 @@ export class PopUpComponent implements OnInit {
   }
   async cambiarNombre() {
     console.log(this.ekeyService.selectedEkeys)
+    console.log(this.name)
     this.error = '';
     let response;
     this.isLoading = true;
@@ -282,16 +239,7 @@ export class PopUpComponent implements OnInit {
         if (this.popupService.cambiarNombre) {
           switch (this.popupService.elementType) {
             case 'ekey':
-              const deletePromises = this.ekeyService.selectedEkeys.map(async (lockId) => {
-                console.log(this.popupService.userID, lockId, this.name)
-                return this.ekeyService.modifyEkey(this.popupService.userID, lockId, this.name).toPromise(); // Convert Observable to Promise
-            });
-            const deleteResponses = await Promise.all(deletePromises);
-            console.log(deleteResponses)
-            const failedResponses = deleteResponses.filter(res => res?.errcode !== 0); // Find all failed responses
-            if (failedResponses.length === 0) {
-                response = { errcode: 0 }; // Set response to success if no failures
-            }
+              response = await lastValueFrom(this.ekeyService.modifyEkey(this.popupService.userID, this.popupService.elementID, this.name)) as operationResponse;
               break;
             case 'passcode':
               response = await lastValueFrom(this.passcodeService.changePasscode(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, this.name)) as operationResponse;
@@ -312,8 +260,8 @@ export class PopUpComponent implements OnInit {
         }
         //console.log(response)
         if (response?.errcode === 0) {
-          this.popupService.cambiarNombre = false;
-          window.location.reload();
+          //this.popupService.cambiarNombre = false;
+          //window.location.reload();
         } else if (response?.errcode === -3) {
           this.error = "El nombre ingresado es muy largo"
         } else if (response?.errcode === 10003) {
@@ -549,7 +497,7 @@ export class PopUpComponent implements OnInit {
       // If lock ID is not in the array, add it
       this.ekeyService.selectedEkeys.push(lockId);
     }
-    console.log("selectedKeyIds: ", this.ekeyService.selectedEkeys)
+    //console.log("selectedKeyIds: ", this.ekeyService.selectedEkeys)
   }
   toggleLockSelection(keyId: number) {
     const index = this.selectedLockIds.indexOf(keyId);

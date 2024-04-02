@@ -1,0 +1,130 @@
+.pagina_completa {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+    padding-left: 5%;
+    padding-right: 5%;
+}
+
+.sidebar-grupos {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+}
+
+.searchBar {
+    padding-top: 5px;
+    padding-bottom: 10px;
+}
+
+.searchBar input {
+    border-radius: 10px;
+}
+
+.userName {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    font-size: 16px;
+}
+
+.groupList {
+    padding-left: 5px;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    background-color: rgb(217, 217, 217);
+    border-radius: 20px;
+}
+
+.resto {
+    padding: 10px;
+    flex: 1;
+}
+
+.top {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.groupName {
+    padding-left: 14px;
+    font-size: xx-large;
+}
+
+.menuButton {
+    background-color: #f9c114;
+    border-radius: 20px;
+}
+
+.valid_lock {
+    display: flex;
+    flex-direction: column;
+    height: 300px;
+    width: 100%;
+    margin: 10px;
+    border-radius: 20px;
+}
+
+.custom-image {
+    width: 100%;
+    height: calc(100% - 80px);
+    border-radius: 20px;
+}
+
+.mat-mdc-card-header {
+    display: flex;
+    flex-direction: column;
+    padding: 0px 5px;
+}
+
+.mat-mdc-card-title,
+.mat-mdc-card-subtitle {
+    flex-grow: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    word-wrap: break-word;
+}
+
+.mat-mdc-card-title {
+    font-size: 16px;
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mat-mdc-card-subtitle {
+    font-size: 12px;
+}
+
+.dark-mode {
+    background-color: #333;
+    /* Dark background color */
+    color: #fff;
+    /* Light text color */
+}
+
+.dark-mode .sidebar-grupos {
+    background-color: #222;
+    /* Dark sidebar background color */
+}
+
+.dark-mode .groupName {
+    color: #f0f0f0;
+    /* Light text color */
+}
+
+.dark-mode .groupList {
+    background-color: #444;
+}
+
+.dark-mode .valid_lock {
+    background-color: #444;
+    /* Dark card background color */
+    color: #fff;
+    /* Light text color */
+}

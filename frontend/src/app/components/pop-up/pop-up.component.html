@@ -4,8 +4,6 @@
         ¿Está seguro que desea eliminar {{popupService.elementType}}?
     </div>
     <div id="content">
-        Aplicar para más cerraduras?
-        <button (click)="openLockSelector('delete')">+</button>
         <p class="error">{{error}}</p>
     </div>
     <div id="actions">
@@ -53,8 +51,6 @@
         ¿Está seguro que desea autorizar a {{popupService.elementType}}?
     </div>
     <div id="content">
-        Aplicar para más cerraduras?
-        <button (click)="openLockSelector('autorizar')">+</button>
     </div>
     <div id="actions">
         <button (click)="popupService.autorizar = false">No</button>
@@ -101,7 +97,6 @@
         ¿Está seguro que desea desautorizar a {{popupService.elementType}}?
     </div>
     <div id="content">
-        <button (click)="openLockSelector('desautorizar')">+</button>
     </div>
     <div id="actions">
         <button (click)="popupService.desautorizar = false">No</button>
@@ -168,8 +163,6 @@
         ¿Está seguro que desea congelar a {{popupService.elementType}}?
     </div>
     <div id="content">
-
-        <button (click)="openLockSelector('congelar')">+</button>
     </div>
     <div id="actions">
         <button (click)="popupService.congelar = false">No</button>
@@ -216,7 +209,6 @@
         ¿Está seguro que desea descongelar a {{popupService.elementType}}?
     </div>
     <div id="content">
-        <button (click)="openLockSelector('descongelar')">+</button>
     </div>
     <div id="actions">
         <button (click)="popupService.descongelar = false">No</button>
@@ -267,7 +259,6 @@
             <form class="common-form">
                 Nombre
                 <input type="text" class="form-input" name="name" [(ngModel)]="name" />
-                <button (click)="openLockSelector('cambiarNombre')">+</button>
                 <p class="error">{{error}}</p>
             </form>
         </div>

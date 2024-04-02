@@ -13,6 +13,10 @@
                 <li *ngIf="returnLogged() === '1'">
                     <button class="dropdown-item" (click)="mostrarCerraduras()">Mis Comunidades</button>
                 </li>
+                <li class="dark-mode-toggle">
+                    <span (click)="$event.stopPropagation()">Dark Mode</span>
+                    <mat-slide-toggle name="darkMode" [(ngModel)]="darkMode" (click)="$event.stopPropagation()" (change)="updateDarkMode()"></mat-slide-toggle>
+                </li>
                 <li *ngIf="returnLogged() === '1'">
                     <button class="dropdown-item" (click)="cerrarSesion()">Cerrar Sesión</button>
                 </li>
