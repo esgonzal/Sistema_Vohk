@@ -8,6 +8,7 @@ app-pop-up {
     position: relative;
     display: flex;
     min-height: calc(100vh - 60px);
+    background-color: white;
 }
 
 .resto {
@@ -21,8 +22,8 @@ app-pop-up {
     background-color: white;
     padding-top: 5px;
     padding-bottom: 5px;
-    padding-left: 20px;
-    padding-right: 20px;
+    margin-left: 20px;
+    margin-right: 20px;
 }
 
 .izquierdo {
@@ -34,6 +35,10 @@ app-pop-up {
 .nombre_cerradura {
     font-size: xx-large;
     font-weight: bold;
+}
+
+.nombre_comunidad {
+    font-size: 16px;
 }
 
 .rol_usuario {
@@ -50,7 +55,7 @@ app-pop-up {
     height: 40px;
     margin-left: 10px;
     width: 40px;
-    background-color: rgb(127, 127, 127);
+    background-color: #f9c114;
     border-radius: 20px;
     border: solid 1px black;
 }
@@ -89,6 +94,10 @@ app-pop-up {
     background-color: #ffffff;
 }
 
+.mat-mdc-tab-body-content {
+    background-color: rgb(255, 255, 255);
+}
+
 .contenido {
     display: flex;
     flex-direction: column;
@@ -107,7 +116,7 @@ app-pop-up {
 }
 
 .button-container div button {
-    background-color: rgb(127, 127, 127);
+    background-color: #f9c114;
     border-radius: 10px;
     border: solid 1px black;
 }
@@ -131,54 +140,47 @@ app-pop-up {
 }
 
 .dark-mode {
-    background-color: #222;
+    background-color: #101010;
 }
 
 .dark-mode .cerradura {
-    background-color: #222;
-    /* Dark background color */
+    background-color: #101010;
     color: #fff;
-    /* Light text color */
 }
 
 .dark-mode .nombre_cerradura,
 .dark-mode .rol_usuario {
     color: #fff;
-    /* Light text color */
 }
 
 .dark-mode .derecho div button {
-    background-color: #555;
-    /* Adjust button color for dark mode */
+    background-color: #333;
+    color: #fff;
 }
 
 .dark-mode .contenido,
 .dark-mode .button-container div button,
-.dark-mode .table-cell {
+.dark-mode .table-cell,
+.dark-mode .mat-mdc-tab-body-content {
     color: #fff;
-    background-color: #333;
-    /* Light text color */
+    background-color: #101010;
 }
 
 .dark-mode .button-container div button {
-    background-color: #555;
-    /* Adjust button color for dark mode */
+    background-color: #333;
 }
 
 .dark-mode .table th {
     background-color: #333 !important;
-    /* Adjust table header background color for dark mode */
 }
 
 .dark-mode .mdc-tab.mdc-tab--active {
-    /*Color de tab seleccionada*/
-    background-color: #333;
-    border: 1px solid #333;
+    background-color: #101010;
+    border: 1px solid #101010;
 }
 
 .dark-mode .mdc-tab:not(.mdc-tab--active) {
-    /*Color de tabs no seleccionadas*/
-    background-color: #333;
+    background-color: #101010;
 }
 
 .dark-mode .mat-mdc-tab-group.mat-warn,
@@ -189,5 +191,28 @@ app-pop-up {
     --mat-tab-header-active-focus-indicator-color: #fff;
 }
 
-
-/* Add any additional dark mode styles as needed */
+@media only screen and (max-width: 600px) {
+    .pagina_completa {
+        padding: 0;
+    }
+    .cerradura {
+        flex-direction: column;
+        width: fit-content;
+    }
+    .nombre_cerradura {
+        font-size: medium;
+    }
+    .nombre_comunidad {
+        font-size: 12px;
+    }
+    .rol_usuario {
+        font-size: 12px;
+        padding-bottom: 20px;
+    }
+    .funciones_cerradura {
+        margin: 10px;
+    }
+    .tablist {
+        width: 95vw;
+    }
+}

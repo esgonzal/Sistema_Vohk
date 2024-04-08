@@ -4,6 +4,7 @@
     flex: 1;
     padding-left: 5%;
     padding-right: 5%;
+    min-height: calc(100vh - 60.69px);
 }
 
 .sidebar-grupos {
@@ -127,4 +128,32 @@
     /* Dark card background color */
     color: #fff;
     /* Light text color */
+}
+
+@media only screen and (max-width: 600px) {
+    .pagina_completa {
+        flex-direction: column;
+        padding: 0;
+        min-height: auto;
+    }
+    .sidebar-grupos {
+        padding: 0;
+        margin-bottom: 20px;
+        /* Add margin for separation */
+    }
+    .groupList {
+        padding: 10px;
+        border-radius: 10px;
+        /* Adjust border radius for smaller cards */
+    }
+    .valid_lock {
+        height: auto;
+        /* Let the height be determined by content */
+        margin: 10px 0;
+        /* Adjust margin for spacing */
+    }
+    .custom-image {
+        height: auto;
+        /* Let the image height adjust */
+    }
 }

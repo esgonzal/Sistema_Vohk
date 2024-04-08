@@ -94,3 +94,5 @@
     background-color: #f9c114;
     /* Adjust button color for dark mode */
 }
+
+@media only screen and (max-width: 600px) {}

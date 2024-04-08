@@ -6,7 +6,7 @@
                 <div class="nombre_cerradura">
                     {{Alias}}
                 </div>
-                <div style="font-size:16px" matTooltip="Comunidad a la que pertenece la cerradura">
+                <div class="nombre_comunidad" matTooltip="Comunidad a la que pertenece la cerradura">
                     Comunidad: {{lockGroup}}
                 </div>
                 <div class="rol_usuario">
@@ -34,7 +34,7 @@
                     </div>
                 </div>
                 <div *ngIf="(userType==='110301') || (userType==='110302' && keyRight==='1')">
-                    <button [matMenuTriggerFor]="menu" aria-label="Settings" style="background-color: rgb(127,127,127);"><fa-icon
+                    <button [matMenuTriggerFor]="menu" aria-label="Settings"><fa-icon
                             [icon]="faGear"></fa-icon></button>
                     <mat-menu #menu="matMenu">
                         <button mat-menu-item *ngIf="userType==='110301'" (click)="TransferirLock()"><span>Transferir
@@ -54,14 +54,17 @@
         </div>
         <div class="funciones_cerradura" *ngIf="(userType==='110301') || (userType==='110302' && keyRight==='1')">
             <div>
-                <div class="tablist" style="width:100%">
+                <div class="tablist">
                     <mat-tab-group backgroundColor="primary" color="warn" (selectedTabChange)="onTabChanged($event)">
-                        <mat-tab label="Ekeys" matTooltip="Método de apertura de la aplicación móvil Vöhk">
+                        <mat-tab label="Ekeys">
                             <div class="contenido">
+                                <ng-template mat-tab-label>
+                                    <label matTooltip="Método de apertura de la aplicación móvil Vöhk">Ekeys</label>
+                                </ng-template>
                                 <div class="button-container">
                                     <input type="text" [(ngModel)]="textoBusqueda" placeholder="Buscar Ekeys..." (input)="searchEkeys()" />
                                     <div>
-                                        <button (click)="crearEkey()" class="nueva-button">Generar</button>
+                                        <button (click)="crearEkey()">Generar</button>
                                         <button (click)="fetchEkeys()">Actualizar</button>
                                     </div>
                                 </div>
@@ -138,8 +141,11 @@
                                 </div>
                             </div>
                         </mat-tab>
-                        <mat-tab label="Códigos" *ngIf="lockService.checkFeature(featureValue, 0)" matTooltip="Introduce una secuencia numérica en la pantalla táctil de la cerradura">
+                        <mat-tab label="Códigos" *ngIf="lockService.checkFeature(featureValue, 0)">
                             <div class="contenido">
+                                <ng-template mat-tab-label>
+                                    <label matTooltip="Introduce una secuencia numérica en la pantalla táctil de la cerradura">Códigos</label>
+                                </ng-template>
                                 <div class="button-container">
                                     <input type="text" [(ngModel)]="textoBusqueda" placeholder="Buscar Códigos..." (input)="searchPasscodes()" />
                                     <div>
@@ -214,8 +220,11 @@
                                 </div>
                             </div>
                         </mat-tab>
-                        <mat-tab label="Tarjetas" *ngIf="lockService.checkFeature(featureValue, 1)" matTooltip="Acerca una tarjeta de proximidad a la cerradura para abrirla">
+                        <mat-tab label="Tarjetas" *ngIf="lockService.checkFeature(featureValue, 1)">
                             <div class="contenido">
+                                <ng-template mat-tab-label>
+                                    <label matTooltip="Acerca una tarjeta de proximidad a la cerradura para abrirla">Tarjetas</label>
+                                </ng-template>
                                 <div class="button-container">
                                     <input type="text" [(ngModel)]="textoBusqueda" placeholder="Buscar Tarjetas..." (input)="searchCards()" />
                                     <div>
@@ -282,8 +291,11 @@
                                 </div>
                             </div>
                         </mat-tab>
-                        <mat-tab label="Huellas" *ngIf="lockService.checkFeature(featureValue, 2)" matTooltip="Usa la huella digital de tus dedos para abrir una cerradura">
+                        <mat-tab label="Huellas" *ngIf="lockService.checkFeature(featureValue, 2)">
                             <div class="contenido">
+                                <ng-template mat-tab-label>
+                                    <label matTooltip="Usa la huella digital de tus dedos para abrir una cerradura">Huellas</label>
+                                </ng-template>
                                 <div class="button-container">
                                     <input type="text" [(ngModel)]="textoBusqueda" placeholder="Buscar Huellas..." (input)="searchFingerprints()" />
                                     <div>
@@ -342,8 +354,11 @@
                                 </div>
                             </div>
                         </mat-tab>
-                        <mat-tab label="Registros" matTooltip="Revisa las aperturas exitosas y fallidas de la cerradura">
+                        <mat-tab label="Registros">
                             <div class="contenido">
+                                <ng-template mat-tab-label>
+                                    <label matTooltip="Revisa las aperturas exitosas y fallidas de la cerradura">Registros</label>
+                                </ng-template>
                                 <div class="button-container">
                                     <div>
                                         <select #recordType name="recordType" (change)="onSelected(recordType.value)" style="height: 56px;">

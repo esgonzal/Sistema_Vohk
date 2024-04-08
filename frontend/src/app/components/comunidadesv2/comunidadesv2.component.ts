@@ -8,7 +8,7 @@ import { LockData } from 'src/app/Interfaces/Lock';
 import { EkeyServiceService } from 'src/app/services/ekey-service.service';
 import { GroupService } from 'src/app/services/group.service';
 import { PopUpService } from 'src/app/services/pop-up.service';
-import { faBatteryFull, faBatteryThreeQuarters, faBatteryHalf, faBatteryQuarter, faBatteryEmpty, faGear, faWifi, faAngleUp, faAngleDown, faHome } from '@fortawesome/free-solid-svg-icons'
+import { faHome } from '@fortawesome/free-solid-svg-icons'
 import { DarkModeService } from '../../services/dark-mode.service';
 
 @Component({
@@ -22,20 +22,12 @@ export class Comunidadesv2Component implements OnInit {
   userID = sessionStorage.getItem('user') ?? '';
   groups: Group[] = [];
   locksWithoutGroup: LockData[] = [];
-  faBatteryFull = faBatteryFull
-  faBatteryThreeQuarters = faBatteryThreeQuarters
-  faBatteryHalf = faBatteryHalf
-  faBatteryQuarter = faBatteryQuarter
-  faBatteryEmpty = faBatteryEmpty
-  faGear = faGear
-  faWifi = faWifi
-  faAngleUp = faAngleUp
-  faAngleDown = faAngleDown
   faHome = faHome
   visibleGroups: { [groupId: string]: boolean } = {};
   cols: number = 4;
   chosenGroup : Group
   darkMode: boolean;
+
   constructor(private groupService: GroupService,
     private ekeyService: EkeyServiceService,
     private router: Router,
@@ -43,14 +35,20 @@ export class Comunidadesv2Component implements OnInit {
     public DarkModeService: DarkModeService) {
     this.updateCols();
   }
-
   async ngOnInit(): Promise<void> {
     await this.fetchGroups();
     await this.getLocksWithoutGroup();
+    const lockGroupID = sessionStorage.getItem('lockGroupID') ?? '';
+    if (lockGroupID !== 'undefined') {
+      let grupoGuardado = this.groups.filter(group => (group.groupId === Number(lockGroupID)))
+      this.chosenGroup = grupoGuardado[0];
+      await this.chooseGroup(this.chosenGroup)
+    } else {
+      await this.chooseNoGroup()
+    }
     //console.log("This.groups: ", this.groups)
     //console.log("This.locksWithoutGroup", this.locksWithoutGroup)
   }
-
   async fetchGroups() {
     this.isLoading = true;
     try {
@@ -126,10 +124,13 @@ export class Comunidadesv2Component implements OnInit {
     }
     this.groupService.locksWithoutGroup = this.locksWithoutGroup;
   }
+  async chooseNoGroup() {
+    let newGroup: Group = {groupId:-1, groupName: "Sin Asociar", lockCount: this.locksWithoutGroup.length, locks: this.locksWithoutGroup};
+    this.chosenGroup = newGroup;
+  }
   async chooseGroup(group: Group) {
     await this.fetchLocksOfGroup(group);
     this.chosenGroup = group;
-    console.log(this.groups)
   }
   async toggleGroupVisibility(group: Group): Promise<void> {
     const groupId = group.groupId.toString();
@@ -137,10 +138,6 @@ export class Comunidadesv2Component implements OnInit {
     if (this.visibleGroups[groupId]) {
       await this.fetchLocksOfGroup(group)
     }
-  }
-  isGroupVisible(group: Group): boolean {
-    const groupId = group.groupId.toString();
-    return this.visibleGroups[groupId];
   }
   hasValidAccess(lock: LockData): boolean {
     if ((Number(lock.endDate) === 0 || moment(lock.endDate).isAfter(moment())) && (lock.userType === '110301' || (lock.userType === '110302' && lock.keyRight === 1))) {
@@ -194,7 +191,6 @@ export class Comunidadesv2Component implements OnInit {
     this.popupService.userID = this.userID;
     this.popupService.removeLockGROUP = true;
   }
-
   @HostListener('window:resize', ['$event'])
   onResize(event: Event) {
     this.updateCols(); // Update cols value on resize
