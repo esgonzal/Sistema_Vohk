@@ -28,7 +28,7 @@ import { DarkModeService } from '../../services/dark-mode.service';
   selector: 'app-lock',
   templateUrl: './lockv2.component.html',
   styleUrls: ['./lockv2.component.css'],
-  //encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.None,
 })
 export class Lockv2Component implements OnInit {
 

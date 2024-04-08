@@ -27,7 +27,7 @@ import { LockData, LockDetails } from '../../Interfaces/Lock';
   selector: 'app-lock',
   templateUrl: './lock.component.html',
   styleUrls: ['./lock.component.css'],
-  //encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.None,
 })
 export class LockComponent implements OnInit {
 
