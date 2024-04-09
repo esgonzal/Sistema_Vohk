@@ -21,12 +21,14 @@ export class Comunidadesv2Component implements OnInit {
   isLoading: boolean = false;
   userID = sessionStorage.getItem('user') ?? '';
   groups: Group[] = [];
+  groupsFiltrados: Group[] = [];
   locksWithoutGroup: LockData[] = [];
   faHome = faHome
   visibleGroups: { [groupId: string]: boolean } = {};
   cols: number = 4;
   chosenGroup : Group
   darkMode: boolean;
+  searchText: string = '';
 
   constructor(private groupService: GroupService,
     private ekeyService: EkeyServiceService,
@@ -69,13 +71,17 @@ export class Comunidadesv2Component implements OnInit {
     } finally {
       this.isLoading = false;
       this.groupService.groups = this.groups;
+      this.groupsFiltrados = this.groups;
     }
   }
   async fetchLocksOfGroup(clickedGroup: Group) {
+    let targetGroupIndex = -1;
     let lockCount = 0;
     let pageNo = 1;
     const pageSize = 100;
-    const targetGroupIndex = this.groups.findIndex(group => group.groupId === clickedGroup.groupId);
+    if (clickedGroup){
+      targetGroupIndex = this.groups.findIndex(group => group.groupId === clickedGroup.groupId);
+    }
     if (targetGroupIndex !== -1) {
       if (this.groups[targetGroupIndex].locks.length === 0) {
         while (true) {
@@ -131,6 +137,11 @@ export class Comunidadesv2Component implements OnInit {
   async chooseGroup(group: Group) {
     await this.fetchLocksOfGroup(group);
     this.chosenGroup = group;
+  }
+  searchGroups() {
+    this.groupsFiltrados = this.groups.filter(group => 
+      group.groupName.toLowerCase().includes(this.searchText.toLowerCase())
+    );
   }
   async toggleGroupVisibility(group: Group): Promise<void> {
     const groupId = group.groupId.toString();

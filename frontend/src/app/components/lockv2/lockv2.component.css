@@ -19,6 +19,7 @@ app-pop-up {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+    align-items: baseline;
     background-color: white;
     padding-top: 5px;
     padding-bottom: 5px;
@@ -110,6 +111,12 @@ app-pop-up {
     margin-bottom: 10px;
 }
 
+.button-container input {
+    border-radius: 20px;
+    border: 1px solid black;
+    text-indent: 10px;
+}
+
 .button-container div {
     display: flex;
     gap: 5px;
@@ -117,8 +124,13 @@ app-pop-up {
 
 .button-container div button {
     background-color: #f9c114;
-    border-radius: 10px;
+    border-radius: 20px;
     border: solid 1px black;
+}
+
+:host ::ng-deep .mat-form-field-wrapper {
+    width: 150px !important;
+    height: 36px !important;
 }
 
 .table {
@@ -128,7 +140,6 @@ app-pop-up {
 }
 
 .table-cell {
-    border: 1px solid #dddddd;
     text-align: left;
     padding: 8px;
 }

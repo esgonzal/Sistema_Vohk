@@ -646,7 +646,8 @@ export class Lockv2Component implements OnInit {
     this.ekeyService.lockID = this.lockId;
     this.ekeyService.endDateUser = this.endDateDeUser;
     this.ekeyService.lockAlias = this.Alias;
-    this.router.navigate(["users", this.username, "lock", this.lockId, "ekey"]);
+    this.popupService.createEkey = true;
+    //this.router.navigate(["users", this.username, "lock", this.lockId, "ekey"]);
   }
   borrarEkey(ekeyID: number, ekeyUsername: string) {
     this.popupService.userID = this.userID;

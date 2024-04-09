@@ -5,7 +5,7 @@
             {{userID}}
         </div>
         <div class="searchBar">
-            <input type="text" placeholder="Busqueda" />
+            <input type="text" placeholder="Busqueda" [(ngModel)]="searchText" (input)="searchGroups()" />
         </div>
         <div class="groupList" *ngIf="locksWithoutGroup.length > 0" (click)="chooseNoGroup()">
             <div class="icono">
@@ -15,7 +15,7 @@
                 <span>Sin Asociar</span>
             </div>
         </div>
-        <div class="groupList" *ngFor="let group of groups" (click)="chooseGroup(group)">
+        <div class="groupList" *ngFor="let group of groupsFiltrados" (click)="chooseGroup(group)">
             <div class="icono">
                 <fa-icon [icon]="faHome"></fa-icon>
             </div>

@@ -361,24 +361,24 @@
                                 </ng-template>
                                 <div class="button-container">
                                     <div>
-                                        <select #recordType name="recordType" (change)="onSelected(recordType.value)" style="height: 56px;">
+                                        <select #recordType name="recordType" (change)="onSelected(recordType.value)" style="border-radius: 20px; text-indent: 7px;">
                                             <option default value=undefined>Todos</option>
                                             <option value="4">Código</option>
                                             <option value="7">Tarjeta</option>
                                             <option value="8">Huella</option>
                                         </select>
-                                        <mat-form-field>
+                                        <!--
+                                        <mat-form-field class="custom-form-field">
                                             <mat-label>Inicio</mat-label>
-                                            <input matInput [matDatepicker]="startDatePicker" [(ngModel)]="recordStartDate">
-                                            <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
+                                            <input matInput [matDatepicker]="startDatePicker" [(ngModel)]="recordStartDate" class="custom-input" (click)="startDatePicker.open()">
                                             <mat-datepicker #startDatePicker></mat-datepicker>
                                         </mat-form-field>
-                                        <mat-form-field>
+                                        <mat-form-field class="custom-form-field">
                                             <mat-label>Final</mat-label>
-                                            <input matInput [matDatepicker]="endDatePicker" [(ngModel)]="recordEndDate">
-                                            <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
+                                            <input matInput [matDatepicker]="endDatePicker" [(ngModel)]="recordEndDate" class="custom-input" (click)="endDatePicker.open()">
                                             <mat-datepicker #endDatePicker></mat-datepicker>
                                         </mat-form-field>
+                                        -->
                                     </div>
                                     <div>
                                         <button (click)="openExcelNameWindow()" class="nueva-button">Exportar</button>
@@ -439,4 +439,4 @@
                   this.popupService.cerradoAutomatico || this.popupService.mostrarHora || this.popupService.needGateway || this.popupService.sharePasscode ||
                   this.popupService.excelNameWindow || this.popupService.temporalPasscode || this.popupService.selectLocksForDelete || this.popupService.selectLocksForAutorizar ||
                   this.popupService.selectLocksForDesautorizar || this.popupService.selectLocksForCongelar || this.popupService.selectLocksForDescongelar || 
-                  this.popupService.selectLocksForCambiarNombre" style="z-index: 10;"></app-pop-up>
+                  this.popupService.selectLocksForCambiarNombre || this.popupService.createEkey" style="z-index: 10;"></app-pop-up>

@@ -17,8 +17,9 @@
 
 #dropdownMenuButton {
     background-color: #f9c114;
-    border-radius: 10px;
+    border-radius: 20px;
     cursor: pointer;
+    border: 1px solid black;
 }
 
 .dark-mode-toggle {

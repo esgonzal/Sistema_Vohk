@@ -30,6 +30,15 @@
     flex-direction: column;
 }
 
+#container_80 {
+    width: 80%;
+    box-shadow: 5px 5px 4px rgba(19, 19, 19, 0.2);
+    border-radius: 10px;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+}
+
 #header {
     border-bottom: 1px solid #ccc;
     height: 80px;
@@ -133,6 +142,11 @@ button {
     margin: auto;
 }
 
+.big-form {
+    display: flex;
+    flex-direction: column;
+}
+
 .form-input {
     height: 35px;
     margin-bottom: 20px;
@@ -184,6 +198,45 @@ button {
 }
 
 .mat-datepicker-content {
-    position: relative; /* Ensure z-index works */
-    z-index: 10000; /* Set a higher z-index value than the popup window */
+    position: relative;
+    /* Ensure z-index works */
+    z-index: 10000;
+    /* Set a higher z-index value than the popup window */
+}
+
+.linea_ekey {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.linea_ekey label {
+    padding: 8px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.input-container_ekey {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: space-between;
+    width: 600px;
+    margin-bottom: 10px;
+}
+
+.form-input_ekey {
+    height: 35px;
+    border: 1px, solid black;
+    padding-left: 15px;
+}
+
+.form-button_ekey {
+    height: 35px;
+    border: 1px solid black;
+    background-color: #f9c114;
+    cursor: pointer;
+    line-height: 1;
 }

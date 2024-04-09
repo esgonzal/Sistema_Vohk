@@ -49,6 +49,7 @@ export class PopUpService {
   selectLocksForCongelar = false;
   selectLocksForDescongelar = false;
   selectLocksForCambiarNombre = false;
+  createEkey = false;
   emailMessage: SafeHtml = '';
   lock_alias: string;
   gatewaysOfLock: GatewayLock[] = []

@@ -704,6 +704,107 @@
         <button (click)="this.popupService.selectLocksForEkey = false; confirmLockSelection()">Confirmar</button>
     </div>
 </div>
+<div id="container_80" *ngIf="popupService.createEkey">
+    <div id="header">
+        Ingrese los datos para generar a una nueva eKey
+    </div>
+    <div id="content">
+        <form #formInput="ngForm" class="big-form">
+            <div class="linea_ekey">
+                <span class="input-container_ekey" [title]="''">
+                    Cuenta de Destino
+                    <input type="text" class="form-input_ekey" name="recieverName" placeholder="..." [(ngModel)]="recieverName" />
+                </span>
+            </div>
+            <div class="linea_ekey">
+                <span class="input-container_ekey">
+                    Nombre de la eKey
+                    <input type="text" class="form-input_ekey" name="name" placeholder="..." ngModel />
+                </span>
+            </div>
+            <div class="linea_ekey">
+                <span class="input-container_ekey">
+                    Tipo de eKey
+                    <select #types name="ekeyType" (change)="onSelected(types.value)" ngModel
+                        style="width: 202px; height: 35px;">
+                        <option default value="">No seleccionado</option>
+                        <option value="1">Permanente</option>
+                        <option value="2">Temporal</option>
+                        <!--<option value="3">De un uso</option>-->
+                        <!--<option value="4">Solicitante</option>-->
+                    </select>
+                </span>
+            </div>
+            <div class="linea_ekey">
+                <span class="input-container_ekey">
+                    Cerradura
+                    <button class="form-button_ekey" (click)="openLockSelector()">+</button>
+                </span>
+            </div>
+            <div class="linea_ekey" *ngIf="selectedType==='2' || selectedType==='4'">
+                <span class="input-container_ekey">
+                    Fecha de inicio
+                    <mat-form-field appearance="fill">
+                        <mat-label>Fecha</mat-label>
+                        <input matInput [matDatepicker]="startDatePicker" name="startDate" placeholder="DD/MM/YYYY"
+                            required="required" ngModel (dateChange)="startTimePicker.open()">
+                        <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
+                        <mat-datepicker #startDatePicker></mat-datepicker>
+                    </mat-form-field>
+                    Hora de inicio
+                    <mat-form-field appearance="fill">
+                        <mat-label>Hora</mat-label>
+                        <input matInput [ngxTimepicker]="startTimePicker" name="startHour" placeholder="HH:mm"
+                            required="required" [format]="24" ngModel>
+                    </mat-form-field>
+                    <ngx-material-timepicker #startTimePicker></ngx-material-timepicker>
+                </span>
+            </div>
+            <div class="linea_ekey" *ngIf="selectedType==='2' || selectedType==='4'">
+                <span class="input-container_ekey">
+                    Fecha de finalización
+                    <mat-form-field appearance="fill">
+                        <mat-label>Fecha</mat-label>
+                        <input matInput [matDatepicker]="endDatePicker" name="endDate" placeholder="DD/MM/YYYY"
+                            required="required" ngModel (dateChange)="endTimePicker.open()">
+                        <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
+                        <mat-datepicker #endDatePicker></mat-datepicker>
+                    </mat-form-field>
+                    Hora de finalización
+                    <mat-form-field appearance="fill">
+                        <mat-label>Hora</mat-label>
+                        <input matInput [ngxTimepicker]="endTimePicker" name="endHour" placeholder="HH:mm"
+                            required="required" [format]="24" ngModel>
+                    </mat-form-field>
+                    <ngx-material-timepicker #endTimePicker></ngx-material-timepicker>
+                </span>
+            </div>
+            <div class="linea_ekey">
+                <span class="input-container_ekey">
+                    Apertura Remota
+                    <mat-slide-toggle name="remoteUnlock" ngModel ></mat-slide-toggle>
+                </span>
+            </div>
+            <div class="linea_ekey">
+                <span class="input-container_ekey" [title]="'Un Administrador Autorizado es capaz de crear y borrar más accesos(eKeys, códigos, tarjetas, etc)'">
+                    Administrador Autorizado
+                    <mat-slide-toggle name="keyRight" ngModel></mat-slide-toggle>
+                </span>
+            </div>
+            <div class="linea_ekey" *ngIf="isEmailNotificationRequired()">
+                <span class="input-container_ekey" [title]="'Rellena este campo si quieres que el destinatario reciba una notificación por correo'">
+                    Correo de notificación
+                    <input type="text" class="form-input" name="email" placeholder="..." ngModel />
+                </span>
+            </div>
+        </form>
+    </div>
+    <p class="error">{{error}}</p>
+    <div id="actions">
+        <button (click)="popupService.createEkey = false">Volver</button>
+        <button (click)="botonGenerarEkey()">Confirmar</button>
+    </div>
+</div>
 
 <!--
 <div id="container" *ngIf="popupService.cerradoAutomatico">

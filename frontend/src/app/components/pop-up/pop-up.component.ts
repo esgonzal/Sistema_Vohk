@@ -58,6 +58,8 @@ export class PopUpComponent implements OnInit {
   locksOfGroup: LockData[] = []
   currentEkey: LockData | undefined
 
+  recieverName: string;
+
   constructor(
     private router: Router,
     private cdr: ChangeDetectorRef,
@@ -227,8 +229,6 @@ export class PopUpComponent implements OnInit {
     }
   }
   async cambiarNombre() {
-    console.log(this.ekeyService.selectedEkeys)
-    console.log(this.name)
     this.error = '';
     let response;
     this.isLoading = true;
@@ -260,8 +260,8 @@ export class PopUpComponent implements OnInit {
         }
         //console.log(response)
         if (response?.errcode === 0) {
-          //this.popupService.cambiarNombre = false;
-          //window.location.reload();
+          this.popupService.cambiarNombre = false;
+          window.location.reload();
         } else if (response?.errcode === -3) {
           this.error = "El nombre ingresado es muy largo"
         } else if (response?.errcode === 10003) {
@@ -740,4 +740,6 @@ export class PopUpComponent implements OnInit {
       this.popupService.cambiarNombre = false;
     }
   }
+  botonGenerarEkey(){}
+  isEmailNotificationRequired(){}
 }
