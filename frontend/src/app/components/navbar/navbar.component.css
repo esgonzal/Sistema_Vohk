@@ -6,8 +6,10 @@
 .container-fluid {
     height: 60px;
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
     align-items: center;
+    margin-left: 5%;
+    margin-right: 5%;
 }
 
 .logo {
