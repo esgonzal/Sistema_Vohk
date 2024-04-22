@@ -549,7 +549,8 @@ export class Lockv2Component implements OnInit {
   TransferirLock() {
     this.lockService.userID = this.userID;
     this.lockService.lockID = this.lockId;
-    this.router.navigate(["users", this.username, "lock", this.lockId, "transferLock"]);
+    this.popupService.transferLock = true;
+    //this.router.navigate(["users", this.username, "lock", this.lockId, "transferLock"]);
   }
   async PassageMode() {
     if (this.gateway === '1') {
@@ -561,7 +562,8 @@ export class Lockv2Component implements OnInit {
         let response = await lastValueFrom(this.passageModeService.getPassageModeConfig(this.userID, this.lockId)) as PassageMode;
         if (response.passageMode) {
           this.passageModeService.passageModeConfig = response;
-          this.router.navigate(["users", this.username, "lock", this.lockId, "passageMode"]);
+          this.popupService.passageMode = true;
+          //this.router.navigate(["users", this.username, "lock", this.lockId, "passageMode"]);
         } else if (response.errcode === 10003) {
           sessionStorage.clear();
         } else {
@@ -732,7 +734,8 @@ export class Lockv2Component implements OnInit {
     this.passcodeService.endDateUser = this.endDateDeUser;
     this.passcodeService.gateway = Number(this.gateway)
     this.passcodeService.featureValue = this.featureValue;
-    this.router.navigate(["users", this.username, "lock", this.lockId, "passcode"]);
+    this.popupService.createPasscode = true;
+    //this.router.navigate(["users", this.username, "lock", this.lockId, "passcode"]);
   }
   borrarPasscode(passcodeID: number) {
     if (this.gateway === '1') {
@@ -811,7 +814,8 @@ export class Lockv2Component implements OnInit {
       this.cardService.userID = this.userID;
       this.cardService.lockID = this.lockId;
       this.cardService.endDateUser = this.endDateDeUser;
-      this.router.navigate(["users", this.username, "lock", this.lockId, "card"]);
+      this.popupService.createCard = true;
+      //this.router.navigate(["users", this.username, "lock", this.lockId, "card"]);
     } else {
       this.popupService.needGateway = true;
       console.log("Necesita estar conectado a un gateway para usar esta función")

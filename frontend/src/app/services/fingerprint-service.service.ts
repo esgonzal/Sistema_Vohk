@@ -9,6 +9,7 @@ import { FingerprintResponse, operationResponse } from '../Interfaces/API_respon
 export class FingerprintServiceService {
 
   URL = 'https://api.vohkapp.com';
+  //URL = 'http://localhost:8080';
 
   constructor(private http: HttpClient) { }
 

@@ -1,32 +1,16 @@
-<div class="pagina_completa">
+<div class="pagina_completa" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
     <app-loader [loader]="isLoading"></app-loader>
-    <div class="sidebar">
-        <a [routerLink]="['']" class="not-current" [title]="'Mis Comunidades'">
-            <fa-icon [icon]="faHome"></fa-icon>
-        </a>
-        <a [routerLink]="['/users', cardService.userID, 'lock', cardService.lockID]" class="not-current" [title]="'Informacion sobre la Cerradura'">
-            <fa-icon [icon]="faLock"></fa-icon>
-        </a>
-        <a class="current" [title]="'Generar tarjeta'">
-            <fa-icon [icon]="faCreditCard"></fa-icon>
-        </a>
-    </div>
-    <div class="resto">
-        <div style="font-size: 18px; font-weight:bold; margin-left: 30px">
-            Generar tarjeta
-        </div>
-        <div class="form-area">
-            <h2 style="margin-bottom: 50px;">Ingrese los datos para generar una nueva tarjeta</h2>
-            <form #formInput="ngForm" class="common-form">
-                <div class="linea">
-                    <span class="input-container">
+    <div class="form-area">
+        <form #formInput="ngForm" class="common-form">
+            <div class="linea">
+                <span class="input-container">
                         Nombre de la Tarjeta
                         <input type="text" class="form-input" name="cardName" placeholder="..."
                             [(ngModel)]="cardName" />
                     </span>
-                </div>
-                <div class="linea">
-                    <span class="input-container">
+            </div>
+            <div class="linea">
+                <span class="input-container">
                         Tipo de Tarjeta
                         <select #types name="cardType" (change)="onSelected(types.value)" ngModel
                             style="width: 202px; height: 35px;">
@@ -35,9 +19,9 @@
                             <option value="2">Temporal</option>
                         </select>
                     </span>
-                </div>
-                <div class="linea" *ngIf="selectedType === '2'">
-                    <span class="input-container">
+            </div>
+            <div class="linea" *ngIf="selectedType === '2'">
+                <span class="input-container">
                         Fecha de Inicio
                         <mat-form-field appearance="fill">
                             <mat-label>Fecha</mat-label>
@@ -54,9 +38,9 @@
                         </mat-form-field>
                         <ngx-material-timepicker #startTimePicker [hoursOnly]="true"></ngx-material-timepicker>
                     </span>
-                </div>
-                <div class="linea" *ngIf="selectedType === '2'">
-                    <span class="input-container">
+            </div>
+            <div class="linea" *ngIf="selectedType === '2'">
+                <span class="input-container">
                         Fecha de Finalización
                         <mat-form-field appearance="fill">
                             <mat-label>Fecha</mat-label>
@@ -73,11 +57,15 @@
                         </mat-form-field>
                         <ngx-material-timepicker #endTimePicker [hoursOnly]="true"></ngx-material-timepicker>
                     </span>
-                </div>
-                <p class="error">{{error}}</p>
-                <button class="form-button" type="button" (click)="botonGenerarCard()">Continuar</button>
-            </form>
-        </div>
+            </div>
+            <p class="error">{{error}}</p>
+            <div class="linea">
+                <span style="display: flex;justify-content:space-around;">
+                        <button class="form-button" (click)="popupService.createCard=false">Volver</button>
+                        <button class="form-button" type="button" (click)="botonGenerarCard()">Continuar</button>
+                    </span>
+            </div>
+        </form>
     </div>
     <app-pop-up *ngIf="popupService.cardReader"></app-pop-up>
 </div>

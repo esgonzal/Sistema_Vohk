@@ -1,6 +1,6 @@
 <app-loader [loader]="isLoading"></app-loader>
-<div id="container" *ngIf="popupService.delete">
-    <div id="header">
+<div class="container" *ngIf="popupService.delete" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
         ¿Está seguro que desea eliminar {{popupService.elementType}}?
     </div>
     <div id="content">
@@ -11,43 +11,8 @@
         <button (click)="delete()">Si</button>
     </div>
 </div>
-<div id="container" *ngIf="popupService.selectLocksForDelete">
-    <div id="header">
-        Seleccione las cerraduras
-    </div>
-    <div id="content" style="justify-content: flex-start; ">
-        <table class="lock-table">
-            <thead>
-                <tr>
-                    <th>Nombre</th>
-                    <th>Seleccionado</th>
-                </tr>
-            </thead>
-            <tbody>
-                <ng-container *ngIf="popupService.locksOfGroup.length > 0; else noLocks">
-                    <tr *ngFor="let lock of popupService.locksOfGroup">
-                        <td>{{ lock.lockAlias }}</td>
-                        <td style="text-align: center">
-                            <input type="checkbox" [checked]="isLockSelected(lock.lockId)" (change)="toggleLockSelection(lock.lockId)">
-                        </td>
-                    </tr>
-                </ng-container>
-                <ng-template #noLocks>
-                    <tr>
-                        <td colspan="2">No existen cerraduras disponibles para agregar a este grupo.</td>
-                    </tr>
-                </ng-template>
-            </tbody>
-        </table>
-    </div>
-    <p class="error">{{error}}</p>
-    <div id="actions">
-        <button (click)="popupService.selectLocksForDelete = false; popupService.delete = true">Volver</button>
-        <button (click)="this.popupService.selectLocksForDelete = false; popupService.delete = true; confirmLockSelection()">Confirmar</button>
-    </div>
-</div>
-<div id="container" *ngIf="popupService.autorizar">
-    <div id="header">
+<div class="container" *ngIf="popupService.autorizar" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
         ¿Está seguro que desea autorizar a {{popupService.elementType}}?
     </div>
     <div id="content">
@@ -57,43 +22,8 @@
         <button (click)="autorizar()">Si</button>
     </div>
 </div>
-<div id="container" *ngIf="popupService.selectLocksForAutorizar">
-    <div id="header">
-        Seleccione las cerraduras
-    </div>
-    <div id="content" style="justify-content: flex-start; ">
-        <table class="lock-table">
-            <thead>
-                <tr>
-                    <th>Nombre</th>
-                    <th>Seleccionado</th>
-                </tr>
-            </thead>
-            <tbody>
-                <ng-container *ngIf="popupService.locksOfGroup.length > 0; else noLocks">
-                    <tr *ngFor="let lock of popupService.locksOfGroup">
-                        <td>{{ lock.lockAlias }}</td>
-                        <td style="text-align: center">
-                            <input type="checkbox" [checked]="isLockSelected(lock.lockId)" (change)="toggleLockSelection(lock.lockId)">
-                        </td>
-                    </tr>
-                </ng-container>
-                <ng-template #noLocks>
-                    <tr>
-                        <td colspan="2">No existen cerraduras disponibles para agregar a este grupo.</td>
-                    </tr>
-                </ng-template>
-            </tbody>
-        </table>
-    </div>
-    <p class="error">{{error}}</p>
-    <div id="actions">
-        <button (click)="popupService.selectLocksForAutorizar = false; popupService.autorizar = true">Volver</button>
-        <button (click)="this.popupService.selectLocksForAutorizar = false; popupService.autorizar = true; confirmLockSelection()">Confirmar</button>
-    </div>
-</div>
-<div id="container" *ngIf="popupService.desautorizar">
-    <div id="header">
+<div class="container" *ngIf="popupService.desautorizar" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
         ¿Está seguro que desea desautorizar a {{popupService.elementType}}?
     </div>
     <div id="content">
@@ -103,43 +33,8 @@
         <button (click)="desautorizar()">Si</button>
     </div>
 </div>
-<div id="container" *ngIf="popupService.selectLocksForDesautorizar">
-    <div id="header">
-        Seleccione las cerraduras
-    </div>
-    <div id="content" style="justify-content: flex-start; ">
-        <table class="lock-table">
-            <thead>
-                <tr>
-                    <th>Nombre</th>
-                    <th>Seleccionado</th>
-                </tr>
-            </thead>
-            <tbody>
-                <ng-container *ngIf="popupService.locksOfGroup.length > 0; else noLocks">
-                    <tr *ngFor="let lock of popupService.locksOfGroup">
-                        <td>{{ lock.lockAlias }}</td>
-                        <td style="text-align: center">
-                            <input type="checkbox" [checked]="isLockSelected(lock.lockId)" (change)="toggleLockSelection(lock.lockId)">
-                        </td>
-                    </tr>
-                </ng-container>
-                <ng-template #noLocks>
-                    <tr>
-                        <td colspan="2">No existen cerraduras disponibles para agregar a este grupo.</td>
-                    </tr>
-                </ng-template>
-            </tbody>
-        </table>
-    </div>
-    <p class="error">{{error}}</p>
-    <div id="actions">
-        <button (click)="popupService.selectLocksForDesautorizar = false; popupService.desautorizar = true">Volver</button>
-        <button (click)="this.popupService.selectLocksForDesautorizar = false; popupService.desautorizar = true; confirmLockSelection()">Confirmar</button>
-    </div>
-</div>
-<div id="container" *ngIf="popupService.changeRemoteEnable">
-    <div id="header">
+<div class="container" *ngIf="popupService.changeRemoteEnable" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
         Por favor confirme sus acciones
     </div>
     <div id="content">
@@ -158,8 +53,8 @@
         <button (click)="cambiarRemoteUnlock()">Confirmar</button>
     </div>
 </div>
-<div id="container" *ngIf="popupService.congelar">
-    <div id="header">
+<div class="container" *ngIf="popupService.congelar" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
         ¿Está seguro que desea congelar a {{popupService.elementType}}?
     </div>
     <div id="content">
@@ -169,43 +64,8 @@
         <button (click)="congelar()">Si</button>
     </div>
 </div>
-<div id="container" *ngIf="popupService.selectLocksForCongelar">
-    <div id="header">
-        Seleccione las cerraduras
-    </div>
-    <div id="content" style="justify-content: flex-start; ">
-        <table class="lock-table">
-            <thead>
-                <tr>
-                    <th>Nombre</th>
-                    <th>Seleccionado</th>
-                </tr>
-            </thead>
-            <tbody>
-                <ng-container *ngIf="popupService.locksOfGroup.length > 0; else noLocks">
-                    <tr *ngFor="let lock of popupService.locksOfGroup">
-                        <td>{{ lock.lockAlias }}</td>
-                        <td style="text-align: center">
-                            <input type="checkbox" [checked]="isLockSelected(lock.lockId)" (change)="toggleLockSelection(lock.lockId)">
-                        </td>
-                    </tr>
-                </ng-container>
-                <ng-template #noLocks>
-                    <tr>
-                        <td colspan="2">No existen cerraduras disponibles para agregar a este grupo.</td>
-                    </tr>
-                </ng-template>
-            </tbody>
-        </table>
-    </div>
-    <p class="error">{{error}}</p>
-    <div id="actions">
-        <button (click)="popupService.selectLocksForCongelar = false; popupService.congelar = true">Volver</button>
-        <button (click)="this.popupService.selectLocksForCongelar = false; popupService.congelar = true; confirmLockSelection()">Confirmar</button>
-    </div>
-</div>
-<div id="container" *ngIf="popupService.descongelar">
-    <div id="header">
+<div class="container" *ngIf="popupService.descongelar" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
         ¿Está seguro que desea descongelar a {{popupService.elementType}}?
     </div>
     <div id="content">
@@ -215,43 +75,8 @@
         <button (click)="descongelar()">Si</button>
     </div>
 </div>
-<div id="container" *ngIf="popupService.selectLocksForDescongelar">
-    <div id="header">
-        Seleccione las cerraduras
-    </div>
-    <div id="content" style="justify-content: flex-start; ">
-        <table class="lock-table">
-            <thead>
-                <tr>
-                    <th>Nombre</th>
-                    <th>Seleccionado</th>
-                </tr>
-            </thead>
-            <tbody>
-                <ng-container *ngIf="popupService.locksOfGroup.length > 0; else noLocks">
-                    <tr *ngFor="let lock of popupService.locksOfGroup">
-                        <td>{{ lock.lockAlias }}</td>
-                        <td style="text-align: center">
-                            <input type="checkbox" [checked]="isLockSelected(lock.lockId)" (change)="toggleLockSelection(lock.lockId)">
-                        </td>
-                    </tr>
-                </ng-container>
-                <ng-template #noLocks>
-                    <tr>
-                        <td colspan="2">No existen cerraduras disponibles para agregar a este grupo.</td>
-                    </tr>
-                </ng-template>
-            </tbody>
-        </table>
-    </div>
-    <p class="error">{{error}}</p>
-    <div id="actions">
-        <button (click)="popupService.selectLocksForDescongelar = false; popupService.descongelar = true">Volver</button>
-        <button (click)="this.popupService.selectLocksForDescongelar = false; popupService.descongelar = true; confirmLockSelection()">Confirmar</button>
-    </div>
-</div>
-<div id="container" *ngIf="popupService.cambiarNombre">
-    <div id="header">
+<div class="container" *ngIf="popupService.cambiarNombre" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
         Introduzca el nuevo nombre
     </div>
     <div id="content">
@@ -268,43 +93,8 @@
         <button (click)="cambiarNombre()">Guardar</button>
     </div>
 </div>
-<div id="container" *ngIf="popupService.selectLocksForCambiarNombre">
-    <div id="header">
-        Seleccione las cerraduras
-    </div>
-    <div id="content" style="justify-content: flex-start; ">
-        <table class="lock-table">
-            <thead>
-                <tr>
-                    <th>Nombre</th>
-                    <th>Seleccionado</th>
-                </tr>
-            </thead>
-            <tbody>
-                <ng-container *ngIf="popupService.locksOfGroup.length > 0; else noLocks">
-                    <tr *ngFor="let lock of popupService.locksOfGroup">
-                        <td>{{ lock.lockAlias }}</td>
-                        <td style="text-align: center">
-                            <input type="checkbox" [checked]="isEkeySelected(lock.keyId)" (change)="toggleEkeySelection(lock.keyId)">
-                        </td>
-                    </tr>
-                </ng-container>
-                <ng-template #noLocks>
-                    <tr>
-                        <td colspan="2">No existen cerraduras disponibles para agregar a este grupo.</td>
-                    </tr>
-                </ng-template>
-            </tbody>
-        </table>
-    </div>
-    <p class="error">{{error}}</p>
-    <div id="actions">
-        <button (click)="popupService.selectLocksForCambiarNombre = false; popupService.cambiarNombre = true">Volver</button>
-        <button (click)="this.popupService.selectLocksForCambiarNombre = false; popupService.cambiarNombre = true; confirmLockSelection()">Confirmar</button>
-    </div>
-</div>
-<div id="container" *ngIf="popupService.cambiarPeriodo">
-    <div id="header">
+<div class="container" *ngIf="popupService.cambiarPeriodo" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
         Introduzca la nueva fecha
     </div>
     <div id="content">
@@ -355,8 +145,8 @@
         </div>
     </div>
 </div>
-<div id="container" *ngIf="popupService.editarPasscode">
-    <div id="header">
+<div class="container" *ngIf="popupService.editarPasscode" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
         Introduzca la nueva secuencia de números
     </div>
     <div id="content">
@@ -389,8 +179,8 @@
         <button (click)="editarPasscode()">Guardar</button>
     </div>
 </div>
-<div id="container" *ngIf="popupService.needGateway">
-    <div id="header">
+<div class="container" *ngIf="popupService.needGateway" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
         Función no permitida
     </div>
     <div id="content">
@@ -400,8 +190,8 @@
         <button (click)="popupService.needGateway = false">Ok</button>
     </div>
 </div>
-<div id="container" *ngIf="popupService.invalidLock">
-    <div id="header">
+<div class="container" *ngIf="popupService.invalidLock" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
         Accesso Denegado
     </div>
     <div id="content">
@@ -411,8 +201,8 @@
         <button (click)="popupService.invalidLock = false">Ok</button>
     </div>
 </div>
-<div id="container" *ngIf="popupService.newGroup">
-    <div id="header">
+<div class="container" *ngIf="popupService.newGroup" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
         Crear Grupo
     </div>
     <div id="content">
@@ -429,8 +219,8 @@
         <button (click)="crearGrupo()">Guardar</button>
     </div>
 </div>
-<div id="container_60" *ngIf="popupService.addRemoveLockGROUP">
-    <div id="header">
+<div class="container_60" *ngIf="popupService.addRemoveLockGROUP" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
         {{popupService.group.groupName}}
     </div>
     <div id="content">
@@ -452,8 +242,8 @@
         <button (click)="openRemoveLockGroup()">Remover </button>
     </div>
 </div>
-<div id="container" *ngIf="popupService.addLockGROUP">
-    <div id="header">
+<div class="container" *ngIf="popupService.addLockGROUP" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
         Agregar Cerradura a {{popupService.group.groupName}}
     </div>
     <div id="content" style="justify-content: flex-start; ">
@@ -487,8 +277,8 @@
         <button (click)="addSelectedLocksToGroup()">Agregar</button>
     </div>
 </div>
-<div id="container" *ngIf="popupService.removeLockGROUP">
-    <div id="header">
+<div class="container" *ngIf="popupService.removeLockGROUP" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
         Remover Cerradura de {{popupService.group.groupName}}
     </div>
 
@@ -523,8 +313,8 @@
         <button (click)="removeSelectedLocksFromGroup()">Remover</button>
     </div>
 </div>
-<div id="container" *ngIf="popupService.selectLocksForMultipleEkeys">
-    <div id="header">
+<div class="container" *ngIf="popupService.selectLocksForMultipleEkeys" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
         Seleccione Cerradura para compartir
     </div>
     <div id="content">
@@ -543,8 +333,8 @@
         <button (click)="selectLocks()">OK</button>
     </div>
 </div>
-<div id="container" *ngIf="popupService.addRecipientsForMultipleEkeys">
-    <div id="header">
+<div class="container" *ngIf="popupService.addRecipientsForMultipleEkeys" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
         Añadir Receptor(es)
     </div>
     <div id="content">
@@ -579,30 +369,8 @@
         </div>
     </div>
 </div>
-<div id="container" *ngIf="popupService.sharePasscode">
-    <div id="header">
-        Compartir Código
-    </div>
-    <div id="content">
-        <div class="form-area">
-            <form #sharePasscode="ngForm" (ngSubmit)="compartirCodigo(sharePasscode.value)" class="common-form">
-                <p>
-                    Nombre
-                    <input type="text" class="form-input" name="name" required="" ngModel />
-                </p>
-                <p class="error">{{error}}</p>
-                <div id="actions">
-                    <button (click)="popupService.sharePasscode = false">Volver</button>
-                    <button type="submit">Compartir</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    <div id="actions">
-    </div>
-</div>
-<div id="container" *ngIf="popupService.cardReader">
-    <div id="header">
+<div class="container" *ngIf="popupService.cardReader" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
         Acerque la tarjeta al lector
     </div>
     <div id="content">
@@ -612,8 +380,8 @@
         <button (click)="popupService.cardReader=false">Volver</button>
     </div>
 </div>
-<div id="container" *ngIf="popupService.emailSuccess">
-    <div id="header">
+<div class="container" *ngIf="popupService.emailSuccess" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
         La eKey fue enviada correctamente
     </div>
     <div id="content" style="background-color: rgb(245, 245, 245);">
@@ -627,8 +395,8 @@
         El mensaje fue copiado.
     </div>
 </div>
-<div id="container" *ngIf="popupService.excelNameWindow">
-    <div id="header">
+<div class="container" *ngIf="popupService.excelNameWindow" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
         Introduzca un nombre para el archivo
     </div>
     <div id="content">
@@ -645,8 +413,8 @@
         <button (click)="exportToExcel()">Exportar</button>
     </div>
 </div>
-<div id="container" *ngIf="popupService.temporalPasscode">
-    <div id="header">
+<div class="container" *ngIf="popupService.temporalPasscode" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
         Crear código temporal
     </div>
     <div id="content">
@@ -669,8 +437,8 @@
         <button (click)="createTemporalPasscode()">Guardar</button>
     </div>
 </div>
-<div id="container" *ngIf="popupService.selectLocksForEkey">
-    <div id="header">
+<div class="container" *ngIf="popupService.selectLocksForEkey" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
         Seleccione las cerraduras
     </div>
     <div id="content" style="justify-content: flex-start; ">
@@ -704,107 +472,7 @@
         <button (click)="this.popupService.selectLocksForEkey = false; confirmLockSelection()">Confirmar</button>
     </div>
 </div>
-<div id="container_80" *ngIf="popupService.createEkey">
-    <div id="header">
-        Ingrese los datos para generar a una nueva eKey
-    </div>
-    <div id="content">
-        <form #formInput="ngForm" class="big-form">
-            <div class="linea_ekey">
-                <span class="input-container_ekey" [title]="''">
-                    Cuenta de Destino
-                    <input type="text" class="form-input_ekey" name="recieverName" placeholder="..." [(ngModel)]="recieverName" />
-                </span>
-            </div>
-            <div class="linea_ekey">
-                <span class="input-container_ekey">
-                    Nombre de la eKey
-                    <input type="text" class="form-input_ekey" name="name" placeholder="..." ngModel />
-                </span>
-            </div>
-            <div class="linea_ekey">
-                <span class="input-container_ekey">
-                    Tipo de eKey
-                    <select #types name="ekeyType" (change)="onSelected(types.value)" ngModel
-                        style="width: 202px; height: 35px;">
-                        <option default value="">No seleccionado</option>
-                        <option value="1">Permanente</option>
-                        <option value="2">Temporal</option>
-                        <!--<option value="3">De un uso</option>-->
-                        <!--<option value="4">Solicitante</option>-->
-                    </select>
-                </span>
-            </div>
-            <div class="linea_ekey">
-                <span class="input-container_ekey">
-                    Cerradura
-                    <button class="form-button_ekey" (click)="openLockSelector()">+</button>
-                </span>
-            </div>
-            <div class="linea_ekey" *ngIf="selectedType==='2' || selectedType==='4'">
-                <span class="input-container_ekey">
-                    Fecha de inicio
-                    <mat-form-field appearance="fill">
-                        <mat-label>Fecha</mat-label>
-                        <input matInput [matDatepicker]="startDatePicker" name="startDate" placeholder="DD/MM/YYYY"
-                            required="required" ngModel (dateChange)="startTimePicker.open()">
-                        <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
-                        <mat-datepicker #startDatePicker></mat-datepicker>
-                    </mat-form-field>
-                    Hora de inicio
-                    <mat-form-field appearance="fill">
-                        <mat-label>Hora</mat-label>
-                        <input matInput [ngxTimepicker]="startTimePicker" name="startHour" placeholder="HH:mm"
-                            required="required" [format]="24" ngModel>
-                    </mat-form-field>
-                    <ngx-material-timepicker #startTimePicker></ngx-material-timepicker>
-                </span>
-            </div>
-            <div class="linea_ekey" *ngIf="selectedType==='2' || selectedType==='4'">
-                <span class="input-container_ekey">
-                    Fecha de finalización
-                    <mat-form-field appearance="fill">
-                        <mat-label>Fecha</mat-label>
-                        <input matInput [matDatepicker]="endDatePicker" name="endDate" placeholder="DD/MM/YYYY"
-                            required="required" ngModel (dateChange)="endTimePicker.open()">
-                        <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
-                        <mat-datepicker #endDatePicker></mat-datepicker>
-                    </mat-form-field>
-                    Hora de finalización
-                    <mat-form-field appearance="fill">
-                        <mat-label>Hora</mat-label>
-                        <input matInput [ngxTimepicker]="endTimePicker" name="endHour" placeholder="HH:mm"
-                            required="required" [format]="24" ngModel>
-                    </mat-form-field>
-                    <ngx-material-timepicker #endTimePicker></ngx-material-timepicker>
-                </span>
-            </div>
-            <div class="linea_ekey">
-                <span class="input-container_ekey">
-                    Apertura Remota
-                    <mat-slide-toggle name="remoteUnlock" ngModel ></mat-slide-toggle>
-                </span>
-            </div>
-            <div class="linea_ekey">
-                <span class="input-container_ekey" [title]="'Un Administrador Autorizado es capaz de crear y borrar más accesos(eKeys, códigos, tarjetas, etc)'">
-                    Administrador Autorizado
-                    <mat-slide-toggle name="keyRight" ngModel></mat-slide-toggle>
-                </span>
-            </div>
-            <div class="linea_ekey" *ngIf="isEmailNotificationRequired()">
-                <span class="input-container_ekey" [title]="'Rellena este campo si quieres que el destinatario reciba una notificación por correo'">
-                    Correo de notificación
-                    <input type="text" class="form-input" name="email" placeholder="..." ngModel />
-                </span>
-            </div>
-        </form>
-    </div>
-    <p class="error">{{error}}</p>
-    <div id="actions">
-        <button (click)="popupService.createEkey = false">Volver</button>
-        <button (click)="botonGenerarEkey()">Confirmar</button>
-    </div>
-</div>
+
 
 <!--
 <div id="container" *ngIf="popupService.cerradoAutomatico">

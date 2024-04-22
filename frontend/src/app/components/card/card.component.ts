@@ -7,7 +7,7 @@ import { LockServiceService } from 'src/app/services/lock-service.service';
 import { lastValueFrom } from 'rxjs';
 import { addCardResponse } from 'src/app/Interfaces/API_responses';
 import { faHome, faLock, faCreditCard } from '@fortawesome/free-solid-svg-icons'
-
+import { DarkModeService } from '../../services/dark-mode.service';
 
 @Component({
   selector: 'app-card',
@@ -19,7 +19,8 @@ export class CardComponent {
   constructor(public cardService: CardServiceService,
     private router: Router,
     public popupService: PopUpService,
-    private lockService: LockServiceService) {
+    private lockService: LockServiceService,
+    public DarkModeService: DarkModeService) {
     if (!this.cardService.userID || !this.cardService.lockID || !this.cardService.endDateUser) {
       this.router.navigate(['users', sessionStorage.getItem('user'), 'lock', sessionStorage.getItem('lockID')])
     }

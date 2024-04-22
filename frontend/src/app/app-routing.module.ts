@@ -18,11 +18,11 @@ import { Comunidadesv2Component } from './components/comunidadesv2/comunidadesv2
 import { Lockv2Component } from './components/lockv2/lockv2.component';
 
 const routes: Routes = [
-  { path: 'login', component: LoginComponent },
-  { path: '', component: ComunidadesComponent },
+  //{ path: 'login', component: LoginComponent },
+  //{ path: '', component: ComunidadesComponent },
   { path: 'users/:username', component: UserComponent },
   { path: 'users/:username/grupos', component: GrupoCerradurasComponent },
-  { path: 'users/:username/lock/:id', component: LockComponent },
+  //{ path: 'users/:username/lock/:id', component: LockComponent },
   { path: 'users/:username/lock/:id/passcode', component: PasscodeComponent },
   { path: 'users/:username/lock/:id/passcode2', component: TemporalPasscodeComponent },
   { path: 'users/:username/lock/:id/ekey', component: EkeyComponent },
@@ -31,9 +31,9 @@ const routes: Routes = [
   { path: 'users/:username/lock/:id/passageMode', component: PassageModeComponent },
   { path: 'users/:username/lock/:id/transferLock', component: TransferLockComponent },
   { path: 'testing/camera', component: CameraStreamComponent},
-  { path: 'loginv2', component: Loginv2Component },
-  { path: 'comunidadesv2', component: Comunidadesv2Component },
-  { path: 'lockv2', component: Lockv2Component },
+  { path: 'login', component: Loginv2Component },
+  { path: '', component: Comunidadesv2Component },
+  { path: 'users/:username/lock/:id', component: Lockv2Component },
 ];
 
 @NgModule({

@@ -11,6 +11,7 @@ import { PopUpService } from 'src/app/services/pop-up.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { faHome, faLock, faPerson } from '@fortawesome/free-solid-svg-icons'
 import { LockData } from '../../Interfaces/Lock';
+import { DarkModeService } from '../../services/dark-mode.service';
 
 
 @Component({
@@ -46,7 +47,8 @@ export class EkeyComponent implements OnInit {
     private lockService: LockServiceService,
     public ekeyService: EkeyServiceService,
     public popupService: PopUpService,
-    private sanitizer: DomSanitizer) {
+    private sanitizer: DomSanitizer,
+    public DarkModeService: DarkModeService) {
     if (!this.ekeyService.username || !this.ekeyService.userID || !this.ekeyService.lockID || !this.ekeyService.endDateUser) {
       this.router.navigate(['users', sessionStorage.getItem('user'), 'lock', sessionStorage.getItem('lockID')])
     }
@@ -75,6 +77,7 @@ export class EkeyComponent implements OnInit {
     }
   }
   toMultipleEkeys() {//Navega al componente multiple-ekey
+    this.popupService.createEkey = false;
     this.router.navigate(['users', this.ekeyService.username, 'lock', this.ekeyService.lockID, 'ekey', 'multiple'])
   }
   onSelected(value: string): void {//Guarda el tipo de eKey seleccionado
@@ -224,6 +227,8 @@ export class EkeyComponent implements OnInit {
         console.error("Error while creating Ekey:", error);
       } finally {
         this.isLoading = false;
+        this.popupService.createEkey;
+        window.location.reload();
       }
     })
   }

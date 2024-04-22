@@ -112,15 +112,16 @@
                                         <ng-container matColumnDef="Botones">
                                             <th mat-header-cell *matHeaderCellDef class="table-cell">Operacion</th>
                                             <td mat-cell *matCellDef="let ekey" class="table-cell">
-                                                <!--BOTON ELIMINAR-->
-                                                <button *ngIf=" (userType==='110301') || (userType==='110302' && keyRight==='1') || ekey.username===username" mat-button class="mat-warn" (click)="borrarEkey(ekey.keyId,ekey.username)">Eliminar</button>
                                                 <!--BOTONES EDITAR-->
                                                 <button [matMenuTriggerFor]="editarMenu" aria-label="Settings" mat-button class="mat-primary">Editar</button>
                                                 <mat-menu #editarMenu="matMenu">
+
                                                     <button mat-menu-item *ngIf="(userType==='110301') || (userType==='110302' && keyRight==='1') || ekey.username===username" (click)="cambiarNombreEkey(ekey.keyId)"><span>Editar
                                                             Nombre</span></button>
                                                     <button mat-menu-item *ngIf="(userType==='110301') || (userType==='110302' && keyRight==='1') || ekey.username===username" (click)="cambiarPeriodoEkey(ekey.keyId)"><span>Editar
                                                             Periodo</span></button>
+                                                    <button mat-menu-item *ngIf="(userType==='110301') || (userType==='110302' && keyRight==='1') || ekey.username===username"><span>Cambiar nombre</span></button>
+                                                    <button mat-menu-item *ngIf="(userType==='110301') || (userType==='110302' && keyRight==='1') || ekey.username===username"><span>Datos esenciales</span></button>
                                                 </mat-menu>
                                                 <!--BOTON ADMIN-->
                                                 <button [matMenuTriggerFor]="adminMenu" aria-label="Settings" mat-button class="mat-primary">Admin</button>
@@ -132,6 +133,8 @@
                                                     <button mat-menu-item *ngIf="(userType==='110301' || userType==='110302' && keyRight==='1') && gateway==='1'" (click)="aperturaRemota(ekey.keyId, ekey.remoteEnable)"><span>Habilitar
                                                             apertura remota</span></button>
                                                 </mat-menu>
+                                                <!--BOTON ELIMINAR-->
+                                                <button *ngIf=" (userType==='110301') || (userType==='110302' && keyRight==='1') || ekey.username===username" mat-button class="mat-warn" (click)="borrarEkey(ekey.keyId,ekey.username)">Eliminar</button>
                                             </td>
                                         </ng-container>
                                         <!---->
@@ -198,8 +201,6 @@
                                         <ng-container matColumnDef="Botones">
                                             <th mat-header-cell *matHeaderCellDef class="table-cell">Operacion</th>
                                             <td mat-cell *matCellDef="let passcode" class="table-cell">
-                                                <!--BOTON ELIMINAR-->
-                                                <button mat-button class="mat-warn" (click)="borrarPasscode(passcode.keyboardPwdId)">Eliminar</button>
                                                 <!--BOTONES EDITAR-->
                                                 <button [matMenuTriggerFor]="editarMenu" aria-label="Settings" mat-button class="mat-primary">Editar</button>
                                                 <mat-menu #editarMenu="matMenu">
@@ -210,7 +211,8 @@
                                                     <button mat-menu-item (click)="cambiarPasscode(passcode)">Editar
                                                         Secuencia</button>
                                                 </mat-menu>
-                                                <button mat-button class="mat-primary" (click)="compartirPasscode(passcode)">Compartir</button>
+                                                <!--BOTON ELIMINAR-->
+                                                <button mat-button class="mat-warn" (click)="borrarPasscode(passcode.keyboardPwdId)">Eliminar</button>
                                             </td>
                                         </ng-container>
                                         <!---->
@@ -278,10 +280,16 @@
                                         <ng-container matColumnDef="Botones">
                                             <th mat-header-cell *matHeaderCellDef class="table-cell">Operacion</th>
                                             <td mat-cell *matCellDef="let card" class="table-cell">
+                                                <!--BOTONES EDITAR-->
+                                                <button [matMenuTriggerFor]="editarMenu" aria-label="Settings" mat-button class="mat-primary">Editar</button>
+                                                <mat-menu #editarMenu="matMenu">
+                                                    <button mat-menu-item (click)="cambiarNombreCard(card.cardId)"><span>Editar
+                                                        Nombre</span></button>
+                                                    <button mat-menu-item (click)="cambiarPeriodoCard(card.cardId)"><span>Editar
+                                                        Periodo</span></button>
+                                                </mat-menu>
+                                                <!--BOTON ELIMINAR-->
                                                 <button mat-button class="mat-warn" (click)="borrarCard(card.cardId)">Eliminar</button>
-                                                <button mat-button class="mat-primary" (click)="cambiarNombreCard(card.cardId)">Editar Nombre</button>
-                                                <button mat-button class="mat-primary" (click)="cambiarPeriodoCard(card.cardId)">Editar
-                                                    Periodo</button>
                                             </td>
                                         </ng-container>
                                         <!---->
@@ -436,7 +444,11 @@
 <app-pop-up *ngIf="this.popupService.delete || this.popupService.cambiarNombre || this.popupService.cambiarPeriodo || this.popupService.editarPasscode || 
                   this.popupService.autorizar || this.popupService.desautorizar || this.popupService.changeRemoteEnable || this.popupService.congelar || 
                   this.popupService.descongelar || this.popupService.esencial || this.popupService.gateway || 
-                  this.popupService.cerradoAutomatico || this.popupService.mostrarHora || this.popupService.needGateway || this.popupService.sharePasscode ||
-                  this.popupService.excelNameWindow || this.popupService.temporalPasscode || this.popupService.selectLocksForDelete || this.popupService.selectLocksForAutorizar ||
-                  this.popupService.selectLocksForDesautorizar || this.popupService.selectLocksForCongelar || this.popupService.selectLocksForDescongelar || 
-                  this.popupService.selectLocksForCambiarNombre || this.popupService.createEkey" style="z-index: 10;"></app-pop-up>
+                  this.popupService.cerradoAutomatico || this.popupService.mostrarHora || this.popupService.needGateway ||
+                  this.popupService.excelNameWindow || this.popupService.temporalPasscode" style="z-index: 10;"></app-pop-up>
+
+<app-ekey *ngIf="this.popupService.createEkey" style="z-index: 10;"></app-ekey>
+<app-passcode *ngIf="this.popupService.createPasscode" style="z-index: 10;"></app-passcode>
+<app-card *ngIf="this.popupService.createCard" style="z-index: 10;"></app-card>
+<app-passage-mode *ngIf="this.popupService.passageMode" style="z-index: 10;"></app-passage-mode>
+<app-transfer-lock *ngIf="this.popupService.transferLock" style="z-index: 10;"></app-transfer-lock>

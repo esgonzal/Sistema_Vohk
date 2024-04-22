@@ -9,6 +9,7 @@ import { CardResponse, operationResponse } from '../Interfaces/API_responses';
 export class CardServiceService {
 
   URL = 'https://api.vohkapp.com';
+  //URL = 'http://localhost:8080';
   userID: string;
   lockAlias: string;
   lockID: number;

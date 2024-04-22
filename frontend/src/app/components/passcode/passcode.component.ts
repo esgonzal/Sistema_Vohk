@@ -8,6 +8,7 @@ import { PopUpService } from '../../services/pop-up.service';
 import { createPasscodeResponse } from '../../Interfaces/API_responses';
 import { lastValueFrom } from 'rxjs';
 import { faHome, faLock, faHashtag } from '@fortawesome/free-solid-svg-icons'
+import { DarkModeService } from 'src/app/services/dark-mode.service';
 
 @Component({
   selector: 'app-passcode',
@@ -16,7 +17,8 @@ import { faHome, faLock, faHashtag } from '@fortawesome/free-solid-svg-icons'
 })
 export class PasscodeComponent{
 
-  constructor(public passcodeService: PasscodeServiceService, public lockService: LockServiceService, private router: Router, public popupService: PopUpService) {
+  constructor(public passcodeService: PasscodeServiceService, public lockService: LockServiceService, 
+              private router: Router, public popupService: PopUpService, public DarkModeService: DarkModeService) {
     if(!this.passcodeService.userID || !this.passcodeService.username || !this.passcodeService.lockID || !this.passcodeService.endDateUser || !this.passcodeService.featureValue) {
       this.router.navigate(['users', sessionStorage.getItem('user'), 'lock', sessionStorage.getItem('lockID')])
     }
@@ -132,7 +134,9 @@ export class PasscodeComponent{
         }
       }
       if (response?.keyboardPwdId) {
-        this.router.navigate(["users", this.passcodeService.username, "lock", this.passcodeService.lockID]);
+        this.popupService.createPasscode = false;
+        window.location.reload();
+        //this.router.navigate(["users", this.passcodeService.username, "lock", this.passcodeService.lockID]);
         console.log("Se creó la passcode con exito")
       } else if (response?.errcode === 10003) {
         sessionStorage.clear();

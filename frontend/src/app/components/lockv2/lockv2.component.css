@@ -8,7 +8,7 @@ app-pop-up {
     position: relative;
     display: flex;
     min-height: calc(100vh - 60px);
-    background-color: white;
+    background-color: #F7FAFA;
 }
 
 .resto {
@@ -20,7 +20,7 @@ app-pop-up {
     flex-direction: row;
     justify-content: space-between;
     align-items: baseline;
-    background-color: white;
+    background-color: #F7FAFA;
     padding-top: 5px;
     padding-bottom: 5px;
     margin-left: 20px;
@@ -56,13 +56,13 @@ app-pop-up {
     height: 40px;
     margin-left: 10px;
     width: 40px;
-    background-color: #f9c114;
+    background-color: #E3E8F2;
     border-radius: 20px;
     border: solid 1px black;
 }
 
 .funciones_cerradura {
-    background-color: white;
+    background-color: #F7FAFA;
     margin: 20px;
 }
 
@@ -75,28 +75,28 @@ app-pop-up {
 .mat-mdc-tab-group.mat-warn,
 .mat-mdc-tab-nav-bar.mat-warn {
     /*Underline del tab seleccionado SOLO AL INICIO*/
-    --mdc-tab-indicator-active-indicator-color: rgb(0, 0, 0);
+    --mdc-tab-indicator-active-indicator-color: #F5C754;
     /*Color letra de tab seleccionado SOLO AL INICIO*/
     --mat-tab-header-active-label-text-color: rgb(0, 0, 0);
     /*Color letra de tab seleccionado*/
     --mat-tab-header-active-focus-label-text-color: rgb(0, 0, 0);
     /*Underline del tab seleccionado*/
-    --mat-tab-header-active-focus-indicator-color: rgb(0, 0, 0);
+    --mat-tab-header-active-focus-indicator-color: #F5C754;
 }
 
 .mdc-tab.mdc-tab--active {
     /*Color de tab seleccionada*/
-    background-color: rgb(255, 255, 255);
-    border: 1px solid rgb(255, 255, 255);
+    background-color: #F7FAFA;
+    border: 1px solid #F7FAFA;
 }
 
 .mdc-tab:not(.mdc-tab--active) {
     /*Color de tabs no seleccionadas*/
-    background-color: #ffffff;
+    background-color: #F7FAFA;
 }
 
 .mat-mdc-tab-body-content {
-    background-color: rgb(255, 255, 255);
+    background-color: #F7FAFA;
 }
 
 .contenido {
@@ -123,7 +123,7 @@ app-pop-up {
 }
 
 .button-container div button {
-    background-color: #f9c114;
+    background-color: #F5C754;
     border-radius: 20px;
     border: solid 1px black;
 }
@@ -140,45 +140,45 @@ app-pop-up {
 }
 
 .table-cell {
-    text-align: left;
+    text-align: center;
     padding: 8px;
+}
+
+.table td {
+    background-color: #F7FAFA;
 }
 
 .table th {
     font-weight: bolder;
-    background-color: #f0f0f0 !important;
+    background-color: #E3E8F2 !important;
     text-align: center;
 }
 
-.dark-mode {
-    background-color: #101010;
-}
-
-.dark-mode .cerradura {
-    background-color: #101010;
-    color: #fff;
+.dark-mode,
+.dark-mode .pagina_completa {
+    background-color: #121C24;
 }
 
 .dark-mode .nombre_cerradura,
-.dark-mode .rol_usuario {
+.dark-mode .rol_usuario,
+.dark-mode .derecho div button {
     color: #fff;
 }
 
 .dark-mode .derecho div button {
-    background-color: #333;
-    color: #fff;
+    background-color: #29384D;
 }
 
+.dark-mode .cerradura,
 .dark-mode .contenido,
-.dark-mode .button-container div button,
 .dark-mode .table-cell,
 .dark-mode .mat-mdc-tab-body-content {
     color: #fff;
-    background-color: #101010;
+    background-color: #121C24;
 }
 
 .dark-mode .button-container div button {
-    background-color: #333;
+    background-color: #F5C754;
 }
 
 .dark-mode .table th {
@@ -186,20 +186,20 @@ app-pop-up {
 }
 
 .dark-mode .mdc-tab.mdc-tab--active {
-    background-color: #101010;
-    border: 1px solid #101010;
+    background-color: #121C24;
+    border: 1px solid #121C24;
 }
 
 .dark-mode .mdc-tab:not(.mdc-tab--active) {
-    background-color: #101010;
+    background-color: #121C24;
 }
 
 .dark-mode .mat-mdc-tab-group.mat-warn,
 .dark-mode .mat-mdc-tab-nav-bar.mat-warn {
-    --mdc-tab-indicator-active-indicator-color: #fff;
+    --mdc-tab-indicator-active-indicator-color: #F5C754;
     --mat-tab-header-active-label-text-color: #fff;
     --mat-tab-header-active-focus-label-text-color: #fff;
-    --mat-tab-header-active-focus-indicator-color: #fff;
+    --mat-tab-header-active-focus-indicator-color: #F5C754;
 }
 
 @media only screen and (max-width: 600px) {

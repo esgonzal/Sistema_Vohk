@@ -1,65 +1,47 @@
-.pagina_completa {
-    position: relative;
+:host {
     display: flex;
-}
-
-.sidebar {
-    display: flex;
-    flex-direction: column;
-    flex-wrap: wrap;
-    align-items: center;
-    width: 50px;
-    background-color: white;
-    gap: 10px;
-}
-
-.not-current {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 30px;
-    font-size: 25px;
-    color: #f9c114;
-}
-
-.current {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 30px;
-    font-size: 25px;
-    color: black;
-    background-color: #f9c114;
-}
-
-.resto {
+    position: fixed;
+    top: 0px;
+    right: 0px;
     width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.pagina_completa {
+    background-color: #F7FAFA;
+    padding-left: 5%;
+    padding-right: 5%;
+    border-radius: 20px;
+    min-height: initial;
 }
 
 .form-area {
     text-align: center;
-    background-color: white;
     padding-top: 15px;
     padding-bottom: 15px;
-}
-
-.common-form {
-    display: flex;
-    flex-direction: column;
-    width: 500px;
-    margin: auto;
-    gap: 10px;
 }
 
 .multipleButton {
     display: flex;
     justify-content: flex-end;
-    margin-right: 30px;
-    margin-bottom: 40px;
+    margin-bottom: 20px;
 }
 
 .multipleButton button {
-    background-color: #f9c114;
+    background-color: #F5C754;
+    border-radius: 20px;
+    border: 1px solid black;
+}
+
+.common-form {
+    display: flex;
+    flex-direction: column;
+    margin: auto;
+    gap: 5px;
 }
 
 .linea {
@@ -70,7 +52,6 @@
 
 .linea label {
     padding: 8px;
-    background-color: #f0f0f0;
     border: 1px solid #ccc;
     border-radius: 4px;
     cursor: pointer;
@@ -85,25 +66,30 @@
 }
 
 .form-input {
-    height: 35px;
+    height: 30px;
     margin-bottom: 20px;
     border: 1px, solid black;
     padding-left: 15px;
 }
 
 .form-button {
-    height: 35px;
+    height: 30px;
     width: 25%;
     align-self: center;
     border: 1px, solid black;
-    background-color: #f9c114;
+    background-color: #F5C754;
     cursor: pointer;
+    border-radius: 20px;
+    border: 1px solid black;
 }
 
 .error {
     color: red;
+    font-size: 12px;
 }
 
-.red-asterisk {
-    color: red;
+.dark-mode,
+.dark-mode .pagina_completa {
+    color: #fff;
+    background-color: #121C24;
 }

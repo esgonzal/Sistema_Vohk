@@ -1,9 +1,10 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 import { logoutResponse } from 'src/app/Interfaces/API_responses';
 import { UserServiceService } from 'src/app/services/user-service.service';
 import { DarkModeService } from '../../services/dark-mode.service';
+import { faHome } from '@fortawesome/free-solid-svg-icons'
 
 @Component({
   selector: 'app-navbar',
@@ -15,6 +16,7 @@ export class NavbarComponent implements OnInit {
   nickname= '';
   dataLoaded = false;
   darkMode: boolean;
+  faHome = faHome;
 
   constructor(
     private router: Router,

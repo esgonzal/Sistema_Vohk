@@ -7,6 +7,7 @@ import { LockServiceService } from 'src/app/services/lock-service.service';
 import { PopUpService } from 'src/app/services/pop-up.service';
 import { UserServiceService } from 'src/app/services/user-service.service';
 import { faHome, faLock, faRightLeft } from '@fortawesome/free-solid-svg-icons'
+import { DarkModeService } from '../../services/dark-mode.service';
 
 @Component({
   selector: 'app-transfer-lock',
@@ -20,6 +21,7 @@ export class TransferLockComponent {
     public popupService: PopUpService,
     private lockService: LockServiceService,
     private ekeyService: EkeyServiceService,
+    public DarkModeService: DarkModeService,
     private router: Router) { }
 
   faHome = faHome;
@@ -49,6 +51,8 @@ export class TransferLockComponent {
       console.error("Error while transfering a lock:", error);
     } finally {
       this.isLoading = false;
+      this.popupService.transferLock = false;
+      window.location.reload();
     }
   }
 }

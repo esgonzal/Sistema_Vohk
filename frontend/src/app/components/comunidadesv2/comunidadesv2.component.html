@@ -15,7 +15,7 @@
                 <span>Sin Asociar</span>
             </div>
         </div>
-        <div class="groupList" *ngFor="let group of groupsFiltrados" (click)="chooseGroup(group)">
+        <div class="groupList" *ngFor="let group of groupsFiltrados" (click)="chooseGroup(group)" [class.selected]="group === chosenGroup">
             <div class="icono">
                 <fa-icon [icon]="faHome"></fa-icon>
             </div>
@@ -50,7 +50,7 @@
                             <mat-card class="valid_lock" (click)="onLockButtonClick(lock)">
                                 <img class="custom-image" src="../../../assets/images/door.jpg" alt="Image Description">
                                 <mat-card-header>
-                                    <div mat-card-title>{{lock.lockAlias}}</div>
+                                    <div mat-card-title style="white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">{{lock.lockAlias}}</div>
                                     <div mat-card-subtitle>{{ lock.hasGateway === 1 ? 'Online' : 'Offline' }}</div>
                                 </mat-card-header>
                             </mat-card>

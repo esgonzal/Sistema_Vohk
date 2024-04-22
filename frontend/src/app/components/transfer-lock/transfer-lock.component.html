@@ -1,33 +1,23 @@
-<div class="pagina_completa">
-    <div class="sidebar">
-        <a [routerLink]="['']" class="not-current" [title]="'Mis Comunidades'">
-            <fa-icon [icon]="faHome"></fa-icon>
-        </a>
-        <a [routerLink]="['/users', username, 'lock', lockId]" class="not-current" [title]="'Informacion sobre la Cerradura'">
-            <fa-icon [icon]="faLock"></fa-icon>
-        </a>
-        <a class="current" [title]="'Transferir Dispositivo'">
-            <fa-icon [icon]="faRightLeft"></fa-icon>
-        </a>
-    </div>
-    <div class="resto">
-        <div class="form-area">
-            <h2>Transferencia de Dispositivo</h2>
-            <p style="font-size: 14px; margin-bottom: 50px;">Transferir una cerradura implica que usted perderá acceso a esta y que el receptor será el administrador.</p>
-            <form #formInput="ngForm" class="common-form">
-                <div class="linea_alternative">
-                    Cuenta de Destinatario
-                    <span class="input-container">
+<div class="pagina_completa" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="form-area">
+        <h2>Transferencia de Dispositivo</h2>
+        <p style="font-size: 14px; margin-bottom: 50px;">Transferir una cerradura implica que usted perderá acceso a esta y que el receptor será el administrador.</p>
+        <form #formInput="ngForm" class="common-form">
+            <div class="linea_alternative">
+                Cuenta de Destinatario
+                <span class="input-container">
                         <input type="text" class="form-input" name="recieverUsername" [(ngModel)]="recieverUsername"
                             required="" />
                     </span>
-                </div>
-                <p class="error">{{error}}</p>
-                <div class="form-button">
-                    <button type="submit" (click)="transferir()">Transferir</button>
-                </div>
-            </form>
-        </div>
+            </div>
+            <p class="error">{{error}}</p>
+            <div class="linea">
+                <span style="display: flex;justify-content:space-around;">
+                            <button class="form-button" (click)="popupService.transferLock=false">Volver</button>
+                            <button class="form-button" name="button" type="submit" (click)="transferir()">Transferir</button>
+                        </span>
+            </div>
+        </form>
     </div>
 </div>
 <app-pop-up *ngIf="popupService.transferLockWarning" style="z-index: 10;"></app-pop-up>

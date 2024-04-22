@@ -1,44 +1,11 @@
 .pagina_completa {
-    position: relative;
-    display: flex;
-}
-
-.sidebar {
-    display: flex;
-    flex-direction: column;
-    flex-wrap: wrap;
-    align-items: center;
-    width: 50px;
-    background-color: white;
-    gap: 10px;
-}
-
-.not-current {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 30px;
-    font-size: 25px;
-    color: #f9c114;
-}
-
-.current {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 30px;
-    font-size: 25px;
-    color: black;
-    background-color: #f9c114;
-}
-
-.resto {
-    width: 100%;
+    padding-left: 0;
+    padding-right: 0;
+    background-color: #F7FAFA;
 }
 
 .form-area {
     text-align: center;
-    background-color: white;
     padding-top: 15px;
     padding-bottom: 15px;
 }
@@ -61,27 +28,11 @@
     /* Change the border to red for invalid inputs */
 }
 
-.common-form {
-    display: flex;
-    flex-direction: column;
-    width: 500px;
-    margin: auto;
-    gap: 10px;
-}
-
 .linea {
     display: flex;
     flex-direction: column;
     justify-content: center;
     margin-bottom: 20px;
-}
-
-.linea label {
-    padding: 8px;
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    cursor: pointer;
 }
 
 .input-container {
@@ -92,26 +43,24 @@
     width: 600px;
 }
 
-.form-input {
-    height: 35px;
-    margin-bottom: 20px;
-    border: 1px, solid black;
-    padding-left: 15px;
-}
-
 .form-button {
-    height: 35px;
+    height: 30px;
     width: 25%;
     align-self: center;
     border: 1px, solid black;
-    background-color: #f9c114;
+    background-color: #F5C754;
     cursor: pointer;
+    border-radius: 20px;
+    border: 1px solid black;
 }
 
 .error {
     color: red;
+    font-size: 12px;
 }
 
-.red-asterisk {
-    color: red;
+.dark-mode,
+.dark-mode .pagina_completa {
+    color: #fff;
+    background-color: #121C24;
 }

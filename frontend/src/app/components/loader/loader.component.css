@@ -16,7 +16,7 @@
 .jelly {
     --uib-size: 200px;
     --uib-speed: .7s;
-    --uib-color: rgb(127, 127, 127);
+    --uib-color: #F5C754;
     position: relative;
     height: calc(var(--uib-size) / 2);
     width: var(--uib-size);

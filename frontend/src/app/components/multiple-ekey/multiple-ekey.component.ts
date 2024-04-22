@@ -11,6 +11,7 @@ import { UserServiceService } from '../../services/user-service.service';
 import { checkUserInDBResponse, sendEkeyResponse, UserRegisterResponse } from '../../Interfaces/API_responses';
 import { DomSanitizer } from '@angular/platform-browser';
 import { faHome, faLock, faKey, faPerson, faPeopleGroup  } from '@fortawesome/free-solid-svg-icons'
+import { DarkModeService } from 'src/app/services/dark-mode.service';
 
 @Component({
   selector: 'app-multiple-ekey',
@@ -34,7 +35,8 @@ export class MultipleEkeyComponent implements OnInit {
     public popupService: PopUpService,
     private lockService: LockServiceService,
     private userService: UserServiceService,
-    private sanitizer: DomSanitizer) {
+    private sanitizer: DomSanitizer,
+    public DarkModeService: DarkModeService) {
     if (!this.ekeyService.username || !this.ekeyService.userID || !this.ekeyService.lockID || !this.ekeyService.endDateUser) {
       this.router.navigate(['users', sessionStorage.getItem('user'), 'lock', sessionStorage.getItem('lockID')])
     }

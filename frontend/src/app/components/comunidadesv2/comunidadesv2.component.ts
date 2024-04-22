@@ -170,7 +170,7 @@ export class Comunidadesv2Component implements OnInit {
     sessionStorage.setItem('lockFeature', lock.featureValue.toString())
     sessionStorage.setItem('lockGroup', lock.groupName);
     sessionStorage.setItem('lockGroupID', lock.groupId?.toString());
-    this.router.navigate(['lockv2'])
+    this.router.navigate(['users', this.userID, 'lock', lock.lockId])
   }
   onInvalidButtonClick() {
     this.popupService.invalidLock = true;

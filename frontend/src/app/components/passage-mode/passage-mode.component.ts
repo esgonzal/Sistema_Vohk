@@ -4,6 +4,8 @@ import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 import { operationResponse } from 'src/app/Interfaces/API_responses';
 import { faHome, faLock, faWalking } from '@fortawesome/free-solid-svg-icons'
+import { DarkModeService } from '../../services/dark-mode.service';
+import { PopUpService } from 'src/app/services/pop-up.service';
 
 @Component({
   selector: 'app-passage-mode',
@@ -11,7 +13,7 @@ import { faHome, faLock, faWalking } from '@fortawesome/free-solid-svg-icons'
   styleUrls: ['./passage-mode.component.css']
 })
 export class PassageModeComponent implements OnInit {
-  constructor(private passageModeService: PassageModeService, private router: Router) {
+  constructor(private passageModeService: PassageModeService, private router: Router, public DarkModeService: DarkModeService, public popupService: PopUpService) {
     if (!this.passageModeService.passageModeConfig) {
       this.router.navigate(['users', this.username, 'lock', this.lockId])
     }
@@ -112,6 +114,8 @@ export class PassageModeComponent implements OnInit {
         console.error("Error while setting passage mode:", error);
       } finally {
         this.isLoading = false;
+        this.popupService.passageMode = false;
+        window.location.reload();
       }
     }
   }

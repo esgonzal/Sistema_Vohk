@@ -5,6 +5,7 @@
     padding-left: 5%;
     padding-right: 5%;
     min-height: calc(100vh - 60.69px);
+    background-color: #F7FAFA;
 }
 
 .sidebar-grupos {
@@ -37,7 +38,7 @@
     flex-direction: row;
     gap: 10px;
     cursor: pointer;
-    background-color: rgb(217, 217, 217);
+    background-color: #F7FAFA;
     border-radius: 20px;
 }
 
@@ -66,7 +67,7 @@
 }
 
 .menuButton {
-    background-color: #f9c114;
+    background-color: #F5C754;
     border-radius: 20px;
     border: 1px solid black;
 }
@@ -75,14 +76,15 @@
     display: flex;
     flex-direction: column;
     height: 300px;
-    width: 100%;
+    width: 200px;
     margin: 10px;
     border-radius: 20px;
+    background-color: #F7FAFA;
 }
 
 .custom-image {
-    width: 100%;
-    height: calc(100% - 80px);
+    width: 200px;
+    height: 200px;
     border-radius: 20px;
 }
 
@@ -113,14 +115,14 @@
 }
 
 .dark-mode {
-    background-color: #333;
+    background-color: #121C24;
     /* Dark background color */
     color: #fff;
     /* Light text color */
 }
 
 .dark-mode .sidebar-grupos {
-    background-color: #222;
+    background-color: #121C24;
     /* Dark sidebar background color */
 }
 
@@ -130,11 +132,11 @@
 }
 
 .dark-mode .groupList {
-    background-color: #444;
+    background-color: #121C24;
 }
 
 .dark-mode .valid_lock {
-    background-color: #444;
+    background-color: #121C24;
     /* Dark card background color */
     color: #fff;
     /* Light text color */
@@ -166,4 +168,21 @@
         height: auto;
         /* Let the image height adjust */
     }
+}
+
+.groupList.selected {
+    /* Define your highlighting styles here */
+    background-color: #E3E8F2;
+    /* Example highlight color */
+    color: black;
+    /* Example text color for highlighted item */
+}
+
+.dark-mode .groupList.selected {
+    /* Dark mode specific highlighting styles */
+    background-color: #29384D;
+    ;
+    /* Example dark mode highlight color */
+    color: #fff;
+    /* Example text color for highlighted item in dark mode */
 }

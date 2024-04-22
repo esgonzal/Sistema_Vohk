@@ -18,10 +18,11 @@
 }
 
 #dropdownMenuButton {
-    background-color: #f9c114;
+    background-color: #F5C754;
     border-radius: 20px;
     cursor: pointer;
     border: 1px solid black;
+    padding-left: 5px;
 }
 
 .dark-mode-toggle {

@@ -23,6 +23,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import * as XLSX from 'xlsx';
 import { LockData } from 'src/app/Interfaces/Lock';
 import { Ekey } from 'src/app/Interfaces/Elements';
+import { DarkModeService } from 'src/app/services/dark-mode.service';
 
 
 @Component({
@@ -75,6 +76,7 @@ export class PopUpComponent implements OnInit {
     public popupService: PopUpService,
     private clipboard: Clipboard,
     private sanitizer: DomSanitizer,
+    public DarkModeService: DarkModeService
   ) { }
 
   async ngOnInit() {
@@ -593,54 +595,6 @@ export class PopUpComponent implements OnInit {
       return true;
     }
   }
-  async compartirCodigo(datos: Formulario) {
-    this.error = '';
-    this.isLoading = true;
-    try {
-      if (this.userService.isValidEmail(datos.name)) {
-        if (this.popupService.passcode.keyboardPwdType === 1) {//De un uso
-          await lastValueFrom(this.passcodeService.sendEmail_passcodeOneTime(datos.name, this.popupService.userID, this.popupService.lock_alias, this.popupService.passcode.keyboardPwd));
-        }
-        else if (this.popupService.passcode.keyboardPwdType === 2) {//Permanente
-          await lastValueFrom(this.passcodeService.sendEmail_passcodePermanent(datos.name, this.popupService.userID, this.popupService.lock_alias, this.popupService.passcode.keyboardPwd));
-        }
-        else if (this.popupService.passcode.keyboardPwdType === 3) {//Periodica
-          await lastValueFrom(this.passcodeService.sendEmail_passcodePeriodic(datos.name, this.popupService.userID, this.popupService.lock_alias, this.popupService.passcode.keyboardPwd, moment(this.popupService.passcode.startDate).format("DD/MM/YYYY HH:mm"), moment(this.popupService.passcode.endDate).format("DD/MM/YYYY HH:mm")));
-        }
-        else if (this.popupService.passcode.keyboardPwdType === 4) {//Borrar
-          await lastValueFrom(this.passcodeService.sendEmail_passcodeDelete(datos.name, this.popupService.userID, this.popupService.lock_alias, this.popupService.passcode.keyboardPwd));
-        }
-        else {//Recurrente
-          await lastValueFrom(this.passcodeService.sendEmail_passcodeDays(datos.name, this.popupService.userID, this.popupService.lock_alias, this.popupService.passcode.keyboardPwd, moment(this.popupService.passcode.startDate).format("HH:mm"), moment(this.popupService.passcode.endDate).format("HH:mm"), this.popupService.passcode.keyboardPwdType));
-        }
-        this.popupService.sharePasscode = false;
-      } else {
-        this.error = "Ingrese un correo electrónico válido."
-      }
-    } catch (error) {
-      console.error("Error while sending email to share a passcode:", error);
-    } finally {
-      this.isLoading = false;
-    }
-  }
-  async ajustarHora() {
-    this.isLoading = true;
-    try {
-      let response = await lastValueFrom(this.gatewayService.adjustLockTime(this.gatewayService.userID, this.gatewayService.lockID)) as GetLockTimeResponse
-      if (response.date) {
-        console.log("Hora ajustada")
-      } else if (response?.errcode === 10003) {
-        sessionStorage.clear();
-        this.popupService.congelar = false;
-      } else {
-        console.log(response)
-      }
-    } catch (error) {
-      console.error("Error while adjusting the time of a lock:", error);
-    } finally {
-      this.isLoading = false;
-    }
-  }
   getCardNumber(datos: Formulario) {
     console.log(datos.name)
   }
@@ -718,27 +672,6 @@ export class PopUpComponent implements OnInit {
   }
   confirmLockSelection() {
     this.ekeyService.selectedLocks = this.selectedLockIds;
-  }
-  openLockSelector(tipo?: string) {
-    if (tipo === 'delete') {
-      this.popupService.selectLocksForDelete = true;
-      this.popupService.delete = false;
-    } else if (tipo === 'autorizar') {
-      this.popupService.selectLocksForAutorizar = true;
-      this.popupService.autorizar = false;
-    } else if (tipo === 'desautorizar') {
-      this.popupService.selectLocksForDesautorizar = true;
-      this.popupService.desautorizar = false;
-    } else if (tipo === 'congelar') {
-      this.popupService.selectLocksForCongelar = true;
-      this.popupService.congelar = false;
-    } else if (tipo === 'descongelar') {
-      this.popupService.selectLocksForDescongelar = true;
-      this.popupService.descongelar = false;
-    } else if ( tipo == 'cambiarNombre') {
-      this.popupService.selectLocksForCambiarNombre = true;
-      this.popupService.cambiarNombre = false;
-    }
   }
   botonGenerarEkey(){}
   isEmailNotificationRequired(){}

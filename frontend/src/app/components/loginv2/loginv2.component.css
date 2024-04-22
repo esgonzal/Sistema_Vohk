@@ -5,7 +5,7 @@
     padding-left: 35%;
     padding-right: 35%;
     padding-top: 40px;
-    height: calc(100vh - 60.69px);
+    height: 100vh;
 }
 
 .cuadro {
@@ -62,7 +62,7 @@
     font-size: 14px;
     font-weight: bold;
     border-radius: 20px;
-    background-color: #f9c114;
+    background-color: #F5C754;
 }
 
 .login_error {
@@ -74,11 +74,11 @@
 /* Dark mode styles */
 
 .dark-mode {
-    background-color: #222;
+    background-color: #121C24;
 }
 
 .dark-mode .pagina_completa {
-    background-color: #222;
+    background-color: #121C24;
     /* Dark background color */
     color: #fff;
     /* Light text color */
@@ -91,7 +91,7 @@
 }
 
 .dark-mode .login_boton {
-    background-color: #f9c114;
+    background-color: #F5C754;
     /* Adjust button color for dark mode */
 }
 
