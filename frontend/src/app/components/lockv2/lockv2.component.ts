@@ -546,6 +546,29 @@ export class Lockv2Component implements OnInit {
     return Number(palabra)
   }
   //SETTINGS
+  async editName(){
+    /*
+    this.isLoading = true;
+    try {
+      let response = await lastValueFrom(this.fetchLockDetails());
+      if (response.passageMode) {
+        this.passageModeService.passageModeConfig = response;
+        this.popupService.passageMode = true;
+      } else if (response.errcode === 10003) {
+        sessionStorage.clear();
+      } else {
+        console.log(response)
+      }
+    } catch (error) {
+      console.error("Error while fetching passage mode configurations:", error)
+    } finally {
+      this.isLoading = false; // Set isLoading to false when data fetching is complete
+    }
+    this.popupService.userID = this.userID;
+    this.popupService.lockID = this.lockId;
+    this.popupService.cambiarNombre = true;
+    */
+  }
   TransferirLock() {
     this.lockService.userID = this.userID;
     this.lockService.lockID = this.lockId;
@@ -640,6 +663,9 @@ export class Lockv2Component implements OnInit {
     this.popupService.lockID = this.lockId;
     this.popupService.endDateUser = this.endDateDeUser;
     this.popupService.temporalPasscode = true;
+  }
+  esencial() {
+    this.popupService.esencial = true;
   }
   //FUNCIONES EKEY
   crearEkey() {

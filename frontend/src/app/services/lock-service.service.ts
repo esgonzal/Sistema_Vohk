@@ -484,5 +484,10 @@ export class LockServiceService {
     let url = this.URL.concat('/v0/lock/transfer');
     return this.http.post<operationResponse>(url, body);
   }
+  changeName(userID: string, lockID: number, newName: string): Observable<operationResponse> {
+    let body = {userID, lockID, newName}
+    let url = this.URL.concat('/v0/lock/editName');
+    return this.http.post<operationResponse>(url, body);
+  }
   
 }

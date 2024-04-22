@@ -27,19 +27,21 @@
                 </div>
                 <div>
                     <div *ngIf="gateway==='1'" matTooltip="La cerradura está conectada a un dispositivo hub">
-                        <button><fa-icon [icon]="faWifi"></fa-icon></button>
+                        <button style="color: green;"><fa-icon [icon]="faWifi"></fa-icon></button>
                     </div>
                     <div *ngIf="gateway==='0'" matTooltip="La cerradura no está conectada a un dispositivo hub">
-                        <button><fa-icon [icon]="faWifi"></fa-icon></button>
+                        <button style="color: red;"><fa-icon [icon]="faWifi"></fa-icon></button>
                     </div>
                 </div>
                 <div *ngIf="(userType==='110301') || (userType==='110302' && keyRight==='1')">
                     <button [matMenuTriggerFor]="menu" aria-label="Settings"><fa-icon
                             [icon]="faGear"></fa-icon></button>
                     <mat-menu #menu="matMenu">
+                        <button mat-menu-item (click)="editName()">Editar Nombre</button>
                         <button mat-menu-item *ngIf="userType==='110301'" (click)="TransferirLock()"><span>Transferir
                                 Dispositivo</span></button>
                         <button mat-menu-item *ngIf="(userType==='110301' || (userType==='110302' && keyRight==='1'))  && lockService.checkFeature(featureValue, 22)" (click)="PassageMode()"><span>Modo de Paso</span></button>
+                        <button mat-menu-item (click)="esencial()">Datos esenciales</button>
                     </mat-menu>
                 </div>
                 <div *ngIf="lockService.checkFeature(featureValue, 0)">
@@ -444,7 +446,7 @@
 <app-pop-up *ngIf="this.popupService.delete || this.popupService.cambiarNombre || this.popupService.cambiarPeriodo || this.popupService.editarPasscode || 
                   this.popupService.autorizar || this.popupService.desautorizar || this.popupService.changeRemoteEnable || this.popupService.congelar || 
                   this.popupService.descongelar || this.popupService.esencial || this.popupService.gateway || 
-                  this.popupService.cerradoAutomatico || this.popupService.mostrarHora || this.popupService.needGateway ||
+                  this.popupService.cerradoAutomatico || this.popupService.needGateway ||
                   this.popupService.excelNameWindow || this.popupService.temporalPasscode" style="z-index: 10;"></app-pop-up>
 
 <app-ekey *ngIf="this.popupService.createEkey" style="z-index: 10;"></app-ekey>

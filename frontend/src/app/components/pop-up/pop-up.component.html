@@ -472,6 +472,41 @@
         <button (click)="this.popupService.selectLocksForEkey = false; confirmLockSelection()">Confirmar</button>
     </div>
 </div>
+<div id="container" *ngIf="popupService.esencial" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div id="header">
+        Datos esenciales de la cerraduras
+    </div>
+    <div id="content">
+        <div class="linea_alternative">
+            Número de la cerradura
+            <span class="input-container">
+                {{popupService.detalles.lockName}}
+            </span>
+        </div>
+        <div class="linea_alternative">
+            MAC
+            <span class="input-container">
+                {{popupService.detalles.lockMac}}
+            </span>
+        </div>
+        <div class="linea_alternative">
+            LockID
+            <span class="input-container">
+                {{popupService.detalles.lockId}}
+            </span>
+        </div>
+        <div class="linea_alternative">
+            Firmware
+            <span class="input-container">
+                {{popupService.detalles.firmwareRevision}}
+            </span>
+        </div>
+    </div>
+    <div id="actions">
+        <button (click)="popupService.esencial= false">Ok</button>
+    </div>
+</div>
+
 
 
 <!--

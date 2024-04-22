@@ -16,7 +16,7 @@ import { GatewayAccount } from '../../Interfaces/Gateway';
 import { Formulario } from '../../Interfaces/Formulario';
 import { operationResponse, addGroupResponse, GetLockTimeResponse, createPasscodeResponse, LockListResponse } from '../../Interfaces/API_responses';
 
-import { lastValueFrom } from 'rxjs';
+import { last, lastValueFrom } from 'rxjs';
 import moment from 'moment';
 import { Clipboard } from '@angular/cdk/clipboard';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -254,6 +254,9 @@ export class PopUpComponent implements OnInit {
               break;
             case 'grupo':
               response = await lastValueFrom(this.groupService.renameGroup(this.popupService.userID, this.popupService.elementID.toString(), this.name)) as operationResponse;
+              break;
+            case 'lock':
+              response = await lastValueFrom(this.lockService.changeName(this.popupService.userID, this.popupService.lockID, this.name)) as operationResponse;
               break;
             default:
               console.error('Invalid element type for deletion:', this.popupService.elementID);
