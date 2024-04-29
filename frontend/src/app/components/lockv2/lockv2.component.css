@@ -154,6 +154,31 @@ app-pop-up {
     text-align: center;
 }
 
+.custom-button {
+    background-color: transparent;
+    color: inherit;
+    padding: 0px 5px 0px 5px;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    /* Adjust alignment as needed */
+}
+
+.custom-button-eliminar {
+    background-color: transparent;
+    color: red;
+    padding: 0px 5px 0px 5px;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    /* Adjust alignment as needed */
+}
+
+.custom-button:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+    /* Optional: Add hover background color */
+}
+
 .dark-mode,
 .dark-mode .pagina_completa {
     background-color: #121C24;

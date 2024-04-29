@@ -1,9 +1,6 @@
 <div class="pagina_completa" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
     <app-loader [loader]="isLoading"></app-loader>
     <div class="sidebar-grupos">
-        <div class="userName">
-            {{userID}}
-        </div>
         <div class="searchBar">
             <input type="text" placeholder="Busqueda" [(ngModel)]="searchText" (input)="searchGroups()" />
         </div>

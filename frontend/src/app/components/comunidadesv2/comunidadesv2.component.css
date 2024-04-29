@@ -70,6 +70,8 @@
     background-color: #F5C754;
     border-radius: 20px;
     border: 1px solid black;
+    padding-left: 10px;
+    padding-right: 10px;
 }
 
 .valid_lock {
@@ -86,6 +88,10 @@
     width: 200px;
     height: 200px;
     border-radius: 20px;
+}
+
+.mat-mdc-card {
+    box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 0.2), 0px 0px 0px 0px rgba(0, 0, 0, 0.14), 0px 0px 0px 0px rgba(0, 0, 0, 0.12);
 }
 
 .mat-mdc-card-header {
@@ -111,6 +117,7 @@
 }
 
 .mat-mdc-card-subtitle {
+    color: black;
     font-size: 12px;
 }
 
@@ -140,6 +147,10 @@
     /* Dark card background color */
     color: #fff;
     /* Light text color */
+}
+
+.dark-mode .mat-mdc-card-subtitle {
+    color: white;
 }
 
 @media only screen and (max-width: 600px) {

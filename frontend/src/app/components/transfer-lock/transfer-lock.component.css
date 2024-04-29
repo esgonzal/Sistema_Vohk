@@ -45,6 +45,11 @@
     margin-bottom: 10px;
 }
 
+.form-input {
+    border-radius: 20px;
+    border: 1px solid black;
+}
+
 .form-button {
     height: 30px;
     width: 25%;

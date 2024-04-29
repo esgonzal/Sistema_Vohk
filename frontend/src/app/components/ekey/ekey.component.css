@@ -68,7 +68,8 @@
 .form-input {
     height: 30px;
     margin-bottom: 20px;
-    border: 1px, solid black;
+    border-radius: 20px;
+    border: 1px solid black;
     padding-left: 15px;
 }
 
