@@ -65,7 +65,7 @@ export class PopUpService {
   locksWithoutGroup: LockData[];
   locksOfGroup: LockData[];
   ekeysOFGroup: LockData[];
-  selectedLockIds_forMultipleEkeys: number[] = [];
+  selectedLockIds_forMultipleEkeys: { id: number, alias: string }[] = [];
   recipients: RecipientList[] = [];
   transferLockReciever: string;
   newIsUser: boolean;
@@ -75,15 +75,15 @@ export class PopUpService {
   records: Record[] = [];
   endDateUser: string;
 
-  toggleLockSelection(lockId: number) {
-    const index = this.selectedLockIds_forMultipleEkeys.indexOf(lockId);
+  toggleLockSelection(lockId: number, lockAlias: string) {
+    const index = this.selectedLockIds_forMultipleEkeys.findIndex(lock => lock.id === lockId);
     if (index !== -1) {
       // If lock ID is already in the array, remove it
       this.selectedLockIds_forMultipleEkeys.splice(index, 1);
     } else {
-      // If lock ID is not in the array, add it
-      this.selectedLockIds_forMultipleEkeys.push(lockId);
+      // If lock ID is not in the array, add it with the alias
+      this.selectedLockIds_forMultipleEkeys.push({ id: lockId, alias: lockAlias });
     }
-    //console.log("selectedLockIds: ", this.selectedLockIds_forMultipleEkeys)
-  }
+    console.log("selectedLocks: ", this.selectedLockIds_forMultipleEkeys);
+}
 }

@@ -46,7 +46,7 @@ export class PopUpComponent implements OnInit {
   customAutoLockTime: number = 0;
   selectedType = '';
   error = '';
-  selectedLockIds: number[] = [];
+  selectedLocks: { id: number, alias: string }[] = [];
   currentPassword: string = '';
   newPassword: string = '';
   confirmPassword: string = '';
@@ -123,7 +123,7 @@ export class PopUpComponent implements OnInit {
     if (this.popupService.remoteEnable !== null) {
       this.remoteEnableToggle = this.popupService.remoteEnable === 1; // Adjust as needed
     }
-    this.selectedLockIds = this.ekeyService.selectedLocks;
+    this.selectedLocks = this.ekeyService.selectedLocks;
   }
   navigateToLogin() {
     this.popupService.registro = false;
@@ -257,6 +257,7 @@ export class PopUpComponent implements OnInit {
               break;
             case 'lock':
               response = await lastValueFrom(this.lockService.changeName(this.popupService.userID, this.popupService.lockID, this.name)) as operationResponse;
+              sessionStorage.setItem('lockAlias', this.name);
               break;
             default:
               console.error('Invalid element type for deletion:', this.popupService.elementID);
@@ -504,26 +505,26 @@ export class PopUpComponent implements OnInit {
     }
     //console.log("selectedKeyIds: ", this.ekeyService.selectedEkeys)
   }
-  toggleLockSelection(keyId: number) {
-    const index = this.selectedLockIds.indexOf(keyId);
+  toggleLockSelection(lockId: number, lockAlias: string) {
+    const index = this.selectedLocks.findIndex(lock => lock.id === lockId);
     if (index !== -1) {
       // If lock ID is already in the array, remove it
-      this.selectedLockIds.splice(index, 1);
+      this.selectedLocks.splice(index, 1);
     } else {
-      // If lock ID is not in the array, add it
-      this.selectedLockIds.push(keyId);
+      // If lock ID is not in the array, add it with the alias
+      this.selectedLocks.push({ id: lockId, alias: lockAlias });
     }
-    console.log("selectedLockIds: ", this.selectedLockIds)
-  }
+    console.log("selectedLocks: ", this.selectedLocks);
+}
   
   async removeSelectedLocksFromGroup() {
     this.isLoading = true;
     try {
-      if (this.selectedLockIds.length === 0) {
+      if (this.selectedLocks.length === 0) {
         this.error = "No seleccionó ninguna cerradura para remover"
       } else {
-        for (const lockId of this.selectedLockIds) {
-          let response = await lastValueFrom(this.groupService.setGroupofLock(this.popupService.userID, lockId.toString(), "0")) as operationResponse;
+        for (const lock of this.selectedLocks) {
+          let response = await lastValueFrom(this.groupService.setGroupofLock(this.popupService.userID, lock.id.toString(), "0")) as operationResponse;
           if (response.errcode === 0) {
           } else if (response?.errcode === 10003) {
             sessionStorage.clear();
@@ -544,11 +545,11 @@ export class PopUpComponent implements OnInit {
   async addSelectedLocksToGroup() {
     this.isLoading = true;
     try {
-      if (this.selectedLockIds.length === 0) {
+      if (this.selectedLocks.length === 0) {
         this.error = "No seleccionó ninguna cerradura para agregar"
       } else {
-        for (const lockId of this.selectedLockIds) {
-          let response = await lastValueFrom(this.groupService.setGroupofLock(this.popupService.userID, lockId.toString(), this.popupService.group.groupId.toString())) as operationResponse;
+        for (const lock of this.selectedLocks) {
+          let response = await lastValueFrom(this.groupService.setGroupofLock(this.popupService.userID, lock.id.toString(), this.popupService.group.groupId.toString())) as operationResponse;
           if (response.errcode === 0) {
           } else if (response.errcode === 10003) {
             sessionStorage.clear();
@@ -567,8 +568,8 @@ export class PopUpComponent implements OnInit {
     }
   }
   isLockSelected(lockId: number): boolean {
-    return this.ekeyService.selectedLocks.includes(lockId);
-  }
+    return this.ekeyService.selectedLocks.some(lock => lock.id === lockId);
+}
   isEkeySelected(keyId: number): boolean {
     return this.ekeyService.selectedEkeys.includes(keyId);
   }
@@ -674,7 +675,7 @@ export class PopUpComponent implements OnInit {
     }
   }
   confirmLockSelection() {
-    this.ekeyService.selectedLocks = this.selectedLockIds;
+    this.ekeyService.selectedLocks = this.selectedLocks;
   }
   botonGenerarEkey(){}
   isEmailNotificationRequired(){}

@@ -18,7 +18,7 @@ export class EkeyServiceService {
   lockAlias: string;
   endDateUser: string;
   currentLocks: LockData[] = []
-  selectedLocks: number[] = [];
+  selectedLocks: { id: number, alias: string }[] = [];
   selectedEkeys: number[] = [];
   recipients: RecipientList[] = [];
 
@@ -76,5 +76,11 @@ export class EkeyServiceService {
     let body = { userID, lockID, keyID };
     let url = this.URL.concat('/v0/ekey/unauthorize');
     return this.http.post<operationResponse>(url, body);
+  }
+  sendEmail(userID: string, lockAlias: string, recieverName: string, startDate: string, endDate: string, email?: string): Observable<sendEkeyResponse> {
+    let body = {userID, lockAlias, recieverName, startDate, endDate, email}
+    let url = this.URL.concat('/v0/ekey/sendEmail');
+    console.log("el servicio buscar ir a ",url)
+    return this.http.post<sendEkeyResponse>(url, body);
   }
 }

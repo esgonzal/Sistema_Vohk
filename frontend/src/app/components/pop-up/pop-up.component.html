@@ -83,7 +83,7 @@
         <div class="form-area">
             <form class="common-form">
                 Nombre
-                <input  type="text" class="form-input" name="name" [(ngModel)]="name" />
+                <input type="text" class="form-input" name="name" [(ngModel)]="name" />
                 <p class="error">{{error}}</p>
             </form>
         </div>
@@ -259,7 +259,7 @@
                     <tr *ngFor="let lock of popupService.locksWithoutGroup">
                         <td>{{ lock.lockAlias }}</td>
                         <td style="text-align: center">
-                            <input type="checkbox" (change)="toggleLockSelection(lock.lockId)">
+                            <input type="checkbox" (change)="toggleLockSelection(lock.lockId, lock.lockAlias)">
                         </td>
                     </tr>
                 </ng-container>
@@ -295,7 +295,7 @@
                     <tr *ngFor="let lock of popupService.group.locks">
                         <td>{{ lock.lockAlias }}</td>
                         <td style="text-align: center">
-                            <input type="checkbox" (change)="toggleLockSelection(lock.lockId)">
+                            <input type="checkbox" (change)="toggleLockSelection(lock.lockId, lock.lockAlias)">
                         </td>
                     </tr>
                 </ng-container>
@@ -322,7 +322,7 @@
             <div *ngFor="let lock of ekeyService.currentLocks">
                 <label>
                     <input type="checkbox" [value]="lock.lockId"
-                        (change)="popupService.toggleLockSelection(lock.lockId)"
+                        (change)="popupService.toggleLockSelection(lock.lockId, lock.lockAlias)"
                         [checked]="isLockSelected(lock.lockId)">
                     {{ lock.lockAlias }}
                 </label>
@@ -454,7 +454,7 @@
                     <tr *ngFor="let lock of popupService.locksOfGroup">
                         <td>{{ lock.lockAlias }}</td>
                         <td style="text-align: center">
-                            <input type="checkbox" [checked]="isLockSelected(lock.lockId)" (change)="toggleLockSelection(lock.lockId)">
+                            <input type="checkbox" [checked]="isLockSelected(lock.lockId)" (change)="toggleLockSelection(lock.lockId, lock.lockAlias)">
                         </td>
                     </tr>
                 </ng-container>
@@ -472,32 +472,32 @@
         <button (click)="this.popupService.selectLocksForEkey = false; confirmLockSelection()">Confirmar</button>
     </div>
 </div>
-<div id="container" *ngIf="popupService.esencial" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
-    <div id="header">
+<div class="container" *ngIf="popupService.esencial" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
         Datos esenciales de la cerraduras
     </div>
     <div id="content">
         <div class="linea_alternative">
-            Número de la cerradura
             <span class="input-container">
+                Número de la cerradura
                 {{popupService.detalles.lockName}}
             </span>
         </div>
         <div class="linea_alternative">
-            MAC
             <span class="input-container">
+                MAC
                 {{popupService.detalles.lockMac}}
             </span>
         </div>
         <div class="linea_alternative">
-            LockID
             <span class="input-container">
+                LockID
                 {{popupService.detalles.lockId}}
             </span>
         </div>
         <div class="linea_alternative">
-            Firmware
             <span class="input-container">
+                Firmware
                 {{popupService.detalles.firmwareRevision}}
             </span>
         </div>

@@ -549,6 +549,7 @@ export class Lockv2Component implements OnInit {
   async editName(){
     this.popupService.userID = this.userID;
     this.popupService.lockID = this.lockId;
+    this.popupService.elementType = 'lock';
     this.popupService.cambiarNombre = true;
   }
   TransferirLock() {
