@@ -17,7 +17,7 @@
             <form #formInput="ngForm" (ngSubmit)="validarNuevaPass(formInput.value)" class="common-form">
                 <div class="linea">
                     <span class="input-container">
-                        Nombre del Destinatario
+                        Nombre del Codigo
                         <input type="text" class="form-input" name="name" placeholder="..." ngModel/>
                     </span>
                 </div>
@@ -25,6 +25,18 @@
                     <span class="input-container" [title]="'Rellena este campo si quieres que el destinatario reciba una notificación por correo'">
                         Correo de notificación
                         <input type="text" class="form-input" name="email" placeholder="..." ngModel />
+                    </span>
+                </div>
+                <div class="linea">
+                    <span class="input-container" [title]="">
+                        Duracion
+                        <select #times name="temporalPasscodeDuration" (change)="onSelected(times.value)" ngModel style="width: 202px; height: 35px; border-radius:20px;border:1px solid black">
+                        <option default value="">No seleccionado</option>
+                        <option value="1">1 Hora</option>
+                        <option value="2">2 Horas</option>
+                        <option value="3">3 Horas</option>
+                        <option value="4">12 Horas</option>
+                    </select>
                     </span>
                 </div>
                 <p class="error">{{error}}</p>

@@ -46,6 +46,13 @@ export class PasscodeServiceService {
     let url = this.URL.concat('/v0/passcode/change');
     return this.http.post<operationResponse>(url, body);
   }
+  sendEmail(name: string, email: string, code: string, lock_alias: string, start: string, end: string): Observable<any> {
+    const body = { name: name, email: email, code: code, lock_alias: lock_alias, start: start, end: end };
+    let url = this.URL.concat('/v0/passcode/sendEmail');
+    console.log("Enviando el body: ", body, " al url: ", url)
+    return this.http.post<any>(url, body);
+  }
+
   sendEmail_passcodePermanent(to: string, from: string, lock_alias: string, code: string) {//Template para passcode permanente
     let body = { to, from, lock_alias, code };
     let url = this.URL.concat('/mail/passcodePermanent');

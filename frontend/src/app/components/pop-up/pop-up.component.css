@@ -242,6 +242,43 @@ button {
     line-height: 1;
 }
 
+.person-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.person-inputs {
+    flex-grow: 1;
+}
+
+.remove-button {
+    background: transparent;
+    border: none;
+    color: red;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 10px;
+    /* Adjust spacing as needed */
+}
+
+.person-container input {
+    width: calc(100% - 30px);
+    /* Adjust width to accommodate the "X" button */
+}
+
+.person-container input,
+.person-container button {
+    margin-bottom: 5px;
+}
+
+.person-container:nth-child(1) input {
+    margin-top: 5px;
+    /* Add margin to the first input to prevent overlap with header */
+}
+
 .dark-mode,
 .dark-mode .container,
 .dark-mode .header {

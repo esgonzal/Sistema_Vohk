@@ -33,6 +33,7 @@ export class TemporalPasscodeComponent {
   faHashtag = faHashtag;
   isLoading: boolean = false;
   error = '';
+  passcodeDuration = '';
 
   validaFechaUsuario(): boolean {
     if (this.passcodeService.endDateUser !== '0') {
@@ -81,5 +82,8 @@ export class TemporalPasscodeComponent {
     if (this.validaFechaUsuario()) {
       this.crearpasscode(datos);
     }
+  }
+  onSelected(value: string): void {//Guarda el tipo de eKey seleccionado
+    this.passcodeDuration = value
   }
 }

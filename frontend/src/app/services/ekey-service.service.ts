@@ -80,7 +80,6 @@ export class EkeyServiceService {
   sendEmail(userID: string, lockAlias: string, recieverName: string, startDate: string, endDate: string, email?: string): Observable<sendEkeyResponse> {
     let body = {userID, lockAlias, recieverName, startDate, endDate, email}
     let url = this.URL.concat('/v0/ekey/sendEmail');
-    console.log("el servicio buscar ir a ",url)
     return this.http.post<sendEkeyResponse>(url, body);
   }
 }

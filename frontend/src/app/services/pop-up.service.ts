@@ -42,6 +42,7 @@ export class PopUpService {
   emailSuccess = false;
   excelNameWindow = false;
   temporalPasscode = false;
+  temporalPasscode2 = false;
   selectLocksForEkey = false;
   createPasscode = false;
   createEkey = false;

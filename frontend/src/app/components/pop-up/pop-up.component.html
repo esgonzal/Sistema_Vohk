@@ -421,12 +421,18 @@
         <div class="form-area">
             <form class="common-form">
                 <p>
-                    Nombre de Destinatario
+                    Nombre del Código
                     <input style="border-radius:20px;border:1px solid black" type="text" class="form-input" name="name" [(ngModel)]="name" />
                 </p>
                 <p>
-                    Correo de notificación
-                    <input style="border-radius:20px;border:1px solid black" type="text" class="form-input" name="name" [(ngModel)]="email" />
+                    Duracion
+                    <select #times name="temporalPasscodeDuration" [(ngModel)]="passcodeDuration" style="width: 238px; height: 35px; border-radius:20px;border:1px solid black;align-self:center;text-indent:10px;">
+                        <option default value="">No seleccionado</option>
+                        <option value="1">1 Hora</option>
+                        <option value="2">2 Horas</option>
+                        <option value="3">3 Horas</option>
+                        <option value="12">12 Horas</option>
+                    </select>
                 </p>
                 <p class="error">{{error}}</p>
             </form>
@@ -434,6 +440,35 @@
     </div>
     <div id="actions">
         <button (click)="popupService.temporalPasscode = false">Volver</button>
+        <button (click)="sharePasscode()">Continuar</button>
+    </div>
+</div>
+<div class="container" *ngIf="popupService.temporalPasscode2" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        Agregar Detalles de Personas
+    </div>
+    <div id="content">
+        <div class="form-area">
+            <form class="common-form">
+                <div class="person-container" *ngFor="let person of people; let i = index">
+                    <div class="person-inputs">
+                        <p>
+                            Nombre de la Persona {{ i + 1 }}
+                            <input style="border-radius:20px;border:1px solid black" type="text" class="form-input" [(ngModel)]="person.personName" (ngModelChange)="person.personName = $event" name="personName{{i}}" />
+                        </p>
+                        <p>
+                            Correo de la Persona {{ i + 1 }}
+                            <input style="border-radius:20px;border:1px solid black" type="text" class="form-input" [(ngModel)]="person.personEmail" (ngModelChange)="person.personEmail = $event" name="personEmail{{i}}" />
+                        </p>
+                    </div>
+                    <button type="button" class="remove-button" (click)="removePerson(i)">X</button>
+                    <!-- Small "X" button -->
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="actions">
+        <button type="button" (click)="addPerson()">Agregar Persona</button>
         <button (click)="createTemporalPasscode()">Guardar</button>
     </div>
 </div>
@@ -570,4 +605,4 @@
         <button (click)="popupService.mostrarHora = false">Ok</button>
     </div>
 </div>
--->
+-->iv> -->

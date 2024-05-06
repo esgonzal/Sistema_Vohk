@@ -196,6 +196,8 @@ export class EkeyComponent implements OnInit {
           // Permanent eKey creation
           const sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, lock.id, lock.alias, datos.recieverName, datos.name, "0", "0", this.mapKeyRight(datos.keyRight), this.mapRemoteEnable(datos.remoteEnable), datos.email)) as sendEkeyResponse;
           if (sendEkeyResponse.keyId) {
+            //this.popupService.emailMessage = this.sanitizer.bypassSecurityTrustHtml(sendEkeyResponse.emailContent);
+            //this.popupService.emailSuccess = true;
             console.log(sendEkeyResponse);
           } else if (sendEkeyResponse.errcode === 10003) {
             sessionStorage.clear();

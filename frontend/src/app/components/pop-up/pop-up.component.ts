@@ -58,6 +58,9 @@ export class PopUpComponent implements OnInit {
   currentGroup = sessionStorage.getItem("lockGroupID") ?? '';
   locksOfGroup: LockData[] = []
   currentEkey: LockData | undefined
+  passcodeDuration = '';
+  people: { personName: string; personEmail: string; }[] = [];
+  person: { personName: string; personEmail: string; } = { personName: '', personEmail: '' };
 
   recieverName: string;
 
@@ -650,16 +653,27 @@ export class PopUpComponent implements OnInit {
   }
   async createTemporalPasscode() {
     let response;
+    let code:string;
+    let start:string;
+    let end:string;
     this.isLoading = true;
     if (!this.name) {
       this.error = "Por favor ingrese un nombre para el código"
+    } else if (!this.passcodeDuration) {
+      this.error = "Por favor seleccione una duración para el código";
     } else {
       try {
         //PERIODIC PASSCODE
         let ahora = moment().valueOf();
-        let final = moment(ahora).add(3, 'hours').valueOf();
+        let final = moment(ahora).add(parseInt(this.passcodeDuration), 'hours').valueOf();
         response = (await lastValueFrom(this.passcodeService.generatePasscode(this.popupService.userID, this.popupService.lockID, '3', ahora.toString(), this.name, final.toString()))) as createPasscodeResponse;
         if (response?.keyboardPwdId) {
+          code = response.keyboardPwd;
+          start = moment(ahora).format('DD/MM/YYYY HH:mm');
+          end = moment(final).format('DD/MM/YYYY HH:mm');
+          this.people.forEach(async person => {
+            let emailResponse = await lastValueFrom(this.passcodeService.sendEmail(person.personName, person.personEmail, code, this.popupService.lock_alias, start, end));
+          })
           this.popupService.temporalPasscode = false;
           window.location.reload();
         } else if (response?.errcode === 10003) {
@@ -670,6 +684,7 @@ export class PopUpComponent implements OnInit {
       } catch (error) {
         console.error('Error while creating Passcode:', error);
       } finally {
+        
         this.isLoading = false;
       }
     }
@@ -677,6 +692,15 @@ export class PopUpComponent implements OnInit {
   confirmLockSelection() {
     this.ekeyService.selectedLocks = this.selectedLocks;
   }
-  botonGenerarEkey(){}
-  isEmailNotificationRequired(){}
+  sharePasscode() {
+    this.popupService.temporalPasscode = false;
+    this.popupService.temporalPasscode2 = true;
+  }
+  addPerson() {
+    this.people.push({ personName: '', personEmail: '' });
+    this.person = { personName: '', personEmail: '' };
+  }
+  removePerson(index: number) {
+    this.people.splice(index, 1);
+  }
 }

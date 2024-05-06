@@ -645,6 +645,7 @@ export class Lockv2Component implements OnInit {
     this.popupService.userID = this.userID;
     this.popupService.lockID = this.lockId;
     this.popupService.endDateUser = this.endDateDeUser;
+    this.popupService.lock_alias = this.Alias;
     this.popupService.temporalPasscode = true;
   }
   async esencial() {
