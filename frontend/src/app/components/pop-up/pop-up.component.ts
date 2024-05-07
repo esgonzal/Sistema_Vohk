@@ -14,7 +14,7 @@ import { GatewayService } from 'src/app/services/gateway.service';
 
 import { GatewayAccount } from '../../Interfaces/Gateway';
 import { Formulario } from '../../Interfaces/Formulario';
-import { operationResponse, addGroupResponse, GetLockTimeResponse, createPasscodeResponse, LockListResponse } from '../../Interfaces/API_responses';
+import { operationResponse, addGroupResponse, GetLockTimeResponse, createPasscodeResponse, LockListResponse, sendEkeyResponse } from '../../Interfaces/API_responses';
 
 import { last, lastValueFrom } from 'rxjs';
 import moment from 'moment';
@@ -672,10 +672,13 @@ export class PopUpComponent implements OnInit {
           start = moment(ahora).format('DD/MM/YYYY HH:mm');
           end = moment(final).format('DD/MM/YYYY HH:mm');
           this.people.forEach(async person => {
-            let emailResponse = await lastValueFrom(this.passcodeService.sendEmail(person.personName, person.personEmail, code, this.popupService.lock_alias, start, end));
+            let emailResponse = await lastValueFrom(this.passcodeService.sendEmail(person.personName, person.personEmail, code, this.popupService.lock_alias, start, end)) as sendEkeyResponse;
+            if( emailResponse.emailContent) {
+              this.popupService.temporalPasscode = false;
+              window.location.reload();
+            }
           })
-          this.popupService.temporalPasscode = false;
-          window.location.reload();
+
         } else if (response?.errcode === 10003) {
           sessionStorage.clear();
         } else {
@@ -684,7 +687,8 @@ export class PopUpComponent implements OnInit {
       } catch (error) {
         console.error('Error while creating Passcode:', error);
       } finally {
-        
+        //this.popupService.temporalPasscode = false;
+        //window.location.reload();
         this.isLoading = false;
       }
     }

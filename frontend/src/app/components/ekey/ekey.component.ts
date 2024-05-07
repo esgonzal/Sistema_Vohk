@@ -189,7 +189,7 @@ export class EkeyComponent implements OnInit {
   }
   async crearEkey(datos: Formulario) {
     this.isLoading = true;
-    console.log(datos);
+    //console.log(datos);
     try {
       for (const lock of this.ekeyService.selectedLocks) {
         if (datos.ekeyType === '1') {
@@ -234,13 +234,16 @@ export class EkeyComponent implements OnInit {
   }
 
   async enviarEmail(datos: Formulario) {
-    console.log("entra a enviarEmail")
+    //console.log("entra a enviarEmail")
     if (this.ekeyService.selectedLocks.length === 1) {
       const Alias = this.ekeyService.selectedLocks[0].alias;
       if (datos.ekeyType === '1') {
         // Permanent eKey email
         const response = await lastValueFrom(this.ekeyService.sendEmail(this.ekeyService.userID, Alias, datos.recieverName, '0', '0', datos.email)) as sendEkeyResponse;
-        console.log(response)
+        if (response.emailContent) {
+          this.popupService.createEkey = false;
+          window.location.reload()
+        }
       } else if (datos.ekeyType === '2') {
         // Periodic eKey email
         const newStartDay = moment(datos.startDate).valueOf();
@@ -248,13 +251,20 @@ export class EkeyComponent implements OnInit {
         const newStartDate = moment(newStartDay).add(this.lockService.transformarHora(datos.startHour), "milliseconds").valueOf();
         const newEndDate = moment(newEndDay).add(this.lockService.transformarHora(datos.endHour), "milliseconds").valueOf();
         const response = await lastValueFrom(this.ekeyService.sendEmail(this.ekeyService.userID, Alias, datos.recieverName, newStartDate.toString(), newEndDate.toString(), datos.email)) as sendEkeyResponse;
-        console.log(response)
+        if (response.emailContent) {
+          this.popupService.createEkey = false;
+          window.location.reload()
+        }
       }
     } else {
       const Alias = this.ekeyService.selectedLocks.map(lock => `- ${lock.alias}`).join('<br>');
       if (datos.ekeyType === '1') {
         // Permanent eKey email for multiple locks
         const response = await lastValueFrom(this.ekeyService.sendEmail(this.ekeyService.userID, Alias, datos.recieverName, '0', '0', datos.email)) as sendEkeyResponse;
+        if (response.emailContent) {
+          this.popupService.createEkey = false;
+          window.location.reload()
+        }
       } else if (datos.ekeyType === '2') {
         // Periodic eKey email for multiple locks
         const newStartDay = moment(datos.startDate).valueOf();
@@ -262,6 +272,10 @@ export class EkeyComponent implements OnInit {
         const newStartDate = moment(newStartDay).add(this.lockService.transformarHora(datos.startHour), "milliseconds").valueOf();
         const newEndDate = moment(newEndDay).add(this.lockService.transformarHora(datos.endHour), "milliseconds").valueOf();
         const response = await lastValueFrom(this.ekeyService.sendEmail(this.ekeyService.userID, Alias, datos.recieverName, newStartDate.toString(), newEndDate.toString(), datos.email)) as sendEkeyResponse;
+        if (response.emailContent) {
+          this.popupService.createEkey = false;
+          window.location.reload()
+        }
       }
     }
   }

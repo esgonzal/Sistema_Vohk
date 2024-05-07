@@ -47,9 +47,10 @@ export class PasscodeServiceService {
     return this.http.post<operationResponse>(url, body);
   }
   sendEmail(name: string, email: string, code: string, lock_alias: string, start: string, end: string): Observable<any> {
-    const body = { name: name, email: email, code: code, lock_alias: lock_alias, start: start, end: end };
+    let body = { name: name, email: email, code: code, lock_alias: lock_alias, start: start, end: end };
     let url = this.URL.concat('/v0/passcode/sendEmail');
-    console.log("Enviando el body: ", body, " al url: ", url)
+    console.log("body: ", body)
+    console.log("url: ", url)
     return this.http.post<any>(url, body);
   }
 
