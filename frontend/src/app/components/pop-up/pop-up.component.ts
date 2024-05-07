@@ -59,7 +59,7 @@ export class PopUpComponent implements OnInit {
   locksOfGroup: LockData[] = []
   currentEkey: LockData | undefined
   passcodeDuration = '';
-  people: { personName: string; personEmail: string; }[] = [];
+  people: { personName: string; personEmail: string; }[] = [{ personName: '', personEmail: '' }];
   person: { personName: string; personEmail: string; } = { personName: '', personEmail: '' };
 
   recieverName: string;
@@ -695,6 +695,10 @@ export class PopUpComponent implements OnInit {
   sharePasscode() {
     this.popupService.temporalPasscode = false;
     this.popupService.temporalPasscode2 = true;
+  }
+  closeSharePasscode() {
+    this.popupService.temporalPasscode2 = false;
+    this.popupService.temporalPasscode = true;
   }
   addPerson() {
     this.people.push({ personName: '', personEmail: '' });

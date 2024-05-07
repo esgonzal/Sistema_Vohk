@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewEncapsulation } from '@angular/core';
 import { UserServiceService } from '../../services/user-service.service';
 import { Router } from '@angular/router';
 import { User } from '../../Interfaces/User';
@@ -10,7 +10,8 @@ import { DarkModeService } from '../../services/dark-mode.service';
 @Component({
   selector: 'app-loginv2',
   templateUrl: './loginv2.component.html',
-  styleUrls: ['./loginv2.component.css']
+  styleUrls: ['./loginv2.component.css'],
+  encapsulation: ViewEncapsulation.None 
 })
 export class Loginv2Component {
   
@@ -62,5 +63,8 @@ export class Loginv2Component {
   }
   maskPassword(password: string) {
     return '*'.repeat(password.length);
+  }
+  contacto(){
+    
   }
 }

@@ -1,25 +1,41 @@
-<!-- login.component.html -->
 <div class="pagina_completa" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
-    <form #userSignIn="ngForm" (ngSubmit)="login(userSignIn.value)" class="cuadro">
-        <div class="logo-container">
-            <img src="../../../assets/images/login.png" alt="Vöhk Logo" class="logo">
+    <div class="top-right-buttons">
+        <button class="letter-button" onclick="window.location.href='https://www.vohk.cl/'">Home</button>
+        <button class="letter-button" [matMenuTriggerFor]="contacto">Contacto</button>
+        <mat-menu #contacto="matMenu" [class]="'dropdown'">
+            <p>Telefono: +56 9 7408 1594</p>
+            <p>Email : contacto@vohk.cl</p>
+        </mat-menu>
+    </div>
+    <div class="background-image">
+        <div class="login-container">
+            <form #userSignIn="ngForm" (ngSubmit)="login(userSignIn.value)" class="cuadro">
+                <div class="logo-container">
+                    <div class="bienvenido">
+                        Bienvenido
+                    </div>
+                    <div class="subtitle">
+                        Administra los accesos de forma rápida y eficiente
+                    </div>
+                </div>
+                <div class="login_texto">
+                    Email / Celular
+                </div>
+                <div>
+                    <input type="text" class="login_input" name="username" required="required" placeholder="Introduce tu email o número de celular" ngModel/>
+                </div>
+                <div class="login_texto">
+                    Contraseña
+                </div>
+                <div class="password-input">
+                    <input type="{{ showPassword ? 'text' : 'password' }}" class="login_input" name="password" required="required" placeholder="Introduce tu contraseña" ngModel/>
+                    <button type="button" (click)="togglePasswordVisibility()">
+                        <fa-icon [icon]="showPassword ? faEye : faEyeSlash"></fa-icon>
+                    </button>
+                </div>
+                <p class="login_error">{{loginError}}</p>
+                <button class="login_boton" type="submit">Iniciar Sesión</button>
+            </form>
         </div>
-        <div class="login_texto">
-            Email / Celular
-        </div>
-        <div>
-            <input type="text" class="login_input" name="username" required="required" placeholder="Introduce tu email o número de celular" ngModel/>
-        </div>
-        <div class="login_texto">
-            Contraseña
-        </div>
-        <div class="password-input">
-            <input type="{{ showPassword ? 'text' : 'password' }}" class="login_input" name="password" required="required" placeholder="Introduce tu contraseña" ngModel/>
-            <button type="button" (click)="togglePasswordVisibility()">
-                <fa-icon [icon]="showPassword ? faEye : faEyeSlash"></fa-icon>
-            </button>
-        </div>
-        <p class="login_error">{{loginError}}</p>
-        <button class="login_boton" type="submit">Iniciar Sesión</button>
-    </form>
+    </div>
 </div>

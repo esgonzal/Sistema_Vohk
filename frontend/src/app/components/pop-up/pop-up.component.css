@@ -142,6 +142,12 @@ button {
     margin: auto;
 }
 
+.common-form2 {
+    display: flex;
+    flex-direction: column;
+    margin: auto;
+}
+
 .big-form {
     display: flex;
     flex-direction: column;
@@ -249,11 +255,28 @@ button {
     margin-bottom: 10px;
 }
 
+.person-number {
+    margin-right: 10px;
+    font-weight: bold;
+    /* Optionally make the number bold */
+}
+
 .person-inputs {
+    display: flex;
+    align-items: baseline;
+}
+
+.person-inputs input {
+    border-radius: 20px;
+    border: 1px solid black;
+    margin-right: 10px;
+    /* Adjust spacing between inputs */
     flex-grow: 1;
+    /* Take remaining space in the row */
 }
 
 .remove-button {
+    display: contents;
     background: transparent;
     border: none;
     color: red;
@@ -261,17 +284,8 @@ button {
     cursor: pointer;
     padding: 0;
     margin-left: 10px;
-    /* Adjust spacing as needed */
-}
-
-.person-container input {
-    width: calc(100% - 30px);
-    /* Adjust width to accommodate the "X" button */
-}
-
-.person-container input,
-.person-container button {
-    margin-bottom: 5px;
+    margin-top: auto;
+    margin-bottom: auto;
 }
 
 .person-container:nth-child(1) input {

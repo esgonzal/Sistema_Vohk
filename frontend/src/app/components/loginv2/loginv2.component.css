@@ -1,11 +1,57 @@
 .pagina_completa {
-    text-align: center;
-    background-size: cover;
-    position: relative;
-    padding-left: 35%;
-    padding-right: 35%;
-    padding-top: 40px;
+    display: flex;
     height: 100vh;
+}
+
+.top-right-buttons {
+    position: absolute;
+    top: 40px;
+    right: 100px;
+}
+
+.mat-menu-content {
+    border-radius: 20px;
+    padding: 10px;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.letter-button {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    /* Adjust text color */
+    font-size: 16px;
+    /* Adjust font size */
+    cursor: pointer;
+    padding: 5px 10px;
+    /* Adjust padding */
+    margin-left: 5px;
+    /* Adjust spacing between buttons */
+}
+
+.background-image {
+    background-image: url('../../../assets/images/background_login/fondo-login.jpeg');
+    background-size: cover;
+    background-position: center;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    /* Centra verticalmente el contenido */
+    justify-content: flex-start;
+    /* Centra horizontalmente el contenido a la derecha */
+    padding-left: 10%;
+    margin: 3px 0px 3px 2px
+}
+
+.login-container {
+    background-color: white;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    /* Agrega espacio interno al contenedor */
 }
 
 .cuadro {
@@ -16,8 +62,19 @@
 
 .logo-container {
     display: flex;
+    flex-direction: column;
     justify-content: center;
+    align-items: center;
     margin-bottom: 20px;
+}
+
+.bienvenido {
+    font-weight: bold;
+    font-size: xx-large;
+}
+
+.subtitle {
+    text-align: center;
 }
 
 .logo {
@@ -29,7 +86,8 @@
 .login_texto {
     display: flex;
     font-weight: bold;
-    padding-left: 5px;
+    padding-left: 14px;
+    padding-bottom: 10px;
     font-size: 14px;
     color: rgb(0, 0, 0);
 }
@@ -37,10 +95,11 @@
 .login_input {
     height: 35px;
     width: 100%;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
     font-size: 14px;
     border-radius: 20px;
-    border: 1px solid black
+    border: 1px solid black;
+    text-indent: 10px;
 }
 
 .password-input {
