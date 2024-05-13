@@ -675,7 +675,9 @@ export class PopUpComponent implements OnInit {
             let emailResponse = await lastValueFrom(this.passcodeService.sendEmail(person.personName, person.personEmail, this.name, code, this.popupService.lock_alias, start, end)) as sendEkeyResponse;
             if( emailResponse.emailContent) {
               this.popupService.temporalPasscode = false;
-              window.location.reload();
+              this.popupService.temporalPasscode2 = false;
+              this.popupService.passcodeSuccess = true;
+              //window.location.reload();
             }
           })
 
