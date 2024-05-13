@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { User } from '../../Interfaces/User';
 import { lastValueFrom } from 'rxjs';
 import { GetAccessTokenResponse } from '../../Interfaces/API_responses';
-import { faUser, faKey, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { faUser, faKey, faEye, faEyeSlash, faHand } from '@fortawesome/free-solid-svg-icons';
 import { DarkModeService } from '../../services/dark-mode.service';
 
 @Component({
@@ -19,6 +19,7 @@ export class Loginv2Component {
   faKey = faKey;
   faEye = faEye;
   faEyeSlash = faEyeSlash;
+  faHand = faHand;
   showPassword = false;
 
   constructor(private router: Router, public userService: UserServiceService, public DarkModeService: DarkModeService) { }

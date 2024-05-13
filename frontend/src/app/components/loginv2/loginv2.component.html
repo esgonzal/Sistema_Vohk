@@ -13,6 +13,7 @@
                 <div class="logo-container">
                     <div class="bienvenido">
                         Bienvenido
+                        <fa-icon [icon]="faHand" style="color:rgb(239, 230, 103)"></fa-icon>
                     </div>
                     <div class="subtitle">
                         Administra los accesos de forma rápida y eficiente
@@ -21,20 +22,25 @@
                 <div class="login_texto">
                     Email / Celular
                 </div>
-                <div>
-                    <input type="text" class="login_input" name="username" required="required" placeholder="Introduce tu email o número de celular" ngModel/>
+                <div style="display:flex;justify-content:center;">
+                    <input type="text" class="login_input" name="username" required="required" ngModel/>
                 </div>
                 <div class="login_texto">
                     Contraseña
                 </div>
                 <div class="password-input">
-                    <input type="{{ showPassword ? 'text' : 'password' }}" class="login_input" name="password" required="required" placeholder="Introduce tu contraseña" ngModel/>
+                    <input type="{{ showPassword ? 'text' : 'password' }}" class="login_input" name="password" required="required" ngModel/>
                     <button type="button" (click)="togglePasswordVisibility()">
                         <fa-icon [icon]="showPassword ? faEye : faEyeSlash"></fa-icon>
                     </button>
                 </div>
                 <p class="login_error">{{loginError}}</p>
-                <button class="login_boton" type="submit">Iniciar Sesión</button>
+                <div style="display:flex;justify-content:center;">
+                    <button class="login_boton" type="submit">Iniciar Sesión</button>
+                </div>
+                <div class="texto_vohk">
+                    VÖHK
+                </div>
             </form>
         </div>
     </div>

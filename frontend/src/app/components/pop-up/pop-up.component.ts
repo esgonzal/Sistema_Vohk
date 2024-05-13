@@ -672,7 +672,7 @@ export class PopUpComponent implements OnInit {
           start = moment(ahora).format('DD/MM/YYYY HH:mm');
           end = moment(final).format('DD/MM/YYYY HH:mm');
           this.people.forEach(async person => {
-            let emailResponse = await lastValueFrom(this.passcodeService.sendEmail(person.personName, person.personEmail, code, this.popupService.lock_alias, start, end)) as sendEkeyResponse;
+            let emailResponse = await lastValueFrom(this.passcodeService.sendEmail(person.personName, person.personEmail, this.name, code, this.popupService.lock_alias, start, end)) as sendEkeyResponse;
             if( emailResponse.emailContent) {
               this.popupService.temporalPasscode = false;
               window.location.reload();
@@ -697,8 +697,15 @@ export class PopUpComponent implements OnInit {
     this.ekeyService.selectedLocks = this.selectedLocks;
   }
   sharePasscode() {
-    this.popupService.temporalPasscode = false;
-    this.popupService.temporalPasscode2 = true;
+    if (!this.name) {
+      this.error = "Por favor introduzca el nombre o motivo de la invitación"
+    } else if (!this.passcodeDuration) {
+      this.error = "Por favor seleccione una duración de invitación"
+    } else {
+      this.popupService.temporalPasscode = false;
+      this.popupService.temporalPasscode2 = true;
+    }
+    
   }
   closeSharePasscode() {
     this.popupService.temporalPasscode2 = false;
@@ -710,5 +717,11 @@ export class PopUpComponent implements OnInit {
   }
   removePerson(index: number) {
     this.people.splice(index, 1);
+  }
+  closeWindow() {
+    this.popupService.ekeySuccess = false;
+    this.popupService.passcodeSuccess = false;
+    this.popupService.cardSuccess = false;
+    window.location.reload()
   }
 }

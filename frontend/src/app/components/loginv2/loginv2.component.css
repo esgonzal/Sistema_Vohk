@@ -1,4 +1,6 @@
 .pagina_completa {
+    padding-left: 0;
+    padding-right: 0;
     display: flex;
     height: 100vh;
 }
@@ -51,6 +53,7 @@
     flex-direction: column;
     align-items: center;
     padding: 20px;
+    width: 360px;
     /* Agrega espacio interno al contenedor */
 }
 
@@ -74,6 +77,8 @@
 }
 
 .subtitle {
+    margin-left: 30px;
+    margin-right: 30px;
     text-align: center;
 }
 
@@ -85,8 +90,9 @@
 
 .login_texto {
     display: flex;
+    justify-content: flex-start;
     font-weight: bold;
-    padding-left: 14px;
+    padding-left: 100px;
     padding-bottom: 10px;
     font-size: 14px;
     color: rgb(0, 0, 0);
@@ -94,7 +100,7 @@
 
 .login_input {
     height: 35px;
-    width: 100%;
+    width: 250px;
     margin-bottom: 20px;
     font-size: 14px;
     border-radius: 20px;
@@ -104,12 +110,14 @@
 
 .password-input {
     position: relative;
+    display: flex;
+    justify-content: center;
 }
 
 .password-input button {
     position: absolute;
     top: 37%;
-    right: 5px;
+    right: 90px;
     transform: translateY(-50%);
     background: none;
     border: none;
@@ -124,6 +132,7 @@
     font-weight: bold;
     border-radius: 20px;
     background-color: #F5C754;
+    width: 150px;
 }
 
 .login_error {
@@ -131,8 +140,14 @@
     font-size: 14px;
 }
 
-
-/* Dark mode styles */
+.texto_vohk {
+    color: black;
+    padding-top: 20px;
+    display: flex;
+    font-size: 40px;
+    font-weight: 900;
+    justify-content: center
+}
 
 .dark-mode {
     background-color: #121C24;

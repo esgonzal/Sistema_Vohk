@@ -49,6 +49,9 @@ export class PopUpService {
   createCard = false;
   passageMode = false;
   transferLock = false;
+  ekeySuccess = false;
+  passcodeSuccess = false;
+  cardSuccess = false;
   emailMessage: SafeHtml = '';
   lock_alias: string;
   gatewaysOfLock: GatewayLock[] = []

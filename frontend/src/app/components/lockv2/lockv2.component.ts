@@ -152,7 +152,7 @@ export class Lockv2Component implements OnInit {
   recordEndDate: Date;
   endDate: number;
   selectedType = '';
-  onSelected(value: string): void { this.selectedType = value }
+  
 
   constructor(
     private router: Router,
@@ -948,6 +948,10 @@ export class Lockv2Component implements OnInit {
         this.lockService.consultarMetodo(record.recordTypeFromLock, record.username).toLowerCase().includes(this.textoBusqueda.toLowerCase())
       );
     });
+  }
+  onSelected(value: string): void { 
+    this.selectedType = value; 
+    this.fetchRecords();
   }
   fetchNextPage() {
     const nextPage = this.recordCurrentPage + 1;

@@ -46,8 +46,8 @@ export class PasscodeServiceService {
     let url = this.URL.concat('/v0/passcode/change');
     return this.http.post<operationResponse>(url, body);
   }
-  sendEmail(name: string, email: string, code: string, lock_alias: string, start: string, end: string): Observable<any> {
-    let body = { name: name, email: email, code: code, lock_alias: lock_alias, start: start, end: end };
+  sendEmail(name: string, email: string, motivo: string, code: string, lock_alias: string, start: string, end: string): Observable<any> {
+    let body = { name: name, email: email, motivo: motivo, code: code, lock_alias: lock_alias, start: start, end: end };
     let url = this.URL.concat('/v0/passcode/sendEmail');
     console.log("body: ", body)
     console.log("url: ", url)

@@ -135,7 +135,7 @@ export class PasscodeComponent{
       }
       if (response?.keyboardPwdId) {
         this.popupService.createPasscode = false;
-        window.location.reload();
+        this.popupService.passcodeSuccess = true;
         //this.router.navigate(["users", this.passcodeService.username, "lock", this.passcodeService.lockID]);
         console.log("Se creó la passcode con exito")
       } else if (response?.errcode === 10003) {

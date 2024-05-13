@@ -242,7 +242,8 @@ export class EkeyComponent implements OnInit {
         const response = await lastValueFrom(this.ekeyService.sendEmail(this.ekeyService.userID, Alias, datos.recieverName, '0', '0', datos.email)) as sendEkeyResponse;
         if (response.emailContent) {
           this.popupService.createEkey = false;
-          window.location.reload()
+          this.popupService.ekeySuccess = true;
+          //window.location.reload()
         }
       } else if (datos.ekeyType === '2') {
         // Periodic eKey email
@@ -253,7 +254,8 @@ export class EkeyComponent implements OnInit {
         const response = await lastValueFrom(this.ekeyService.sendEmail(this.ekeyService.userID, Alias, datos.recieverName, newStartDate.toString(), newEndDate.toString(), datos.email)) as sendEkeyResponse;
         if (response.emailContent) {
           this.popupService.createEkey = false;
-          window.location.reload()
+          this.popupService.ekeySuccess = true;
+          //window.location.reload()
         }
       }
     } else {
@@ -263,7 +265,8 @@ export class EkeyComponent implements OnInit {
         const response = await lastValueFrom(this.ekeyService.sendEmail(this.ekeyService.userID, Alias, datos.recieverName, '0', '0', datos.email)) as sendEkeyResponse;
         if (response.emailContent) {
           this.popupService.createEkey = false;
-          window.location.reload()
+          this.popupService.ekeySuccess = true;
+          //window.location.reload()
         }
       } else if (datos.ekeyType === '2') {
         // Periodic eKey email for multiple locks
@@ -274,7 +277,8 @@ export class EkeyComponent implements OnInit {
         const response = await lastValueFrom(this.ekeyService.sendEmail(this.ekeyService.userID, Alias, datos.recieverName, newStartDate.toString(), newEndDate.toString(), datos.email)) as sendEkeyResponse;
         if (response.emailContent) {
           this.popupService.createEkey = false;
-          window.location.reload()
+          this.popupService.ekeySuccess = true;
+          //window.location.reload()
         }
       }
     }

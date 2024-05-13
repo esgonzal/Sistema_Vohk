@@ -395,6 +395,30 @@
         El mensaje fue copiado.
     </div>
 </div>
+<div class="container" *ngIf="popupService.ekeySuccess" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        La eKey ha sido creada correctamente
+    </div>
+    <div id="actions">
+        <button (click)="closeWindow()">Ok</button>
+    </div>
+</div>
+<div class="container" *ngIf="popupService.passcodeSuccess" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        El código ha sido creado correctamente
+    </div>
+    <div id="actions">
+        <button (click)="closeWindow()">Ok</button>
+    </div>
+</div>
+<div class="container" *ngIf="popupService.cardSuccess" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        La tarjeta ha sido creada correctamente
+    </div>
+    <div id="actions">
+        <button (click)="closeWindow()">Ok</button>
+    </div>
+</div>
 <div class="container" *ngIf="popupService.excelNameWindow" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
     <div class="header">
         Introduzca un nombre para el archivo
@@ -415,18 +439,18 @@
 </div>
 <div class="container" *ngIf="popupService.temporalPasscode" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
     <div class="header">
-        Crear invitación
+        Crear Invitación
     </div>
     <div id="content">
         <div class="form-area">
             <form class="common-form">
                 <p>
-                    Nombre de la invitación
+                    Nombre de la Invitación
                     <input style="border-radius:20px;border:1px solid black" type="text" class="form-input" name="name" [(ngModel)]="name" />
                 </p>
                 <p>
-                    Duracion
-                    <select #times name="temporalPasscodeDuration" [(ngModel)]="passcodeDuration" style="width: 238px; height: 35px; border-radius:20px;border:1px solid black;align-self:center;text-indent:10px;">
+                    Duración
+                    <select #times name="temporalPasscodeDuration" [(ngModel)]="passcodeDuration" style="width: 238px; height: 35px; border-radius:20px;border:1px solid black;align-self:center;">
                         <option default value="">No seleccionado</option>
                         <option value="1">1 Hora</option>
                         <option value="2">2 Horas</option>
@@ -443,9 +467,9 @@
         <button (click)="sharePasscode()">Continuar</button>
     </div>
 </div>
-<div class="container_80" *ngIf="popupService.temporalPasscode2" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+<div class="container_50" *ngIf="popupService.temporalPasscode2" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
     <div class="header">
-        Agregar invitados
+        Agregar Invitados
     </div>
     <div id="content">
         <div class="form-area">
@@ -455,8 +479,8 @@
                         <div class="person-number">
                             {{ i + 1 }}
                         </div>
-                        <input style="border-radius:20px;border:1px solid black" type="text" class="form-input" [(ngModel)]="person.personName" (ngModelChange)="person.personName = $event" name="personName{{i}}" placeholder="Nombre de la Persona" />
-                        <input style="border-radius:20px;border:1px solid black" type="text" class="form-input" [(ngModel)]="person.personEmail" (ngModelChange)="person.personEmail = $event" name="personEmail{{i}}" placeholder="Correo de la Persona" />
+                        <input style="border-radius:20px;border:1px solid black" type="text" class="form-input" [(ngModel)]="person.personName" (ngModelChange)="person.personName = $event" name="personName{{i}}" placeholder="Nombre del Invitado" />
+                        <input style="border-radius:20px;border:1px solid black" type="text" class="form-input" [(ngModel)]="person.personEmail" (ngModelChange)="person.personEmail = $event" name="personEmail{{i}}" placeholder="Correo" />
                         <button type="button" class="remove-button" (click)="removePerson(i)">X</button>
                     </div>
                 </div>
@@ -464,8 +488,8 @@
         </div>
     </div>
     <div id="actions">
-        <button type="button" (click)="addPerson()">Agregar Persona</button>
         <button (click)="closeSharePasscode()">Volver</button>
+        <button type="button" (click)="addPerson()">Agregar Invitado</button>
         <button (click)="createTemporalPasscode()">Guardar</button>
     </div>
 </div>
