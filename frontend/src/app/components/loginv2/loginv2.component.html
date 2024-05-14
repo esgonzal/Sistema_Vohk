@@ -13,26 +13,30 @@
                 <div class="logo-container">
                     <div class="bienvenido">
                         Bienvenido
-                        <fa-icon [icon]="faHand" style="color:rgb(239, 230, 103)"></fa-icon>
+                        <img src="../../../assets/images/mano.PNG" alt="Image Description" style="height: 1em; vertical-align: baseline;">
                     </div>
                     <div class="subtitle">
                         Administra los accesos de forma rápida y eficiente
                     </div>
                 </div>
-                <div class="login_texto">
-                    Email / Celular
+                <div style="margin-left:30px;margin-right:30px;">
+                    <div class="login_texto">
+                        Email / Celular
+                    </div>
+                    <div style="display:flex;justify-content:center;">
+                        <input type="text" class="login_input" name="username" required="required" ngModel/>
+                    </div>
                 </div>
-                <div style="display:flex;justify-content:center;">
-                    <input type="text" class="login_input" name="username" required="required" ngModel/>
-                </div>
-                <div class="login_texto">
-                    Contraseña
-                </div>
-                <div class="password-input">
-                    <input type="{{ showPassword ? 'text' : 'password' }}" class="login_input" name="password" required="required" ngModel/>
-                    <button type="button" (click)="togglePasswordVisibility()">
-                        <fa-icon [icon]="showPassword ? faEye : faEyeSlash"></fa-icon>
-                    </button>
+                <div style="margin-left:30px;margin-right:30px;">
+                    <div class="login_texto">
+                        Contraseña
+                    </div>
+                    <div class="password-input">
+                        <input type="{{ showPassword ? 'text' : 'password' }}" class="login_input" name="password" required="required" ngModel/>
+                        <button type="button" (click)="togglePasswordVisibility()">
+                            <fa-icon [icon]="showPassword ? faEye : faEyeSlash"></fa-icon>
+                        </button>
+                    </div>
                 </div>
                 <p class="login_error">{{loginError}}</p>
                 <div style="display:flex;justify-content:center;">
