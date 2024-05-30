@@ -200,5 +200,36 @@ router.post('/adjustTime', async(req, res) => {
         res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
+router.post('/transfer', async(req, res) => {
+    let { userID, receiverUsername, gatewayID } = req.body;
+    try {
+        let date = Date.now()
+        const storedData = accessTokenStorage[userID];
+        const accessToken = storedData ? storedData.accessToken : null;
+        if (!accessToken) {
+            return res.json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
+        }
+        let ttlockData = {
+            clientId: TTLOCK_CLIENT_ID,
+            accessToken: accessToken,
+            receiverUsername: receiverUsername,
+            gatewayIdList: gatewayID,
+            date,
+        };
+        let headers = {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': `Bearer ${accessToken}`
+        };
+        let ttlockResponse = await axios.post(
+            'https://euapi.ttlock.com/v3/gateway/transfer',
+            ttlockData, { headers }
+        );
+        //console.log(ttlockResponse.data)
+        res.json(ttlockResponse.data);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ errmsg: 'Error with TTLock API' });
+    }
+});
 
 module.exports = router;

@@ -6,15 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-    <p>Hola! {{from}} te ha dado acceso a:</p>
+    <p>Hola {{name}}, te han compartido una invitación con el motivo '{{motivo}}'</p>
 
-    <p>{{lock_alias}}</p>    
-
-    <p>Si no tienes la aplicación Vöhk, descárgala en el siguiente link <a href="https://www.vohk.cl/app-vohk/">https://www.vohk.cl/app-vohk/</a></p>
+    <p>El código es {{code}} y puedes usarlo en la cerradura {{lock_alias}}</p>
 
     <p>Período de Validez:</p>
     <p>Desde {{start}}</p>
     <p>Hasta {{end}}</p>
 
-    <p>Pulsa el botón del candado para abrir!</p>
+    <p>Introduce el código y luego presiona el símbolo # para abrir!</p>
 </body>
+</html>

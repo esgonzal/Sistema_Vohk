@@ -20,11 +20,14 @@
         "md5": "^2.3.0",
         "moment": "^2.29.4",
         "moment-timezone": "^0.5.44",
+        "node-media-server": "^2.6.2",
+        "node-rtsp-stream": "^0.0.9",
         "nodemailer": "^6.9.7",
         "pg": "^8.11.3",
         "pg-promise": "^11.5.4",
         "rc522": "^0.2.0",
-        "ref-napi": "^3.0.3"
+        "ref-napi": "^3.0.3",
+        "ws": "^8.16.0"
     },
     "devDependencies": {
         "@typescript-eslint/eslint-plugin": "^6.18.1",

@@ -5,7 +5,7 @@ const { accessTokenStorage } = require('./accessTokenStorage');
 const TTLOCK_CLIENT_ID = 'c4114592f7954ca3b751c44d81ef2c7d';
 
 router.post('/getListLock', async(req, res) => {
-    let { userID, lockID, pageNo, pageSize } = req.body;
+    let { userID, lockID, pageNo, pageSize, startDate, endDate, recordType } = req.body;
     try {
         let date = Date.now()
         const storedData = accessTokenStorage[userID];
@@ -19,6 +19,9 @@ router.post('/getListLock', async(req, res) => {
             lockId: lockID,
             pageNo: pageNo,
             pageSize: pageSize,
+            startDate: startDate,
+            endDate: endDate,
+            recordType: recordType,
             date,
         };
         let headers = {

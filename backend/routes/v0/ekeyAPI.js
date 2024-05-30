@@ -9,11 +9,9 @@ const TTLOCK_CLIENT_SECRET = '33b556bdb803763f2e647fc7a357dedf';
 const URL = 'https://api.vohkapp.com';
 
 router.post('/send', async(req, res) => {
-    let { userID, lockID, lockAlias, recieverName, keyName, startDate, endDate, remoteEnable, keyRight, keyType, startDay, endDay, weekDays } = req.body;
+    let { userID, lockID, recieverName, keyName, startDate, endDate, remoteEnable, keyRight, keyType, startDay, endDay, weekDays } = req.body;
     try {
-        console.log("remoteEnable: ", remoteEnable);
-        console.log("keyRight: ", keyRight);
-        let emailResponse;
+        console.log("body cuando llega a sendEkey", req.body)
         let date = Date.now()
         const storedData = accessTokenStorage[userID];
         const accessToken = storedData ? storedData.accessToken : null;
@@ -48,104 +46,9 @@ router.post('/send', async(req, res) => {
         //console.log(ttlockResponse.data)
         if (typeof ttlockResponse === 'object' &&
             ttlockResponse.data.hasOwnProperty('keyId') &&
-            typeof ttlockResponse.data.keyId === 'number'
-        ) { //Send ekey was successful
-            if (isValidEmail(recieverName)) { //Send email
-                let checkAccountData = {
-                    clientId: TTLOCK_CLIENT_ID,
-                    clientSecret: TTLOCK_CLIENT_SECRET,
-                    username: recieverName,
-                    password: md5('il.com')
-                };
-                let checkAccountHeaders = {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                };
-                let checkAccountResponse = await axios.post(
-                    'https://euapi.ttlock.com/oauth2/token',
-                    checkAccountData, { headers }
-                );
-                //console.log(checkAccountResponse.data)
-                if (endDate === '0') { //Permanent
-                    if (typeof checkAccountResponse === 'object' &&
-                        checkAccountResponse.data.hasOwnProperty('access_token')) { // New account
-                        let body = { to: recieverName, from: userID, lock_alias: lockAlias, password: "il.com" };
-                        emailResponse = await axios.post(URL.concat('/mail/ekeyPermanentNewUser'), body, { checkAccountHeaders })
-                    } else {
-                        let body = { to: recieverName, from: userID, lock_alias: lockAlias };
-                        emailResponse = await axios.post(URL.concat('/mail/ekeyPermanent'), body, { checkAccountHeaders })
-                    }
-                } else if (endDate === '1') { //OneTime
-                    if (typeof checkAccountResponse === 'object' &&
-                        checkAccountResponse.data.hasOwnProperty('access_token')) { // New account
-                        let body = { to: recieverName, from: userID, lock_alias: lockAlias, password: "il.com" };
-                        emailResponse = await axios.post(URL.concat('/mail/ekeyOneTimeNewUser'), body, { checkAccountHeaders })
-                    } else {
-                        let body = { to: recieverName, from: userID, lock_alias: lockAlias };
-                        emailResponse = await axios.post(URL.concat('/mail/ekeyOneTime'), body, { checkAccountHeaders })
-                    }
-                } else if (weekDays !== undefined) { // Solicitante
-                    let startDay_string = moment(startDay).format("DD/MM/YYYY");
-                    let endDay_string = moment(endDay).format("DD/MM/YYYY");
-                    let startHour_string = a;
-                    let endHour_string = b;
-                    if (typeof checkAccountResponse === 'object' &&
-                        checkAccountResponse.data.hasOwnProperty('access_token')) { // New account
-                        let body = { to: recieverName, from: userID, lock_alias: lockAlias, password: "il.com", startDay: startDay_string, endDay: endDay_string, startHour: startHour_string, endHour: endHour_string, week_days: "***" };
-                        emailResponse = await axios.post(URL.concat('/mail/ekeySolicitanteNewUser'), body, { checkAccountHeaders })
-                    } else {
-                        let body = { to: recieverName, from: userID, lock_alias: lockAlias, startDay: startDay_string, endDay: endDay_string, startHour: startHour_string, endHour: endHour_string, week_days: "***" };
-                        emailResponse = await axios.post(URL.concat('/mail/ekeySolicitante'), body, { checkAccountHeaders })
-                    }
-                } else { // Periodic
-                    let startDate_string = moment(Number(startDate)).tz('America/Santiago').format("DD/MM/YYYY HH:mm");
-                    let endDate_string = moment(Number(endDate)).tz('America/Santiago').format("DD/MM/YYYY HH:mm");
-                    if (typeof checkAccountResponse === 'object' &&
-                        checkAccountResponse.data.hasOwnProperty('access_token')) { // New account
-                        let body = { to: recieverName, from: userID, lock_alias: lockAlias, password: "il.com", start: startDate_string, end: endDate_string };
-                        emailResponse = await axios.post(URL.concat('/mail/ekeyPeriodicNewUser'), body, { checkAccountHeaders })
-                    } else {
-                        let body = { to: recieverName, from: userID, lock_alias: lockAlias, start: startDate_string, end: endDate_string };
-                        emailResponse = await axios.post(URL.concat('/mail/ekeyPeriodic'), body, { checkAccountHeaders })
-                    }
-                }
-            } else { //Send wsp
-                let phone_pass = getLastSixDigits(recieverName);
-                let checkAccountData = {
-                    clientId: TTLOCK_CLIENT_ID,
-                    clientSecret: TTLOCK_CLIENT_SECRET,
-                    username: recieverName,
-                    password: md5(phone_pass)
-                };
-                let checkAccountHeaders = {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                };
-                let checkAccountResponse = await axios.post(
-                    'https://euapi.ttlock.com/oauth2/token',
-                    checkAccountData, { headers }
-                );
-                if (endDate === '0') { //Permanent
-                    if (typeof checkAccountResponse === 'object' &&
-                        checkAccountResponse.data.hasOwnProperty('access_token')) { // New account
-                        let body = { to: recieverName, from: userID, lock_alias: lockAlias, password: phone_pass };
-                        emailResponse = await axios.post(URL.concat('/mail/ekeyPermanentNewUser'), body, { checkAccountHeaders })
-                    } else {
-                        let body = { to: recieverName, from: userID, lock_alias: lockAlias };
-                        emailResponse = await axios.post(URL.concat('/mail/ekeyPermanent'), body, { checkAccountHeaders })
-                    }
-                } else { // Periodic
-                    let startDate_string = moment(Number(startDate)).tz('America/Santiago').format("DD/MM/YYYY HH:mm");
-                    let endDate_string = moment(Number(endDate)).tz('America/Santiago').format("DD/MM/YYYY HH:mm");
-                    if (typeof checkAccountResponse === 'object' &&
-                        checkAccountResponse.data.hasOwnProperty('access_token')) { // New account
-                        let body = { to: recieverName, from: userID, lock_alias: lockAlias, password: phone_pass, start: startDate_string, end: endDate_string };
-                        emailResponse = await axios.post(URL.concat('/mail/ekeyPeriodicNewUser'), body, { checkAccountHeaders })
-                    } else {
-                        let body = { to: recieverName, from: userID, lock_alias: lockAlias, start: startDate_string, end: endDate_string };
-                        emailResponse = await axios.post(URL.concat('/mail/ekeyPeriodic'), body, { checkAccountHeaders })
-                    }
-                }
-            }
-            res.json({ keyId: ttlockResponse.data.keyId, emailContent: emailResponse.data.emailContent })
+            typeof ttlockResponse.data.keyId === 'number') { //Send ekey was successful
+            //console.log(checkAccountResponse.data)
+            res.json({ keyId: ttlockResponse.data.keyId })
         } else { //Send ekey was unsuccessful
             res.json({ errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg })
         }
@@ -153,7 +56,67 @@ router.post('/send', async(req, res) => {
         console.error(error);
         res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
-})
+});
+
+router.post('/sendEmail', async(req, res) => {
+    let { userID, lockAlias, recieverName, startDate, endDate, email } = req.body;
+    try {
+        console.log("body cuando llega a sendEmail", req.body);
+        let emailResponse;
+        // Check if receiverName is email or phone
+        const isEmail = isValidEmail(recieverName);
+        const phone_pass = getLastSixDigits(recieverName);
+        // Check if the account is new or old
+        const isNewAccount = await checkIfNewAccount(recieverName); // Define this function based on your business logic
+        console.log("new ccount", isNewAccount)
+        if (isEmail && isNewAccount) { //EMAIL NUEVO
+            if (endDate === '0') { //Permanent
+                let emailBody = { toEmail: recieverName, to: recieverName, from: userID, lock_alias: lockAlias, password: "il.com" };
+                emailResponse = await axios.post(URL.concat('/mail/eKeyPermanentNewUser'), emailBody)
+            } else { // Periodic
+                let startDate_string = moment(Number(startDate)).tz('America/Santiago').format("DD/MM/YYYY HH:mm");
+                let endDate_string = moment(Number(endDate)).tz('America/Santiago').format("DD/MM/YYYY HH:mm");
+                let body = { toEmail: recieverName, to: recieverName, from: userID, lock_alias: lockAlias, password: "il.com", start: startDate_string, end: endDate_string };
+                emailResponse = await axios.post(URL.concat('/mail/eKeyPeriodicNewUser'), body)
+            }
+        } else if (!isEmail && isNewAccount) { //TELEFONO NUEVO
+            if (endDate === '0') { //Permanent
+                let body = { toEmail: email, to: recieverName, from: userID, lock_alias: lockAlias, password: phone_pass };
+                emailResponse = await axios.post(URL.concat('/mail/eKeyPermanentNewUser'), body)
+            } else { // Periodic
+                let startDate_string = moment(Number(startDate)).tz('America/Santiago').format("DD/MM/YYYY HH:mm");
+                let endDate_string = moment(Number(endDate)).tz('America/Santiago').format("DD/MM/YYYY HH:mm");
+                let body = { toEmail: email, to: recieverName, from: userID, lock_alias: lockAlias, password: phone_pass, start: startDate_string, end: endDate_string };
+                emailResponse = await axios.post(URL.concat('/mail/eKeyPeriodicNewUser'), body)
+            }
+        } else if (isEmail && !isNewAccount) { //EMAIL ANTIGUO
+            if (endDate === '0') { //Permanent
+                let emailBody = { toEmail: recieverName, to: recieverName, from: userID, lock_alias: lockAlias };
+                emailResponse = await axios.post(URL.concat('/mail/ekeyPermanent'), emailBody)
+            } else { // Periodic
+                let startDate_string = moment(Number(startDate)).tz('America/Santiago').format("DD/MM/YYYY HH:mm");
+                let endDate_string = moment(Number(endDate)).tz('America/Santiago').format("DD/MM/YYYY HH:mm");
+                let body = { toEmail: recieverName, to: recieverName, from: userID, lock_alias: lockAlias, start: startDate_string, end: endDate_string };
+                emailResponse = await axios.post(URL.concat('/mail/eKeyPeriodic'), body)
+            }
+        } else { //TELEFONO ANTIGUO
+            if (endDate === '0') { //Permanent
+                let body = { toEmail: email, to: recieverName, from: userID, lock_alias: lockAlias };
+                emailResponse = await axios.post(URL.concat('/mail/ekeyPermanent'), body)
+            } else { // Periodic
+                let startDate_string = moment(Number(startDate)).tz('America/Santiago').format("DD/MM/YYYY HH:mm");
+                let endDate_string = moment(Number(endDate)).tz('America/Santiago').format("DD/MM/YYYY HH:mm");
+                let body = { toEmail: email, to: recieverName, from: userID, lock_alias: lockAlias, start: startDate_string, end: endDate_string };
+                emailResponse = await axios.post(URL.concat('/mail/eKeyPeriodic'), body)
+            }
+        }
+        res.json({ emailContent: emailResponse.data.emailContent });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ errmsg: 'Error with sending email' });
+    }
+});
+
 router.post('/list', async(req, res) => {
     let { userID, pageNo, pageSize, groupID } = req.body;
     try {
@@ -281,6 +244,7 @@ router.post('/unfreeze', async(req, res) => {
 router.post('/modify', async(req, res) => {
     let { userID, keyID, newName, remoteEnable } = req.body;
     try {
+        console.log("modify: ", req.body)
         let date = Date.now()
         const storedData = accessTokenStorage[userID];
         const accessToken = storedData ? storedData.accessToken : null;
@@ -303,7 +267,7 @@ router.post('/modify', async(req, res) => {
             'https://euapi.ttlock.com/v3/key/update',
             ttlockData, { headers }
         );
-        //console.log(ttlockResponse.data)
+        console.log(ttlockResponse)
         res.json({ errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg });
     } catch (error) {
         console.error(error);
@@ -463,6 +427,29 @@ function getLastSixDigits(phoneNumber) {
     const numericPart = phoneNumber.replace(/\D/g, '');
     const lastSixDigits = numericPart.slice(-6);
     return lastSixDigits;
+}
+
+async function checkIfNewAccount(username) {
+    const phonePass = getLastSixDigits(username);
+    const checkAccountData = {
+        clientId: TTLOCK_CLIENT_ID,
+        clientSecret: TTLOCK_CLIENT_SECRET,
+        username: username,
+        password: md5(phonePass)
+    };
+    const checkAccountHeaders = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+    };
+    const checkAccountResponse = await axios.post(
+        'https://euapi.ttlock.com/oauth2/token',
+        checkAccountData, { headers: checkAccountHeaders }
+    );
+    console.log(checkAccountResponse.data)
+    if (checkAccountResponse.data.hasOwnProperty('access_token')) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 module.exports = router;

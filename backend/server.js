@@ -14,7 +14,7 @@ app.use(cors(corsOptions));
 
 // API v0
 const { accessTokenStorage, storeAccessToken } = require('../backend/routes/v0/accessTokenStorage.js');
-const logoutInterval = 30 * 60 * 1000; // 30 minutes
+const logoutInterval = 30 * 60 * 1000;
 const checkAndLogoutExpiredSessions = () => {
     const currentTime = Date.now();
     for (const userId in accessTokenStorage) {

@@ -3,9 +3,11 @@ const router = express.Router();
 const axios = require('axios');
 const { accessTokenStorage } = require('./accessTokenStorage');
 const TTLOCK_CLIENT_ID = 'c4114592f7954ca3b751c44d81ef2c7d';
+const URL = 'https://api.vohkapp.com';
 
 router.post('/get', async(req, res) => {
     let { userID, lockID, type, startDate, name, endDate } = req.body;
+    console.log("Se creo un codigo")
     try {
         let date = Date.now()
         const storedData = accessTokenStorage[userID];
@@ -185,5 +187,20 @@ router.post('/getListLock', async(req, res) => {
         res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
+router.post('/sendEmail', async(req, res) => {
+    let { name, email, motivo, code, lock_alias, start, end } = req.body;
+    console.log(req.body)
+    try {
+        let emailResponse;
+        let emailBody = { email: email, name: name, motivo: motivo, code: code, lock_alias: lock_alias, start: start, end: end };
+        emailResponse = await axios.post(URL.concat('/mail/sharePasscode'), emailBody);
+        console.log(emailResponse.data.emailContent);
+        res.json({ emailContent: emailResponse.data.emailContent });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ errmsg: 'Error with sending email' });
+    }
+});
+
 
 module.exports = router;
