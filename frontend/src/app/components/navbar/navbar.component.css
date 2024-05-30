@@ -12,11 +12,6 @@
     margin-right: 5%;
 }
 
-.logo {
-    display: none;
-    /* Hide the logo by default */
-}
-
 #dropdownMenuButton {
     background-color: #F5C754;
     border-radius: 20px;
@@ -37,9 +32,18 @@
     margin-right: 10px;
 }
 
-@media screen and (min-width: 768px) {
+@media screen and (max-width: 600px) {
+    .container-fluid {
+        margin-left: 0px;
+        margin-right: 0px;
+    }
     .logo {
-        display: block;
-        /* Show the logo for larger screens (e.g., tablets and desktops) */
+        height: 60px;
+        width: 120px;
+    }
+    #dropdownMenuButton {
+        max-width: 200px;
+        overflow: hidden;
+        white-space: nowrap;
     }
 }

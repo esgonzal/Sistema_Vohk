@@ -7,6 +7,9 @@
         <div class="searchBar">
             <input type="text" placeholder="Busqueda" [(ngModel)]="searchText" (input)="searchGroups()" />
         </div>
+        <div class="create-group-button">
+            <button class="menuButton" style="width:200px;" (click)="crearGrupo()">Crear Comunidad</button>
+        </div>
         <div class="groupList" *ngFor="let group of groupsFiltrados" (click)="chooseGroup(group)" [class.selected]="group === chosenGroup">
             <div class="icono">
                 <fa-icon [icon]="faHome"></fa-icon>
@@ -15,7 +18,7 @@
                 <span>{{ group.groupName }}</span>
             </div>
         </div>
-        <div class="groupList" *ngIf="locksWithoutGroup.length > 0" (click)="chooseNoGroup()" [class.selected]="chosenGroup?.groupId === -1">
+        <div class="groupList" *ngIf="chosenGroup && locksWithoutGroup.length > 0" (click)="chooseNoGroup()" [class.selected]="chosenGroup.groupId === -1">
             <div class="icono">
                 <fa-icon [icon]="faHome"></fa-icon>
             </div>
@@ -29,7 +32,7 @@
             <div class="groupName">
                 {{chosenGroup.groupName}}
             </div>
-            <div>
+            <div class="groupButtons">
                 <button [matMenuTriggerFor]="editarMenu" class="menuButton" style="margin-right: 5px;">Editar</button>
                 <mat-menu #editarMenu="matMenu">
                     <button mat-menu-item (click)="cambiarNombre(chosenGroup.groupId)"><span>Editar Nombre</span></button>

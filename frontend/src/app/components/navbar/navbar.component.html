@@ -7,7 +7,7 @@
         <!-- Dropdown -->
         <div class="dropdown">
             <button type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                {{ returnNombre() }}
+                {{ isMobileView && returnNombre() ? returnNombre().split('@')[0] : returnNombre() }}
             </button>
             <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <li *ngIf="returnLogged() === '1'">

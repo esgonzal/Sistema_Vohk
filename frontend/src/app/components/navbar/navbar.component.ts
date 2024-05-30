@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 import { logoutResponse } from 'src/app/Interfaces/API_responses';
@@ -19,6 +19,7 @@ export class NavbarComponent implements OnInit {
   dataLoaded = false;
   darkMode: boolean;
   faHome = faHome;
+  isMobileView: boolean = window.innerWidth <= 600; 
 
   constructor(
     private router: Router,
@@ -30,6 +31,11 @@ export class NavbarComponent implements OnInit {
   ngOnInit(): void {
     this.darkMode = localStorage.getItem('darkMode') === 'true';  
   }
+
+  @HostListener('window:resize', ['$event'])
+    onResize(event: any) {
+        this.isMobileView = event.target.innerWidth <= 600;
+    }
 
   updateDarkMode() {
     localStorage.setItem('darkMode', this.darkMode.toString());

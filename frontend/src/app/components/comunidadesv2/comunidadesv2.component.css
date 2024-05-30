@@ -24,19 +24,22 @@
 }
 
 .searchBar {
-    padding-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    padding-bottom: 10px;
 }
 
 .searchBar input {
+    width: 200px;
     border-radius: 20px;
     border: 1px solid black;
     text-indent: 10px;
 }
 
-.userName {
-    padding-top: 5px;
-    padding-bottom: 5px;
-    font-size: 16px;
+.create-group-button {
+    display: flex;
+    justify-content: center;
+    padding-bottom: 10px;
 }
 
 .groupList {
@@ -47,6 +50,11 @@
     cursor: pointer;
     background-color: #F7FAFA;
     border-radius: 20px;
+}
+
+.groupList.selected {
+    background-color: #E3E8F2;
+    color: black;
 }
 
 .grupo {
@@ -149,6 +157,15 @@
     background-color: #121C24;
 }
 
+.dark-mode .groupList.selected {
+    /* Dark mode specific highlighting styles */
+    background-color: #29384D;
+    ;
+    /* Example dark mode highlight color */
+    color: #fff;
+    /* Example text color for highlighted item in dark mode */
+}
+
 .dark-mode .valid_lock {
     background-color: #121C24;
     /* Dark card background color */
@@ -169,38 +186,31 @@
     .sidebar-grupos {
         padding: 0;
         margin-bottom: 20px;
-        /* Add margin for separation */
+    }
+    .searchBar {
+        align-self: center;
     }
     .groupList {
         padding: 10px;
         border-radius: 10px;
-        /* Adjust border radius for smaller cards */
+    }
+    .grupo {
+        max-width: 500px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .top {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
     }
     .valid_lock {
         height: auto;
-        /* Let the height be determined by content */
-        margin: 10px 0;
-        /* Adjust margin for spacing */
+        width: 100%
     }
     .custom-image {
         height: auto;
-        /* Let the image height adjust */
+        max-width: 90%;
     }
-}
-
-.groupList.selected {
-    /* Define your highlighting styles here */
-    background-color: #E3E8F2;
-    /* Example highlight color */
-    color: black;
-    /* Example text color for highlighted item */
-}
-
-.dark-mode .groupList.selected {
-    /* Dark mode specific highlighting styles */
-    background-color: #29384D;
-    ;
-    /* Example dark mode highlight color */
-    color: #fff;
-    /* Example text color for highlighted item in dark mode */
 }

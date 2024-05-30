@@ -1,11 +1,11 @@
-<div class="pagina_completa" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+<div class="pagina_completa">
     <app-loader [loader]="isLoading"></app-loader>
     <div class="top-right-buttons">
         <button class="letter-button" onclick="window.location.href='https://www.vohk.cl/'">Home</button>
         <button class="letter-button" [matMenuTriggerFor]="contacto">Contacto</button>
         <mat-menu #contacto="matMenu" [class]="'dropdown'">
-            <p>Telefono: +56 9 7408 1594</p>
-            <p>Email : contacto@vohk.cl</p>
+            <p style="margin: 10px;">Telefono: +56 9 7408 1594</p>
+            <p style="margin: 10px;">Email : contacto&#64;vohk.cl</p>
         </mat-menu>
     </div>
     <div class="background-image">

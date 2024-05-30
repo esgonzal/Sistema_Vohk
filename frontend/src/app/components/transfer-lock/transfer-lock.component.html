@@ -1,14 +1,14 @@
 <div class="pagina_completa" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
     <div class="form-area">
         <h2>Transferencia de Dispositivo</h2>
-        <p style="font-size: 14px; margin-bottom: 50px;">Transferir una cerradura implica que usted perderá acceso a esta y que el destinatario será el administrador.</p>
+        <p style="font-size: 14px; margin-bottom: 50px;">Transferir una cerradura implica que usted perderá acceso a esta y que el destinatario será el administrador principal.</p>
         <form #formInput="ngForm" class="common-form">
             <div class="linea_alternative">
                 Cuenta de Destinatario
                 <span class="input-container">
-                        <input type="text" class="form-input" name="recieverUsername" [(ngModel)]="recieverUsername"
-                            required="" style="text-indent: 5px;"/>
-                    </span>
+                    <input type="text" class="form-input" name="recieverUsername" [(ngModel)]="recieverUsername"
+                        required="" style="text-indent: 5px;" />
+                </span>
             </div>
             <div class="linea_alternative">
                 Dispositivo
@@ -19,9 +19,9 @@
             <p class="error">{{error}}</p>
             <div class="linea">
                 <span style="display: flex;justify-content:space-around;">
-                            <button class="form-button" (click)="popupService.transferLock=false">Volver</button>
-                            <button class="form-button" name="button" type="submit" (click)="transferir()">Transferir</button>
-                        </span>
+                    <button class="form-button" (click)="popupService.transferLock=false">Volver</button>
+                    <button class="form-button" name="button" type="submit" (click)="transferir()">Transferir</button>
+                </span>
             </div>
         </form>
     </div>

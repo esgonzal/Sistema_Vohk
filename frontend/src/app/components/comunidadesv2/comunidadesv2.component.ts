@@ -42,6 +42,7 @@ export class Comunidadesv2Component implements OnInit {
     this.updateCols();
   }
   async ngOnInit(): Promise<void> {
+    this.isLoading = true;
     await this.fetchGroups();
     await this.getLocksWithoutGroup();
     let lockResponse = await lastValueFrom(this.lockService.getLockListAccount(this.userID)) as LockListResponse;
@@ -54,6 +55,7 @@ export class Comunidadesv2Component implements OnInit {
       if (grupoGuardado) {
         this.chosenGroup = grupoGuardado;
         await this.chooseGroup(this.chosenGroup);
+        this.isLoading = false;
         return;
       }
     }
@@ -62,15 +64,16 @@ export class Comunidadesv2Component implements OnInit {
       if (hasLocks) {
         this.chosenGroup = group;
         await this.chooseGroup(this.chosenGroup);
+        this.isLoading = false;
         return; // Exit once the first group with locks is found and selected
       }
     }
     await this.chooseNoGroup();
+    this.isLoading = false;
     //console.log("This.groups: ", this.groups)
     //console.log("This.locksWithoutGroup", this.locksWithoutGroup)
   }
   async fetchGroups() {
-    this.isLoading = true;
     try {
       let response = await lastValueFrom(this.groupService.getGroupofAccount(this.userID)) as GroupResponse;
       if (response.list) {
@@ -87,7 +90,6 @@ export class Comunidadesv2Component implements OnInit {
     } catch (error) {
       console.error("Error while fetching groups:", error);
     } finally {
-      this.isLoading = false;
       this.groupService.groups = this.groups;
       this.groupsFiltrados = this.groups;
     }
@@ -103,7 +105,6 @@ export class Comunidadesv2Component implements OnInit {
     if (targetGroupIndex !== -1) {
       if (this.groups[targetGroupIndex].locks.length === 0) {
         while (true) {
-          this.isLoading = true;
           let response = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.userID, pageNo, pageSize, clickedGroup.groupId)) as LockListResponse;
           console.log(response)
           if (response.list && response.list.length > 0) {
@@ -119,7 +120,6 @@ export class Comunidadesv2Component implements OnInit {
           }
           console.log(this.groups)
         }
-        this.isLoading = false;
         this.groups[targetGroupIndex].lockCount = lockCount;
         this.groupService.groups = this.groups;
       } else {
@@ -169,7 +169,7 @@ export class Comunidadesv2Component implements OnInit {
       await this.fetchLocksOfGroup(group)
     }
   }
-  async groupHasLocks (group: Group): Promise<boolean> {
+  async groupHasLocks(group: Group): Promise<boolean> {
     await this.fetchLocksOfGroup(group);
     return group.locks && group.locks.length > 0;
   };
@@ -231,11 +231,12 @@ export class Comunidadesv2Component implements OnInit {
   }
   private updateCols() {
     const screenWidth = window.innerWidth;
-
+    const imageWidthWithMargin = 220; // 200px width + 10px margin
     if (screenWidth <= 600) { // Mobile breakpoint
+      const numColumns = Math.floor(screenWidth / (imageWidthWithMargin / 2)); // Adjusting for smaller cards on mobile
       this.cols = 2;
     } else {
-      const numColumns = Math.min(Math.floor(screenWidth / 200), 4);
+      const numColumns = Math.min(Math.floor(screenWidth / imageWidthWithMargin), 4); // Maximum of 4 columns on larger screens
       this.cols = numColumns;
     }
   }

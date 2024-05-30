@@ -11,13 +11,6 @@
     right: 100px;
 }
 
-.mat-menu-content {
-    border-radius: 20px;
-    padding: 10px;
-    padding-top: 0;
-    padding-bottom: 0;
-}
-
 .letter-button {
     background: transparent;
     border: none;
@@ -136,26 +129,11 @@
     justify-content: center
 }
 
-.dark-mode {
-    background-color: #121C24;
+@media only screen and (max-width: 600px) {
+    .background-image {
+        padding-left: 0px;
+        display: flex;
+        justify-content: center;
+    }
+    ;
 }
-
-.dark-mode .pagina_completa {
-    background-color: #121C24;
-    /* Dark background color */
-    color: #fff;
-    /* Light text color */
-}
-
-.dark-mode .login_texto,
-.dark-mode .login_error {
-    color: #fff;
-    /* Light text color */
-}
-
-.dark-mode .login_boton {
-    background-color: #F5C754;
-    /* Adjust button color for dark mode */
-}
-
-@media only screen and (max-width: 600px) {}
