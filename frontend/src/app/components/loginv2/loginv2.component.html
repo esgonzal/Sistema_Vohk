@@ -1,4 +1,5 @@
 <div class="pagina_completa" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <app-loader [loader]="isLoading"></app-loader>
     <div class="top-right-buttons">
         <button class="letter-button" onclick="window.location.href='https://www.vohk.cl/'">Home</button>
         <button class="letter-button" [matMenuTriggerFor]="contacto">Contacto</button>
@@ -43,7 +44,7 @@
                     <button class="login_boton" type="submit">Iniciar Sesión</button>
                 </div>
                 <div class="texto_vohk">
-                    VÖHK
+                    <img src="../../../assets/images/logo/logo_vohk_texto_negro.jpeg" alt="black text logo" style="width: 170px;">
                 </div>
             </form>
         </div>

@@ -1,19 +1,19 @@
 import { NgModule } from '@angular/core';
 import { AppComponent } from './app.component';
+import { Loginv2Component } from './components/loginv2/loginv2.component';
 import { NavbarComponent } from './components/navbar/navbar.component';
-import { LoginComponent } from './components/login/login.component';
-import { UserComponent } from './components/user/user.component';
-import { LockComponent } from './components/lock/lock.component';
-import { PasscodeComponent } from './components/passcode/passcode.component';
+import { Comunidadesv2Component } from './components/comunidadesv2/comunidadesv2.component';
+import { Lockv2Component } from './components/lockv2/lockv2.component';
 import { EkeyComponent } from './components/ekey/ekey.component';
+import { PasscodeComponent } from './components/passcode/passcode.component';
 import { CardComponent } from './components/card/card.component';
+import { MultipleEkeyComponent } from './components/multiple-ekey/multiple-ekey.component';
 import { PopUpComponent } from './components/pop-up/pop-up.component';
 import { PassageModeComponent } from './components/passage-mode/passage-mode.component';
 import { TransferLockComponent } from './components/transfer-lock/transfer-lock.component';
-import { MultipleEkeyComponent } from './components/multiple-ekey/multiple-ekey.component';
+import { TransferHubComponent } from './components/transfer-hub/transfer-hub.component';
+
 import { LoaderComponent } from './components/loader/loader.component';
-import { SidebarComponent } from './components/sidebar/sidebar.component';
-import { GrupoCerradurasComponent } from './components/grupo-cerraduras/grupo-cerraduras.component';
 import { CameraStreamComponent } from './components/camera-stream/camera-stream.component';
 
 import { DatePipe } from '@angular/common';
@@ -46,38 +46,24 @@ import { RouterModule } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 import { GroupService } from './services/group.service';
-import { ComunidadesComponent } from './components/comunidades/comunidades.component';
-import { TemporalPasscodeComponent } from './components/temporal-passcode/temporal-passcode.component';
-import { Loginv2Component } from './components/loginv2/loginv2.component';
-import { Comunidadesv2Component } from './components/comunidadesv2/comunidadesv2.component';
-import { Lockv2Component } from './components/lockv2/lockv2.component';
-
-
-
 
 @NgModule({
   declarations: [
     AppComponent,
     NavbarComponent,
-    LoginComponent,
-    UserComponent,
-    LockComponent,
     PasscodeComponent,
     EkeyComponent,
     PopUpComponent,
     PassageModeComponent,
     TransferLockComponent,
-    SidebarComponent,
-    GrupoCerradurasComponent,
     MultipleEkeyComponent,
     LoaderComponent,
     CardComponent,
     CameraStreamComponent,
-    ComunidadesComponent,
-    TemporalPasscodeComponent,
     Loginv2Component,
     Comunidadesv2Component,
     Lockv2Component,
+    TransferHubComponent,
   ],
   imports: [
     BrowserModule,

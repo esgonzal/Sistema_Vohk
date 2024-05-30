@@ -1,7 +1,6 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { Router } from '@angular/router';
 import { DomSanitizer } from '@angular/platform-browser';
-import moment from 'moment';
 import { lastValueFrom } from 'rxjs';
 import { faBatteryFull, faWifi, faGear, faDoorOpen, faPlus, faHome, faLock } from '@fortawesome/free-solid-svg-icons'
 import { MatTableDataSource } from '@angular/material/table';
@@ -179,6 +178,12 @@ export class Lockv2Component implements OnInit {
       this.lockService.checkFeature(this.featureValue, feature.bit);
     }
     this.ekeysDataSource = new MatTableDataSource(this.ekeys);
+    let lockResponse = await lastValueFrom(this.lockService.getLockListAccount(this.userID)) as LockListResponse;
+    //console.log(lockResponse)
+    this.lockService.adminLocks = lockResponse.list;
+    let gatewayResponse = await lastValueFrom(this.gatewayService.getGatewaysAccount(this.userID, 1, 100)) as GatewayAccountResponse;
+    //console.log(gatewayResponse)
+    this.gatewayService.gateways = gatewayResponse.list;
     this.pageLoaded = true;
   }
   async getAllLocks() {
@@ -190,8 +195,8 @@ export class Lockv2Component implements OnInit {
         const locksResponse = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.userID, pageNo, pageSize, 0));
         const locksTypedResponse = locksResponse as LockListResponse;
         if (locksTypedResponse?.list) {
-          this.allLocks.push(...locksTypedResponse.list)
-          this.locksWithoutGroup.push(...locksTypedResponse.list.filter(lock => !lock.groupId))
+          this.allLocks.push(...locksTypedResponse.list);
+          this.locksWithoutGroup.push(...locksTypedResponse.list.filter(lock => !lock.groupId));
           if (locksTypedResponse.pages > pageNo) {
             pageNo++;
           } else {
@@ -308,6 +313,7 @@ export class Lockv2Component implements OnInit {
     try {
       const response = await lastValueFrom(this.ekeyService.getEkeysofLock(this.userID, this.lockId, pageNo, 100))
       const typedResponse = response as EkeyResponse;
+      //console.log(typedResponse)
       if (typedResponse?.list) {
         this.ekeys.push(...typedResponse.list);
         if (typedResponse.pages > pageNo) {
@@ -495,6 +501,7 @@ export class Lockv2Component implements OnInit {
     this.isLoading = true;
     try {
       const response = await lastValueFrom(this.lockService.getLockDetails(this.userID, this.lockId)) as LockDetails
+      console.log(response)
       if (response.lockId) {
         this.lockDetails = response;
       } else if (response.errcode === 10003) {
@@ -566,6 +573,7 @@ export class Lockv2Component implements OnInit {
       this.isLoading = true;
       try {
         let response = await lastValueFrom(this.passageModeService.getPassageModeConfig(this.userID, this.lockId)) as PassageMode;
+        console.log(response)
         if (response.passageMode) {
           this.passageModeService.passageModeConfig = response;
           this.popupService.passageMode = true;

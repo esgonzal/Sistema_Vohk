@@ -2,7 +2,7 @@ import { Component, OnInit, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import moment from 'moment';
 import { lastValueFrom } from 'rxjs';
-import { GroupResponse, LockListResponse } from 'src/app/Interfaces/API_responses';
+import { GatewayAccountResponse, GroupResponse, LockListResponse } from 'src/app/Interfaces/API_responses';
 import { Group } from 'src/app/Interfaces/Group';
 import { LockData } from 'src/app/Interfaces/Lock';
 import { EkeyServiceService } from 'src/app/services/ekey-service.service';
@@ -10,6 +10,8 @@ import { GroupService } from 'src/app/services/group.service';
 import { PopUpService } from 'src/app/services/pop-up.service';
 import { faHome } from '@fortawesome/free-solid-svg-icons'
 import { DarkModeService } from '../../services/dark-mode.service';
+import { LockServiceService } from 'src/app/services/lock-service.service';
+import { GatewayService } from 'src/app/services/gateway.service';
 
 @Component({
   selector: 'app-comunidadesv2',
@@ -26,28 +28,44 @@ export class Comunidadesv2Component implements OnInit {
   faHome = faHome
   visibleGroups: { [groupId: string]: boolean } = {};
   cols: number = 4;
-  chosenGroup : Group
+  chosenGroup: Group
   darkMode: boolean;
   searchText: string = '';
 
   constructor(private groupService: GroupService,
     private ekeyService: EkeyServiceService,
+    private lockService: LockServiceService,
     private router: Router,
     public popupService: PopUpService,
-    public DarkModeService: DarkModeService) {
+    public DarkModeService: DarkModeService,
+    private gatewayService: GatewayService,) {
     this.updateCols();
   }
   async ngOnInit(): Promise<void> {
     await this.fetchGroups();
     await this.getLocksWithoutGroup();
-    const lockGroupID = sessionStorage.getItem('lockGroupID') ?? '';
-    if (lockGroupID !== 'undefined') {
-      let grupoGuardado = this.groups.filter(group => (group.groupId === Number(lockGroupID)))
-      this.chosenGroup = grupoGuardado[0];
-      await this.chooseGroup(this.chosenGroup)
-    } else {
-      await this.chooseNoGroup()
+    let lockResponse = await lastValueFrom(this.lockService.getLockListAccount(this.userID)) as LockListResponse;
+    this.lockService.adminLocks = lockResponse.list;
+    let gatewayResponse = await lastValueFrom(this.gatewayService.getGatewaysAccount(this.userID, 1, 100)) as GatewayAccountResponse;
+    this.gatewayService.gateways = gatewayResponse.list;
+    const lockGroupID = sessionStorage.getItem('lockGroupID');
+    if (lockGroupID && lockGroupID !== 'undefined') {
+      const grupoGuardado = this.groups.find(group => group.groupId === Number(lockGroupID));
+      if (grupoGuardado) {
+        this.chosenGroup = grupoGuardado;
+        await this.chooseGroup(this.chosenGroup);
+        return;
+      }
     }
+    for (const group of this.groups) {
+      const hasLocks = await this.groupHasLocks(group);
+      if (hasLocks) {
+        this.chosenGroup = group;
+        await this.chooseGroup(this.chosenGroup);
+        return; // Exit once the first group with locks is found and selected
+      }
+    }
+    await this.chooseNoGroup();
     //console.log("This.groups: ", this.groups)
     //console.log("This.locksWithoutGroup", this.locksWithoutGroup)
   }
@@ -79,7 +97,7 @@ export class Comunidadesv2Component implements OnInit {
     let lockCount = 0;
     let pageNo = 1;
     const pageSize = 100;
-    if (clickedGroup){
+    if (clickedGroup) {
       targetGroupIndex = this.groups.findIndex(group => group.groupId === clickedGroup.groupId);
     }
     if (targetGroupIndex !== -1) {
@@ -87,6 +105,7 @@ export class Comunidadesv2Component implements OnInit {
         while (true) {
           this.isLoading = true;
           let response = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.userID, pageNo, pageSize, clickedGroup.groupId)) as LockListResponse;
+          console.log(response)
           if (response.list && response.list.length > 0) {
             lockCount += response.list.length;
             this.groups[targetGroupIndex].locks.push(...response.list);
@@ -131,7 +150,7 @@ export class Comunidadesv2Component implements OnInit {
     this.groupService.locksWithoutGroup = this.locksWithoutGroup;
   }
   async chooseNoGroup() {
-    let newGroup: Group = {groupId:-1, groupName: "Sin Asociar", lockCount: this.locksWithoutGroup.length, locks: this.locksWithoutGroup};
+    let newGroup: Group = { groupId: -1, groupName: "Sin Asociar", lockCount: this.locksWithoutGroup.length, locks: this.locksWithoutGroup };
     this.chosenGroup = newGroup;
   }
   async chooseGroup(group: Group) {
@@ -139,7 +158,7 @@ export class Comunidadesv2Component implements OnInit {
     this.chosenGroup = group;
   }
   searchGroups() {
-    this.groupsFiltrados = this.groups.filter(group => 
+    this.groupsFiltrados = this.groups.filter(group =>
       group.groupName.toLowerCase().includes(this.searchText.toLowerCase())
     );
   }
@@ -150,6 +169,10 @@ export class Comunidadesv2Component implements OnInit {
       await this.fetchLocksOfGroup(group)
     }
   }
+  async groupHasLocks (group: Group): Promise<boolean> {
+    await this.fetchLocksOfGroup(group);
+    return group.locks && group.locks.length > 0;
+  };
   hasValidAccess(lock: LockData): boolean {
     if ((Number(lock.endDate) === 0 || moment(lock.endDate).isAfter(moment())) && (lock.userType === '110301' || (lock.userType === '110302' && lock.keyRight === 1))) {
       return true

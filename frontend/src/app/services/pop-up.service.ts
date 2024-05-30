@@ -44,11 +44,14 @@ export class PopUpService {
   temporalPasscode = false;
   temporalPasscode2 = false;
   selectLocksForEkey = false;
+  selectLocksForTransfer = false;
+  selectHubsForTransfer = false;
   createPasscode = false;
   createEkey = false;
   createCard = false;
   passageMode = false;
   transferLock = false;
+  transferHub = false;
   ekeySuccess = false;
   passcodeSuccess = false;
   cardSuccess = false;

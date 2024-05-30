@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { GatewayAccountResponse, GatewayLockResponse, GetLockTimeResponse, operationResponse } from '../Interfaces/API_responses';
+import { GatewayAccount } from '../Interfaces/Gateway';
 
 @Injectable({
   providedIn: 'root'
@@ -12,6 +13,8 @@ export class GatewayService {
   //URL = 'http://localhost:8080';
   userID: string;
   lockID: number;
+  gateways: GatewayAccount[];
+  selectedHubs: { id: number }[] = [];
 
   constructor(private http: HttpClient) { }
 
@@ -44,5 +47,10 @@ export class GatewayService {
     let body = { userID, lockID };
     let url = this.URL.concat('/v0/gateway/getTime');
     return this.http.post<GetLockTimeResponse>(url, body);
+  }
+  transferGateway(userID: string, receiverUsername: string, gatewayID: string): Observable<operationResponse> {
+    let body = {userID, receiverUsername, gatewayID}
+    let url = this.URL.concat('/v0/gateway/transfer');
+    return this.http.post<operationResponse>(url, body);
   }
 }

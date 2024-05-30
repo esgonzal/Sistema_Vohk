@@ -6,8 +6,8 @@ import { EkeyServiceService } from 'src/app/services/ekey-service.service';
 import { LockServiceService } from 'src/app/services/lock-service.service';
 import { PopUpService } from 'src/app/services/pop-up.service';
 import { UserServiceService } from 'src/app/services/user-service.service';
-import { faHome, faLock, faRightLeft } from '@fortawesome/free-solid-svg-icons'
 import { DarkModeService } from '../../services/dark-mode.service';
+import { LockData } from 'src/app/Interfaces/Lock';
 
 @Component({
   selector: 'app-transfer-lock',
@@ -24,35 +24,51 @@ export class TransferLockComponent {
     public DarkModeService: DarkModeService,
     private router: Router) { }
 
-  faHome = faHome;
-  faLock = faLock;
-  faRightLeft = faRightLeft
+  locks: LockData[] = [];
   error: string = '';
-  username = sessionStorage.getItem('user') ?? ''
+  userID = sessionStorage.getItem('user') ?? ''
   lockId: number = Number(sessionStorage.getItem('lockID') ?? '')
   recieverUsername: string;
   isLoading: boolean;
 
+  openLockSelector() {
+    this.popupService.selectLocksForTransfer = true;
+  }
+  validarInputs() {
+    if (this.recieverUsername === '' || this.recieverUsername === undefined) {
+      this.error = 'Debe ingresar una cuenta de destinatario ';
+      return false;
+    } else if (!this.userService.isValidEmail(this.recieverUsername) && !this.userService.isValidPhone(this.recieverUsername).isValid) {
+      this.error = 'La cuenta de destinatario debe ser un email o celular ';
+      return false;
+    } else if (!this.lockService.locksForTransfer || this.lockService.locksForTransfer.length === 0) {
+      this.error = 'Debe seleccionar al menos una cerradura para transferir ';
+      return false;
+    } else {
+      return true;
+    }
+  }
   async transferir() {
     this.isLoading = true;
-    try {
-      let lockID = sessionStorage.getItem('lockID') ?? ''
-      let lockIDList: string = "[".concat(lockID).concat("]");
-      let response = await lastValueFrom(this.lockService.transferLock(this.lockService.userID, this.recieverUsername, lockIDList)) as operationResponse;
-      if (response.errcode === 0) {
-        this.router.navigate(["users", sessionStorage.getItem('user') ?? '']);
-        console.log("La cerradura se transfirió a la cuenta exitosamente")
-      } else if (response.errcode === 10003) {
-        sessionStorage.clear();
-      } else {
+    if (this.validarInputs()) {
+      try {
+        let lockIDList: string = "[".concat(this.lockService.locksForTransfer.map(lock => lock.id.toString()).join(", ")).concat("]");
+        let response = await lastValueFrom(this.lockService.transferLock(this.userID, this.recieverUsername, lockIDList)) as operationResponse;
         console.log(response)
+        if (response.errcode === 0) {
+          this.popupService.transferLock = false;
+          this.router.navigate(['']); 
+        } else if (response.errcode === 10003) {
+          sessionStorage.clear();
+          window.location.reload();
+        } else {
+          console.log(response)
+        }
+      } catch (error) {
+        console.error("Error while transfering a lock:", error);
+      } finally {
+        this.isLoading = false;
       }
-    } catch (error) {
-      console.error("Error while transfering a lock:", error);
-    } finally {
-      this.isLoading = false;
-      this.popupService.transferLock = false;
-      window.location.reload();
     }
   }
 }

@@ -127,14 +127,12 @@
 .login_error {
     color: rgb(255, 0, 0);
     font-size: 14px;
+    text-align: center;
 }
 
 .texto_vohk {
     color: black;
-    padding-top: 20px;
     display: flex;
-    font-size: 40px;
-    font-weight: 900;
     justify-content: center
 }
 

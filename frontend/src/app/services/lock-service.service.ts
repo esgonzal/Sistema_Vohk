@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { LockListResponse, operationResponse } from '../Interfaces/API_responses';
-import { LockDetails } from '../Interfaces/Lock';
+import { LockData, LockDetails } from '../Interfaces/Lock';
 import moment from 'moment';
 import { Ekey, Fingerprint, Passcode } from '../Interfaces/Elements';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -16,6 +16,8 @@ export class LockServiceService {
   //URL = 'http://localhost:8080';
   userID: string;
   lockID: number;
+  adminLocks: LockData[];
+  locksForTransfer: {id: number, alias: string}[];
   private sessionStorageKey = 'filteredLocks';
 
   // Getter for filteredLocks
@@ -466,7 +468,7 @@ export class LockServiceService {
     let pageNo = 1;
     let pageSize = 100;
     let body = {userID, pageNo, pageSize};
-    let url = this.URL.concat('/v0/lock/getListAccount');
+    let url = this.URL.concat('/v0/lock/list');
     return this.http.post<LockListResponse>(url, body)
   }
   getLockDetails(userID: string, lockID: number): Observable<LockDetails> {

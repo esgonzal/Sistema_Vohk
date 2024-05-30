@@ -6,7 +6,7 @@
                 <div class="nombre_cerradura">
                     {{Alias}}
                 </div>
-                <div class="nombre_comunidad" matTooltip="Comunidad a la que pertenece la cerradura">
+                <div class="nombre_comunidad" matTooltip="Comunidad a la que pertenece la cerradura" *ngIf="lockGroup !== 'undefined'">
                     Comunidad: {{lockGroup}}
                 </div>
                 <div class="rol_usuario">
@@ -38,8 +38,10 @@
                             [icon]="faGear"></fa-icon></button>
                     <mat-menu #menu="matMenu">
                         <button mat-menu-item (click)="editName()">Editar Nombre</button>
+                        <!-- 
                         <button mat-menu-item *ngIf="userType==='110301'" (click)="TransferirLock()"><span>Transferir
                                 Dispositivo</span></button>
+                        -->
                         <button mat-menu-item *ngIf="(userType==='110301' || (userType==='110302' && keyRight==='1'))  && lockService.checkFeature(featureValue, 22)" (click)="PassageMode()"><span>Modo de Paso</span></button>
                         <button mat-menu-item (click)="esencial()">Datos esenciales</button>
                     </mat-menu>
@@ -440,6 +442,9 @@
                     </mat-tab-group>
                 </div>
             </div>
+        </div>
+        <div class="funciones_cerradura" *ngIf="(userType==='110302' && keyRight==='0')">
+            Solicitud de Invitación
         </div>
     </div>
 </div>

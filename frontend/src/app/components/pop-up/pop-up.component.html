@@ -493,7 +493,6 @@
         <button (click)="createTemporalPasscode()">Enviar</button>
     </div>
 </div>
-
 <div class="container" *ngIf="popupService.selectLocksForEkey" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
     <div class="header">
         Seleccione las cerraduras
@@ -527,6 +526,82 @@
     <div id="actions">
         <button (click)="popupService.selectLocksForEkey = false">Volver</button>
         <button (click)="this.popupService.selectLocksForEkey = false; confirmLockSelection()">Confirmar</button>
+    </div>
+</div>
+<div class="container" *ngIf="popupService.selectLocksForTransfer" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        Seleccione las cerraduras
+    </div>
+    <div id="content" style="justify-content: flex-start; ">
+        <table class="lock-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Seleccionado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <ng-container *ngIf="lockService.adminLocks.length > 0; else noLocks">
+                    <tr *ngFor="let lock of lockService.adminLocks">
+                        <td>{{ lock.lockAlias }}</td>
+                        <td style="text-align: center">
+                            <input type="checkbox" [checked]="isLockSelected(lock.lockId)" (change)="toggleLockSelection(lock.lockId, lock.lockAlias)">
+                        </td>
+                    </tr>
+                </ng-container>
+                <ng-template #noLocks>
+                    <tr>
+                        <td colspan="2">No existen cerraduras disponibles para transferir.</td>
+                    </tr>
+                </ng-template>
+            </tbody>
+        </table>
+    </div>
+    <p class="error">{{error}}</p>
+    <div id="actions">
+        <button (click)="popupService.selectLocksForTransfer = false">Volver</button>
+        <button (click)="this.popupService.selectLocksForTransfer = false; confirmLockSelection()">Confirmar</button>
+    </div>
+</div>
+<div class="container_50" *ngIf="popupService.selectHubsForTransfer" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        Seleccione los Gateways
+    </div>
+    <div id="content" style="justify-content: flex-start; ">
+        <table class="lock-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Red</th>
+                    <th>N° Dispositivos</th>
+                    <th>Seleccionado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <ng-container *ngIf="gatewayService.gateways.length > 0; else noLocks">
+                    <tr *ngFor="let hub of gatewayService.gateways">
+                        <td>{{ hub.gatewayName }}</td>
+                        <td>{{ hub.networkName }}</td>
+                        <td>{{ hub.lockNum }}</td>
+                        <td style="text-align: center">
+
+                            <input type="checkbox" [checked]="isHubSelected(hub.gatewayId)" (change)="toggleHubSelection(hub.gatewayId)">
+
+                        </td>
+                    </tr>
+                </ng-container>
+                <ng-template #noLocks>
+                    <tr>
+                        <td colspan="2">No existen gateways disponibles para transferir.</td>
+                    </tr>
+                </ng-template>
+            </tbody>
+        </table>
+    </div>
+    <p class="error">{{error}}</p>
+    <div id="actions">
+        <button (click)="popupService.selectHubsForTransfer = false">Volver</button>
+        <button (click)="this.popupService.selectHubsForTransfer = false; confirmLockSelection()">Confirmar</button>
     </div>
 </div>
 <div class="container" *ngIf="popupService.esencial" [ngClass]="{'dark-mode': DarkModeService.darkMode}">

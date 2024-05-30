@@ -13,6 +13,12 @@
                 <li *ngIf="returnLogged() === '1'">
                     <button class="dropdown-item" (click)="mostrarCerraduras()">Mis Comunidades</button>
                 </li>
+                <li>
+                    <button class="dropdown-item" (click)="TransferirLock()">Transferir Dispositivos</button>
+                </li>
+                <li>
+                    <button class="dropdown-item" (click)="TransferirHub()">Transferir Gateway</button>
+                </li>
                 <li class="dark-mode-toggle">
                     <span (click)="$event.stopPropagation()">Dark Mode</span>
                     <mat-slide-toggle name="darkMode" [(ngModel)]="darkMode" (click)="$event.stopPropagation()" (change)="updateDarkMode()"></mat-slide-toggle>
@@ -24,3 +30,5 @@
         </div>
     </div>
 </nav>
+<app-transfer-lock *ngIf="this.popupService.transferLock" style="z-index: 10;"></app-transfer-lock>
+<app-transfer-hub *ngIf="this.popupService.transferHub" style="z-index: 10;"></app-transfer-hub>

@@ -1,16 +1,11 @@
 <div class="pagina_completa" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
     <app-loader [loader]="isLoading"></app-loader>
     <div class="sidebar-grupos">
+        <div class="subtitle">
+            Mis Comunidades
+        </div>
         <div class="searchBar">
             <input type="text" placeholder="Busqueda" [(ngModel)]="searchText" (input)="searchGroups()" />
-        </div>
-        <div class="groupList" *ngIf="locksWithoutGroup.length > 0" (click)="chooseNoGroup()">
-            <div class="icono">
-                <fa-icon [icon]="faHome"></fa-icon>
-            </div>
-            <div class="grupo">
-                <span>Sin Asociar</span>
-            </div>
         </div>
         <div class="groupList" *ngFor="let group of groupsFiltrados" (click)="chooseGroup(group)" [class.selected]="group === chosenGroup">
             <div class="icono">
@@ -18,6 +13,14 @@
             </div>
             <div class="grupo">
                 <span>{{ group.groupName }}</span>
+            </div>
+        </div>
+        <div class="groupList" *ngIf="locksWithoutGroup.length > 0" (click)="chooseNoGroup()" [class.selected]="chosenGroup?.groupId === -1">
+            <div class="icono">
+                <fa-icon [icon]="faHome"></fa-icon>
+            </div>
+            <div class="grupo">
+                <span>Sin Asociar</span>
             </div>
         </div>
     </div>
@@ -53,7 +56,7 @@
                             </mat-card>
                         </div>
                         <div *ngIf="hasValidAccess(lock)===false">
-                            <mat-card class="valid_lock" (click)="onInvalidButtonClick()">
+                            <mat-card class="valid_lock" (click)="onLockButtonClick(lock)">
                                 <img class="custom-image" src="../../../assets/images/door.jpg" alt="Image Description">
                                 <mat-card-header>
                                     <div mat-card-title>{{lock.lockAlias}}</div>
@@ -64,8 +67,12 @@
                     </mat-grid-tile>
                 </mat-grid-list>
             </div>
+            <div *ngIf="chosenGroup.lockCount === 0" style="margin-top: 100px;">
+                <p style="text-align:center;">Esta comunidad no tiene cerraduras.</p>
+                <p style="text-align:center;">Para agregar una cerradura, presione el botón Administrar Cerraduras.</p>
+            </div>
         </div>
     </div>
 </div>
-<app-pop-up *ngIf="this.popupService.delete || this.popupService.cambiarNombre || this.popupService.addLockGROUP ||
-                    this.popupService.removeLockGROUP || this.popupService.newGroup || this.popupService.invalidLock" style="z-index: 1001;"></app-pop-up>
+<app-pop-up *ngIf=" this.popupService.delete || this.popupService.cambiarNombre || this.popupService.addLockGROUP || this.popupService.removeLockGROUP || this.popupService.newGroup || this.popupService.invalidLock " style="z-index: 1001;
+                    "></app-pop-up>

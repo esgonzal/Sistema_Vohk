@@ -6,4 +6,10 @@ export interface PassageMode {
     startDate: string;
     weekDays: number[];
     errcode: number;
+    cyclicConfig: {
+        isAllDay: number;
+        startTime: number; // Assuming startTime is in minutes format
+        endTime: number; // Assuming endTime is in minutes format
+        weekDays: number[];
+    }[];
 }

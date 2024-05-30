@@ -1,7 +1,7 @@
 <div class="pagina_completa" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
     <div class="form-area">
-        <h2>Transferencia de Dispositivo</h2>
-        <p style="font-size: 14px; margin-bottom: 50px;">Transferir una cerradura implica que usted perderá acceso a esta y que el destinatario será el administrador.</p>
+        <h2>Transferencia de Gateway</h2>
+        <p style="font-size: 14px; margin-bottom: 50px;">El gateway y la cerradura deben pertenecer al mismo administrador principal para que se conecten.</p>
         <form #formInput="ngForm" class="common-form">
             <div class="linea_alternative">
                 Cuenta de Destinatario
@@ -13,17 +13,17 @@
             <div class="linea_alternative">
                 Dispositivo
                 <span class="input-container">
-                    <button (click)="openLockSelector()">+</button>
+                    <button (click)="openHubSelector()">+</button>
                 </span>
             </div>
             <p class="error">{{error}}</p>
             <div class="linea">
                 <span style="display: flex;justify-content:space-around;">
-                            <button class="form-button" (click)="popupService.transferLock=false">Volver</button>
+                            <button class="form-button" (click)="popupService.transferHub=false">Volver</button>
                             <button class="form-button" name="button" type="submit" (click)="transferir()">Transferir</button>
                         </span>
             </div>
         </form>
     </div>
 </div>
-<app-pop-up *ngIf="popupService.selectLocksForTransfer" style="z-index: 10;"></app-pop-up>
+<app-pop-up *ngIf="popupService.selectHubsForTransfer" style="z-index: 10;"></app-pop-up>

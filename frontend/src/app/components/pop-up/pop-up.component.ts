@@ -67,11 +67,11 @@ export class PopUpComponent implements OnInit {
   constructor(
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private lockService: LockServiceService,
+    public lockService: LockServiceService,
     private passcodeService: PasscodeServiceService,
     private cardService: CardServiceService,
     private fingerprintService: FingerprintServiceService,
-    private gatewayService: GatewayService,
+    public gatewayService: GatewayService,
     private groupService: GroupService,
     public dialogRef: MatDialog,
     public userService: UserServiceService,
@@ -517,9 +517,20 @@ export class PopUpComponent implements OnInit {
       // If lock ID is not in the array, add it with the alias
       this.selectedLocks.push({ id: lockId, alias: lockAlias });
     }
+    this.lockService.locksForTransfer = this.selectedLocks;
     console.log("selectedLocks: ", this.selectedLocks);
-}
-  
+  }
+  toggleHubSelection(hubId: number) {
+    const index = this.gatewayService.selectedHubs.findIndex(hub => hub.id === hubId);
+    if (index !== -1) {
+      // If lock ID is already in the array, remove it
+      this.gatewayService.selectedHubs.splice(index, 1);
+    } else {
+      // If lock ID is not in the array, add it with the alias
+      this.gatewayService.selectedHubs.push({ id: hubId });
+    }
+    console.log("selectedHubs: ", this.gatewayService.selectedHubs);
+  }
   async removeSelectedLocksFromGroup() {
     this.isLoading = true;
     try {
@@ -572,7 +583,10 @@ export class PopUpComponent implements OnInit {
   }
   isLockSelected(lockId: number): boolean {
     return this.ekeyService.selectedLocks.some(lock => lock.id === lockId);
-}
+  }
+  isHubSelected(hubId: number): boolean {
+    return this.gatewayService.selectedHubs.some(hub => hub.id === hubId);
+  }
   isEkeySelected(keyId: number): boolean {
     return this.ekeyService.selectedEkeys.includes(keyId);
   }
@@ -653,9 +667,9 @@ export class PopUpComponent implements OnInit {
   }
   async createTemporalPasscode() {
     let response;
-    let code:string;
-    let start:string;
-    let end:string;
+    let code: string;
+    let start: string;
+    let end: string;
     this.isLoading = true;
     if (!this.name) {
       this.error = "Por favor ingrese un nombre para el código"
@@ -673,7 +687,7 @@ export class PopUpComponent implements OnInit {
           end = moment(final).format('DD/MM/YYYY HH:mm');
           this.people.forEach(async person => {
             let emailResponse = await lastValueFrom(this.passcodeService.sendEmail(person.personName, person.personEmail, this.name, code, this.popupService.lock_alias, start, end)) as sendEkeyResponse;
-            if( emailResponse.emailContent) {
+            if (emailResponse.emailContent) {
               this.popupService.temporalPasscode = false;
               this.popupService.temporalPasscode2 = false;
               this.popupService.passcodeSuccess = true;
@@ -707,7 +721,7 @@ export class PopUpComponent implements OnInit {
       this.popupService.temporalPasscode = false;
       this.popupService.temporalPasscode2 = true;
     }
-    
+
   }
   closeSharePasscode() {
     this.popupService.temporalPasscode2 = false;
