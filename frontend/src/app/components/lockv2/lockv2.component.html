@@ -124,8 +124,6 @@
                                                             Nombre</span></button>
                                                     <button mat-menu-item *ngIf="(userType==='110301') || (userType==='110302' && keyRight==='1') || ekey.username===username" (click)="cambiarPeriodoEkey(ekey.keyId)"><span>Editar
                                                             Periodo</span></button>
-                                                    <button mat-menu-item *ngIf="(userType==='110301') || (userType==='110302' && keyRight==='1') || ekey.username===username"><span>Cambiar nombre</span></button>
-                                                    <button mat-menu-item *ngIf="(userType==='110301') || (userType==='110302' && keyRight==='1') || ekey.username===username"><span>Datos esenciales</span></button>
                                                 </mat-menu>
                                                 <!--BOTON ADMIN-->
                                                 <button [matMenuTriggerFor]="adminMenu" aria-label="Settings" class="custom-button">Admin</button>

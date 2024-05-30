@@ -38,7 +38,7 @@
         Por favor confirme sus acciones
     </div>
     <div id="content">
-        <div class="linea_alternative">
+        <div class="linea_alternative" style="gap:10px;margin-bottom:0px">
             <span class="input-container">
                 Apertura Remota
             </span>
@@ -83,7 +83,7 @@
         <div class="form-area">
             <form class="common-form">
                 Nombre
-                <input type="text" class="form-input" name="name" [(ngModel)]="name" />
+                <input type="text" class="form-input" name="name" [(ngModel)]="name" style="margin-bottom:0px" />
                 <p class="error">{{error}}</p>
             </form>
         </div>
@@ -217,29 +217,6 @@
     <div id="actions">
         <button (click)="popupService.newGroup = false">Volver</button>
         <button (click)="crearGrupo()">Guardar</button>
-    </div>
-</div>
-<div class="container_60" *ngIf="popupService.addRemoveLockGROUP" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
-    <div class="header">
-        {{popupService.group.groupName}}
-    </div>
-    <div id="content">
-        <div class="list_locks">
-            <ng-container *ngIf="popupService.group.locks.length > 0; else noLocks">
-                <div *ngFor="let lock of popupService.group.locks">
-                    <div class="lock-item">
-                        {{ lock.lockAlias }}
-                    </div>
-                </div>
-            </ng-container>
-            <ng-template #noLocks>
-            </ng-template>
-        </div>
-    </div>
-    <div id="actions">
-        <button (click)="popupService.addRemoveLockGROUP = false">Volver</button>
-        <button (click)="openAddLockGroup()">Agregar </button>
-        <button (click)="openRemoveLockGroup()">Remover </button>
     </div>
 </div>
 <div class="container" *ngIf="popupService.addLockGROUP" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
