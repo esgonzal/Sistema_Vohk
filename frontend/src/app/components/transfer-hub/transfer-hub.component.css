@@ -71,3 +71,21 @@
     color: #fff;
     background-color: #121C24;
 }
+
+@media screen and (max-width: 600px) {
+    .pagina_completa {
+        width: 90%;
+    }
+    .form-area {
+        width: 100%;
+    }
+    .common-form {
+        width: 100%;
+    }
+    .linea_alternative {
+        flex-direction: column;
+    }
+    .form-button {
+        width: 100px;
+    }
+}

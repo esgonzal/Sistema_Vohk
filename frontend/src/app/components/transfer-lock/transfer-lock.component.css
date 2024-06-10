@@ -54,7 +54,6 @@
     height: 30px;
     width: 25%;
     align-self: center;
-    border: 1px, solid black;
     background-color: #F5C754;
     cursor: pointer;
     border-radius: 20px;
@@ -70,4 +69,22 @@
 .dark-mode .pagina_completa {
     color: #fff;
     background-color: #121C24;
+}
+
+@media screen and (max-width: 600px) {
+    .pagina_completa {
+        width: 90%;
+    }
+    .form-area {
+        width: 100%;
+    }
+    .common-form {
+        width: 100%;
+    }
+    .linea_alternative {
+        flex-direction: column;
+    }
+    .form-button {
+        width: 100px;
+    }
 }

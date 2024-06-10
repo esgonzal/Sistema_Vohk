@@ -540,7 +540,7 @@
         <button (click)="this.popupService.selectLocksForTransfer = false; confirmLockSelection()">Confirmar</button>
     </div>
 </div>
-<div class="container_50" *ngIf="popupService.selectHubsForTransfer" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+<div class="container" *ngIf="popupService.selectHubsForTransfer" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
     <div class="header">
         Seleccione los Gateways
     </div>
