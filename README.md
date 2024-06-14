@@ -33,7 +33,7 @@ API
 
 El sistema hace uso de la función API de TTLock "Get access token" para verificar si la cuenta ya existe. De ser así, el token queda guardado temporalmente en el backend para ser usado por la cuenta en futuras funciones.
 
-<!-- ![Login](URL_de_la_imagen) -->
+![Login](frontend/src/assets/images/vistas/LOGIN.PNG)
 
 ---
 
@@ -41,7 +41,7 @@ El sistema hace uso de la función API de TTLock "Get access token" para verific
 
 En esta vista el usuario puede visualizar sus cerraduras de acuerdo a la organización que le dió. De esta manera, solo se cargan las cerraduras de una comunidad a la vez para no demorar el tiempo de carga. Se pueden crear nuevas comunidades, eliminar existentes, o agregar/remover cerraduras a una comunidad. Para avanzar a la siguiente vista, se tiene que presionar sobre una cerradura.
 
-<!-- ![Comunidades](URL_de_la_imagen) -->
+![Comunidades](frontend/src/assets/images/vistas/COMUNIDADES.PNG)
 
 ---
 
@@ -49,7 +49,7 @@ En esta vista el usuario puede visualizar sus cerraduras de acuerdo a la organiz
 
 En esta vista se puede visualizar las características de los métodos de acceso de la cerradura. También se pueden visualizar los registros de los últimos 6 meses. Se puede editar el nombre y fecha de validación de los accesos, o bien, eliminarlos.
 
-<!-- ![Cerradura](URL_de_la_imagen) -->
+![Cerradura](frontend/src/assets/images/vistas/CERRADURA.PNG) 
 
 ---
 
