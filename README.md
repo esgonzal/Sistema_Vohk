@@ -11,7 +11,8 @@ Este es el repositorio del Sistema Web para la administración y gestión de cer
     Visualizar los registros de acceso de una cerradura de los últimos 6 meses.
     Y más.
 
-El sistema se integra con la API TTLock para proporcionar estas funcionalidades.
+El sistema se integra con la [API TTLock](https://euopen.ttlock.com/document/doc?urlName=cloud%2FerrorCodeEn.html) para proporcionar estas funcionalidades.
+Presione el siguiente [link para ingresar al sistema](https://vohkapp.com)
 
 ## Tecnologías
 
@@ -22,10 +23,6 @@ Frontend
 Backend
 
     Node.js: Versión 16.14.2
-
-API
-
- [TTLock Cloud API V3](https://euopen.ttlock.com/document/doc?urlName=cloud%2FerrorCodeEn.html)
 
 ## Vistas
 
