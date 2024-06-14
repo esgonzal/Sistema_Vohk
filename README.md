@@ -45,4 +45,12 @@ En esta vista el usuario puede visualizar sus cerraduras de acuerdo a la organiz
 
 ---
 
+### 3. Cerradura
+
+En esta vista se puede visualizar las características de los métodos de acceso de la cerradura. También se pueden visualizar los registros de los últimos 6 meses. Se puede editar el nombre y fecha de validación de los accesos, o bien, eliminarlos.
+
+<!-- ![Cerradura](URL_de_la_imagen) -->
+
+---
+
 
