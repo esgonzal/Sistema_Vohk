@@ -18,7 +18,7 @@ export class CameraStreamComponent implements AfterViewInit, OnInit {
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
-    this.startFfmpegProcess();
+    //this.startFfmpegProcess();
   }
 
   ngAfterViewInit(): void {
@@ -26,19 +26,9 @@ export class CameraStreamComponent implements AfterViewInit, OnInit {
     this.setupVideoPlayer();
   }
 
-  startFfmpegProcess(): void {
-    this.http.get('http://localhost:3000/start-ffmpeg').subscribe(
-      () => {
-        console.log('FFmpeg process started successfully');
-      },
-      (error) => {
-        console.error('Error starting FFmpeg process:', error);
-      }
-    );
-  }
 
   setupVideoPlayer(): void {
-    const videoSrc = 'http://localhost:3000/stream/index.m3u8';
+    const videoSrc = 'https://wework-7-us.stream.iot-11.com:8080/hls/eb97e8f1fad554a965cbkg/cqlpaq0d9fpnce9vtklgH4JFEyfaeddt8bx3bkn8.m3u8?signInfo=JpK90w7s_wkldyPh9Xg8tKVpNuNR47gkapbNdIpYzRhRUSppolDpiv4fXLDeFvv_CNzt6I1n51ijSEQOYsY-G0yNf2lCbRznuSrtCDk96f1ZhJGwNiKbAy7ARLO5i70KsbzsXY1tZ57TmR5g6ZMgZRIMwMVpyi6H1M_ezdDun8A';
     if (Hls.isSupported()) {
       const hls = new Hls();
       hls.loadSource(videoSrc);
