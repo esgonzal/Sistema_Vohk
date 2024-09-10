@@ -77,9 +77,15 @@ export class EkeyServiceService {
     let url = this.URL.concat('/v0/ekey/unauthorize');
     return this.http.post<operationResponse>(url, body);
   }
-  sendEmail(userID: string, lockAlias: string, recieverName: string, startDate: string, endDate: string, email?: string): Observable<sendEkeyResponse> {
+  generateEmail(userID: string, lockAlias: string, recieverName: string, startDate: string, endDate: string, email?: string): Observable<sendEkeyResponse> {
     let body = {userID, lockAlias, recieverName, startDate, endDate, email}
-    let url = this.URL.concat('/v0/ekey/sendEmail');
+    let url = this.URL.concat('/v0/ekey/generateEmail');
+    return this.http.post<sendEkeyResponse>(url, body);
+  }
+
+  sendEmail(toEmail: string, emailContent: string): Observable<sendEkeyResponse> {
+    let body = {toEmail, emailContent}
+    let url = this.URL.concat('/mail/sendEmail');
     return this.http.post<sendEkeyResponse>(url, body);
   }
 }

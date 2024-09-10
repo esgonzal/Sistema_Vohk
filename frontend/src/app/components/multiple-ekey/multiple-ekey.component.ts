@@ -250,7 +250,7 @@ async enviarEmail(eKey: { account: string; name: string; type: string; startDate
       const Alias = this.ekeyService.selectedLocks[0].alias;
       if (eKey.type === '1') {
         // Permanent eKey email
-        const response = await lastValueFrom(this.ekeyService.sendEmail(this.ekeyService.userID, this.ekeyService.lockAlias, eKey.account, '0', '0', eKey.email)) as sendEkeyResponse;
+        const response = await lastValueFrom(this.ekeyService.generateEmail(this.ekeyService.userID, this.ekeyService.lockAlias, eKey.account, '0', '0', eKey.email)) as sendEkeyResponse;
         if (response.emailContent) {
           this.popupService.createEkey = false;
           this.popupService.ekeySuccess = true;
@@ -262,7 +262,7 @@ async enviarEmail(eKey: { account: string; name: string; type: string; startDate
         let newEndDay = moment(eKey.endDatepicker).valueOf();
         let newStartDate = moment(newStartDay).add(this.lockService.transformarHora(eKey.startTimepicker), "milliseconds").valueOf();
         let newEndDate = moment(newEndDay).add(this.lockService.transformarHora(eKey.endTimepicker), "milliseconds").valueOf();
-        const response = await lastValueFrom(this.ekeyService.sendEmail(this.ekeyService.userID, Alias, eKey.account, newStartDate.toString(), newEndDate.toString(), eKey.email)) as sendEkeyResponse;
+        const response = await lastValueFrom(this.ekeyService.generateEmail(this.ekeyService.userID, Alias, eKey.account, newStartDate.toString(), newEndDate.toString(), eKey.email)) as sendEkeyResponse;
         if (response.emailContent) {
           this.popupService.createEkey = false;
           this.popupService.ekeySuccess = true;

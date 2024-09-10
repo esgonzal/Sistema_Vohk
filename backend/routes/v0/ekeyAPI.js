@@ -7,11 +7,11 @@ const { accessTokenStorage } = require('./accessTokenStorage');
 const TTLOCK_CLIENT_ID = 'c4114592f7954ca3b751c44d81ef2c7d';
 const TTLOCK_CLIENT_SECRET = '33b556bdb803763f2e647fc7a357dedf';
 const URL = 'https://api.vohkapp.com';
+//const URL = 'http://localhost:8080';
 
 router.post('/send', async(req, res) => {
     let { userID, lockID, recieverName, keyName, startDate, endDate, remoteEnable, keyRight, keyType, startDay, endDay, weekDays } = req.body;
     try {
-        console.log("body cuando llega a sendEkey", req.body)
         let date = Date.now()
         const storedData = accessTokenStorage[userID];
         const accessToken = storedData ? storedData.accessToken : null;
@@ -58,18 +58,18 @@ router.post('/send', async(req, res) => {
     }
 });
 
-router.post('/sendEmail', async(req, res) => {
+router.post('/generateEmail', async(req, res) => {
     let { userID, lockAlias, recieverName, startDate, endDate, email } = req.body;
     try {
-        console.log("body cuando llega a sendEmail", req.body);
         let emailResponse;
+        let toEmail;
         // Check if receiverName is email or phone
         const isEmail = isValidEmail(recieverName);
         const phone_pass = getLastSixDigits(recieverName);
         // Check if the account is new or old
         const isNewAccount = await checkIfNewAccount(recieverName); // Define this function based on your business logic
-        console.log("new ccount", isNewAccount)
         if (isEmail && isNewAccount) { //EMAIL NUEVO
+            toEmail = recieverName;
             if (endDate === '0') { //Permanent
                 let emailBody = { toEmail: recieverName, to: recieverName, from: userID, lock_alias: lockAlias, password: "il.com" };
                 emailResponse = await axios.post(URL.concat('/mail/eKeyPermanentNewUser'), emailBody)
@@ -80,6 +80,7 @@ router.post('/sendEmail', async(req, res) => {
                 emailResponse = await axios.post(URL.concat('/mail/eKeyPeriodicNewUser'), body)
             }
         } else if (!isEmail && isNewAccount) { //TELEFONO NUEVO
+            toEmail = email;
             if (endDate === '0') { //Permanent
                 let body = { toEmail: email, to: recieverName, from: userID, lock_alias: lockAlias, password: phone_pass };
                 emailResponse = await axios.post(URL.concat('/mail/eKeyPermanentNewUser'), body)
@@ -90,6 +91,7 @@ router.post('/sendEmail', async(req, res) => {
                 emailResponse = await axios.post(URL.concat('/mail/eKeyPeriodicNewUser'), body)
             }
         } else if (isEmail && !isNewAccount) { //EMAIL ANTIGUO
+            toEmail = recieverName;
             if (endDate === '0') { //Permanent
                 let emailBody = { toEmail: recieverName, to: recieverName, from: userID, lock_alias: lockAlias };
                 emailResponse = await axios.post(URL.concat('/mail/ekeyPermanent'), emailBody)
@@ -100,6 +102,7 @@ router.post('/sendEmail', async(req, res) => {
                 emailResponse = await axios.post(URL.concat('/mail/eKeyPeriodic'), body)
             }
         } else { //TELEFONO ANTIGUO
+            toEmail = email;
             if (endDate === '0') { //Permanent
                 let body = { toEmail: email, to: recieverName, from: userID, lock_alias: lockAlias };
                 emailResponse = await axios.post(URL.concat('/mail/ekeyPermanent'), body)
@@ -110,7 +113,7 @@ router.post('/sendEmail', async(req, res) => {
                 emailResponse = await axios.post(URL.concat('/mail/eKeyPeriodic'), body)
             }
         }
-        res.json({ emailContent: emailResponse.data.emailContent });
+        res.json({ emailContent: emailResponse.data.emailContent, toEmail: toEmail });
     } catch (error) {
         console.error(error);
         res.status(500).json({ errmsg: 'Error with sending email' });
@@ -244,7 +247,6 @@ router.post('/unfreeze', async(req, res) => {
 router.post('/modify', async(req, res) => {
     let { userID, keyID, newName, remoteEnable } = req.body;
     try {
-        console.log("modify: ", req.body)
         let date = Date.now()
         const storedData = accessTokenStorage[userID];
         const accessToken = storedData ? storedData.accessToken : null;
@@ -267,7 +269,6 @@ router.post('/modify', async(req, res) => {
             'https://euapi.ttlock.com/v3/key/update',
             ttlockData, { headers }
         );
-        console.log(ttlockResponse)
         res.json({ errcode: ttlockResponse.data.errcode, errmsg: ttlockResponse.data.errmsg });
     } catch (error) {
         console.error(error);
@@ -428,7 +429,6 @@ function getLastSixDigits(phoneNumber) {
     const lastSixDigits = numericPart.slice(-6);
     return lastSixDigits;
 }
-
 async function checkIfNewAccount(username) {
     const phonePass = getLastSixDigits(username);
     const checkAccountData = {
@@ -444,12 +444,10 @@ async function checkIfNewAccount(username) {
         'https://euapi.ttlock.com/oauth2/token',
         checkAccountData, { headers: checkAccountHeaders }
     );
-    console.log(checkAccountResponse.data)
     if (checkAccountResponse.data.hasOwnProperty('access_token')) {
         return true;
     } else {
         return false;
     }
 }
-
 module.exports = router;

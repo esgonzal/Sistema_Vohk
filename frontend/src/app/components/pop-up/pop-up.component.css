@@ -22,6 +22,16 @@
     z-index: 1003;
 }
 
+.container_sin_width {
+    width: 800px;
+    box-shadow: 5px 5px 4px rgba(19, 19, 19, 0.2);
+    border-radius: 10px;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    z-index: 1003;
+}
+
 .container_50 {
     width: 600px;
     box-shadow: 5px 5px 4px rgba(19, 19, 19, 0.2);

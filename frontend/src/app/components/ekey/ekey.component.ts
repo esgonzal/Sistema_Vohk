@@ -177,12 +177,12 @@ export class EkeyComponent implements OnInit {
       return 0;
     }
   }
-  botonGenerarEkey(datos: Formulario) {//Combina las validaciones con la creacion de eKey
+  async botonGenerarEkey(datos: Formulario) {//Combina las validaciones con la creacion de eKey
     if (this.validarInputs(datos)) {
       if (this.validarFechaInicio(datos.startDate, datos.startHour, datos.endDate, datos.endHour, datos.ekeyType)) {
         if (this.validaFechaUsuario(datos.endDate, datos.endHour, datos.ekeyType)) {
-          this.crearEkey(datos);
-          this.enviarEmail(datos);
+          await this.crearEkey(datos);
+          await this.generarEmail(datos);
         }
       }
     }
@@ -196,9 +196,7 @@ export class EkeyComponent implements OnInit {
           // Permanent eKey creation
           const sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, lock.id, lock.alias, datos.recieverName, datos.name, "0", "0", this.mapKeyRight(datos.keyRight), this.mapRemoteEnable(datos.remoteEnable), datos.email)) as sendEkeyResponse;
           if (sendEkeyResponse.keyId) {
-            //this.popupService.emailMessage = this.sanitizer.bypassSecurityTrustHtml(sendEkeyResponse.emailContent);
-            //this.popupService.emailSuccess = true;
-            console.log(sendEkeyResponse);
+            this.isLoading = false;
           } else if (sendEkeyResponse.errcode === 10003) {
             sessionStorage.clear();
           } else if (sendEkeyResponse.errcode === -2019) {
@@ -214,7 +212,7 @@ export class EkeyComponent implements OnInit {
           const newEndDate = moment(newEndDay).add(this.lockService.transformarHora(datos.endHour), "milliseconds").valueOf();
           const sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, lock.id, lock.alias, datos.recieverName, datos.name, newStartDate.toString(), newEndDate.toString(), this.mapKeyRight(datos.keyRight), this.mapRemoteEnable(datos.remoteEnable), datos.email)) as sendEkeyResponse;
           if (sendEkeyResponse.keyId) {
-            console.log(sendEkeyResponse);
+            this.isLoading = false;
           } else if (sendEkeyResponse.errcode === 10003) {
             sessionStorage.clear();
           } else if (sendEkeyResponse.errcode === -2019) {
@@ -224,64 +222,75 @@ export class EkeyComponent implements OnInit {
           }
         }
       }
-      this.isLoading = false;
       this.popupService.createEkey;
       //window.location.reload(); // Consider avoiding full page reload if possible
     } catch (error) {
       console.error("Error while creating Ekey:", error);
       this.isLoading = false;
+    } finally {
+      this.isLoading = false;
     }
   }
 
-  async enviarEmail(datos: Formulario) {
-    //console.log("entra a enviarEmail")
-    if (this.ekeyService.selectedLocks.length === 1) {
-      const Alias = this.ekeyService.selectedLocks[0].alias;
-      if (datos.ekeyType === '1') {
-        // Permanent eKey email
-        const response = await lastValueFrom(this.ekeyService.sendEmail(this.ekeyService.userID, Alias, datos.recieverName, '0', '0', datos.email)) as sendEkeyResponse;
-        if (response.emailContent) {
-          this.popupService.createEkey = false;
-          this.popupService.ekeySuccess = true;
-          //window.location.reload()
+  async generarEmail(datos: Formulario) {
+      if (this.ekeyService.selectedLocks.length === 1) {
+        const Alias = this.ekeyService.selectedLocks[0].alias;
+        if (datos.ekeyType === '1') {
+          // Permanent eKey email
+          const response = await lastValueFrom(this.ekeyService.generateEmail(this.ekeyService.userID, Alias, datos.recieverName, '0', '0', datos.email)) as sendEkeyResponse;
+          console.log(response)
+          if (response.emailContent) {
+            this.popupService.toEmail = response.toEmail;
+            this.popupService.emailMessage = response.emailContent;
+            this.popupService.emailSuccess = true;
+            //this.popupService.ekeySuccess = true;
+            //window.location.reload()
+          }
+        } else if (datos.ekeyType === '2') {
+          // Periodic eKey email
+          const newStartDay = moment(datos.startDate).valueOf();
+          const newEndDay = moment(datos.endDate).valueOf();
+          const newStartDate = moment(newStartDay).add(this.lockService.transformarHora(datos.startHour), "milliseconds").valueOf();
+          const newEndDate = moment(newEndDay).add(this.lockService.transformarHora(datos.endHour), "milliseconds").valueOf();
+          const response = await lastValueFrom(this.ekeyService.generateEmail(this.ekeyService.userID, Alias, datos.recieverName, newStartDate.toString(), newEndDate.toString(), datos.email)) as sendEkeyResponse;
+          if (response.emailContent) {
+            this.popupService.toEmail = response.toEmail;
+            this.popupService.emailMessage = response.emailContent;
+            this.popupService.emailSuccess = true;
+            //this.popupService.ekeySuccess = true;
+            //window.location.reload()
+          }
         }
-      } else if (datos.ekeyType === '2') {
-        // Periodic eKey email
-        const newStartDay = moment(datos.startDate).valueOf();
-        const newEndDay = moment(datos.endDate).valueOf();
-        const newStartDate = moment(newStartDay).add(this.lockService.transformarHora(datos.startHour), "milliseconds").valueOf();
-        const newEndDate = moment(newEndDay).add(this.lockService.transformarHora(datos.endHour), "milliseconds").valueOf();
-        const response = await lastValueFrom(this.ekeyService.sendEmail(this.ekeyService.userID, Alias, datos.recieverName, newStartDate.toString(), newEndDate.toString(), datos.email)) as sendEkeyResponse;
-        if (response.emailContent) {
-          this.popupService.createEkey = false;
-          this.popupService.ekeySuccess = true;
-          //window.location.reload()
+      } else {
+        const Alias = this.ekeyService.selectedLocks.map(lock => `\n<br>- ${lock.alias}`).join('<br>\n');
+  
+        if (datos.ekeyType === '1') {
+          // Permanent eKey email for multiple locks
+          const response = await lastValueFrom(this.ekeyService.generateEmail(this.ekeyService.userID, Alias, datos.recieverName, '0', '0', datos.email)) as sendEkeyResponse;
+          if (response.emailContent) {
+            console.log(response.emailContent)
+            this.popupService.toEmail = response.toEmail;
+            this.popupService.emailMessage = response.emailContent;
+            this.popupService.emailSuccess = true;
+            //this.popupService.ekeySuccess = true;
+            //window.location.reload()
+          }
+        } else if (datos.ekeyType === '2') {
+          // Periodic eKey email for multiple locks
+          const newStartDay = moment(datos.startDate).valueOf();
+          const newEndDay = moment(datos.endDate).valueOf();
+          const newStartDate = moment(newStartDay).add(this.lockService.transformarHora(datos.startHour), "milliseconds").valueOf();
+          const newEndDate = moment(newEndDay).add(this.lockService.transformarHora(datos.endHour), "milliseconds").valueOf();
+          const response = await lastValueFrom(this.ekeyService.generateEmail(this.ekeyService.userID, Alias, datos.recieverName, newStartDate.toString(), newEndDate.toString(), datos.email)) as sendEkeyResponse;
+          if (response.emailContent) {
+            this.popupService.toEmail = response.toEmail;
+            this.popupService.emailMessage = response.emailContent;
+            this.popupService.emailSuccess = true;
+            //this.popupService.ekeySuccess = true;
+            //window.location.reload()
+          }
         }
       }
-    } else {
-      const Alias = this.ekeyService.selectedLocks.map(lock => `- ${lock.alias}`).join('<br>');
-      if (datos.ekeyType === '1') {
-        // Permanent eKey email for multiple locks
-        const response = await lastValueFrom(this.ekeyService.sendEmail(this.ekeyService.userID, Alias, datos.recieverName, '0', '0', datos.email)) as sendEkeyResponse;
-        if (response.emailContent) {
-          this.popupService.createEkey = false;
-          this.popupService.ekeySuccess = true;
-          //window.location.reload()
-        }
-      } else if (datos.ekeyType === '2') {
-        // Periodic eKey email for multiple locks
-        const newStartDay = moment(datos.startDate).valueOf();
-        const newEndDay = moment(datos.endDate).valueOf();
-        const newStartDate = moment(newStartDay).add(this.lockService.transformarHora(datos.startHour), "milliseconds").valueOf();
-        const newEndDate = moment(newEndDay).add(this.lockService.transformarHora(datos.endHour), "milliseconds").valueOf();
-        const response = await lastValueFrom(this.ekeyService.sendEmail(this.ekeyService.userID, Alias, datos.recieverName, newStartDate.toString(), newEndDate.toString(), datos.email)) as sendEkeyResponse;
-        if (response.emailContent) {
-          this.popupService.createEkey = false;
-          this.popupService.ekeySuccess = true;
-          //window.location.reload()
-        }
-      }
-    }
   }
   openLockSelector() {
     this.popupService.selectLocksForEkey = true;

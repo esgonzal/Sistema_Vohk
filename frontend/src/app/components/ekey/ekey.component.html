@@ -1,4 +1,5 @@
 <div class="pagina_completa" *ngIf="this.popupService.createEkey" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <app-loader [loader]="isLoading"></app-loader>
     <div class="form-area">
         <div class="multipleButton">
             <button (click)="toMultipleEkeys()" title="Crear más de una eKey al mismo tiempo para la(s) cerradura(s) designada(s)">Generar múltiples

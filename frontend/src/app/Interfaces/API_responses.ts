@@ -49,6 +49,8 @@ export interface sendEkeyResponse {
     description: string;
     keyId: number;
     emailContent: string;
+    toEmail: string;
+    success: boolean;
 }
 export interface createPasscodeResponse {
     errcode: number;

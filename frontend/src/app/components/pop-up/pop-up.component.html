@@ -357,16 +357,18 @@
         <button (click)="popupService.cardReader=false">Volver</button>
     </div>
 </div>
-<div class="container" *ngIf="popupService.emailSuccess" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+<div class="container_sin_width" *ngIf="popupService.emailSuccess" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
     <div class="header">
-        La eKey fue enviada correctamente
+        Se enviará el siguiente correo al usuario
     </div>
     <div id="content" style="background-color: rgb(245, 245, 245);">
-        <div [innerHTML]="popupService.emailMessage"></div>
+        <textarea [(ngModel)]="emailMessage" rows="10" cols="50"></textarea>
+        <!-- <div [innerHTML]="popupService.emailMessage"></div> -->
     </div>
     <div id="actions">
+        <button (click)="cancelEmail()">Volver</button>
         <button (click)="copyToClipboard()">Copiar mensaje</button>
-        <button (click)="closeEmailPopup()">Ok</button>
+        <button (click)="saveEmail()">Confirmar</button>
     </div>
     <div *ngIf="isCopied" class="confirmation-message">
         El mensaje fue copiado.
@@ -615,68 +617,3 @@
         <button (click)="popupService.esencial= false">Ok</button>
     </div>
 </div>
-
-
-
-<!--
-<div id="container" *ngIf="popupService.cerradoAutomatico">
-    <div id="header">
-        Cierre Automático
-    </div>
-    <div id="content">
-        <div class="linea_alternative">
-            <span class="input-container">
-                Cierre Automático
-            </span>
-            <span class="input-container">
-                <mat-slide-toggle [(ngModel)]="autoLockToggle"
-                    (change)="autoLockToggleChange($event)"></mat-slide-toggle>
-            </span>
-        </div>
-        <div class="linea_alternative" *ngIf="autoLockToggle">
-            Tiempo
-            <span class="input-container">
-                <select #types name="autoLockTime" (change)="onSelected(types.value)" [(ngModel)]="selectedType"
-                    style="width: 202px; height: 35px;">
-                    <option value="1">5 segundos</option>
-                    <option value="2">10 segundos</option>
-                    <option value="3">15 segundos</option>
-                    <option value="4">30 segundos</option>
-                    <option value="5">60 segundos</option>
-                    <option value="6">Personalizado</option>
-                </select>
-            </span>
-        </div>
-        <div class="linea_alternative" *ngIf="autoLockToggle">
-            <div>
-
-            </div>
-            <span class="input-container" *ngIf="selectedType === '6'">
-                <input type="number" class="form-input" name="name" [(ngModel)]="customAutoLockTime" ngModel />
-            </span>
-        </div>
-    </div>
-    <p class="error">{{error}}</p>
-    <div id="actions">
-        <button (click)="popupService.cerradoAutomatico = false">Cancelar</button>
-        <button (click)="cambiarAutoLock()">Ok</button>
-    </div>
-</div>
-<div id="container" *ngIf="popupService.mostrarHora">
-    <div id="header">
-        Hora del dispositvo
-    </div>
-    <div id="content">
-        <div class="linea_alternative">
-            Tiempo Actual
-            <span class="input-container">
-                {{formatearHora()}}
-            </span>
-        </div>
-    </div>
-    <div id="actions">
-        <button (click)="ajustarHora()">Ajustar Hora</button>
-        <button (click)="popupService.mostrarHora = false">Ok</button>
-    </div>
-</div>
--->iv> -->

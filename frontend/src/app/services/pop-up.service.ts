@@ -81,6 +81,7 @@ export class PopUpService {
   remoteEnable: number;
   records: Record[] = [];
   endDateUser: string;
+  toEmail: string;
 
   toggleLockSelection(lockId: number, lockAlias: string) {
     const index = this.selectedLockIds_forMultipleEkeys.findIndex(lock => lock.id === lockId);
