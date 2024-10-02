@@ -40,23 +40,22 @@ async function obtenerDatosElemento(pulseId) {
 
 // Ruta para procesar el webhook desde Monday.com
 router.post('/', async(req, res) => {
-    // Obtener los datos que llegan del webhook de Monday.com
     const data = req.body;
-
-    // Imprimir los datos para asegurarse de que están llegando correctamente
-    console.log('Datos recibidos del webhook:', data);
-    // Obtén los ids del board y del elemento (pulse)
-    const pulseId = data.event.pulseId;
-
-    try {
-        const itemData = await obtenerDatosElemento(pulseId);
-        console.log(itemData);
-
-    } catch (error) {
-        console.error('Error procesando la solicitud:', error);
-        res.status(500).send('Error procesando la solicitud');
+    if (data.challenge) {
+        // Devolver el challenge recibido
+        res.status(200).send({ challenge: data.challenge });
+    } else {
+        // Si no es un challenge, puedes procesar otros datos del webhook aquí
+        console.log('Datos recibidos del webhook:', data);
+        const pulseId = data.event.pulseId;
+        try {
+            const itemData = await obtenerDatosElemento(pulseId);
+            console.log(itemData);
+        } catch (error) {
+            console.error('Error procesando la solicitud:', error);
+            res.status(500).send('Error procesando la solicitud');
+        }
     }
-
 });
 
 module.exports = router;
