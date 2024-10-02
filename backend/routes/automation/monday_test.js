@@ -56,13 +56,12 @@ router.post('/', async(req, res) => {
         try {
             const itemData = await obtenerDatosElemento(pulseId);
             console.log(itemData);
-            const commentColumn = itemData.column_values.find(col => col.title === 'Comentario');
-            const comment = commentColumn ? commentColumn.text : '';
+            const startDate = formatDate(data.event.triggerTime); // Formato de fecha
+            const endDate = formatDate(data.event.triggerTime);
 
-            const addressColumn = itemData.column_values.find(col => col.title === 'Dirección');
-            const address = addressColumn ? addressColumn.text : '';
-            console.log("comentario: ", comment)
-            console.log("address: ", address)
+
+            console.log("comentario: ", startDate)
+            console.log("address: ", endDate)
             res.status(200).send('Webhook recibido');
         } catch (error) {
             console.error('Error procesando la solicitud:', error);
