@@ -3,7 +3,7 @@ const axios = require('axios');
 const router = express.Router();
 
 // Define tu token de API de Monday.com
-const MONDAY_API_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjQxMTQ2Njk1OSwiYWFpIjoxMSwidWlkIjo2NjIwMTYyNSwiaWFkIjoiMjAyNC0wOS0xNlQyMDoyMDozNy4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MjU0OTM0MzksInJnbiI6InVzZTEifQ.fNmvWweIy7JWcaOWhggW_HbIc_hJk6weiuM_-HjGys8';
+const MONDAY_API_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjQxODQ0NDM2MSwiYWFpIjoxMSwidWlkIjo2Njg1Nzc0MiwiaWFkIjoiMjAyNC0xMC0wMlQxMzoxNjo1Ny41MTZaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MjU3NzE2MjQsInJnbiI6InVzZTEifQ.xSFp7Dl1hEqHj9vvijISAVTJpEJtZrse8JDdp0P3FqU';
 
 async function obtenerDatosElemento(pulseId) {
     const query = `
