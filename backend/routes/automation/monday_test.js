@@ -27,15 +27,19 @@ async function obtenerDatosElemento(pulseId) {
                 },
             }
         );
-
-        // Imprimir la respuesta de la API para depuración
-        console.log('Respuesta de la API de Monday:', response.data);
-
         const itemData = response.data.data.items[0]; // Cambia aquí para acceder al primer elemento
         return itemData;
     } catch (error) {
         console.error('Error obteniendo datos del elemento:', error.response ? error.response.data : error.message);
     }
+}
+
+function formatDate(isoDate) {
+    const date = new Date(isoDate);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Los meses en JS son base 0
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
 }
 
 // Ruta para procesar el webhook desde Monday.com
@@ -51,6 +55,7 @@ router.post('/', async(req, res) => {
         try {
             const itemData = await obtenerDatosElemento(pulseId);
             console.log(itemData);
+            res.status(200).send('Webhook recibido');
         } catch (error) {
             console.error('Error procesando la solicitud:', error);
             res.status(500).send('Error procesando la solicitud');
