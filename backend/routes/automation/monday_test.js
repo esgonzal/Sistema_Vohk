@@ -28,6 +28,7 @@ async function obtenerDatosElemento(pulseId) {
                 },
             }
         );
+        console.log(response.data);
         const itemData = response.data.data.items[0]; // Cambia aquí para acceder al primer elemento
         return itemData;
     } catch (error) {
@@ -55,7 +56,6 @@ router.post('/', async(req, res) => {
         const pulseId = data.event.pulseId;
         try {
             const itemData = await obtenerDatosElemento(pulseId);
-            console.log(itemData);
             const startDate = formatDate(data.event.triggerTime); // Formato de fecha
             const endDate = formatDate(data.event.triggerTime);
 
