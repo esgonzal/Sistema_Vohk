@@ -2,6 +2,8 @@ const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 
+
+
 // Define tu token de API de Monday.com
 const MONDAY_API_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjQxODQ0NDM2MSwiYWFpIjoxMSwidWlkIjo2Njg1Nzc0MiwiaWFkIjoiMjAyNC0xMC0wMlQxMzoxNjo1Ny41MTZaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MjU3NzE2MjQsInJnbiI6InVzZTEifQ.xSFp7Dl1hEqHj9vvijISAVTJpEJtZrse8JDdp0P3FqU';
 
@@ -12,8 +14,10 @@ async function obtenerDatosElemento(pulseId) {
                 name
                 column_values {
                     id
-                    title
                     text
+                    column {
+                        title
+                    }
                 }
             }
         }
@@ -58,10 +62,21 @@ router.post('/', async(req, res) => {
             const itemData = await obtenerDatosElemento(pulseId);
             const startDate = formatDate(data.event.triggerTime); // Formato de fecha
             const endDate = formatDate(data.event.triggerTime);
+            let direccion = '';
+            let comentario = '';
+            const direccionCol = itemData.column_values.find(col => col.column && col.column.title === 'Direccion');
+            if (direccionCol) {
+                direccion = direccionCol.text || '';
+            }
+            const comentarioCol = itemData.column_values.find(col => col.column && col.column.title === 'Comentario');
+            if (comentarioCol) {
+                comentario = comentarioCol.text || '';
+            }
 
-
-            console.log("comentario: ", startDate)
-            console.log("address: ", endDate)
+            console.log("direccion: ", direccion)
+            console.log("comentario: ", comentario)
+            console.log("start: ", startDate)
+            console.log("end: ", endDate)
             res.status(200).send('Webhook recibido');
         } catch (error) {
             console.error('Error procesando la solicitud:', error);
