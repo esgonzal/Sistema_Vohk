@@ -12,6 +12,7 @@ async function obtenerDatosElemento(pulseId) {
                 name
                 column_values {
                     id
+                    title
                     text
                 }
             }
@@ -50,11 +51,18 @@ router.post('/', async(req, res) => {
         res.status(200).send({ challenge: data.challenge });
     } else {
         // Si no es un challenge, puedes procesar otros datos del webhook aquí
-        console.log('Datos recibidos del webhook:', data);
+        // console.log('Datos recibidos del webhook:', data);
         const pulseId = data.event.pulseId;
         try {
             const itemData = await obtenerDatosElemento(pulseId);
             console.log(itemData);
+            const commentColumn = itemData.column_values.find(col => col.title === 'Comentario');
+            const comment = commentColumn ? commentColumn.text : '';
+
+            const addressColumn = itemData.column_values.find(col => col.title === 'Dirección');
+            const address = addressColumn ? addressColumn.text : '';
+            console.log("comentario: ", comment)
+            console.log("address: ", address)
             res.status(200).send('Webhook recibido');
         } catch (error) {
             console.error('Error procesando la solicitud:', error);
