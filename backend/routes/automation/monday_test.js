@@ -2,6 +2,9 @@ const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 const MONDAY_API_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjQxODQ0NDM2MSwiYWFpIjoxMSwidWlkIjo2Njg1Nzc0MiwiaWFkIjoiMjAyNC0xMC0wMlQxMzoxNjo1Ny41MTZaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MjU3NzE2MjQsInJnbiI6InVzZTEifQ.xSFp7Dl1hEqHj9vvijISAVTJpEJtZrse8JDdp0P3FqU';
+const USER = 'XBKEscqiybHhdkbT5KZ1d4Nh';
+const COMPANY = 'CX67HbYo9xKSaW1YNZ5x2KUV';
+
 
 async function obtenerDatosElemento(pulseId) {
     const query = `
@@ -72,8 +75,8 @@ async function enviarDatosAPI(startDate, endDate, comentario, direccion) {
         const response = await axios.post('https://api.relbase.cl/api/v1/dtes', data, {
             headers: {
                 'accept': 'application/json',
-                'Authorization': 'XBKEscqiybHhdkbT5KZ1d4Nh',
-                'Company': 'CX67HbYo9xKSaW1YNZ5x2KUV',
+                'Authorization': USER,
+                'Company': COMPANY,
                 'Content-Type': 'application/json'
             }
         });
@@ -82,6 +85,27 @@ async function enviarDatosAPI(startDate, endDate, comentario, direccion) {
         console.error('Error al enviar la solicitud a la API:', error.response ? error.response.data : error.message);
     }
 }
+
+async function getClientes(query, page = 1) {
+    try {
+        const response = await axios.get('https://api.relbase.cl/api/v1/clientes', {
+            params: {
+                query: query,
+                page: page
+            },
+            headers: {
+                'accept': 'application/json',
+                'Authorization': USER,
+                'Company': COMPANY
+            }
+        });
+        console.log('Clientes encontrados:', response.data.data.customers);
+        return response.data;
+    } catch (error) {
+        console.error('Error al consultar la API de Relbase:', error.response ? error.response.data : error.message);
+    }
+}
+//getClientes('Ocasional');
 
 router.post('/', async(req, res) => {
     const data = req.body;
@@ -104,7 +128,7 @@ router.post('/', async(req, res) => {
                 comentario = comentarioCol.text || '';
             }
 
-            const relbaseData = await enviarDatosAPI(startDate, endDate, comentario, direccion);
+            //const relbaseData = await enviarDatosAPI(startDate, endDate, comentario, direccion);
             res.status(200).send('Webhook recibido');
         } catch (error) {
             console.error('Error procesando la solicitud:', error);

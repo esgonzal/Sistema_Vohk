@@ -425,9 +425,8 @@ function isValidPhone(phone) {
 }
 
 function getLastSixDigits(phoneNumber) {
-    const numericPart = phoneNumber.replace(/\D/g, '');
-    const lastSixDigits = numericPart.slice(-6);
-    return lastSixDigits;
+    const lastSixChars = phoneNumber.slice(-6);
+    return lastSixChars;
 }
 async function checkIfNewAccount(username) {
     const phonePass = getLastSixDigits(username);
@@ -445,6 +444,7 @@ async function checkIfNewAccount(username) {
         checkAccountData, { headers: checkAccountHeaders }
     );
     if (checkAccountResponse.data.hasOwnProperty('access_token')) {
+        console.log("Cuenta nueva");
         return true;
     } else {
         return false;

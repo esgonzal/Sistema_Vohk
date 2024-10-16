@@ -149,9 +149,8 @@ export class MultipleEkeyComponent implements OnInit {
     }
     if (this.error === '') {
       for (const eKey of eKeys) {
-        console.log("creando la ekey : ", eKey)
         await this.crearEkey(eKey);
-	await this.enviarEmail(eKey);
+	      await this.enviarEmail(eKey);
       }
       this.router.navigate(["users", this.ekeyService.username, "lock", this.ekeyService.lockID]);
     }
@@ -251,7 +250,11 @@ async enviarEmail(eKey: { account: string; name: string; type: string; startDate
       if (eKey.type === '1') {
         // Permanent eKey email
         const response = await lastValueFrom(this.ekeyService.generateEmail(this.ekeyService.userID, this.ekeyService.lockAlias, eKey.account, '0', '0', eKey.email)) as sendEkeyResponse;
+        //console.log(response) (emailContent y toEmail)
         if (response.emailContent) {
+          const updatedHtml = response.emailContent;
+          let sendEmailResponse = await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, updatedHtml));
+          //console.log(sendEmailResponse); (success)
           this.popupService.createEkey = false;
           this.popupService.ekeySuccess = true;
           //window.location.reload()
