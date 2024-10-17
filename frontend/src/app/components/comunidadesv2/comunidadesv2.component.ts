@@ -46,6 +46,7 @@ export class Comunidadesv2Component implements OnInit {
     await this.fetchGroups();
     await this.getLocksWithoutGroup();
     let lockResponse = await lastValueFrom(this.lockService.getLockListAccount(this.userID)) as LockListResponse;
+    //console.log(lockResponse)
     this.lockService.adminLocks = lockResponse.list;
     let gatewayResponse = await lastValueFrom(this.gatewayService.getGatewaysAccount(this.userID, 1, 100)) as GatewayAccountResponse;
     this.gatewayService.gateways = gatewayResponse.list;
@@ -106,7 +107,7 @@ export class Comunidadesv2Component implements OnInit {
       if (this.groups[targetGroupIndex].locks.length === 0) {
         while (true) {
           let response = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.userID, pageNo, pageSize, clickedGroup.groupId)) as LockListResponse;
-          console.log(response)
+          //console.log(response)
           if (response.list && response.list.length > 0) {
             lockCount += response.list.length;
             this.groups[targetGroupIndex].locks.push(...response.list);

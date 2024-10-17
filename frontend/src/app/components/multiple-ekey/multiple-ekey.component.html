@@ -4,6 +4,13 @@
         <h2 style="margin-bottom: 50px">
             Ingrese los datos para generar eKeys
         </h2>
+        <div class="botones">
+            <!-- Botón para subir archivo -->
+            <button class="import" (click)="fileInput.click()">Importar desde Archivo</button>
+            <!-- Input oculto para cargar el archivo -->
+            <input type="file" #fileInput (change)="onFileSelected($event)" accept=".xlsx, .xls, .csv" style="display: none;" />
+            <button class="addLocks" (click)="openLockSelector()">Añadir cerraduras</button>
+        </div>
         <table class="ekey-table">
             <thead>
                 <tr>
@@ -75,7 +82,7 @@
         </table>
         <p class="error">{{error}}</p>
         <button class="form-button" (click)="addEKey()">Agregar eKey</button>
-        <button class="form-button" (click)="validarInputs(eKeys)">Generar</button>
+        <button class="form-button" (click)="validarInputs2(eKeys)">Generar</button>
     </div>
 </div>
-<app-pop-up *ngIf="this.popupService.selectLocksForMultipleEkeys || this.popupService.addRecipientsForMultipleEkeys" style="z-index: 10"></app-pop-up>
+<app-pop-up *ngIf="this.popupService.selectLocksForMultipleEkeys || this.popupService.addRecipientsForMultipleEkeys || this.popupService.selectLocksForEkey" style="z-index: 10"></app-pop-up>

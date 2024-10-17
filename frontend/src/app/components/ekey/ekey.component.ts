@@ -263,7 +263,6 @@ export class EkeyComponent implements OnInit {
         }
       } else {
         const Alias = this.ekeyService.selectedLocks.map(lock => `\n<br>- ${lock.alias}`).join('<br>\n');
-  
         if (datos.ekeyType === '1') {
           // Permanent eKey email for multiple locks
           const response = await lastValueFrom(this.ekeyService.generateEmail(this.ekeyService.userID, Alias, datos.recieverName, '0', '0', datos.email)) as sendEkeyResponse;

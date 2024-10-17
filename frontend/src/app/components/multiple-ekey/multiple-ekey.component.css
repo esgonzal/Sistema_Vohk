@@ -54,6 +54,24 @@
     border: 1px solid black;
 }
 
+.botones {
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.import {
+    border-radius: 20px;
+    border: 1px solid black;
+    background-color: #F5C754;
+}
+
+.addLocks {
+    height: 30px;
+    border-radius: 20px;
+    border: 1px solid black;
+    background-color: #F5C754;
+}
+
 .error {
     color: red;
     font-size: 12px;
