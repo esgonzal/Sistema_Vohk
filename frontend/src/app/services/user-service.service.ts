@@ -55,7 +55,8 @@ export class UserServiceService {
   }
   
   isValidEmail(email: string): boolean {//Verifica si el nombre del destinatario es un email o no
-    const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+    const emailPattern = /^[a-zA-Z0-9._-ñÑáéíóúÁÉÍÓÚ]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+
     return emailPattern.test(email);
   }
   isValidPhone(phone: string): { isValid: boolean, country?: string } {

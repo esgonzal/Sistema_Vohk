@@ -13,6 +13,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { faHome, faLock, faKey, faPerson, faPeopleGroup } from '@fortawesome/free-solid-svg-icons'
 import { DarkModeService } from 'src/app/services/dark-mode.service';
 import * as XLSX from 'xlsx';
+//import * as XLSX from 'xlsx-style';
 
 @Component({
   selector: 'app-multiple-ekey',
@@ -263,10 +264,10 @@ export class MultipleEkeyComponent implements OnInit {
       }
     }
     if (this.error === '') {
-        for (const eKey of eKeys) {
-          await this.crearEkey2(eKey);
-          await this.enviarEmail2(eKey);
-        }
+      for (const eKey of eKeys) {
+        await this.crearEkey2(eKey);
+        await this.enviarEmail2(eKey);
+      }
       this.router.navigate(["users", this.ekeyService.username, "lock", this.ekeyService.lockID]);
     }
   }
@@ -307,7 +308,7 @@ export class MultipleEkeyComponent implements OnInit {
           }
         }
       }
-      
+
     } catch (error) {
       console.error("Error while creating Ekey:", error);
     } finally {
@@ -374,12 +375,59 @@ export class MultipleEkeyComponent implements OnInit {
           //window.location.reload()
         }
       }
-    } 
-    
-    
+    }
+
+
   }
   openLockSelector() {
     this.popupService.selectLocksForEkey = true;
+  }
+  downloadExcelTemplate(): void {
+    // Crear un libro de trabajo
+    const workbook = XLSX.utils.book_new();
+    const headerStyle = {
+      fill: {
+        fgColor: { rgb: "FFDDDDDD" }, // Color de fondo (gris claro)
+      },
+      font: {
+        bold: true, // Negrita
+      },
+      alignment: {
+        horizontal: "center", // Centrar el texto
+      },
+      border: {
+        top: { style: "thin", color: { rgb: "000000" } },
+        bottom: { style: "thin", color: { rgb: "000000" } },
+        left: { style: "thin", color: { rgb: "000000" } },
+        right: { style: "thin", color: { rgb: "000000" } },
+      }
+    };
+    // Crear una hoja de trabajo con los datos deseados
+    const worksheetData = [
+      [], // Línea 1: Vacía
+      ["", "N° DEPTO", "NOMBRE", "TELEFONO", "EMAIL"], // Línea 2
+      ["", "", "", "+56", ""] // Línea 3: Formato de ejemplo para Teléfono
+    ];
+    // Crear la hoja a partir de los datos
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+    const headerCells = ["B2", "C2", "D2", "E2"]; // Celdas del encabezado
+    headerCells.forEach(cell => {
+        worksheet[cell].s = headerStyle; // Aplicar estilo a cada celda del encabezado
+    });
+    // Agregar la hoja al libro de trabajo
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Plantilla");
+    // Generar el archivo Excel y disparar la descarga
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Plantilla.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
   }
   onFileSelected(event: Event): void {
     const target = event.target as HTMLInputElement;
@@ -401,20 +449,23 @@ export class MultipleEkeyComponent implements OnInit {
     }
   }
   private processExcelData(data: any[]) {
+
     // Comenzar desde la fila 3 (índice 2)
-    for (let i = 2; i < data.length; i++) {
+    for (let i = 1; i < data.length; i++) {
       const row = data[i];
 
+
       // Asegurarse de que la fila tenga suficientes datos
-      if (row.length >= 5) {
-        const department = row[1]; // B: Departamento
-        const ownerName = row[2]; // C: Nombre Propietario
-        const email = row[3]; // D: Correo
-        const phoneNumber = row[4]; // E: N° Telefono
+      if (row.length >= 4) {
+        const department = row[0]; // B: Departamento
+        const ownerName = row[1]; // C: Nombre Propietario
+        const phoneNumber = row[2]; // D: N° Telefono
+        const email = row[3]; // E: Correo
 
         // Crear el objeto de eKey según el formato requerido
+        const formattedPhoneNumber = phoneNumber.replace(/\s+/g, '');
         const eKey = {
-          account: `+56${phoneNumber}`, // Cuenta de Destino
+          account: `+${formattedPhoneNumber}`, // Cuenta de Destino
           name: `${ownerName} - ${department}`, // Nombre de Ekey
           type: '1', // Tipo: 1 (Permanente)
           email: email // Correo
@@ -428,7 +479,7 @@ export class MultipleEkeyComponent implements OnInit {
     console.log(this.eKeys); // Ver los eKeys en la consola
   }
 
-  
+
 
 
 

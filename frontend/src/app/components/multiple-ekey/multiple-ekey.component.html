@@ -7,6 +7,8 @@
         <div class="botones">
             <!-- Botón para subir archivo -->
             <button class="import" (click)="fileInput.click()">Importar desde Archivo</button>
+            <!-- Botón para descargar formato de excel -->
+            <button class="import" (click)="downloadExcelTemplate()">Descargar Plantilla de Excel</button>
             <!-- Input oculto para cargar el archivo -->
             <input type="file" #fileInput (change)="onFileSelected($event)" accept=".xlsx, .xls, .csv" style="display: none;" />
             <button class="addLocks" (click)="openLockSelector()">Añadir cerraduras</button>
