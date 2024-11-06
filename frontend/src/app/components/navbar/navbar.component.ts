@@ -4,8 +4,6 @@ import { lastValueFrom } from 'rxjs';
 import { logoutResponse } from 'src/app/Interfaces/API_responses';
 import { UserServiceService } from 'src/app/services/user-service.service';
 import { DarkModeService } from '../../services/dark-mode.service';
-import { faHome } from '@fortawesome/free-solid-svg-icons'
-import { LockServiceService } from '../../services/lock-service.service';
 import { PopUpService } from '../../services/pop-up.service';
 
 @Component({
@@ -18,14 +16,12 @@ export class NavbarComponent implements OnInit {
   nickname= '';
   dataLoaded = false;
   darkMode: boolean;
-  faHome = faHome;
   isMobileView: boolean = window.innerWidth <= 600; 
 
   constructor(
     private router: Router,
     private userService: UserServiceService,
     private DarkModeService: DarkModeService,
-    private lockService: LockServiceService,
     public popupService: PopUpService) { }
     
   ngOnInit(): void {
@@ -55,10 +51,7 @@ export class NavbarComponent implements OnInit {
     this.router.navigate(['users', this.returnNombre(), 'perfil']);
   }
   TransferirLock() {
-    //this.lockService.userID = this.userID;
-    //this.lockService.lockID = this.lockId;
     this.popupService.transferLock = true;
-    //this.router.navigate(["users", this.username, "lock", this.lockId, "transferLock"]);
   }
   TransferirHub() {
     this.popupService.transferHub = true;

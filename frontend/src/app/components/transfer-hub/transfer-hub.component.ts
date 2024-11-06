@@ -2,8 +2,6 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 import { operationResponse } from 'src/app/Interfaces/API_responses';
-import { EkeyServiceService } from 'src/app/services/ekey-service.service';
-import { LockServiceService } from 'src/app/services/lock-service.service';
 import { PopUpService } from 'src/app/services/pop-up.service';
 import { UserServiceService } from 'src/app/services/user-service.service';
 import { DarkModeService } from '../../services/dark-mode.service';
@@ -20,8 +18,6 @@ export class TransferHubComponent {
   constructor(
     private userService: UserServiceService,
     public popupService: PopUpService,
-    private lockService: LockServiceService,
-    private ekeyService: EkeyServiceService,
     public DarkModeService: DarkModeService,
     private gatewayService: GatewayService,
     private router: Router) { }

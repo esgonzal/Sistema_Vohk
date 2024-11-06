@@ -3,7 +3,6 @@ import { PassageModeService } from '../../services/passage-mode.service';
 import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 import { operationResponse } from 'src/app/Interfaces/API_responses';
-import { faHome, faLock, faWalking } from '@fortawesome/free-solid-svg-icons'
 import { DarkModeService } from '../../services/dark-mode.service';
 import { PopUpService } from 'src/app/services/pop-up.service';
 
@@ -35,9 +34,6 @@ export class PassageModeComponent implements OnInit {
   endHour: string = '';
   error: string = '';
   isLoading: boolean = false;
-  faHome = faHome;
-  faLock = faLock;
-  faWalking = faWalking
 
   ngOnInit(): void {
     this.updateValues()

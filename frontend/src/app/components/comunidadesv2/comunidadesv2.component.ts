@@ -8,10 +8,10 @@ import { LockData } from 'src/app/Interfaces/Lock';
 import { EkeyServiceService } from 'src/app/services/ekey-service.service';
 import { GroupService } from 'src/app/services/group.service';
 import { PopUpService } from 'src/app/services/pop-up.service';
-import { faHome } from '@fortawesome/free-solid-svg-icons'
 import { DarkModeService } from '../../services/dark-mode.service';
 import { LockServiceService } from 'src/app/services/lock-service.service';
 import { GatewayService } from 'src/app/services/gateway.service';
+import { faHome } from '@fortawesome/free-solid-svg-icons'
 
 @Component({
   selector: 'app-comunidadesv2',
@@ -20,12 +20,12 @@ import { GatewayService } from 'src/app/services/gateway.service';
 })
 export class Comunidadesv2Component implements OnInit {
 
+  faHome = faHome;
   isLoading: boolean = false;
   userID = sessionStorage.getItem('user') ?? '';
   groups: Group[] = [];
   groupsFiltrados: Group[] = [];
   locksWithoutGroup: LockData[] = [];
-  faHome = faHome
   visibleGroups: { [groupId: string]: boolean } = {};
   cols: number = 4;
   chosenGroup: Group

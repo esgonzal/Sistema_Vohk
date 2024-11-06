@@ -1,19 +1,15 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import moment from 'moment';
-import { Formulario } from '../../Interfaces/Formulario';
 import { EkeyServiceService } from '../../services/ekey-service.service';
-import { RecipientList } from '../../Interfaces/RecipientList';
 import { PopUpService } from '../../services/pop-up.service';
 import { LockServiceService } from '../../services/lock-service.service';
-import { lastValueFrom, retry } from 'rxjs';
+import { lastValueFrom } from 'rxjs';
 import { UserServiceService } from '../../services/user-service.service';
-import { checkUserInDBResponse, sendEkeyResponse, UserRegisterResponse } from '../../Interfaces/API_responses';
+import { sendEkeyResponse } from '../../Interfaces/API_responses';
 import { DomSanitizer } from '@angular/platform-browser';
-import { faHome, faLock, faKey, faPerson, faPeopleGroup } from '@fortawesome/free-solid-svg-icons'
 import { DarkModeService } from 'src/app/services/dark-mode.service';
 import * as XLSX from 'xlsx';
-//import * as XLSX from 'xlsx-style';
 
 @Component({
   selector: 'app-multiple-ekey',
@@ -26,12 +22,6 @@ export class MultipleEkeyComponent implements OnInit {
   isLoading: boolean = false;
   error = "";
   eKeys: any[] = [];
-  results: any[] = [];
-  faHome = faHome;
-  faLock = faLock;
-  faKey = faKey;
-  faPerson = faPerson
-  faPeopleGroup = faPeopleGroup
   aliases = "";
 
   constructor(private router: Router,

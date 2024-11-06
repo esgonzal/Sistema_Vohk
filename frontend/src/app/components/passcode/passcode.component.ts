@@ -7,7 +7,6 @@ import { LockServiceService } from '../../services/lock-service.service';
 import { PopUpService } from '../../services/pop-up.service';
 import { createPasscodeResponse } from '../../Interfaces/API_responses';
 import { lastValueFrom } from 'rxjs';
-import { faHome, faLock, faHashtag } from '@fortawesome/free-solid-svg-icons'
 import { DarkModeService } from 'src/app/services/dark-mode.service';
 
 @Component({
@@ -24,9 +23,6 @@ export class PasscodeComponent{
     }
    }
   
-  faHome = faHome;
-  faLock = faLock;
-  faHashtag = faHashtag
   isLoading: boolean = false;
   howManyHours = '';
   error = '';

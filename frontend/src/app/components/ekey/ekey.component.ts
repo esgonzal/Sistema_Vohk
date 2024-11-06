@@ -5,11 +5,10 @@ import { lastValueFrom } from 'rxjs';
 import { UserServiceService } from '../../services/user-service.service';
 import { LockServiceService } from '../../services/lock-service.service';
 import { EkeyServiceService } from '../../services/ekey-service.service';
-import { LockListResponse, UserRegisterResponse, sendEkeyResponse } from '../../Interfaces/API_responses'
+import { LockListResponse, sendEkeyResponse } from '../../Interfaces/API_responses'
 import { Formulario } from '../../Interfaces/Formulario';
 import { PopUpService } from 'src/app/services/pop-up.service';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { faHome, faLock, faPerson } from '@fortawesome/free-solid-svg-icons'
+import { DomSanitizer } from '@angular/platform-browser';
 import { LockData } from '../../Interfaces/Lock';
 import { DarkModeService } from '../../services/dark-mode.service';
 
@@ -21,9 +20,6 @@ import { DarkModeService } from '../../services/dark-mode.service';
 })
 export class EkeyComponent implements OnInit {
 
-  faHome = faHome;
-  faLock = faLock;
-  faPerson = faPerson
   recieverName: string;
   isLoading: boolean = false;
   currentGroup = sessionStorage.getItem("lockGroupID") ?? '';

@@ -24,20 +24,10 @@ export class UserServiceService {
     this.phoneNumberUtil = PhoneNumberUtil.getInstance();
   }
 
-  UserRegister(nombre: string, clave: string): Observable<UserRegisterResponse> {
-    let body = { nombre, clave };
-    let url = this.URL.concat('/v0/user/register');
-    return this.http.post<UserRegisterResponse>(url, body);
-  }
   getAccessToken(nombre: string, clave: string): Observable<GetAccessTokenResponse> {
     let body = { nombre, clave };
     let url = this.URL.concat('/v0/user/login');
     return this.http.post<GetAccessTokenResponse>(url, body);
-  }
-  ResetPassword(nombre: string, clave: string): Observable<ResetPasswordResponse> {
-    let body = { nombre, clave };
-    let url = this.URL.concat('/v0/user/resetPassword');
-    return this.http.post<ResetPasswordResponse>(url, body);
   }
   logOut(userID: string): Observable<logoutResponse> {
     let url = this.URL.concat('/v0/user/logout');
@@ -53,7 +43,6 @@ export class UserServiceService {
   getMD5(clave: string) {
     return Md5.hashStr(clave);
   }
-  
   isValidEmail(email: string): boolean {//Verifica si el nombre del destinatario es un email o no
     const emailPattern = /^[a-zA-Z0-9._-ñÑáéíóúÁÉÍÓÚ]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
 

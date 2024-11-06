@@ -2,7 +2,7 @@ import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { Router } from '@angular/router';
 import { DomSanitizer } from '@angular/platform-browser';
 import { lastValueFrom } from 'rxjs';
-import { faBatteryFull, faWifi, faGear, faDoorOpen, faPlus, faHome, faLock } from '@fortawesome/free-solid-svg-icons'
+import { faBatteryFull, faWifi, faGear, faDoorOpen, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { MatTableDataSource } from '@angular/material/table';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { LockServiceService } from '../../services/lock-service.service';
@@ -16,7 +16,7 @@ import { GatewayService } from '../../services/gateway.service';
 import { PassageModeService } from '../../services/passage-mode.service';
 import { GroupService } from '../../services/group.service';
 import { UserServiceService } from '../../services/user-service.service';
-import { RecordResponse, EkeyResponse, PasscodeResponse, CardResponse, FingerprintResponse, GatewayAccountResponse, GatewayLockResponse, operationResponse, GetLockTimeResponse, LockListResponse, GroupResponse, getByUserAndLockIdResponse } from '../../Interfaces/API_responses';
+import { RecordResponse, EkeyResponse, PasscodeResponse, CardResponse, FingerprintResponse, GatewayAccountResponse, operationResponse, LockListResponse, GroupResponse } from '../../Interfaces/API_responses';
 import { Ekey, Passcode, Card, Fingerprint, Record } from '../../Interfaces/Elements';
 import { Group } from '../../Interfaces/Group';
 import { PassageMode } from '../../Interfaces/PassageMode';
@@ -37,8 +37,6 @@ export class Lockv2Component implements OnInit {
   faGear = faGear
   faDoorOpen = faDoorOpen
   faPlus= faPlus
-  faHome = faHome
-  faLock = faLock
   username = sessionStorage.getItem('user') ?? ''
   userID: string;
   lockId: number = Number(sessionStorage.getItem('lockID') ?? '')
