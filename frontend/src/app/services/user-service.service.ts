@@ -72,15 +72,7 @@ export class UserServiceService {
       return { isValid: false }; // Parsing error, not a valid phone number
     }
   }
-  sendEmail_NewUser(recipientEmail: string, password: string) {//Template para passcode recurrente
-    //esteban.vohk+6@gmail.com
-    emailjs.send('contact_service', 'NewUser', {
-      to_email: recipientEmail,
-      subject: 'Bienvenido a la plataforma VOHK',
-      username: recipientEmail,
-      password: password,
-    }, 'bdNkCTZsViZUFZCL9')
-      .then((response) => { console.log('Email sent successfully:', response); })
-      .catch((error) => { console.error('Error sending email:', error); });
+  normalizePhone(phone: string): string {
+    return phone.replace(/\s+/g, ''); 
   }
 }
