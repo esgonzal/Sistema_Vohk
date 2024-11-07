@@ -58,10 +58,10 @@ export class Loginv2Component {
       response = await lastValueFrom(this.userService.getAccessToken(data.username, md5)) as GetAccessTokenResponse;
       //console.log(response)
       if(response.userID) {
-        let lockResponse = await lastValueFrom(this.lockService.getLockListAccount(data.username)) as LockListResponse;
-        this.lockService.adminLocks = lockResponse.list;
-        let gatewayResponse = await lastValueFrom(this.gatewayService.getGatewaysAccount(data.username, 1, 100)) as GatewayAccountResponse;
-        this.gatewayService.gateways = gatewayResponse.list;
+        //let lockResponse = await lastValueFrom(this.lockService.getLockListAccount(data.username)) as LockListResponse;
+        //this.lockService.adminLocks = lockResponse.list;
+        //let gatewayResponse = await lastValueFrom(this.gatewayService.getGatewaysAccount(data.username, 1, 100)) as GatewayAccountResponse;
+        //this.gatewayService.gateways = gatewayResponse.list;
         //console.log(this.lockService.adminLocks)
         //console.log(this.gatewayService.gateways)
         sessionStorage.setItem('logged', '1')

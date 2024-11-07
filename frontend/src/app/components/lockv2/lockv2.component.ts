@@ -557,12 +557,6 @@ export class Lockv2Component implements OnInit {
     this.popupService.elementType = 'lock';
     this.popupService.cambiarNombre = true;
   }
-  TransferirLock() {
-    this.lockService.userID = this.userID;
-    this.lockService.lockID = this.lockId;
-    this.popupService.transferLock = true;
-    //this.router.navigate(["users", this.username, "lock", this.lockId, "transferLock"]);
-  }
   async PassageMode() {
     if (this.gateway === '1') {
       this.passageModeService.userID = this.userID
@@ -591,18 +585,6 @@ export class Lockv2Component implements OnInit {
       console.log("Necesita estar conectado a un gateway para usar esta función")
     }
   }
-  async AutoLock() {
-    if (this.gateway === '1') {
-      await this.fetchLockDetails();
-      this.popupService.detalles = this.lockDetails;
-      this.popupService.userID = this.userID;
-      this.popupService.lockID = this.lockId;
-      this.popupService.cerradoAutomatico = true;
-    } else {
-      this.popupService.needGateway = true;
-      console.log("Necesita estar conectado a un gateway para usar esta función")
-    }
-  }
   async Unlock() {
     if (this.gateway === '1') {
       this.isLoading = true;
@@ -617,28 +599,6 @@ export class Lockv2Component implements OnInit {
         }
       } catch (error) {
         console.error("Error unlocking:", error);
-      } finally {
-        this.isLoading = false;
-      }
-    } else {
-      this.popupService.needGateway = true;
-      console.log("Necesita estar conectado a un gateway para usar esta función")
-    }
-  }
-  async Lock() {
-    if (this.gateway === '1') {
-      this.isLoading = true;
-      try {
-        let response = await lastValueFrom(this.gatewayService.lock(this.userID, this.lockId)) as operationResponse;
-        if (response.errcode === 0) {
-          console.log("Cerradura bloqueada")
-        } else if (response.errcode === 10003) {
-          sessionStorage.clear();
-        } else {
-          console.log(response)
-        }
-      } catch (error) {
-        console.error("Error locking:", error);
       } finally {
         this.isLoading = false;
       }
