@@ -2,9 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Md5 } from 'ts-md5';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { GetAccessTokenResponse, ResetPasswordResponse, UserRegisterResponse, checkUserInDBResponse, getUserInDBResponse, logoutResponse } from '../Interfaces/API_responses';
+import { GetAccessTokenResponse, logoutResponse } from '../Interfaces/API_responses';
 import { PhoneNumberUtil } from 'google-libphonenumber';
-import emailjs from 'emailjs-com';
 
 
 @Injectable({

@@ -23,6 +23,7 @@ export class Comunidadesv2Component implements OnInit {
   faHome = faHome;
   isLoading: boolean = false;
   userID = sessionStorage.getItem('user') ?? '';
+
   groups: Group[] = [];
   groupsFiltrados: Group[] = [];
   locksWithoutGroup: LockData[] = [];
@@ -44,12 +45,10 @@ export class Comunidadesv2Component implements OnInit {
   async ngOnInit(): Promise<void> {
     this.isLoading = true;
     await this.fetchGroups();
-    await this.getLocksWithoutGroup();
-    let lockResponse = await lastValueFrom(this.lockService.getLockListAccount(this.userID)) as LockListResponse;
-    //console.log(lockResponse)
-    this.lockService.adminLocks = lockResponse.list;
-    let gatewayResponse = await lastValueFrom(this.gatewayService.getGatewaysAccount(this.userID, 1, 100)) as GatewayAccountResponse;
-    this.gatewayService.gateways = gatewayResponse.list;
+    //let lockResponse = await lastValueFrom(this.lockService.getLockListAccount(this.userID)) as LockListResponse;
+    //this.lockService.adminLocks = lockResponse.list;
+    //let gatewayResponse = await lastValueFrom(this.gatewayService.getGatewaysAccount(this.userID, 1, 100)) as GatewayAccountResponse;
+    //this.gatewayService.gateways = gatewayResponse.list;
     const lockGroupID = sessionStorage.getItem('lockGroupID');
     if (lockGroupID && lockGroupID !== 'undefined') {
       const grupoGuardado = this.groups.find(group => group.groupId === Number(lockGroupID));
@@ -59,20 +58,15 @@ export class Comunidadesv2Component implements OnInit {
         this.isLoading = false;
         return;
       }
-    }
-    for (const group of this.groups) {
-      const hasLocks = await this.groupHasLocks(group);
-      if (hasLocks) {
-        this.chosenGroup = group;
-        await this.chooseGroup(this.chosenGroup);
+    } else {
+      let grupoInicial = this.groups.find(group => group.groupId === -1);
+      if (grupoInicial){
+        await this.chooseGroup(grupoInicial);
         this.isLoading = false;
-        return; // Exit once the first group with locks is found and selected
+        return;
       }
     }
-    await this.chooseNoGroup();
     this.isLoading = false;
-    //console.log("This.groups: ", this.groups)
-    //console.log("This.locksWithoutGroup", this.locksWithoutGroup)
   }
   async fetchGroups() {
     try {
@@ -91,11 +85,15 @@ export class Comunidadesv2Component implements OnInit {
     } catch (error) {
       console.error("Error while fetching groups:", error);
     } finally {
+      let newGroup: Group = { groupId: -1, groupName: "Sin Asociar", lockCount: 0, locks: [] };
+      this.groups.push(newGroup);
+      //console.log("fetchGroups: ", this.groups)
       this.groupService.groups = this.groups;
       this.groupsFiltrados = this.groups;
     }
   }
   async fetchLocksOfGroup(clickedGroup: Group) {
+    this.isLoading = true;
     let targetGroupIndex = -1;
     let lockCount = 0;
     let pageNo = 1;
@@ -103,34 +101,37 @@ export class Comunidadesv2Component implements OnInit {
     if (clickedGroup) {
       targetGroupIndex = this.groups.findIndex(group => group.groupId === clickedGroup.groupId);
     }
-    if (targetGroupIndex !== -1) {
-      if (this.groups[targetGroupIndex].locks.length === 0) {
-        while (true) {
-          let response = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.userID, pageNo, pageSize, clickedGroup.groupId)) as LockListResponse;
-          //console.log(response)
-          if (response.list && response.list.length > 0) {
-            lockCount += response.list.length;
-            this.groups[targetGroupIndex].locks.push(...response.list);
-            if (response.pages > pageNo) {
-              pageNo++;
-            } else {
-              break;
-            }
+    if (this.groups[targetGroupIndex].locks.length === 0) {
+      while (true) {
+        let response = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.userID, pageNo, pageSize, clickedGroup.groupId)) as LockListResponse;
+        //console.log(clickedGroup.groupName, ": ", response.list)
+        if (response.list && response.list.length > 0) {
+          lockCount += response.list.length;
+          this.groups[targetGroupIndex].locks.push(...response.list);
+          if (response.pages > pageNo) {
+            pageNo++;
           } else {
+            this.isLoading = false;
             break;
           }
-          console.log(this.groups)
+        } else {
+          this.isLoading = false;
+          break;
         }
-        this.groups[targetGroupIndex].lockCount = lockCount;
-        this.groupService.groups = this.groups;
-      } else {
-        console.log('Locks already fetched for the clicked group.');
       }
+      this.groups[targetGroupIndex].lockCount = lockCount;
+      this.groupService.groups = this.groups;
     } else {
-      console.error('Clicked group not found in the groups array.');
+      this.isLoading = false;
     }
   }
+  async chooseGroup(group: Group) {
+    await this.fetchLocksOfGroup(group);
+    this.chosenGroup = group;
+  }
+  /*
   async getLocksWithoutGroup() {
+    this.locksWithoutGroup = [];
     let pageNo = 1;
     const pageSize = 100;
     while (true) {
@@ -145,35 +146,26 @@ export class Comunidadesv2Component implements OnInit {
       } else if (response.errcode === 10003) {
         sessionStorage.clear();
       } else {
+        console.log(response)
         break;
       }
     }
+    console.log("getLocksWithoutGroup: ", this.locksWithoutGroup)
     this.groupService.locksWithoutGroup = this.locksWithoutGroup;
   }
   async chooseNoGroup() {
-    let newGroup: Group = { groupId: -1, groupName: "Sin Asociar", lockCount: this.locksWithoutGroup.length, locks: this.locksWithoutGroup };
+    this.isLoading = true;
+    await this.getLocksWithoutGroup();
+    let newGroup: Group = { groupId: -1, groupName: "Sin Asociar", lockCount: 0, locks: [] };
     this.chosenGroup = newGroup;
+    this.isLoading = false;
   }
-  async chooseGroup(group: Group) {
-    await this.fetchLocksOfGroup(group);
-    this.chosenGroup = group;
-  }
+  */
   searchGroups() {
     this.groupsFiltrados = this.groups.filter(group =>
       group.groupName.toLowerCase().includes(this.searchText.toLowerCase())
     );
   }
-  async toggleGroupVisibility(group: Group): Promise<void> {
-    const groupId = group.groupId.toString();
-    this.visibleGroups[groupId] = !this.visibleGroups[groupId];
-    if (this.visibleGroups[groupId]) {
-      await this.fetchLocksOfGroup(group)
-    }
-  }
-  async groupHasLocks(group: Group): Promise<boolean> {
-    await this.fetchLocksOfGroup(group);
-    return group.locks && group.locks.length > 0;
-  };
   hasValidAccess(lock: LockData): boolean {
     if ((Number(lock.endDate) === 0 || moment(lock.endDate).isAfter(moment())) && (lock.userType === '110301' || (lock.userType === '110302' && lock.keyRight === 1))) {
       return true
@@ -192,8 +184,14 @@ export class Comunidadesv2Component implements OnInit {
     sessionStorage.setItem('lockBatery', lock.electricQuantity.toString())
     sessionStorage.setItem('lockGateway', lock.hasGateway.toString())
     sessionStorage.setItem('lockFeature', lock.featureValue.toString())
-    sessionStorage.setItem('lockGroup', lock.groupName);
-    sessionStorage.setItem('lockGroupID', lock.groupId?.toString());
+    if (lock.groupId) {
+      sessionStorage.setItem('lockGroup', lock.groupName);
+      sessionStorage.setItem('lockGroupID', lock.groupId?.toString());
+    } else {
+      sessionStorage.setItem('lockGroup', "Sin Asociar");
+      sessionStorage.setItem('lockGroupID', "-1");
+    }
+
     this.router.navigate(['users', this.userID, 'lock', lock.lockId])
   }
   onInvalidButtonClick() {

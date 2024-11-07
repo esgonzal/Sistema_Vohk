@@ -176,12 +176,12 @@ export class Lockv2Component implements OnInit {
       this.lockService.checkFeature(this.featureValue, feature.bit);
     }
     this.ekeysDataSource = new MatTableDataSource(this.ekeys);
-    let lockResponse = await lastValueFrom(this.lockService.getLockListAccount(this.userID)) as LockListResponse;
+    //let lockResponse = await lastValueFrom(this.lockService.getLockListAccount(this.userID)) as LockListResponse;
     //console.log(lockResponse)
-    this.lockService.adminLocks = lockResponse.list;
-    let gatewayResponse = await lastValueFrom(this.gatewayService.getGatewaysAccount(this.userID, 1, 100)) as GatewayAccountResponse;
+    //this.lockService.adminLocks = lockResponse.list;
+    //let gatewayResponse = await lastValueFrom(this.gatewayService.getGatewaysAccount(this.userID, 1, 100)) as GatewayAccountResponse;
     //console.log(gatewayResponse)
-    this.gatewayService.gateways = gatewayResponse.list;
+    //this.gatewayService.gateways = gatewayResponse.list;
     this.pageLoaded = true;
   }
   async getAllLocks() {

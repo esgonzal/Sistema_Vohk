@@ -13,12 +13,16 @@
                 <li *ngIf="returnLogged() === '1'">
                     <button class="dropdown-item" (click)="mostrarCerraduras()">Mis Comunidades</button>
                 </li>
+                <!-- Descomentar lineas 49 a 50 en comunidadesv2 y 179 a 181 en lockv2
                 <li>
                     <button class="dropdown-item" (click)="TransferirLock()">Transferir Dispositivos</button>
                 </li>
+                -->
+                <!--  Descomentar lineas 51 a 52 en comunidadesv2 y 182 a 184 en lockv2
                 <li>
                     <button class="dropdown-item" (click)="TransferirHub()">Transferir Gateway</button>
                 </li>
+                -->
                 <li class="dark-mode-toggle">
                     <span (click)="$event.stopPropagation()">Dark Mode</span>
                     <mat-slide-toggle name="darkMode" [(ngModel)]="darkMode" (click)="$event.stopPropagation()" (change)="updateDarkMode()"></mat-slide-toggle>
