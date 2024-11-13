@@ -8,8 +8,9 @@ import { PasscodeResponse, createPasscodeResponse, operationResponse } from '../
 })
 export class PasscodeServiceService {
 
-  URL = 'https://api.vohkapp.com';
+  //URL = 'https://api.vohkapp.com';
   //URL = 'http://localhost:8080';
+  URL = 'http://34.176.156.187:8080';
   username: string;
   lockAlias: string;
   endDateUser: string;

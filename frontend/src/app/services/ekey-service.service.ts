@@ -10,8 +10,9 @@ import { RecipientList } from '../Interfaces/RecipientList';
 })
 export class EkeyServiceService {
 
-  URL = 'https://api.vohkapp.com';
+  //URL = 'https://api.vohkapp.com';
   //URL = 'http://localhost:8080';
+  URL = 'http://34.176.156.187:8080';
   userID: string;
   lockID: number;
   username = sessionStorage.getItem('user') ?? ''

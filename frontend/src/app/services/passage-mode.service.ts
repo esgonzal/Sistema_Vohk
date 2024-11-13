@@ -9,8 +9,9 @@ import { operationResponse } from '../Interfaces/API_responses';
 })
 export class PassageModeService {
 
-  URL = 'https://api.vohkapp.com';
+  //URL = 'https://api.vohkapp.com';
   //URL = 'http://localhost:8080';
+  URL = 'http://34.176.156.187:8080';
   userID: string;
   lockID: number;
   passageModeConfig: PassageMode;

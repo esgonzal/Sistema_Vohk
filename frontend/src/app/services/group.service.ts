@@ -10,8 +10,9 @@ import { operationResponse, GroupResponse, addGroupResponse } from '../Interface
 })
 export class GroupService {
 
-  URL = 'https://api.vohkapp.com';
+  //URL = 'https://api.vohkapp.com';
   //URL = 'http://localhost:8080';
+  URL = 'http://34.176.156.187:8080';
   DEFAULT_GROUP: Group = { groupId: 0, groupName: 'Todos', lockCount: 0, locks: [] };
 
   public selectedGroupSubject = new BehaviorSubject<Group>(this.DEFAULT_GROUP);

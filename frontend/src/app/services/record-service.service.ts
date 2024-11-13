@@ -8,8 +8,9 @@ import { Observable } from 'rxjs';
 })
 export class RecordServiceService {
 
-  URL = 'https://api.vohkapp.com';
+  //URL = 'https://api.vohkapp.com';
   //URL = 'http://localhost:8080';
+  URL = 'http://34.176.156.187:8080';
 
   constructor(private http: HttpClient) { }
 

@@ -6,8 +6,9 @@ const md5 = require('md5');
 const { accessTokenStorage } = require('./accessTokenStorage');
 const TTLOCK_CLIENT_ID = 'c4114592f7954ca3b751c44d81ef2c7d';
 const TTLOCK_CLIENT_SECRET = '33b556bdb803763f2e647fc7a357dedf';
-const URL = 'https://api.vohkapp.com';
+//const URL = 'https://api.vohkapp.com';
 //const URL = 'http://localhost:8080';
+const URL = 'http://34.176.156.187:8080';
 
 router.post('/send', async(req, res) => {
     let { userID, lockID, recieverName, keyName, startDate, endDate, remoteEnable, keyRight, keyType, startDay, endDay, weekDays } = req.body;
