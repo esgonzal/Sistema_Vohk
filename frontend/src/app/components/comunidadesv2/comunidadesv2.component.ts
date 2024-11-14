@@ -55,6 +55,9 @@ export class Comunidadesv2Component implements OnInit {
       if (grupoGuardado) {
         this.chosenGroup = grupoGuardado;
         await this.chooseGroup(this.chosenGroup);
+        if (grupoGuardado.groupId == -1) {
+          this.popupService.locksWithoutGroup = grupoGuardado.locks
+        }
         this.isLoading = false;
         return;
       }
@@ -62,6 +65,7 @@ export class Comunidadesv2Component implements OnInit {
       let grupoInicial = this.groups.find(group => group.groupId === -1);
       if (grupoInicial){
         await this.chooseGroup(grupoInicial);
+        this.popupService.locksWithoutGroup = grupoInicial.locks;
         this.isLoading = false;
         return;
       }
@@ -216,7 +220,7 @@ export class Comunidadesv2Component implements OnInit {
   agregar(group: Group) {
     this.popupService.group = group;
     this.popupService.userID = this.userID;
-    this.popupService.locksWithoutGroup = this.locksWithoutGroup;
+    //this.popupService.locksWithoutGroup = this.locksWithoutGroup;
     this.popupService.addLockGROUP = true;
   }
   remover(group: Group) {
