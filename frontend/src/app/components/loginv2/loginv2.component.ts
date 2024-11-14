@@ -18,11 +18,8 @@ export class Loginv2Component {
   
   isLoading: boolean = false;
   loginError: string = "";
-  faUser = faUser;
-  faKey = faKey;
   faEye = faEye;
   faEyeSlash = faEyeSlash;
-  faHand = faHand;
   showPassword = false;
 
   constructor(private router: Router, 
@@ -69,7 +66,7 @@ export class Loginv2Component {
         this.isLoading = false;
         this.router.navigate(['']);
       } else if(response.description) {
-        this.loginError = "Nombre de usuario y/o contraseña inválidos";
+        this.loginError = "Nombre de usuario y/o contraseña inválidos.\nSi está ingresando su numero de celular recuerde añadir '+56'";
         this.isLoading = false;
       } 
     }
