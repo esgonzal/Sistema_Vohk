@@ -8,7 +8,7 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 const corsOptions = {
-    origin: ['https://app.vohk.cl', '', /^http:\/\/localhost:\d+$/, ''],
+    origin: ['https://app.vohk.cl', 'http://localhost:4200'],
 };
 app.use(cors(corsOptions));
 
