@@ -9,9 +9,8 @@ import { GatewayAccount } from '../Interfaces/Gateway';
 })
 export class GatewayService {
 
-  //URL = 'https://api.vohkapp.com';
+  URL = 'https://api.vohk.cl';
   //URL = 'http://localhost:8080';
-  URL = 'http://34.176.156.187:8080';
   userID: string;
   lockID: number;
   gateways: GatewayAccount[];
