@@ -105,7 +105,9 @@
 
 @media screen and (max-width: 600px) {
     .pagina_completa {
+        max-height: 90vh;
         width: 90%;
+        overflow-y: auto;
     }
     .form-area {
         width: 100%;

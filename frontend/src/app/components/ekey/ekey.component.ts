@@ -187,6 +187,9 @@ export class EkeyComponent implements OnInit {
     this.isLoading = true;
     //console.log(datos);
     try {
+      if (this.userService.isValidPhone(datos.recieverName).isValid) {
+        datos.recieverName = this.userService.normalizePhone(datos.recieverName);
+      }
       for (const lock of this.ekeyService.selectedLocks) {
         if (datos.ekeyType === '1') {
           // Permanent eKey creation
