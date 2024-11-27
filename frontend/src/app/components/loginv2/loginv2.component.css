@@ -125,9 +125,19 @@
 }
 
 .texto_vohk {
-    color: black;
     display: flex;
-    justify-content: center
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+}
+
+.imagen_vohk {
+    width: 150px;
+}
+
+.instrucciones {
+    font-size: xx-small;
+    text-align: center;
 }
 
 @media only screen and (max-width: 600px) {
