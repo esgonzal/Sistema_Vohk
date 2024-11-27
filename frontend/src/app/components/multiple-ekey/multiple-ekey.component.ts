@@ -151,9 +151,10 @@ export class MultipleEkeyComponent implements OnInit {
     if (this.error === '') {
       for (const eKey of eKeys) {
         await this.crearEkey2(eKey);
-        await this.enviarEmail2(eKey);
+        await this.generarEmail2(eKey);
       }
-      this.router.navigate(["users", this.ekeyService.username, "lock", this.ekeyService.lockID]);
+      this.popupService.ekeySuccess2 = true;
+      //this.router.navigate(["users", this.ekeyService.username, "lock", this.ekeyService.lockID]);
     }
   }
   async crearEkey2(eKey: { account: string; name: string; type: string; startDatepicker: string; startTimepicker: string, endDatepicker: string, endTimepicker: string, email: string }) {
@@ -202,19 +203,21 @@ export class MultipleEkeyComponent implements OnInit {
       this.isLoading = false;
     }
   }
-  async enviarEmail2(eKey: { account: string; name: string; type: string; startDatepicker: string; startTimepicker: string, endDatepicker: string, endTimepicker: string, email: string }) {
+  async generarEmail2(eKey: { account: string; name: string; type: string; startDatepicker: string; startTimepicker: string, endDatepicker: string, endTimepicker: string, email: string }) {
     if (this.ekeyService.selectedLocks.length === 1) {
       const Alias = this.ekeyService.selectedLocks[0].alias;
       if (eKey.type === '1') {
         // Permanent eKey email
         const response = await lastValueFrom(this.ekeyService.generateEmail(this.ekeyService.userID, Alias, eKey.account, '0', '0', eKey.email)) as sendEkeyResponse;
-        //console.log(response) (emailContent y toEmail)
         if (response.emailContent) {
-          const updatedHtml = response.emailContent;
-          let sendEmailResponse = await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, updatedHtml));
+          this.popupService.toEmail = response.toEmail;
+          this.popupService.emailMessage = response.emailContent;
+          //this.popupService.emailSuccess = true;
+          //const updatedHtml = response.emailContent;
+          //let sendEmailResponse = await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, updatedHtml));
           //console.log(sendEmailResponse); (success)
-          this.popupService.createEkey = false;
-          this.popupService.ekeySuccess = true;
+          //this.popupService.createEkey = false;
+          //this.popupService.ekeySuccess = true;
           //window.location.reload()
         }
       } else if (eKey.type === '2') {
@@ -225,25 +228,31 @@ export class MultipleEkeyComponent implements OnInit {
         let newEndDate = moment(newEndDay).add(this.lockService.transformarHora(eKey.endTimepicker), "milliseconds").valueOf();
         const response = await lastValueFrom(this.ekeyService.generateEmail(this.ekeyService.userID, Alias, eKey.account, newStartDate.toString(), newEndDate.toString(), eKey.email)) as sendEkeyResponse;
         if (response.emailContent) {
-          const updatedHtml = response.emailContent;
-          let sendEmailResponse = await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, updatedHtml));
-          this.popupService.createEkey = false;
-          this.popupService.ekeySuccess = true;
+          this.popupService.toEmail = response.toEmail;
+          this.popupService.emailMessage = response.emailContent;
+          //this.popupService.emailSuccess = true;
+          //const updatedHtml = response.emailContent;
+          //let sendEmailResponse = await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, updatedHtml));
+          //this.popupService.createEkey = false;
+          //this.popupService.ekeySuccess = true;
           //window.location.reload()
         }
       }
     } else {
-      const Alias = this.ekeyService.selectedLocks.map(lock => `\n<br>- ${lock.alias}`).join('<br>\n');
+      const Alias = this.ekeyService.selectedLocks.map(lock => `<li>${lock.alias}</li>`).join('');
       if (eKey.type === '1') {
         // Permanent eKey email
         const response = await lastValueFrom(this.ekeyService.generateEmail(this.ekeyService.userID, Alias, eKey.account, '0', '0', eKey.email)) as sendEkeyResponse;
-        //console.log(response) (emailContent y toEmail)
         if (response.emailContent) {
-          const updatedHtml = response.emailContent;
-          let sendEmailResponse = await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, updatedHtml));
+          console.log(response)
+          this.popupService.toEmail = response.toEmail;
+          this.popupService.emailMessage = response.emailContent;
+          //this.popupService.emailSuccess = true;
+          //const updatedHtml = response.emailContent;
+          //let sendEmailResponse = await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, updatedHtml));
           //console.log(sendEmailResponse); (success)
-          this.popupService.createEkey = false;
-          this.popupService.ekeySuccess = true;
+          //this.popupService.createEkey = false;
+          //this.popupService.ekeySuccess = true;
           //window.location.reload()
         }
       } else if (eKey.type === '2') {
@@ -254,10 +263,13 @@ export class MultipleEkeyComponent implements OnInit {
         let newEndDate = moment(newEndDay).add(this.lockService.transformarHora(eKey.endTimepicker), "milliseconds").valueOf();
         const response = await lastValueFrom(this.ekeyService.generateEmail(this.ekeyService.userID, Alias, eKey.account, newStartDate.toString(), newEndDate.toString(), eKey.email)) as sendEkeyResponse;
         if (response.emailContent) {
-          const updatedHtml = response.emailContent;
-          let sendEmailResponse = await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, updatedHtml));
-          this.popupService.createEkey = false;
-          this.popupService.ekeySuccess = true;
+          this.popupService.toEmail = response.toEmail;
+          this.popupService.emailMessage = response.emailContent;
+          //this.popupService.emailSuccess = true;
+          //const updatedHtml = response.emailContent;
+          //let sendEmailResponse = await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, updatedHtml));
+          //this.popupService.createEkey = false;
+          //this.popupService.ekeySuccess = true;
           //window.location.reload()
         }
       }

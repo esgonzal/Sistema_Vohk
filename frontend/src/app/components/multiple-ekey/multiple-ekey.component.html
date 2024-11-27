@@ -87,4 +87,7 @@
         <button class="form-button" (click)="validarInputs2(eKeys)">Generar</button>
     </div>
 </div>
-<app-pop-up *ngIf="this.popupService.selectLocksForMultipleEkeys || this.popupService.addRecipientsForMultipleEkeys || this.popupService.selectLocksForEkey" style="z-index: 10"></app-pop-up>
+<app-pop-up *ngIf="this.popupService.selectLocksForMultipleEkeys || 
+                    this.popupService.addRecipientsForMultipleEkeys || 
+                    this.popupService.selectLocksForEkey ||
+                    this.popupService.ekeySuccess2" style="z-index: 10"></app-pop-up>

@@ -55,7 +55,8 @@ export class PopUpService {
   ekeySuccess = false;
   passcodeSuccess = false;
   cardSuccess = false;
-  emailMessage: SafeHtml = '';
+  ekeySuccess2 = false;
+  emailMessage: string = '';
   lock_alias: string;
   gatewaysOfLock: GatewayLock[] = []
   gatewaysOfAccount: GatewayAccount[] = []

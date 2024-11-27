@@ -221,7 +221,6 @@ export class EkeyComponent implements OnInit {
           }
         }
       }
-      this.popupService.createEkey;
       //window.location.reload(); // Consider avoiding full page reload if possible
     } catch (error) {
       console.error("Error while creating Ekey:", error);
@@ -233,7 +232,8 @@ export class EkeyComponent implements OnInit {
 
   async generarEmail(datos: Formulario) {
       if (this.ekeyService.selectedLocks.length === 1) {
-        const Alias = this.ekeyService.selectedLocks[0].alias;
+        const Alias = `${this.ekeyService.selectedLocks.map(lock => `<li>${lock.alias}</li>`).join('')}`;
+        //const Alias = this.ekeyService.selectedLocks[0].alias;
         if (datos.ekeyType === '1') {
           // Permanent eKey email
           const response = await lastValueFrom(this.ekeyService.generateEmail(this.ekeyService.userID, Alias, datos.recieverName, '0', '0', datos.email)) as sendEkeyResponse;
@@ -261,12 +261,12 @@ export class EkeyComponent implements OnInit {
           }
         }
       } else {
-        const Alias = this.ekeyService.selectedLocks.map(lock => `\n<br>- ${lock.alias}`).join('<br>\n');
+        const Alias = `<ul>${this.ekeyService.selectedLocks.map(lock => `<li>${lock.alias}</li>`).join('')}</ul>`;
         if (datos.ekeyType === '1') {
           // Permanent eKey email for multiple locks
           const response = await lastValueFrom(this.ekeyService.generateEmail(this.ekeyService.userID, Alias, datos.recieverName, '0', '0', datos.email)) as sendEkeyResponse;
           if (response.emailContent) {
-            console.log(response.emailContent)
+            console.log(response)
             this.popupService.toEmail = response.toEmail;
             this.popupService.emailMessage = response.emailContent;
             this.popupService.emailSuccess = true;

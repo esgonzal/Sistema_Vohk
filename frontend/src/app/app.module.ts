@@ -47,6 +47,22 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 import { GroupService } from './services/group.service';
 
+import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
+import { MAT_DATE_LOCALE } from '@angular/material/core';
+
+
+export const CUSTOM_DATE_FORMATS = {
+  parse: {
+    dateInput: 'DD/MM/YYYY',
+  },
+  display: {
+    dateInput: 'DD/MM/YYYY',
+    monthYearLabel: 'MMMM YYYY',
+    dateA11yLabel: 'LL',
+    monthYearA11yLabel: 'MMMM YYYY',
+  },
+};
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -90,7 +106,12 @@ import { GroupService } from './services/group.service';
     MatTooltipModule,
     RouterModule.forRoot([])
   ],
-  providers: [DatePipe, GroupService],
+  providers: [
+    DatePipe, 
+    GroupService,
+    { provide: MAT_DATE_LOCALE, useValue: 'es-ES' }, // Configuración regional
+    { provide: MAT_DATE_FORMATS, useValue: CUSTOM_DATE_FORMATS }, // Formato DD/MM/YYYY
+    ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

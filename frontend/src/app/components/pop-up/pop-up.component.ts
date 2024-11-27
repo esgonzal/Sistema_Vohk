@@ -647,9 +647,9 @@ export class PopUpComponent implements OnInit {
   async saveEmail() {
     this.isLoading = true;
     try {
-      const updatedHtml = this.convertPlainTextToHtml(this.emailMessage);
-      this.popupService.emailMessage = updatedHtml; // Save as HTML
-      let response = await lastValueFrom(this.ekeyService.sendEmail(this.popupService.toEmail, updatedHtml)) as sendEkeyResponse;
+      //const updatedHtml = this.convertPlainTextToHtml(this.emailMessage);
+      //this.popupService.emailMessage = updatedHtml; // Save as HTML
+      let response = await lastValueFrom(this.ekeyService.sendEmail(this.popupService.toEmail, this.popupService.emailMessage)) as sendEkeyResponse;
       console.log(response)
       if (response.success) {
         this.isLoading = false;
@@ -781,6 +781,7 @@ export class PopUpComponent implements OnInit {
     this.popupService.ekeySuccess = false;
     this.popupService.passcodeSuccess = false;
     this.popupService.cardSuccess = false;
-    //window.location.reload()
+    this.popupService.ekeySuccess2 = false;
+    window.location.reload()
   }
 }

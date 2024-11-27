@@ -382,6 +382,14 @@
         <button (click)="closeWindow()">Ok</button>
     </div>
 </div>
+<div class="container" *ngIf="popupService.ekeySuccess2" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        Las eKeys se han creado correctamente
+    </div>
+    <div id="actions">
+        <button (click)="closeWindow()">Ok</button>
+    </div>
+</div>
 <div class="container" *ngIf="popupService.passcodeSuccess" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
     <div class="header">
         El código ha sido creado correctamente
