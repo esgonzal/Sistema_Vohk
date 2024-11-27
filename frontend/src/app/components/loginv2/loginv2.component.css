@@ -40,7 +40,7 @@
 }
 
 .login-container {
-    background-color: white;
+    background-color: #f7f7f7;
     border-radius: 20px;
     display: flex;
     flex-direction: column;
