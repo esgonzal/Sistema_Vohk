@@ -5,19 +5,44 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body>
-    <p>Hola! {{from}} te ha dado acceso a las cerraduras:</p>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #000; background-color: #f9f9f9; padding: 20px;">
 
-    <p>{{lock_alias}}</p>    
+    <div style="background-color: #fff; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
 
-    <p>Si no tienes la aplicación Vöhk, descárgala en el siguiente link <a href="https://www.vohk.cl/app-vohk/">https://www.vohk.cl/app-vohk/</a></p>
+        <div style="text-align: center;">
+            <img src="https://www.vohk.cl/wp-content/uploads/2024/11/Logo-Vohk-2023.png" alt="Vöhk Logo" style="width: 100%; max-width: 300px; height: auto; border-radius: 8px;" />
+        </div>
 
-    <p>Ingresa con tu cuenta: {{to}}</p>
+        <p>¡Has recibido acceso exclusivo gracias a <strong>{{from}}</strong>! Aquí están los detalles para comenzar:</p>
 
-    <p>Período de Validez:</p>
-    <p>Desde {{start}}</p>
-    <p>Hasta {{end}}</p>
+        <h2 style="color: #F5C754;">🔓 Acceso habilitado para:</h2>
+        <ul style="list-style-type: none; color: #000; margin-left: 20px;">
+            {{lock_alias}}
+        </ul>
 
-    <p>Pulsa el botón del candado para abrir!</p>
-    <p>Visita nuestra página web en <a href="https://www.vohk.cl/">https://www.vohk.cl/</a></p>
+        <h2 style="color: #F5C754;">📱 ¿Cómo empezar?</h2>
+        <ol style="color: #000; margin-left: 20px;">
+            <li>Descarga nuestra app Vöhk aquí: <a href="https://www.vohk.cl/app-vohk/" style="background-color: #F5C754; color: #000; padding: 5px; text-decoration: none; border-radius: 4px; font-weight: bold;">Descarga la App</a></li>
+            <li>Inicia sesión con tu cuenta:</li>
+            <ul style="list-style-type: none; padding: 0; color: #000;">
+                <li><strong>Usuario:</strong> <span>{{to}}</span></li>
+            </ul>
+        </ol>
+
+        <h2 style="color: #F5C754;">📅 Validez de tu acceso:</h2>
+        <ul style="list-style-type: none; color: #000; margin-left: 20px;">
+            <li><strong>Inicio:</strong> <span>{{start}}</span></li>
+            <li><strong>Final:</strong> <span>{{end}}</span></li>
+        </ul>
+
+        <hr style="border: 0; height: 1px; background-color: #ddd;">
+
+        <h2 style="color: #F5C754; text-align: center;">🌟 Explora más beneficios</h2>
+        <p style="text-align: center;">¿Sabías que con Vöhk también puedes gestionar múltiples accesos, monitorear tu seguridad en tiempo real y mucho más?</p>
+        <p style="text-align: center;">Descúbrelo en <a href="https://www.vohk.cl/" style="background-color: #F5C754; color: #000; padding: 10px; text-decoration: none; border-radius: 4px; font-weight: bold;">Vöhk</a></p>
+
+        <p style="text-align: center; color: #888;">Gracias por elegir Vöhk para tu seguridad y comodidad.</p>
+    </div>
+
 </body>
+</html>

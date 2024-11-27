@@ -62,7 +62,7 @@
                             </mat-card>
                         </div>
                         <div *ngIf="hasValidAccess(lock)===false">
-                            <mat-card class="valid_lock" (click)="onLockButtonClick(lock)">
+                            <mat-card class="valid_lock" (click)="onInvalidButtonClick()">
                                 <img class="custom-image" src="../../../assets/images/door.jpg" alt="Image Description">
                                 <mat-card-header>
                                     <div mat-card-title>{{lock.lockAlias}}</div>
