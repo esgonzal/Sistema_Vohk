@@ -73,7 +73,6 @@ const RecordRouter = require('../backend/routes/v1/recordAPI.js');
 app.use('/v1/lockRecord', RecordRouter);
 const GroupRouter = require('../backend/routes/v1/groupAPI');
 app.use('/v1/group', GroupRouter);
-
 //Email
 const emailRouter = require('../backend/routes/nodemailer/emailRoutes.js');
 app.use('/mail', emailRouter);
