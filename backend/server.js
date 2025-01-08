@@ -85,6 +85,22 @@ app.use('/camera', cameraRouter);
 const testRouter = require('../backend/routes/automation/monday_test.js');
 app.use('/test', testRouter);
 
+//App Store
+app.get('/appStore', (req, res) => {
+    const userAgent = req.headers['user-agent'];
+
+    if (/iPhone|iPad|iPod/i.test(userAgent)) {
+        // Redirect to Apple App Store
+        res.redirect('https://apps.apple.com/cl/app/v%C3%B6hk/id1662790955');
+    } else if (/Android/i.test(userAgent)) {
+        // Redirect to Google Play Store
+        res.redirect('https://play.google.com/store/apps/details?id=com.vohk.smart&hl=es');
+    } else {
+        // Redirect to a fallback page
+        res.redirect('https://vohk.cl/app-vohk/');
+    }
+});
+
 // HTTP Configuration
 const httpPort = 8080;
 const httpServer = http.createServer(app);
