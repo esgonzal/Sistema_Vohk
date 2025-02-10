@@ -361,7 +361,7 @@ export class MultipleEkeyComponent implements OnInit {
         const email = row[3]; // E: Correo
 
         // Crear el objeto de eKey según el formato requerido
-        const formattedPhoneNumber = phoneNumber.replace(/\s+/g, '');
+        const formattedPhoneNumber = String(phoneNumber).replace(/\s+/g, '');
         const eKey = {
           account: `+${formattedPhoneNumber}`, // Cuenta de Destino
           name: `${ownerName} - ${department}`, // Nombre de Ekey
