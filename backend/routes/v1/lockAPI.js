@@ -77,6 +77,7 @@ router.get('/listKeyboardPwd', async(req, res) => {
 });
 router.get('/listFingerprints', async(req, res) => {
     let { clientId, accessToken, lockId, pageNo, pageSize, date } = req.query;
+    console.log("listFingerprints")
     try {
         let ttlockData = {
             clientId: clientId,
@@ -84,6 +85,7 @@ router.get('/listFingerprints', async(req, res) => {
             lockId: lockId,
             pageNo: pageNo,
             pageSize: pageSize,
+            orderBy: 0,
             date: date,
         };
         let headers = {
