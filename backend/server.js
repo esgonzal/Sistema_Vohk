@@ -70,7 +70,7 @@ app.use('/v1/ekey', EkeyRouter);
 const PasscodeRouter = require('../backend/routes/v1/passcodeAPI');
 app.use('/v1/passcode', PasscodeRouter);
 const FingerprintRouter = require('../backend/routes/v1/fingerprintAPI');
-app.use('/v1/passcode', FingerprintRouter);
+app.use('/v1/fingerprint', FingerprintRouter);
 const GroupRouter = require('../backend/routes/v1/groupAPI');
 app.use('/v1/group', GroupRouter);
 //Email
