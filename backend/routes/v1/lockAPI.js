@@ -75,6 +75,54 @@ router.get('/listKeyboardPwd', async(req, res) => {
         res.status(500).json({ errmsg: 'Error with API' });
     }
 });
+router.get('/listFingerprints', async(req, res) => {
+    let { clientId, accessToken, lockId, pageNo, pageSize, date } = req.query;
+    try {
+        let ttlockData = {
+            clientId: clientId,
+            accessToken: accessToken,
+            lockId: lockId,
+            pageNo: pageNo,
+            pageSize: pageSize,
+            date: date,
+        };
+        let headers = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        };
+        let ttlockResponse = await axios.get(
+            'https://euapi.ttlock.com/v3/fingerprint/list', { params: ttlockData, headers }
+        );
+        console.log("fingerprintList response:", ttlockResponse.data)
+        res.json(ttlockResponse.data);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ errmsg: 'Error with API' });
+    }
+});
+router.get('/listRecord', async(req, res) => {
+    let { clientId, accessToken, lockId, pageNo, pageSize, date } = req.query;
+    try {
+        let ttlockData = {
+            clientId: clientId,
+            accessToken: accessToken,
+            lockId: lockId,
+            pageNo: pageNo,
+            pageSize: pageSize,
+            date: date,
+        };
+        let headers = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        };
+        let ttlockResponse = await axios.get(
+            'https://euapi.ttlock.com/v3/lockRecord/list', { params: ttlockData, headers }
+        );
+        console.log("recordList response:", ttlockResponse.data)
+        res.json(ttlockResponse.data);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ errmsg: 'Error with API' });
+    }
+});
 router.get('/detail', async(req, res) => {
     let { clientId, accessToken, lockId, date } = req.query;
     try {

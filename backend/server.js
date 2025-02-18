@@ -69,8 +69,8 @@ const EkeyRouter = require('../backend/routes/v1/ekeyAPI');
 app.use('/v1/ekey', EkeyRouter);
 const PasscodeRouter = require('../backend/routes/v1/passcodeAPI');
 app.use('/v1/passcode', PasscodeRouter);
-const RecordRouter = require('../backend/routes/v1/recordAPI.js');
-app.use('/v1/lockRecord', RecordRouter);
+const FingerprintRouter = require('../backend/routes/v1/fingerprintAPI');
+app.use('/v1/passcode', FingerprintRouter);
 const GroupRouter = require('../backend/routes/v1/groupAPI');
 app.use('/v1/group', GroupRouter);
 //Email
@@ -84,22 +84,6 @@ app.use('/camera', cameraRouter);
 //Integration Test
 const testRouter = require('../backend/routes/automation/monday_test.js');
 app.use('/test', testRouter);
-
-//App Store
-app.get('/appStore', (req, res) => {
-    const userAgent = req.headers['user-agent'];
-
-    if (/iPhone|iPad|iPod/i.test(userAgent)) {
-        // Redirect to Apple App Store
-        res.redirect('https://apps.apple.com/cl/app/v%C3%B6hk/id1662790955');
-    } else if (/Android/i.test(userAgent)) {
-        // Redirect to Google Play Store
-        res.redirect('https://play.google.com/store/apps/details?id=com.vohk.smart&hl=es');
-    } else {
-        // Redirect to a fallback page
-        res.redirect('https://vohk.cl/app-vohk/');
-    }
-});
 
 // HTTP Configuration
 const httpPort = 8080;
