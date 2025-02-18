@@ -11,10 +11,6 @@ const corsOptions = {
     origin: ['https://app.vohk.cl', 'http://localhost:4200'],
 };
 app.use(cors(corsOptions));
-app.use((req, res, next) => {
-    console.log("Solicitud recibida en:", req.method, req.url);
-    next();
-});
 
 // API v0
 const { accessTokenStorage, storeAccessToken } = require('../backend/routes/v0/accessTokenStorage.js');
