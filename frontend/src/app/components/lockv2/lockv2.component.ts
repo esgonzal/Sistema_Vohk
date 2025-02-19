@@ -37,8 +37,7 @@ export class Lockv2Component implements OnInit {
   faGear = faGear
   faDoorOpen = faDoorOpen
   faPlus= faPlus
-  username = sessionStorage.getItem('user') ?? ''
-  userID: string;
+  userID = sessionStorage.getItem('user') ?? ''
   lockId: number = Number(sessionStorage.getItem('lockID') ?? '')
   userType = sessionStorage.getItem('userType') ?? '';
   keyRight = sessionStorage.getItem('keyRight') ?? '';
@@ -69,10 +68,10 @@ export class Lockv2Component implements OnInit {
   locksWithoutGroup: LockData[] = [];
   groups: Group[] = []
   selectedTabIndex = 0;
-  ekeysDataSource: MatTableDataSource<Ekey>;
-  passcodesDataSource: MatTableDataSource<Passcode>;
-  cardsDataSource: MatTableDataSource<Card>;
-  fingerprintsDataSource: MatTableDataSource<Fingerprint>;
+  //ekeysDataSource: MatTableDataSource<Ekey>;
+  //passcodesDataSource: MatTableDataSource<Passcode>;
+  //cardsDataSource: MatTableDataSource<Card>;
+  //fingerprintsDataSource: MatTableDataSource<Fingerprint>;
   recordsDataSource: MatTableDataSource<Record>;
   displayedColumnsEkey: string[] = ['Nombre', 'Destinatario', 'Rol', 'Fecha', 'Periodo_validez', 'Valido', 'Botones']
   displayedColumnsPasscode: string[] = ['Nombre', 'Contrasena', 'Responsable', 'Fecha', 'Periodo_validez', 'Valido', 'Botones']
@@ -154,11 +153,11 @@ export class Lockv2Component implements OnInit {
   constructor(
     private router: Router,
     private sanitizer: DomSanitizer,
-    private ekeyService: EkeyServiceService,
-    private passcodeService: PasscodeServiceService,
-    private cardService: CardServiceService,
-    private fingerprintService: FingerprintServiceService,
-    private recordService: RecordServiceService,
+    public ekeyService: EkeyServiceService,
+    public passcodeService: PasscodeServiceService,
+    public cardService: CardServiceService,
+    public fingerprintService: FingerprintServiceService,
+    public recordService: RecordServiceService,
     private gatewayService: GatewayService,
     private passageModeService: PassageModeService,
     private groupService: GroupService,
@@ -170,12 +169,10 @@ export class Lockv2Component implements OnInit {
 
 
   async ngOnInit() {
-    this.userID = this.username;
-    await this.fetchEkeys();
+    await this.ekeyService.fetchEkeys(this.lockId);
     for (const feature of this.featureList) {
       this.lockService.checkFeature(this.featureValue, feature.bit);
     }
-    this.ekeysDataSource = new MatTableDataSource(this.ekeys);
     //let lockResponse = await lastValueFrom(this.lockService.getLockListAccount(this.userID)) as LockListResponse;
     //console.log(lockResponse)
     //this.lockService.adminLocks = lockResponse.list;
@@ -293,6 +290,7 @@ export class Lockv2Component implements OnInit {
       this.isLoading = false;
     }
   }
+  /*
   async fetchEkeys() {
     this.ekeys = [];
     this.isLoading = true;
@@ -431,6 +429,7 @@ export class Lockv2Component implements OnInit {
       this.isLoading = false;
     }
   }
+    */
   async fetchRecords() {
     this.records = [];
     this.isLoading = true;
@@ -526,19 +525,19 @@ export class Lockv2Component implements OnInit {
     switch (this.selectedTabIndex) {
       case 0:
         this.textoBusqueda = '';
-        await this.fetchEkeys();
+        await this.ekeyService.fetchEkeys(this.lockId);
         break;
       case 1:
         this.textoBusqueda = '';
-        await this.fetchPasscodes();
+        await this.passcodeService.fetchPasscodes(this.lockId);
         break;
       case 2:
         this.textoBusqueda = '';
-        await this.fetchCards();
+        await this.cardService.fetchCards(this.lockId);
         break;
       case 3:
         this.textoBusqueda = '';
-        await this.fetchFingerprints();
+        await this.fingerprintService.fetchFingerprints(this.lockId);
         break;
       case 4:
         this.textoBusqueda = '';
@@ -630,7 +629,7 @@ export class Lockv2Component implements OnInit {
   //FUNCIONES EKEY
   crearEkey() {
     this.ekeyService.userID = this.userID;
-    this.ekeyService.username = this.username;
+    this.ekeyService.username = this.userID;
     this.ekeyService.lockID = this.lockId;
     this.ekeyService.endDateUser = this.endDateDeUser;
     this.ekeyService.lockAlias = this.Alias;
@@ -696,7 +695,7 @@ export class Lockv2Component implements OnInit {
   }
   searchEkeys() {
     this.filtrarEkeys();
-    this.ekeysDataSource = new MatTableDataSource(this.ekeys_filtradas);
+    this.ekeyService.ekeysDataSource = new MatTableDataSource(this.ekeys_filtradas);
   }
   filtrarEkeys() {
     this.ekeys_filtradas = this.ekeys.filter(ekey => {
@@ -715,7 +714,7 @@ export class Lockv2Component implements OnInit {
   crearPasscode() {
     this.passcodeService.lockAlias = this.Alias;
     this.passcodeService.userID = this.userID;
-    this.passcodeService.username = this.username;
+    this.passcodeService.username = this.userID;
     this.passcodeService.lockID = this.lockId;
     this.passcodeService.endDateUser = this.endDateDeUser;
     this.passcodeService.gateway = Number(this.gateway)
@@ -780,7 +779,7 @@ export class Lockv2Component implements OnInit {
   }
   searchPasscodes() {
     this.filtrarPasscodes();
-    this.passcodesDataSource = new MatTableDataSource(this.passcodes_filtradas);
+    this.passcodeService.passcodesDataSource = new MatTableDataSource(this.passcodes_filtradas);
   }
   filtrarPasscodes() {
     this.passcodes_filtradas = this.passcodes.filter(passcode => {
@@ -840,7 +839,7 @@ export class Lockv2Component implements OnInit {
   }
   searchCards() {
     this.filtrarCards();
-    this.cardsDataSource = new MatTableDataSource(this.cards_filtradas);
+    this.cardService.cardsDataSource = new MatTableDataSource(this.cards_filtradas);
   }
   filtrarCards() {
     this.cards_filtradas = this.cards.filter(card => {
@@ -882,7 +881,7 @@ export class Lockv2Component implements OnInit {
   }
   searchFingerprints() {
     this.filtrarFingerprints();
-    this.fingerprintsDataSource = new MatTableDataSource(this.fingerprints_filtradas);
+    this.fingerprintService.fingerprintsDataSource = new MatTableDataSource(this.fingerprints_filtradas);
   }
   filtrarFingerprints() {
     this.fingerprints_filtradas = this.fingerprints.filter(finger => {

@@ -143,28 +143,50 @@ export class PopUpComponent implements OnInit {
         switch (this.popupService.elementType) {
           case 'el código':
             response = await lastValueFrom(this.passcodeService.deletePasscode(this.popupService.userID, this.popupService.lockID, this.popupService.elementID)) as operationResponse;
+            if (response?.errcode === 0) {
+              this.popupService.delete = false;
+              //window.location.reload();
+              this.passcodeService.fetchPasscodes(this.popupService.lockID);
+            }
             break;
           case 'la ekey':
             response = await lastValueFrom(this.ekeyService.deleteEkey(this.popupService.userID, this.popupService.elementID, this.popupService.lockID, this.popupService.ekeyUsername)) as operationResponse;
+            if (response?.errcode === 0) {
+              this.popupService.delete = false;
+              //window.location.reload();
+              this.ekeyService.fetchEkeys(this.popupService.lockID);
+            }
             break;
           case 'la tarjeta':
             response = await lastValueFrom(this.cardService.deleteCard(this.popupService.userID, this.popupService.lockID, this.popupService.elementID)) as operationResponse;
+            if (response?.errcode === 0) {
+              this.popupService.delete = false;
+              //window.location.reload();
+              this.cardService.fetchCards(this.popupService.lockID);
+            }
             break;
           case 'la huella':
             response = await lastValueFrom(this.fingerprintService.deleteFingerprint(this.popupService.userID, this.popupService.lockID, this.popupService.elementID)) as operationResponse;
+            if (response?.errcode === 0) {
+              this.popupService.delete = false;
+              //window.location.reload();
+              this.fingerprintService.fetchFingerprints(this.popupService.lockID);
+            }
             break;
           case 'grupo':
             response = await lastValueFrom(this.groupService.deleteGroup(this.popupService.userID, this.popupService.elementID.toString())) as operationResponse;
+            if (response?.errcode === 0) {
+              this.popupService.delete = false;
+              //window.location.reload();
+              //this.ekeyService.fetchEkeys(this.popupService.lockID);
+            }
             break;
           default:
             console.error('Invalid element type for deletion:', this.popupService.elementID);
             break;
         }
       }
-      if (response?.errcode === 0) {
-        this.popupService.delete = false;
-        window.location.reload();
-      } else if (response?.errcode === 10003) {
+      if (response?.errcode === 10003) {
         sessionStorage.clear();
         this.popupService.delete = false;
       } else {
@@ -178,16 +200,22 @@ export class PopUpComponent implements OnInit {
     }
   }
   async autorizar() {
+    this.isLoading = true;
     let response = await lastValueFrom(this.ekeyService.AuthorizeEkey(this.popupService.userID, this.popupService.lockID, this.popupService.elementID)) as operationResponse;
-    //console.log(response)
-    this.popupService.autorizar = false;
-    window.location.reload();
+    if (response.errcode === 0) {
+      this.popupService.autorizar = false;
+      this.ekeyService.fetchEkeys(this.popupService.lockID);
+    }
+    this.isLoading = false;
   }
   async desautorizar() {
+    this.isLoading = true;
     let response = await lastValueFrom(this.ekeyService.cancelAuthorizeEkey(this.popupService.userID, this.popupService.lockID, this.popupService.elementID)) as operationResponse;
-    //console.log(response)
-    this.popupService.desautorizar = false;
-    window.location.reload();
+    if (response.errcode === 0) {
+      this.popupService.desautorizar = false;
+      this.ekeyService.fetchEkeys(this.popupService.lockID);
+    }
+    this.isLoading = false;
   }
   async congelar() {
     this.isLoading = true;
@@ -196,7 +224,7 @@ export class PopUpComponent implements OnInit {
       //console.log(response)
       if (response.errcode === 0) {
         this.popupService.congelar = false;
-        window.location.reload();
+        this.ekeyService.fetchEkeys(this.popupService.lockID);
       } else if (response?.errcode === 10003) {
         sessionStorage.clear();
         this.popupService.congelar = false;
@@ -216,7 +244,7 @@ export class PopUpComponent implements OnInit {
       //console.log(response)
       if (response.errcode === 0) {
         this.popupService.descongelar = false;
-        window.location.reload();
+        this.ekeyService.fetchEkeys(this.popupService.lockID);
       } else if (response?.errcode === 10003) {
         sessionStorage.clear();
         this.popupService.descongelar = false;

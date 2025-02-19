@@ -1,9 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { lastValueFrom, Observable } from 'rxjs';
 import { EkeyResponse, operationResponse, sendEkeyResponse, LockListResponse, getByUserAndLockIdResponse } from '../Interfaces/API_responses';
 import { LockData } from '../Interfaces/Lock';
 import { RecipientList } from '../Interfaces/RecipientList';
+import { Ekey } from '../Interfaces/Elements';
+import { MatTableDataSource } from '@angular/material/table';
 
 @Injectable({
   providedIn: 'root'
@@ -12,7 +14,7 @@ export class EkeyServiceService {
 
   URL = 'https://api.vohk.cl';
   //URL = 'http://localhost:8080';
-  userID: string;
+  userID =  sessionStorage.getItem('user') ?? ''
   lockID: number;
   username = sessionStorage.getItem('user') ?? ''
   lockAlias: string;
@@ -21,8 +23,46 @@ export class EkeyServiceService {
   selectedLocks: { id: number, alias: string }[] = [];
   selectedEkeys: number[] = [];
   recipients: RecipientList[] = [];
+  ekeys: Ekey[] = [];
+  ekeysDataSource: MatTableDataSource<Ekey>;
 
   constructor(private http: HttpClient) { }
+
+  async fetchEkeys(lockId: number) {
+    this.ekeys = [];
+    //this.isLoading = true;
+    try {
+      await this.fetchEkeysPage(1, lockId);
+    } catch (error) {
+      console.error("Error while fetching ekeys:", error);
+    } finally {
+      //this.isLoading = false;
+      this.ekeysDataSource = new MatTableDataSource(this.ekeys);
+      //console.log("eKeys: ", this.ekeys)
+    }
+  }
+  async fetchEkeysPage(pageNo: number, lockId: number) {
+    //this.isLoading = true;
+    try {
+      const response = await lastValueFrom(this.getEkeysofLock(this.userID, lockId, pageNo, 100))
+      const typedResponse = response as EkeyResponse;
+      //console.log(typedResponse)
+      if (typedResponse?.list) {
+        this.ekeys.push(...typedResponse.list);
+        if (typedResponse.pages > pageNo) {
+          await this.fetchEkeysPage(pageNo + 1, lockId);
+        }
+      } else if (typedResponse.errcode === 10003) {
+        sessionStorage.clear();
+      } else {
+        console.log("Ekeys not yet available");
+      }
+    } catch (error) {
+      console.error("Error while fetching ekeys page:", error);
+    } finally {
+      //this.isLoading = false;
+    }
+  }
 
   getEkeysofAccount(userID: string, pageNo: number, pageSize: number, groupID?: number): Observable<LockListResponse> {
     let body = { userID, pageNo, pageSize, groupID };
@@ -82,7 +122,6 @@ export class EkeyServiceService {
     let url = this.URL.concat('/v0/ekey/generateEmail');
     return this.http.post<sendEkeyResponse>(url, body);
   }
-
   sendEmail(toEmail: string, emailContent: string): Observable<sendEkeyResponse> {
     let body = {toEmail, emailContent}
     let url = this.URL.concat('/mail/sendEmail');

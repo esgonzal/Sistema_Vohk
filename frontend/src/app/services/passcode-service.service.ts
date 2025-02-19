@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { lastValueFrom, Observable } from 'rxjs';
 import { PasscodeResponse, createPasscodeResponse, operationResponse } from '../Interfaces/API_responses';
+import { Passcode } from '../Interfaces/Elements';
+import { MatTableDataSource } from '@angular/material/table';
 
 @Injectable({
   providedIn: 'root'
@@ -16,10 +18,48 @@ export class PasscodeServiceService {
   featureValue: string
   gateway: number;
   passcodesimple = false;
-  userID: string;
-  lockID: number;
+  userID = sessionStorage.getItem('user') ?? ''
+  lockID: number = Number(sessionStorage.getItem('lockID') ?? '')
+  passcodes: Passcode[] = [];
+  passcodesDataSource: MatTableDataSource<Passcode>;
 
   constructor(private http: HttpClient) { }
+
+  async fetchPasscodes(lockId: number) {
+    this.passcodes = [];
+    //this.isLoading = true;
+    try {
+      await this.fetchPasscodesPage(1, lockId);
+    } catch (error) {
+      console.error("Error while fetching passcodes:", error);
+    } finally {
+      //this.updatePasscodeUsage()
+      this.passcodesDataSource = new MatTableDataSource(this.passcodes);
+      //this.isLoading = false;
+      //console.log("Passcodes: ", this.passcodes)
+    }
+  }
+  async fetchPasscodesPage(pageNo: number, lockId: number) {
+    //this.isLoading = true;
+    try {
+      const response = await lastValueFrom(this.getPasscodesofLock(this.userID, lockId, pageNo, 100))
+      const typedResponse = response as PasscodeResponse;
+      if (typedResponse?.list) {
+        this.passcodes.push(...typedResponse.list);
+        if (typedResponse.pages > pageNo) {
+          await this.fetchPasscodesPage(pageNo + 1, lockId);
+        }
+      } else if (typedResponse.errcode === 10003) {
+        sessionStorage.clear();
+      } else {
+        console.log("Passcodes not yet available");
+      }
+    } catch (error) {
+      console.error("Error while fetching passcodes page:", error);
+    } finally {
+      //this.isLoading = false;
+    }
+  }
 
   getPasscodesofLock(userID: string, lockID: number, pageNo: number, pageSize: number): Observable<PasscodeResponse> {
     let body = { userID, lockID, pageNo, pageSize };

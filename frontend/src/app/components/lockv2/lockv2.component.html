@@ -69,11 +69,11 @@
                                     <input type="text" [(ngModel)]="textoBusqueda" placeholder="Buscar Ekeys..." (input)="searchEkeys()" />
                                     <div>
                                         <button (click)="crearEkey()">Generar</button>
-                                        <button (click)="fetchEkeys()">Actualizar</button>
+                                        <button (click)="this.ekeyService.fetchEkeys(lockId)">Actualizar</button>
                                     </div>
                                 </div>
                                 <div>
-                                    <table mat-table [dataSource]="ekeysDataSource" class="table">
+                                    <table mat-table [dataSource]="this.ekeyService.ekeysDataSource" class="table">
                                         <!---->
                                         <ng-container matColumnDef="Nombre">
                                             <th mat-header-cell *matHeaderCellDef class="table-cell">Nombre</th>
@@ -120,9 +120,9 @@
                                                 <button [matMenuTriggerFor]="editarMenu" aria-label="Settings" class="custom-button">Editar</button>
                                                 <mat-menu #editarMenu="matMenu">
 
-                                                    <button mat-menu-item *ngIf="(userType==='110301') || (userType==='110302' && keyRight==='1') || ekey.username===username" (click)="cambiarNombreEkey(ekey.keyId)"><span>Editar
+                                                    <button mat-menu-item *ngIf="(userType==='110301') || (userType==='110302' && keyRight==='1') || ekey.username===userID" (click)="cambiarNombreEkey(ekey.keyId)"><span>Editar
                                                             Nombre</span></button>
-                                                    <button mat-menu-item *ngIf="(userType==='110301') || (userType==='110302' && keyRight==='1') || ekey.username===username" (click)="cambiarPeriodoEkey(ekey.keyId)"><span>Editar
+                                                    <button mat-menu-item *ngIf="(userType==='110301') || (userType==='110302' && keyRight==='1') || ekey.username===userID" (click)="cambiarPeriodoEkey(ekey.keyId)"><span>Editar
                                                             Periodo</span></button>
                                                 </mat-menu>
                                                 <!--BOTON ADMIN-->
@@ -136,7 +136,7 @@
                                                             apertura remota</span></button>
                                                 </mat-menu>
                                                 <!--BOTON ELIMINAR-->
-                                                <button *ngIf=" (userType==='110301') || (userType==='110302' && keyRight==='1') || ekey.username===username" class="custom-button-eliminar" (click)="borrarEkey(ekey.keyId,ekey.username)">Eliminar</button>
+                                                <button *ngIf=" (userType==='110301') || (userType==='110302' && keyRight==='1') || ekey.username===userID" class="custom-button-eliminar" (click)="borrarEkey(ekey.keyId,ekey.username)">Eliminar</button>
                                             </td>
                                         </ng-container>
                                         <!---->
@@ -155,11 +155,11 @@
                                     <input type="text" [(ngModel)]="textoBusqueda" placeholder="Buscar Códigos..." (input)="searchPasscodes()" />
                                     <div>
                                         <button (click)="crearPasscode()" class="nueva-button">Generar</button>
-                                        <button (click)="fetchPasscodes()">Actualizar</button>
+                                        <button (click)="this.passcodeService.fetchPasscodes(lockId)">Actualizar</button>
                                     </div>
                                 </div>
                                 <div>
-                                    <table mat-table [dataSource]="passcodesDataSource" class="table">
+                                    <table mat-table [dataSource]="this.passcodeService.passcodesDataSource" class="table">
                                         <!---->
                                         <ng-container matColumnDef="Nombre">
                                             <th mat-header-cell *matHeaderCellDef class="table-cell">Nombre</th>
@@ -233,11 +233,11 @@
                                     <input type="text" [(ngModel)]="textoBusqueda" placeholder="Buscar Tarjetas..." (input)="searchCards()" />
                                     <div>
                                         <button (click)="crearCard()" class="nueva-button">Generar</button>
-                                        <button (click)="fetchCards()">Actualizar</button>
+                                        <button (click)="this.cardService.fetchCards(lockId)">Actualizar</button>
                                     </div>
                                 </div>
                                 <div>
-                                    <table mat-table [dataSource]="cardsDataSource" class="table">
+                                    <table mat-table [dataSource]="this.cardService.cardsDataSource" class="table">
                                         <!---->
                                         <ng-container matColumnDef="Nombre">
                                             <th mat-header-cell *matHeaderCellDef class="table-cell">Nombre</th>
@@ -309,11 +309,11 @@
                                 <div class="button-container">
                                     <input type="text" [(ngModel)]="textoBusqueda" placeholder="Buscar Huellas..." (input)="searchFingerprints()" />
                                     <div>
-                                        <button (click)="fetchFingerprints()">Actualizar</button>
+                                        <button (click)="this.fingerprintService.fetchFingerprints(lockId)">Actualizar</button>
                                     </div>
                                 </div>
                                 <div>
-                                    <table mat-table [dataSource]="fingerprintsDataSource" class="table">
+                                    <table mat-table [dataSource]="this.fingerprintService.fingerprintsDataSource" class="table">
                                         <!---->
                                         <ng-container matColumnDef="Nombre">
                                             <th mat-header-cell *matHeaderCellDef class="table-cell">Nombre</th>
