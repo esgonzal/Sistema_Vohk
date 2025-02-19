@@ -237,7 +237,7 @@ export class EkeyComponent implements OnInit {
         if (datos.ekeyType === '1') {
           // Permanent eKey email
           const response = await lastValueFrom(this.ekeyService.generateEmail(this.ekeyService.userID, Alias, datos.recieverName, '0', '0', datos.email)) as sendEkeyResponse;
-          console.log(response)
+          //console.log(response)
           if (response.emailContent) {
             this.popupService.toEmail = response.toEmail;
             this.popupService.emailMessage = response.emailContent;

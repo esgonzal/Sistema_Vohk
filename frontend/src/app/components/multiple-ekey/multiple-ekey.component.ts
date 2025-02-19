@@ -150,8 +150,10 @@ export class MultipleEkeyComponent implements OnInit {
     }
     if (this.error === '') {
       for (const eKey of eKeys) {
-        await this.crearEkey2(eKey);
-        await this.generarEmail2(eKey);
+        if (await this.crearEkey2(eKey)) {
+          await this.generarEmail2(eKey);
+        }
+        
       }
       this.popupService.ekeySuccess2 = true;
       //this.router.navigate(["users", this.ekeyService.username, "lock", this.ekeyService.lockID]);
@@ -168,14 +170,18 @@ export class MultipleEkeyComponent implements OnInit {
           ///////////PERMANENTE////////////////////////////////
           let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, lock.id, lock.alias, eKey.account, eKey.name, "0", "0", 0, 0, eKey.email)) as sendEkeyResponse;
           if (sendEkeyResponse.keyId) {//Ekey permanente se mandó correctamente
+            return true;
             //this.popupService.emailMessage = this.sanitizer.bypassSecurityTrustHtml(sendEkeyResponse.emailContent);
             //this.popupService.emailSuccess = true;
           } else if (sendEkeyResponse.errcode === 10003) {
             sessionStorage.clear();
+            return false;
           } else if (sendEkeyResponse.errcode === -2019) {
             this.error = "No puedes enviarte una eKey a ti mismo."
+            return false;
           } else {
             console.log(sendEkeyResponse);
+            return false;
           }
         }
         else if (eKey.type === '2') {
@@ -186,22 +192,28 @@ export class MultipleEkeyComponent implements OnInit {
           let newEndDate = moment(newEndDay).add(this.lockService.transformarHora(eKey.endTimepicker), "milliseconds").valueOf();
           let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, lock.id, lock.alias, eKey.account, eKey.name, newStartDate.toString(), newEndDate.toString(), 0, 0, eKey.email)) as sendEkeyResponse;
           if (sendEkeyResponse.keyId) {//Ekey periodica se mandó correctamente
+            return true;
             //this.popupService.emailMessage = this.sanitizer.bypassSecurityTrustHtml(sendEkeyResponse.emailContent);
             //this.popupService.emailSuccess = true;
           } else if (sendEkeyResponse.errcode === 10003) {
             sessionStorage.clear();
+            return false;
           } else if (sendEkeyResponse.errcode === -2019) {
             this.error = "No puedes enviarte una eKey a ti mismo."
+            return false;
           } else {
             console.log(sendEkeyResponse);
+            return false;
           }
         }
       }
     } catch (error) {
       console.error("Error while creating Ekey:", error);
+      return false;
     } finally {
       this.isLoading = false;
     }
+    return false;
   }
   async generarEmail2(eKey: { account: string; name: string; type: string; startDatepicker: string; startTimepicker: string, endDatepicker: string, endTimepicker: string, email: string }) {
     if (this.ekeyService.selectedLocks.length === 1) {
@@ -209,9 +221,12 @@ export class MultipleEkeyComponent implements OnInit {
       if (eKey.type === '1') {
         // Permanent eKey email
         const response = await lastValueFrom(this.ekeyService.generateEmail(this.ekeyService.userID, Alias, eKey.account, '0', '0', eKey.email)) as sendEkeyResponse;
+        //console.log(response)
         if (response.emailContent) {
           this.popupService.toEmail = response.toEmail;
           this.popupService.emailMessage = response.emailContent;
+          let sendEmailResponse = await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, response.emailContent));
+          //console.log(sendEmailResponse)
           //this.popupService.emailSuccess = true;
           //const updatedHtml = response.emailContent;
           //let sendEmailResponse = await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, updatedHtml));
@@ -230,6 +245,7 @@ export class MultipleEkeyComponent implements OnInit {
         if (response.emailContent) {
           this.popupService.toEmail = response.toEmail;
           this.popupService.emailMessage = response.emailContent;
+          let sendEmailResponse = await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, response.emailContent));
           //this.popupService.emailSuccess = true;
           //const updatedHtml = response.emailContent;
           //let sendEmailResponse = await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, updatedHtml));
@@ -244,9 +260,11 @@ export class MultipleEkeyComponent implements OnInit {
         // Permanent eKey email
         const response = await lastValueFrom(this.ekeyService.generateEmail(this.ekeyService.userID, Alias, eKey.account, '0', '0', eKey.email)) as sendEkeyResponse;
         if (response.emailContent) {
-          console.log(response)
+          //console.log(response)
           this.popupService.toEmail = response.toEmail;
           this.popupService.emailMessage = response.emailContent;
+          let sendEmailResponse = await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, response.emailContent));
+          console.log(sendEmailResponse)
           //this.popupService.emailSuccess = true;
           //const updatedHtml = response.emailContent;
           //let sendEmailResponse = await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, updatedHtml));
@@ -262,9 +280,12 @@ export class MultipleEkeyComponent implements OnInit {
         let newStartDate = moment(newStartDay).add(this.lockService.transformarHora(eKey.startTimepicker), "milliseconds").valueOf();
         let newEndDate = moment(newEndDay).add(this.lockService.transformarHora(eKey.endTimepicker), "milliseconds").valueOf();
         const response = await lastValueFrom(this.ekeyService.generateEmail(this.ekeyService.userID, Alias, eKey.account, newStartDate.toString(), newEndDate.toString(), eKey.email)) as sendEkeyResponse;
+        //console.log(response)
         if (response.emailContent) {
           this.popupService.toEmail = response.toEmail;
           this.popupService.emailMessage = response.emailContent;
+          let sendEmailResponse = await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, response.emailContent));
+          console.log(sendEmailResponse)
           //this.popupService.emailSuccess = true;
           //const updatedHtml = response.emailContent;
           //let sendEmailResponse = await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, updatedHtml));
