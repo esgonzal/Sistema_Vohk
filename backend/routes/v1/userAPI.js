@@ -7,6 +7,7 @@ router.post('/register', async(req, res) => {
     console.log("register Request: Censored");
     // Verificar si faltan parámetros obligatorios
     if (!clientId || !clientSecret || !username || !password || !date) {
+        console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
         });
@@ -38,6 +39,7 @@ router.get('/list', async(req, res) => {
     console.log("list Request: ", req.query);
     // Verificar si faltan parámetros obligatorios
     if (!clientId || !clientSecret || !pageNo || !pageSize || !date) {
+        console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
         });
@@ -70,6 +72,7 @@ router.post('/resetPassword', async(req, res) => {
     console.log("resetPassword Request: Censored");
     // Verificar si faltan parámetros obligatorios
     if (!clientId || !clientSecret || !username || !password || !date) {
+        console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
         });
@@ -101,6 +104,7 @@ router.post('/delete', async(req, res) => {
     console.log("delete Request: ", req.body);
     // Verificar si faltan parámetros obligatorios
     if (!clientId || !clientSecret || !username || !date) {
+        console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
         });
@@ -131,6 +135,7 @@ router.post('/token', async(req, res) => {
     console.log("token Request: Censored");
     // Verificar si faltan parámetros obligatorios
     if (!clientId || !clientSecret || !username || !password) {
+        console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
         });
@@ -161,6 +166,7 @@ router.post('/refreshToken', async(req, res) => {
     console.log("refreshToken Request: Censored");
     // Verificar si faltan parámetros obligatorios
     if (!clientId || !clientSecret || !grant_type || !refresh_token) {
+        console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
         });

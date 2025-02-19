@@ -7,6 +7,7 @@ router.post('/add', async(req, res) => {
     console.log("add Request: ", req.body);
     // Verificar si faltan parámetros obligatorios
     if (!clientId || !accessToken || !name || !date) {
+        console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
         });
@@ -37,6 +38,7 @@ router.get('/list', async(req, res) => {
     console.log("list Request: ", req.query);
     // Verificar si faltan parámetros obligatorios
     if (!clientId || !accessToken || !date) {
+        console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
         });
@@ -66,6 +68,7 @@ router.post('/setLock', async(req, res) => {
     console.log("setLock Request: ", req.body);
     // Verificar si faltan parámetros obligatorios
     if (!clientId || !accessToken || !lockId || !groupId || !date) {
+        console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
         });
@@ -97,6 +100,7 @@ router.post('/delete', async(req, res) => {
     console.log("delete Request: ", req.body);
     // Verificar si faltan parámetros obligatorios
     if (!clientId || !accessToken || !groupId || !date) {
+        console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
         });
@@ -127,6 +131,7 @@ router.post('/rename', async(req, res) => {
     console.log("rename Request: ", req.body);
     // Verificar si faltan parámetros obligatorios
     if (!clientId || !accessToken || !groupId || !name || !date) {
+        console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
         });

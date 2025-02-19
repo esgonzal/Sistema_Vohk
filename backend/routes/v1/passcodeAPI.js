@@ -7,6 +7,7 @@ router.post('/get', async(req, res) => {
     console.log("get Request: ", req.body);
     // Verificar si faltan parámetros obligatorios
     if (!clientId || !accessToken || !lockId || !keyboardPwdType || !startDate || !date) {
+        console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
         });
@@ -41,6 +42,7 @@ router.post('/add', async(req, res) => {
     console.log("add Request: ", req.body);
     // Verificar si faltan parámetros obligatorios
     if (!clientId || !accessToken || !lockId || !keyboardPwd || !keyboardPwdType || !startDate || !addType || !date) {
+        console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
         });
@@ -77,6 +79,7 @@ router.post('/delete', async(req, res) => {
     console.log("delete Request: ", req.body);
     // Verificar si faltan parámetros obligatorios
     if (!clientId || !accessToken || !lockId || !keyboardPwdId || !deleteType || !date) {
+        console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
         });
@@ -109,6 +112,7 @@ router.post('/change', async(req, res) => {
     console.log("change Request: ", req.body);
     // Verificar si faltan parámetros obligatorios
     if (!clientId || !accessToken || !lockId || !keyboardPwdId || !changeType || !date) {
+        console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
         });

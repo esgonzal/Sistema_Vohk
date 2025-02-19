@@ -7,6 +7,7 @@ router.post('/delete', async(req, res) => {
     console.log("delete Request: ", req.body);
     // Verificar si faltan parámetros obligatorios
     if (!clientId || !accessToken || !lockId || !fingerprintId || !deleteType || !date) {
+        console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
         });
@@ -39,6 +40,7 @@ router.post('/rename', async(req, res) => {
     console.log("rename Request: ", req.body);
     // Verificar si faltan parámetros obligatorios
     if (!clientId || !accessToken || !lockId || !fingerprintId || !deleteType || !date) {
+        console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
         });
@@ -71,6 +73,7 @@ router.post('/changePeriod', async(req, res) => {
     console.log("changePeriod Request: ", req.body);
     // Verificar si faltan parámetros obligatorios
     if (!clientId || !accessToken || !lockId || !fingerprintId || !startDate || !endDate || !date) {
+        console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
         });
