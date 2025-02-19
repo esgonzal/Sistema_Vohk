@@ -4,17 +4,24 @@ const axios = require('axios');
 
 router.post('/get', async(req, res) => {
     let { clientId, accessToken, lockId, keyboardPwdType, keyboardPwdName, startDate, endDate, date } = req.body;
+    console.log("get Request: ", req.body);
+    // Verificar si faltan parámetros obligatorios
+    if (!clientId || !accessToken || !lockId || !keyboardPwdType || !startDate || !date) {
+        return res.status(400).json({
+            errmsg: "Missing required parameters",
+        });
+    }
     try {
         let ttlockData = {
-            clientId: clientId,
-            accessToken: accessToken,
-            lockId: lockId,
-            keyboardPwdType: keyboardPwdType,
-            keyboardPwdName: keyboardPwdName,
-            startDate: startDate,
-            endDate: endDate,
+            clientId,
+            accessToken,
+            lockId,
+            keyboardPwdType,
+            startDate,
             date
         };
+        if (keyboardPwdName) ttlockData.keyboardPwdName = keyboardPwdName;
+        if (endDate) ttlockData.endDate = endDate;
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
         };
@@ -22,7 +29,7 @@ router.post('/get', async(req, res) => {
             'https://euapi.ttlock.com/v3/keyboardPwd/get',
             ttlockData, { headers }
         );
-        console.log("passcodeGet response:", ttlockResponse.data)
+        console.log("get response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
@@ -31,19 +38,26 @@ router.post('/get', async(req, res) => {
 });
 router.post('/add', async(req, res) => {
     let { clientId, accessToken, lockId, keyboardPwd, keyboardPwdType, keyboardPwdName, startDate, endDate, addType, date } = req.body;
+    console.log("add Request: ", req.body);
+    // Verificar si faltan parámetros obligatorios
+    if (!clientId || !accessToken || !lockId || !keyboardPwd || !keyboardPwdType || !startDate || !addType || !date) {
+        return res.status(400).json({
+            errmsg: "Missing required parameters",
+        });
+    }
     try {
         let ttlockData = {
-            clientId: clientId,
-            accessToken: accessToken,
-            lockId: lockId,
-            keyboardPwd: keyboardPwd,
-            keyboardPwdType: keyboardPwdType,
-            keyboardPwdName: keyboardPwdName,
-            startDate: startDate,
-            endDate: endDate,
-            addType: addType,
+            clientId,
+            accessToken,
+            lockId,
+            keyboardPwd,
+            keyboardPwdType,
+            startDate,
+            addType,
             date
         };
+        if (keyboardPwdName) ttlockData.keyboardPwdName = keyboardPwdName;
+        if (endDate) ttlockData.endDate = endDate;
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
         };
@@ -51,7 +65,7 @@ router.post('/add', async(req, res) => {
             'https://euapi.ttlock.com/v3/keyboardPwd/add',
             ttlockData, { headers }
         );
-        console.log("passcodeAdd response:", ttlockResponse.data)
+        console.log("add Response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
@@ -60,13 +74,20 @@ router.post('/add', async(req, res) => {
 });
 router.post('/delete', async(req, res) => {
     let { clientId, accessToken, lockId, keyboardPwdId, deleteType, date } = req.body;
+    console.log("delete Request: ", req.body);
+    // Verificar si faltan parámetros obligatorios
+    if (!clientId || !accessToken || !lockId || !keyboardPwdId || !deleteType || !date) {
+        return res.status(400).json({
+            errmsg: "Missing required parameters",
+        });
+    }
     try {
         let ttlockData = {
-            clientId: clientId,
-            accessToken: accessToken,
-            lockId: lockId,
-            keyboardPwdId: keyboardPwdId,
-            deleteType: deleteType,
+            clientId,
+            accessToken,
+            lockId,
+            keyboardPwdId,
+            deleteType,
             date
         };
         let headers = {
@@ -76,7 +97,7 @@ router.post('/delete', async(req, res) => {
             'https://euapi.ttlock.com/v3/keyboardPwd/delete',
             ttlockData, { headers }
         );
-        console.log("passcodeDelete response:", ttlockResponse.data)
+        console.log("delete Response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
@@ -85,19 +106,26 @@ router.post('/delete', async(req, res) => {
 });
 router.post('/change', async(req, res) => {
     let { clientId, accessToken, lockId, keyboardPwdId, keyboardPwdName, newKeyboardPwd, startDate, endDate, changeType, date } = req.body;
+    console.log("change Request: ", req.body);
+    // Verificar si faltan parámetros obligatorios
+    if (!clientId || !accessToken || !lockId || !keyboardPwdId || !changeType || !date) {
+        return res.status(400).json({
+            errmsg: "Missing required parameters",
+        });
+    }
     try {
         let ttlockData = {
-            clientId: clientId,
-            accessToken: accessToken,
-            lockId: lockId,
-            keyboardPwdId: keyboardPwdId,
-            keyboardPwdName: keyboardPwdName,
-            newKeyboardPwd: newKeyboardPwd,
-            startDate: startDate,
-            endDate: endDate,
-            changeType: changeType,
-            date: date
+            clientId,
+            accessToken,
+            lockId,
+            keyboardPwdId,
+            changeType,
+            date
         };
+        if (keyboardPwdName) ttlockData.keyboardPwdName = keyboardPwdName;
+        if (newKeyboardPwd) ttlockData.newKeyboardPwd = newKeyboardPwd;
+        if (startDate) ttlockData.startDate = startDate;
+        if (endDate) ttlockData.endDate = endDate;
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
         };
@@ -105,7 +133,7 @@ router.post('/change', async(req, res) => {
             'https://euapi.ttlock.com/v3/keyboardPwd/change',
             ttlockData, { headers }
         );
-        console.log("passcodeEdit response:", ttlockResponse.data)
+        console.log("change Response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);

@@ -4,12 +4,19 @@ const axios = require('axios');
 
 router.post('/add', async(req, res) => {
     let { clientId, accessToken, name, date } = req.body;
+    console.log("add Request: ", req.body);
+    // Verificar si faltan parámetros obligatorios
+    if (!clientId || !accessToken || !name || !date) {
+        return res.status(400).json({
+            errmsg: "Missing required parameters",
+        });
+    }
     try {
         let ttlockData = {
-            clientId: clientId,
-            accessToken: accessToken,
-            name: name,
-            date: date
+            clientId,
+            accessToken,
+            name,
+            date
         };
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -18,7 +25,7 @@ router.post('/add', async(req, res) => {
             'https://euapi.ttlock.com/v3/group/add',
             ttlockData, { headers }
         );
-        console.log("groupAdd response:", ttlockResponse.data)
+        console.log("add Response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
@@ -27,11 +34,19 @@ router.post('/add', async(req, res) => {
 });
 router.get('/list', async(req, res) => {
     let { clientId, accessToken, date } = req.query;
+    console.log("list Request: ", req.query);
+    // Verificar si faltan parámetros obligatorios
+    if (!clientId || !accessToken || !date) {
+        return res.status(400).json({
+            errmsg: "Missing required parameters",
+        });
+    }
     try {
         let ttlockData = {
-            clientId: clientId,
-            accessToken: accessToken,
-            date: date
+            clientId,
+            accessToken,
+            orderBy: 0,
+            date
         };
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -39,7 +54,7 @@ router.get('/list', async(req, res) => {
         let ttlockResponse = await axios.get(
             'https://euapi.ttlock.com/v3/group/list', { params: ttlockData, headers }
         );
-        console.log("groupList response:", ttlockResponse.data)
+        console.log("list Response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
@@ -48,13 +63,20 @@ router.get('/list', async(req, res) => {
 });
 router.post('/setLock', async(req, res) => {
     let { clientId, accessToken, lockId, groupId, date } = req.body;
+    console.log("setLock Request: ", req.body);
+    // Verificar si faltan parámetros obligatorios
+    if (!clientId || !accessToken || !lockId || !groupId || !date) {
+        return res.status(400).json({
+            errmsg: "Missing required parameters",
+        });
+    }
     try {
         let ttlockData = {
-            clientId: clientId,
-            accessToken: accessToken,
-            lockId: lockId,
-            groupId: groupId,
-            date: date
+            clientId,
+            accessToken,
+            lockId,
+            groupId,
+            date
         };
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -63,7 +85,7 @@ router.post('/setLock', async(req, res) => {
             'https://euapi.ttlock.com/v3/lock/setGroup',
             ttlockData, { headers }
         );
-        console.log("groupSetGroup response:", ttlockResponse.data)
+        console.log("setLock Response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
@@ -72,12 +94,19 @@ router.post('/setLock', async(req, res) => {
 });
 router.post('/delete', async(req, res) => {
     let { clientId, accessToken, groupId, date } = req.body;
+    console.log("delete Request: ", req.body);
+    // Verificar si faltan parámetros obligatorios
+    if (!clientId || !accessToken || !groupId || !date) {
+        return res.status(400).json({
+            errmsg: "Missing required parameters",
+        });
+    }
     try {
         let ttlockData = {
-            clientId: clientId,
-            accessToken: accessToken,
-            groupId: groupId,
-            date: date,
+            clientId,
+            accessToken,
+            groupId,
+            date,
         };
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -86,7 +115,7 @@ router.post('/delete', async(req, res) => {
             'https://euapi.ttlock.com/v3/group/delete',
             ttlockData, { headers }
         );
-        console.log("groupDelete response:", ttlockResponse.data)
+        console.log("delete Response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
@@ -95,13 +124,20 @@ router.post('/delete', async(req, res) => {
 });
 router.post('/rename', async(req, res) => {
     let { clientId, accessToken, groupId, name, date } = req.body;
+    console.log("rename Request: ", req.body);
+    // Verificar si faltan parámetros obligatorios
+    if (!clientId || !accessToken || !groupId || !name || !date) {
+        return res.status(400).json({
+            errmsg: "Missing required parameters",
+        });
+    }
     try {
         let ttlockData = {
-            clientId: clientId,
-            accessToken: accessToken,
-            groupId: groupId,
-            name: name,
-            date: date,
+            clientId,
+            accessToken,
+            groupId,
+            name,
+            date,
         };
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -110,7 +146,7 @@ router.post('/rename', async(req, res) => {
             'https://euapi.ttlock.com/v3/group/update',
             ttlockData, { headers }
         );
-        console.log("groupUpdate response:", ttlockResponse.data)
+        console.log("rename Response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);

@@ -4,23 +4,30 @@ const axios = require('axios');
 
 router.get('/list', async(req, res) => {
     let { clientId, accessToken, lockAlias, groupId, pageNo, pageSize, date } = req.query;
+    console.log("list Request: ", req.query);
+    // Verificar si faltan parámetros obligatorios
+    if (!clientId || !accessToken || !pageNo || !pageSize || !date) {
+        return res.status(400).json({
+            errmsg: "Missing required parameters",
+        });
+    }
     try {
         let ttlockData = {
-            clientId: clientId,
-            accessToken: accessToken,
-            lockAlias: lockAlias,
-            groupId: groupId,
-            pageNo: pageNo,
-            pageSize: pageSize,
-            date: date
-        };
+            clientId,
+            accessToken,
+            pageNo,
+            pageSize,
+            date
+        }
+        if (lockAlias) ttlockData.lockAlias = lockAlias;
+        if (groupId) ttlockData.groupId = groupId;
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
         };
         let ttlockResponse = await axios.get(
             'https://euapi.ttlock.com/v3/lock/list', { params: ttlockData, headers }
         );
-        console.log("lockList response:", ttlockResponse.data)
+        console.log("lockList Response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
@@ -29,14 +36,21 @@ router.get('/list', async(req, res) => {
 });
 router.get('/listKey', async(req, res) => {
     let { clientId, accessToken, lockId, pageNo, pageSize, date } = req.query;
+    console.log("listKey Request: ", req.query);
+    // Verificar si faltan parámetros obligatorios
+    if (!clientId || !accessToken || !lockId || !pageNo || !pageSize || !date) {
+        return res.status(400).json({
+            errmsg: "Missing required parameters",
+        });
+    }
     try {
         let ttlockData = {
-            clientId: clientId,
-            accessToken: accessToken,
-            lockId: lockId,
-            pageNo: pageNo,
-            pageSize: pageSize,
-            date: date,
+            clientId,
+            accessToken,
+            lockId,
+            pageNo,
+            pageSize,
+            date,
         };
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -44,7 +58,7 @@ router.get('/listKey', async(req, res) => {
         let ttlockResponse = await axios.get(
             'https://euapi.ttlock.com/v3/lock/listKey', { params: ttlockData, headers }
         );
-        console.log("lockListEkeys response:", ttlockResponse.data)
+        console.log("lockListEkeys Response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
@@ -53,14 +67,21 @@ router.get('/listKey', async(req, res) => {
 });
 router.get('/listKeyboardPwd', async(req, res) => {
     let { clientId, accessToken, lockId, pageNo, pageSize, date } = req.query;
+    console.log("listKeyboardPwd Request: ", req.query);
+    // Verificar si faltan parámetros obligatorios
+    if (!clientId || !accessToken || !lockId || !pageNo || !pageSize || !date) {
+        return res.status(400).json({
+            errmsg: "Missing required parameters",
+        });
+    }
     try {
         let ttlockData = {
-            clientId: clientId,
-            accessToken: accessToken,
-            lockId: lockId,
-            pageNo: pageNo,
-            pageSize: pageSize,
-            date: date,
+            clientId,
+            accessToken,
+            lockId,
+            pageNo,
+            pageSize,
+            date,
         };
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -68,7 +89,7 @@ router.get('/listKeyboardPwd', async(req, res) => {
         let ttlockResponse = await axios.get(
             'https://euapi.ttlock.com/v3/lock/listKeyboardPwd', { params: ttlockData, headers }
         );
-        console.log("lockListPasscodes response:", ttlockResponse.data)
+        console.log("listKeyboardPwd Response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
@@ -77,16 +98,22 @@ router.get('/listKeyboardPwd', async(req, res) => {
 });
 router.get('/listFingerprints', async(req, res) => {
     let { clientId, accessToken, lockId, pageNo, pageSize, date } = req.query;
-    console.log("listFingerprints")
+    console.log("listFingerprints Request: ", req.query);
+    // Verificar si faltan parámetros obligatorios
+    if (!clientId || !accessToken || !lockId || !pageNo || !pageSize || !date) {
+        return res.status(400).json({
+            errmsg: "Missing required parameters",
+        });
+    }
     try {
         let ttlockData = {
-            clientId: clientId,
-            accessToken: accessToken,
-            lockId: lockId,
-            pageNo: pageNo,
-            pageSize: pageSize,
+            clientId,
+            accessToken,
+            lockId,
+            pageNo,
+            pageSize,
             orderBy: 0,
-            date: date,
+            date,
         };
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -94,7 +121,7 @@ router.get('/listFingerprints', async(req, res) => {
         let ttlockResponse = await axios.get(
             'https://euapi.ttlock.com/v3/fingerprint/list', { params: ttlockData, headers }
         );
-        console.log("fingerprintList response:", ttlockResponse.data)
+        console.log("listFingerprints Response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
@@ -102,23 +129,34 @@ router.get('/listFingerprints', async(req, res) => {
     }
 });
 router.get('/listRecord', async(req, res) => {
-    let { clientId, accessToken, lockId, pageNo, pageSize, date } = req.query;
+    let { clientId, accessToken, lockId, startDate, endDate, pageNo, pageSize, recordType, date } = req.query;
+    console.log("listRecord Request: ", req.query);
+    // Verificar si faltan parámetros obligatorios
+    if (!clientId || !accessToken || !lockId || !pageNo || !pageSize || !date) {
+        return res.status(400).json({
+            errmsg: "Missing required parameters",
+        });
+    }
     try {
         let ttlockData = {
-            clientId: clientId,
-            accessToken: accessToken,
-            lockId: lockId,
-            pageNo: pageNo,
-            pageSize: pageSize,
-            date: date,
+            clientId,
+            accessToken,
+            lockId,
+            pageNo,
+            pageSize,
+            date,
         };
+        // Add optional parameters only if they are provided
+        if (startDate) ttlockData.startDate = startDate;
+        if (endDate) ttlockData.endDate = endDate;
+        if (recordType) ttlockData.recordType = recordType;
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
         };
         let ttlockResponse = await axios.get(
             'https://euapi.ttlock.com/v3/lockRecord/list', { params: ttlockData, headers }
         );
-        console.log("recordList response:", ttlockResponse.data)
+        console.log("listRecord Response: ", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
@@ -127,12 +165,19 @@ router.get('/listRecord', async(req, res) => {
 });
 router.get('/detail', async(req, res) => {
     let { clientId, accessToken, lockId, date } = req.query;
+    console.log("detail Request: ", req.query);
+    // Verificar si faltan parámetros obligatorios
+    if (!clientId || !accessToken || !lockId || !date) {
+        return res.status(400).json({
+            errmsg: "Missing required parameters",
+        });
+    }
     try {
         let ttlockData = {
-            clientId: clientId,
-            accessToken: accessToken,
-            lockId: lockId,
-            date: date
+            clientId,
+            accessToken,
+            lockId,
+            date
         };
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -140,7 +185,7 @@ router.get('/detail', async(req, res) => {
         let ttlockResponse = await axios.get(
             'https://euapi.ttlock.com/v3/lock/detail', { params: ttlockData, headers }
         );
-        console.log("lockDetail response:", ttlockResponse.data)
+        console.log("detail Response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
@@ -149,12 +194,19 @@ router.get('/detail', async(req, res) => {
 });
 router.post('/delete', async(req, res) => {
     let { clientId, accessToken, lockId, date } = req.body;
+    console.log("delete Request: ", req.body);
+    // Verificar si faltan parámetros obligatorios
+    if (!clientId || !accessToken || !lockId || !date) {
+        return res.status(400).json({
+            errmsg: "Missing required parameters",
+        });
+    }
     try {
         let ttlockData = {
-            clientId: clientId,
-            accessToken: accessToken,
-            lockId: lockId,
-            date: date
+            clientId,
+            accessToken,
+            lockId,
+            date
         };
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -163,7 +215,7 @@ router.post('/delete', async(req, res) => {
             'https://euapi.ttlock.com/v3/lock/delete',
             ttlockData, { headers }
         );
-        console.log("lockDelete response:", ttlockResponse.data)
+        console.log("delete Response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
@@ -172,14 +224,21 @@ router.post('/delete', async(req, res) => {
 });
 router.post('/rename', async(req, res) => {
     let { clientId, accessToken, lockId, lockAlias, date } = req.body;
+    console.log("rename Request: ", req.body);
+    // Verificar si faltan parámetros obligatorios
+    if (!clientId || !accessToken || !lockId || !date) {
+        return res.status(400).json({
+            errmsg: "Missing required parameters",
+        });
+    }
     try {
         let ttlockData = {
-            clientId: clientId,
-            accessToken: accessToken,
-            lockId: lockId,
-            lockAlias: lockAlias,
-            date: date
+            clientId,
+            accessToken,
+            lockId,
+            date
         };
+        if (lockAlias) ttlockData.lockAlias = lockAlias;
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
         };
@@ -187,7 +246,7 @@ router.post('/rename', async(req, res) => {
             'https://euapi.ttlock.com/v3/lock/rename',
             ttlockData, { headers }
         );
-        console.log("lockRename response:", ttlockResponse.data)
+        console.log("rename response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
@@ -196,13 +255,20 @@ router.post('/rename', async(req, res) => {
 });
 router.post('/transfer', async(req, res) => {
     let { clientId, accessToken, receiverUsername, lockIdList, date } = req.body;
+    console.log("transfer Request: ", req.body);
+    // Verificar si faltan parámetros obligatorios
+    if (!clientId || !accessToken || !receiverUsername || !lockIdList || !date) {
+        return res.status(400).json({
+            errmsg: "Missing required parameters",
+        });
+    }
     try {
         let ttlockData = {
-            clientId: clientId,
-            accessToken: accessToken,
-            receiverUsername: receiverUsername,
-            lockIdList: lockIdList,
-            date: date
+            clientId,
+            accessToken,
+            receiverUsername,
+            lockIdList,
+            date
         };
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -211,7 +277,7 @@ router.post('/transfer', async(req, res) => {
             'https://euapi.ttlock.com/v3/lock/transfer',
             ttlockData, { headers }
         );
-        console.log("lockTransfer response:", ttlockResponse.data)
+        console.log("transfer response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
@@ -220,14 +286,21 @@ router.post('/transfer', async(req, res) => {
 });
 router.post('/setAutoLockTime', async(req, res) => {
     let { clientId, accessToken, lockId, seconds, type, date } = req.body;
+    console.log("setAutoLockTime Request: ", req.body);
+    // Verificar si faltan parámetros obligatorios
+    if (!clientId || !accessToken || !lockId || !seconds || type || !date) {
+        return res.status(400).json({
+            errmsg: "Missing required parameters",
+        });
+    }
     try {
         let ttlockData = {
-            clientId: clientId,
-            accessToken: accessToken,
-            lockId: lockId,
-            seconds: seconds,
-            type: type,
-            date: date
+            clientId,
+            accessToken,
+            lockId,
+            seconds,
+            type,
+            date
         };
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -236,7 +309,7 @@ router.post('/setAutoLockTime', async(req, res) => {
             'https://euapi.ttlock.com/v3/lock/setAutoLockTime',
             ttlockData, { headers }
         );
-        console.log("lockSetAutoLockTime response:", ttlockResponse.data)
+        console.log("setAutoLockTime Response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
@@ -245,12 +318,19 @@ router.post('/setAutoLockTime', async(req, res) => {
 });
 router.post('/unlock', async(req, res) => {
     let { clientId, accessToken, lockId, date } = req.body;
+    console.log("unlock Request: ", req.body);
+    // Verificar si faltan parámetros obligatorios
+    if (!clientId || !accessToken || !lockId || !date) {
+        return res.status(400).json({
+            errmsg: "Missing required parameters",
+        });
+    }
     try {
         let ttlockData = {
-            clientId: clientId,
-            accessToken: accessToken,
-            lockId: lockId,
-            date: date,
+            clientId,
+            accessToken,
+            lockId,
+            date,
         };
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -259,7 +339,7 @@ router.post('/unlock', async(req, res) => {
             'https://euapi.ttlock.com/v3/lock/unlock',
             ttlockData, { headers }
         );
-        console.log("lockUnlock response:", ttlockResponse.data)
+        console.log("unlock Response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
@@ -268,12 +348,19 @@ router.post('/unlock', async(req, res) => {
 });
 router.post('/lock', async(req, res) => {
     let { clientId, accessToken, lockId, date } = req.body;
+    console.log("lock Request: ", req.body);
+    // Verificar si faltan parámetros obligatorios
+    if (!clientId || !accessToken || !lockId || !date) {
+        return res.status(400).json({
+            errmsg: "Missing required parameters",
+        });
+    }
     try {
         let ttlockData = {
-            clientId: clientId,
-            accessToken: accessToken,
-            lockId: lockId,
-            date: date,
+            clientId,
+            accessToken,
+            lockId,
+            date,
         };
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -282,7 +369,7 @@ router.post('/lock', async(req, res) => {
             'https://euapi.ttlock.com/v3/lock/lock',
             ttlockData, { headers }
         );
-        console.log("lockLock response:", ttlockResponse.data)
+        console.log("lock Response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
@@ -291,12 +378,19 @@ router.post('/lock', async(req, res) => {
 });
 router.get('/queryOpenState', async(req, res) => {
     let { clientId, accessToken, lockId, date } = req.query;
+    console.log("queryOpenState Request: ", req.query);
+    // Verificar si faltan parámetros obligatorios
+    if (!clientId || !accessToken || !lockId || !date) {
+        return res.status(400).json({
+            errmsg: "Missing required parameters",
+        });
+    }
     try {
         let ttlockData = {
-            clientId: clientId,
-            accessToken: accessToken,
-            lockId: lockId,
-            date: date,
+            clientId,
+            accessToken,
+            lockId,
+            date,
         };
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -304,7 +398,7 @@ router.get('/queryOpenState', async(req, res) => {
         let ttlockResponse = await axios.get(
             'https://euapi.ttlock.com/v3/lock/queryOpenState', { params: ttlockData, headers }
         );
-        console.log("lockQueryOpenState response:", ttlockResponse.data)
+        console.log("queryOpenState Response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
@@ -313,12 +407,19 @@ router.get('/queryOpenState', async(req, res) => {
 });
 router.get('/queryDate', async(req, res) => {
     let { clientId, accessToken, lockId, date } = req.query;
+    console.log("queryDate Request: ", req.query);
+    // Verificar si faltan parámetros obligatorios
+    if (!clientId || !accessToken || !lockId || !date) {
+        return res.status(400).json({
+            errmsg: "Missing required parameters",
+        });
+    }
     try {
         let ttlockData = {
-            clientId: clientId,
-            accessToken: accessToken,
-            lockId: lockId,
-            date: date
+            clientId,
+            accessToken,
+            lockId,
+            date,
         };
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -326,7 +427,7 @@ router.get('/queryDate', async(req, res) => {
         let ttlockResponse = await axios.get(
             'https://euapi.ttlock.com/v3/lock/queryDate', { params: ttlockData, headers }
         );
-        console.log("lockQueryDate response:", ttlockResponse.data)
+        console.log("queryDate response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
@@ -335,12 +436,19 @@ router.get('/queryDate', async(req, res) => {
 });
 router.post('/updateDate', async(req, res) => {
     let { clientId, accessToken, lockId, date } = req.body;
+    console.log("updateDate Request: ", req.body);
+    // Verificar si faltan parámetros obligatorios
+    if (!clientId || !accessToken || !lockId || !date) {
+        return res.status(400).json({
+            errmsg: "Missing required parameters",
+        });
+    }
     try {
         let ttlockData = {
-            clientId: clientId,
-            accessToken: accessToken,
-            lockId: lockId,
-            date: date,
+            clientId,
+            accessToken,
+            lockId,
+            date,
         };
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -349,7 +457,7 @@ router.post('/updateDate', async(req, res) => {
             'https://euapi.ttlock.com/v3/lock/updateDate',
             ttlockData, { headers }
         );
-        console.log("lockUpdateDate response:", ttlockResponse.data)
+        console.log("updateDate response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
@@ -358,12 +466,19 @@ router.post('/updateDate', async(req, res) => {
 });
 router.get('/hubs', async(req, res) => {
     let { clientId, accessToken, lockId, date } = req.query;
+    console.log("hubs Request: ", req.query);
+    // Verificar si faltan parámetros obligatorios
+    if (!clientId || !accessToken || !lockId || !date) {
+        return res.status(400).json({
+            errmsg: "Missing required parameters",
+        });
+    }
     try {
         let ttlockData = {
-            clientId: clientId,
-            accessToken: accessToken,
-            lockId: lockId,
-            date: date
+            clientId,
+            accessToken,
+            lockId,
+            date,
         };
         let headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -371,7 +486,7 @@ router.get('/hubs', async(req, res) => {
         let ttlockResponse = await axios.get(
             'https://euapi.ttlock.com/v3/gateway/listByLock', { params: ttlockData, headers }
         );
-        console.log("listByLock response:", ttlockResponse.data)
+        console.log("hubs response:", ttlockResponse.data)
         res.json(ttlockResponse.data);
     } catch (error) {
         console.error(error);
