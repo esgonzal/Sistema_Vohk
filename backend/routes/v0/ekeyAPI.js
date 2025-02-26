@@ -444,7 +444,7 @@ async function checkIfNewAccount(username) {
         checkAccountData, { headers: checkAccountHeaders }
     );
     if (checkAccountResponse.data.hasOwnProperty('access_token')) {
-        console.log("Cuenta nueva");
+        //console.log("Cuenta nueva");
         return true;
     } else {
         return false;

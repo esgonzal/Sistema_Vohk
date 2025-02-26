@@ -26,12 +26,6 @@ const checkAndLogoutExpiredSessions = () => {
     }
 };
 const logoutIntervalId = setInterval(checkAndLogoutExpiredSessions, logoutInterval);
-//Base de datos Tabla Usuarios
-const UserDB = require('./routes/database/UsersTable.js');
-app.use('/DB/usuarios', UserDB);
-//Base de datos Tabla eKey
-const EkeyDB = require('./routes/database/eKeyTable.js');
-app.use('/DB/ekeys', EkeyDB);
 //API de Usuario de TTLock
 const UserRouterV0 = require('../backend/routes/v0/UserAPI.js');
 app.use('/v0/user', UserRouterV0);
@@ -77,9 +71,6 @@ app.use('/v1/group', GroupRouter);
 const emailRouter = require('../backend/routes/nodemailer/emailRoutes.js');
 app.use('/mail', emailRouter);
 
-//Camera
-const cameraRouter = require('../backend/routes/camera/cameraRoutes.js');
-app.use('/camera', cameraRouter);
 
 //Integration Test
 const testRouter = require('../backend/routes/automation/monday_test.js');

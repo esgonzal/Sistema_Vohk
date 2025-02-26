@@ -2,7 +2,7 @@ import { Component, OnInit, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import moment from 'moment';
 import { lastValueFrom } from 'rxjs';
-import { GatewayAccountResponse, GroupResponse, LockListResponse } from 'src/app/Interfaces/API_responses';
+import { EkeyResponse, GatewayAccountResponse, GroupResponse, LockListResponse } from 'src/app/Interfaces/API_responses';
 import { Group } from 'src/app/Interfaces/Group';
 import { LockData } from 'src/app/Interfaces/Lock';
 import { EkeyServiceService } from 'src/app/services/ekey-service.service';
@@ -12,6 +12,8 @@ import { DarkModeService } from '../../services/dark-mode.service';
 import { LockServiceService } from 'src/app/services/lock-service.service';
 import { GatewayService } from 'src/app/services/gateway.service';
 import { faHome } from '@fortawesome/free-solid-svg-icons'
+import { Ekey } from 'src/app/Interfaces/Elements';
+import * as XLSX from 'xlsx';
 
 @Component({
   selector: 'app-comunidadesv2',
@@ -63,7 +65,7 @@ export class Comunidadesv2Component implements OnInit {
       }
     } else {
       let grupoInicial = this.groups.find(group => group.groupId === -1);
-      if (grupoInicial){
+      if (grupoInicial) {
         await this.chooseGroup(grupoInicial);
         this.popupService.locksWithoutGroup = grupoInicial.locks;
         this.isLoading = false;
@@ -227,6 +229,48 @@ export class Comunidadesv2Component implements OnInit {
     this.popupService.group = group;
     this.popupService.userID = this.userID;
     this.popupService.removeLockGROUP = true;
+  }
+  async descargarExcel(group: Group) {
+    let ekeysMap: { [username: string]: { eKey: string, cerraduras: { [lockName: string]: string } } } = {};
+    let lockNames: string[] = group.locks.map(lock => lock.lockAlias); // Columnas con nombres de cerraduras
+    for (let i = 0; i < group.lockCount; i++) {
+      let lockActual = group.locks[i];
+      const response = await lastValueFrom(this.ekeyService.getEkeysofLock(this.userID, lockActual.lockId, 1, 200)) as EkeyResponse;
+      let ekeys: Ekey[] = response.list;
+      for (let ekey of ekeys) {
+        if (!ekey.username) continue; // Evitar problemas con cuentas vacías
+        if (!ekeysMap[ekey.username]) {
+          ekeysMap[ekey.username] = {
+            eKey: ekey.keyName, // Guardamos un nombre de eKey representativo
+            cerraduras: {}
+          };
+        }
+        ekeysMap[ekey.username].cerraduras[lockActual.lockAlias] = "X";
+      }
+    }
+    // Convertir datos a un formato adecuado para `json_to_sheet`
+    let data: any[] = Object.keys(ekeysMap).map(username => {
+      let row: any = {
+        Cuenta: username,
+        eKey: ekeysMap[username].eKey, // Se mostrará solo una de las eKeys
+      };
+      lockNames.forEach(lock => {
+        row[lock] = ekeysMap[username].cerraduras[lock] || "";
+      });
+      return row;
+    });
+    // Crear hoja de Excel
+    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(data);
+    const wb: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'eKeys');
+    // 🔹 Ajustar el ancho de las columnas según su contenido
+    ws['!cols'] = [
+      { wch: 25 }, // Ancho para la columna "Cuenta"
+      { wch: 25 }, // Ancho para la columna "eKey"
+      ...lockNames.map(() => ({ wch: 25 })) // Ancho para las cerraduras
+    ];
+    // Guardar el archivo con el nombre del grupo
+    XLSX.writeFile(wb, `Ekeys_${group.groupName}.xlsx`);
   }
   @HostListener('window:resize', ['$event'])
   onResize(event: Event) {

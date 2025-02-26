@@ -35,7 +35,10 @@
             <div class="groupName">
                 {{chosenGroup.groupName}}
             </div>
-            <div class="groupButtons" *ngIf="chosenGroup.groupId !== -1">
+            <div class="groupButtons" *ngIf="chosenGroup.groupId !== -1" style="display: flex;">
+                <div *ngIf="userID==='soporte@vohk.cl'">
+                    <button class="menuButton" style="margin-right: 5px;" (click)="descargarExcel(chosenGroup)">Descargar eKeys</button>
+                </div>
                 <button [matMenuTriggerFor]="editarMenu" class="menuButton" style="margin-right: 5px;">Editar</button>
                 <mat-menu #editarMenu="matMenu">
                     <button mat-menu-item (click)="cambiarNombre(chosenGroup.groupId)"><span>Editar Nombre</span></button>
