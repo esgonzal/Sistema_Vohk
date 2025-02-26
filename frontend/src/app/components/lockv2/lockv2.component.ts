@@ -521,28 +521,34 @@ export class Lockv2Component implements OnInit {
     }
   }
   async onTabChanged(event: MatTabChangeEvent): Promise<void> {
+    this.isLoading = true;
     this.selectedTabIndex = event.index;
     switch (this.selectedTabIndex) {
       case 0:
         this.textoBusqueda = '';
         await this.ekeyService.fetchEkeys(this.lockId);
+        this.isLoading = false;
         break;
       case 1:
         this.textoBusqueda = '';
         await this.passcodeService.fetchPasscodes(this.lockId);
+        this.isLoading = false;
         break;
       case 2:
         this.textoBusqueda = '';
         await this.cardService.fetchCards(this.lockId);
+        this.isLoading = false;
         break;
       case 3:
         this.textoBusqueda = '';
         await this.fingerprintService.fetchFingerprints(this.lockId);
+        this.isLoading = false;
         break;
       case 4:
         this.textoBusqueda = '';
         this.recordCurrentPage = 1;
         await this.fetchRecords();
+        this.isLoading = false;
         break;
     }
   }
@@ -698,11 +704,10 @@ export class Lockv2Component implements OnInit {
     this.ekeyService.ekeysDataSource = new MatTableDataSource(this.ekeys_filtradas);
   }
   filtrarEkeys() {
-    this.ekeys_filtradas = this.ekeys.filter(ekey => {
+    this.ekeys_filtradas = this.ekeyService.ekeys.filter(ekey => {
       return (
         (ekey.keyName.toLowerCase().includes(this.textoBusqueda.toLowerCase())) ||
         ekey.username.toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
-        ekey.senderUsername.toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
         this.lockService.formatTimestamp(ekey.date).includes(this.textoBusqueda) ||
         this.lockService.periodoValidezEkey(ekey).toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
         this.lockService.consultarEstadoEkey(ekey).toString().toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
@@ -782,7 +787,7 @@ export class Lockv2Component implements OnInit {
     this.passcodeService.passcodesDataSource = new MatTableDataSource(this.passcodes_filtradas);
   }
   filtrarPasscodes() {
-    this.passcodes_filtradas = this.passcodes.filter(passcode => {
+    this.passcodes_filtradas = this.passcodeService.passcodes.filter(passcode => {
       return (
         (passcode.keyboardPwdName && passcode.keyboardPwdName.toLowerCase().includes(this.textoBusqueda.toLowerCase())) ||
         passcode.keyboardPwd.toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
@@ -842,7 +847,7 @@ export class Lockv2Component implements OnInit {
     this.cardService.cardsDataSource = new MatTableDataSource(this.cards_filtradas);
   }
   filtrarCards() {
-    this.cards_filtradas = this.cards.filter(card => {
+    this.cards_filtradas = this.cardService.cards.filter(card => {
       return (
         card.cardName.toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
         card.senderUsername.toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
@@ -884,7 +889,7 @@ export class Lockv2Component implements OnInit {
     this.fingerprintService.fingerprintsDataSource = new MatTableDataSource(this.fingerprints_filtradas);
   }
   filtrarFingerprints() {
-    this.fingerprints_filtradas = this.fingerprints.filter(finger => {
+    this.fingerprints_filtradas = this.fingerprintService.fingerprints.filter(finger => {
       return (
         finger.fingerprintName.toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
         finger.senderUsername.toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
