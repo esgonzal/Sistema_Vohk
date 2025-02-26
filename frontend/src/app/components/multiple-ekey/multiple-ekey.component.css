@@ -4,7 +4,7 @@
     padding-left: 0;
     padding-right: 0;
     background-color: #F7FAFA;
-    flex-direction: column; /* Asegura que los elementos dentro de .pagina_completa estén en columna */
+    /* flex-direction: column;  */
 }
 
 .form-area {
