@@ -231,6 +231,7 @@ export class Comunidadesv2Component implements OnInit {
     this.popupService.removeLockGROUP = true;
   }
   async descargarExcel(group: Group) {
+    this.isLoading = true;
     let ekeysMap: { [username: string]: { eKey: string, cerraduras: { [lockName: string]: string } } } = {};
     let lockNames: string[] = group.locks.map(lock => lock.lockAlias); // Columnas con nombres de cerraduras
     for (let i = 0; i < group.lockCount; i++) {
@@ -269,6 +270,7 @@ export class Comunidadesv2Component implements OnInit {
       { wch: 25 }, // Ancho para la columna "eKey"
       ...lockNames.map(() => ({ wch: 25 })) // Ancho para las cerraduras
     ];
+    this.isLoading = false;
     // Guardar el archivo con el nombre del grupo
     XLSX.writeFile(wb, `Ekeys_${group.groupName}.xlsx`);
   }
