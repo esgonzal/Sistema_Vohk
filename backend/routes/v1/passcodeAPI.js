@@ -10,6 +10,14 @@ router.post('/get', async(req, res) => {
         console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
+            missingParams: [
+                !clientId && "clientId",
+                !accessToken && "accessToken",
+                !lockId && "lockId",
+                !keyboardPwdType && "keyboardPwdType",
+                !startDate && "startDate",
+                !date && "date"
+            ].filter(Boolean)
         });
     }
     try {
@@ -45,6 +53,16 @@ router.post('/add', async(req, res) => {
         console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
+            missingParams: [
+                !clientId && "clientId",
+                !accessToken && "accessToken",
+                !lockId && "lockId",
+                !keyboardPwd && "keyboardPwd",
+                !keyboardPwdType && "keyboardPwdType",
+                !startDate && "startDate",
+                !addType && "addType",
+                !date && "date"
+            ].filter(Boolean)
         });
     }
     try {
@@ -82,6 +100,14 @@ router.post('/delete', async(req, res) => {
         console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
+            missingParams: [
+                !clientId && "clientId",
+                !accessToken && "accessToken",
+                !lockId && "lockId",
+                !keyboardPwdId && "keyboardPwdId",
+                !deleteType && "deleteType",
+                !date && "date"
+            ].filter(Boolean)
         });
     }
     try {
@@ -115,6 +141,14 @@ router.post('/change', async(req, res) => {
         console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
+            missingParams: [
+                !clientId && "clientId",
+                !accessToken && "accessToken",
+                !lockId && "lockId",
+                !keyboardPwdId && "keyboardPwdId",
+                !changeType && "changeType",
+                !date && "date"
+            ].filter(Boolean)
         });
     }
     try {

@@ -10,6 +10,16 @@ router.post('/send', async(req, res) => {
         console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
+            missingParams: [
+                !clientId && "clientId",
+                !accessToken && "accessToken",
+                !lockId && "lockId",
+                !receiverUsername && "receiverUsername",
+                !keyName && "keyName",
+                !startDate && "startDate",
+                !endDate && "endDate",
+                !date && "date"
+            ].filter(Boolean)
         });
     }
     try {
@@ -48,6 +58,13 @@ router.get('/list', async(req, res) => {
         console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
+            missingParams: [
+                !clientId && "clientId",
+                !accessToken && "accessToken",
+                !pageNo && "pageNo",
+                !pageSize && "pageSize",
+                !date && "date"
+            ].filter(Boolean)
         });
     }
     try {
@@ -81,6 +98,12 @@ router.post('/delete', async(req, res) => {
         console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
+            missingParams: [
+                !clientId && "clientId",
+                !accessToken && "accessToken",
+                !keyId && "keyId",
+                !date && "date"
+            ].filter(Boolean)
         });
     }
     try {
@@ -112,6 +135,12 @@ router.post('/freeze', async(req, res) => {
         console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
+            missingParams: [
+                !clientId && "clientId",
+                !accessToken && "accessToken",
+                !keyId && "keyId",
+                !date && "date"
+            ].filter(Boolean)
         });
     }
     try {
@@ -143,6 +172,12 @@ router.post('/unfreeze', async(req, res) => {
         console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
+            missingParams: [
+                !clientId && "clientId",
+                !accessToken && "accessToken",
+                !keyId && "keyId",
+                !date && "date"
+            ].filter(Boolean)
         });
     }
     try {
@@ -174,6 +209,12 @@ router.post('/modify', async(req, res) => {
         console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
+            missingParams: [
+                !clientId && "clientId",
+                !accessToken && "accessToken",
+                !keyId && "keyId",
+                !date && "date"
+            ].filter(Boolean)
         });
     }
     try {
@@ -207,6 +248,14 @@ router.post('/changePeriod', async(req, res) => {
         console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
+            missingParams: [
+                !clientId && "clientId",
+                !accessToken && "accessToken",
+                !keyId && "keyId",
+                !startDate && "startDate",
+                !endDate && "endDate",
+                !date && "date"
+            ].filter(Boolean)
         });
     }
     try {
@@ -240,6 +289,13 @@ router.post('/authorize', async(req, res) => {
         console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
+            missingParams: [
+                !clientId && "clientId",
+                !accessToken && "accessToken",
+                !lockId && "lockId",
+                !keyId && "keyId",
+                !date && "date"
+            ].filter(Boolean)
         });
     }
     try {
@@ -272,6 +328,13 @@ router.post('/unauthorize', async(req, res) => {
         console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
+            missingParams: [
+                !clientId && "clientId",
+                !accessToken && "accessToken",
+                !lockId && "lockId",
+                !keyId && "keyId",
+                !date && "date"
+            ].filter(Boolean)
         });
     }
     try {

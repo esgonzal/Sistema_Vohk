@@ -10,6 +10,14 @@ router.post('/delete', async(req, res) => {
         console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
+            missingParams: [
+                !clientId && "clientId",
+                !accessToken && "accessToken",
+                !lockId && "lockId",
+                !fingerprintId && "fingerprintId",
+                !deleteType && "deleteType",
+                !date && "date"
+            ].filter(Boolean)
         });
     }
     try {
@@ -39,10 +47,18 @@ router.post('/rename', async(req, res) => {
     let { clientId, accessToken, lockId, fingerprintId, fingerprintName, date } = req.body;
     console.log("rename Request: ", req.body);
     // Verificar si faltan parámetros obligatorios
-    if (!clientId || !accessToken || !lockId || !fingerprintId || !deleteType || !date) {
+    if (!clientId || !accessToken || !lockId || !fingerprintId || !fingerprintName || !date) {
         console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
+            missingParams: [
+                !clientId && "clientId",
+                !accessToken && "accessToken",
+                !lockId && "lockId",
+                !fingerprintId && "fingerprintId",
+                !fingerprintName && "fingerprintName",
+                !date && "date"
+            ].filter(Boolean)
         });
     }
     try {
@@ -76,6 +92,15 @@ router.post('/changePeriod', async(req, res) => {
         console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
+            missingParams: [
+                !clientId && "clientId",
+                !accessToken && "accessToken",
+                !lockId && "lockId",
+                !fingerprintId && "fingerprintId",
+                !startDate && "startDate",
+                !endDate && "endDate",
+                !date && "date"
+            ].filter(Boolean)
         });
     }
     try {

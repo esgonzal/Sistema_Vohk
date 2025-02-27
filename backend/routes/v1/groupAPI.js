@@ -10,6 +10,12 @@ router.post('/add', async(req, res) => {
         console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
+            missingParams: [
+                !clientId && "clientId",
+                !accessToken && "accessToken",
+                !name && "name",
+                !date && "date"
+            ].filter(Boolean)
         });
     }
     try {
@@ -41,6 +47,11 @@ router.get('/list', async(req, res) => {
         console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
+            missingParams: [
+                !clientId && "clientId",
+                !accessToken && "accessToken",
+                !date && "date"
+            ].filter(Boolean)
         });
     }
     try {
@@ -71,6 +82,13 @@ router.post('/setLock', async(req, res) => {
         console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
+            missingParams: [
+                !clientId && "clientId",
+                !accessToken && "accessToken",
+                !lockId && "lockId",
+                !groupId && "groupId",
+                !date && "date"
+            ].filter(Boolean)
         });
     }
     try {
@@ -103,6 +121,12 @@ router.post('/delete', async(req, res) => {
         console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
+            missingParams: [
+                !clientId && "clientId",
+                !accessToken && "accessToken",
+                !groupId && "groupId",
+                !date && "date"
+            ].filter(Boolean)
         });
     }
     try {
@@ -134,6 +158,13 @@ router.post('/rename', async(req, res) => {
         console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
+            missingParams: [
+                !clientId && "clientId",
+                !accessToken && "accessToken",
+                !groupId && "groupId",
+                !name && "name",
+                !date && "date"
+            ].filter(Boolean)
         });
     }
     try {

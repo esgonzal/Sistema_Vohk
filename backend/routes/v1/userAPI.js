@@ -10,6 +10,13 @@ router.post('/register', async(req, res) => {
         console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
+            missingParams: [
+                !clientId && "clientId",
+                !clientSecret && "clientSecret",
+                !username && "username",
+                !password && "password",
+                !date && "date"
+            ].filter(Boolean)
         });
     }
     try {
@@ -42,6 +49,13 @@ router.get('/list', async(req, res) => {
         console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
+            missingParams: [
+                !clientId && "clientId",
+                !clientSecret && "clientSecret",
+                !pageNo && "pageNo",
+                !pageSize && "pageSize",
+                !date && "date"
+            ].filter(Boolean)
         });
     }
     try {
@@ -75,6 +89,13 @@ router.post('/resetPassword', async(req, res) => {
         console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
+            missingParams: [
+                !clientId && "clientId",
+                !clientSecret && "clientSecret",
+                !username && "username",
+                !password && "password",
+                !date && "date"
+            ].filter(Boolean)
         });
     }
     try {
@@ -107,6 +128,12 @@ router.post('/delete', async(req, res) => {
         console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
+            missingParams: [
+                !clientId && "clientId",
+                !clientSecret && "clientSecret",
+                !username && "username",
+                !date && "date"
+            ].filter(Boolean)
         });
     }
     try {
@@ -138,6 +165,12 @@ router.post('/token', async(req, res) => {
         console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
+            missingParams: [
+                !clientId && "clientId",
+                !clientSecret && "clientSecret",
+                !username && "username",
+                !password && "password"
+            ].filter(Boolean)
         });
     }
     try {
@@ -169,6 +202,12 @@ router.post('/refreshToken', async(req, res) => {
         console.log("errmsg: Missing required parameters");
         return res.status(400).json({
             errmsg: "Missing required parameters",
+            missingParams: [
+                !clientId && "clientId",
+                !clientSecret && "clientSecret",
+                !grant_type && "grant_type",
+                !refresh_token && "refresh_token"
+            ].filter(Boolean)
         });
     }
     try {
