@@ -49,6 +49,8 @@ import { GroupService } from './services/group.service';
 
 import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
+import { SidebarComponent } from './sidebar/sidebar.component';
+import { DocumentationComponent } from './documentation/documentation.component';
 
 
 export const CUSTOM_DATE_FORMATS = {
