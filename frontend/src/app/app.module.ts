@@ -14,7 +14,6 @@ import { TransferLockComponent } from './components/transfer-lock/transfer-lock.
 import { TransferHubComponent } from './components/transfer-hub/transfer-hub.component';
 
 import { LoaderComponent } from './components/loader/loader.component';
-import { CameraStreamComponent } from './components/camera-stream/camera-stream.component';
 
 import { DatePipe } from '@angular/common';
 import { HttpClientModule } from "@angular/common/http";
@@ -75,7 +74,6 @@ export const CUSTOM_DATE_FORMATS = {
     MultipleEkeyComponent,
     LoaderComponent,
     CardComponent,
-    CameraStreamComponent,
     Loginv2Component,
     Comunidadesv2Component,
     Lockv2Component,

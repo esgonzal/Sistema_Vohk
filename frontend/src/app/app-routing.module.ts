@@ -7,7 +7,6 @@ import { EkeyComponent } from './components/ekey/ekey.component';
 import { PasscodeComponent } from './components/passcode/passcode.component';
 import { CardComponent } from './components/card/card.component';
 import { MultipleEkeyComponent } from './components/multiple-ekey/multiple-ekey.component';
-import { CameraStreamComponent } from './components/camera-stream/camera-stream.component';
 
 const routes: Routes = [
   { path: 'login', component: Loginv2Component },
@@ -17,7 +16,6 @@ const routes: Routes = [
   { path: 'users/:username/lock/:id/passcode', component: PasscodeComponent },
   { path: 'users/:username/lock/:id/card', component: CardComponent },
   { path: 'users/:username/lock/:id/ekey/multiple', component: MultipleEkeyComponent },
-  { path: 'testing/camera', component: CameraStreamComponent},
   
   
   
