@@ -398,6 +398,7 @@ export class Lockv2Component implements OnInit {
       case 3:
         this.textoBusqueda = '';
         await this.fingerprintService.fetchFingerprints(this.lockId);
+        console.log(this.fingerprintService.fingerprints)
         this.isLoading = false;
         break;
       case 4:
@@ -754,6 +755,10 @@ export class Lockv2Component implements OnInit {
         //this.consultarEstado()
       );
     });
+  }
+  exportFingerprints() {
+    this.popupService.fingerprints = this.fingerprintService.fingerprints;
+    this.popupService.excelFingerprints = true;
   }
   //FUNCIONES RECORD
   async openExcelNameWindow() {

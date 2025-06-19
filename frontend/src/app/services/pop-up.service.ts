@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Passcode, Record } from '../Interfaces/Elements';
+import { Fingerprint, Passcode, Record } from '../Interfaces/Elements';
 import { LockData, LockDetails } from '../Interfaces/Lock';
 import { GatewayAccount, GatewayLock } from '../Interfaces/Gateway';
 import { Group } from '../Interfaces/Group';
@@ -56,6 +56,7 @@ export class PopUpService {
   passcodeSuccess = false;
   cardSuccess = false;
   ekeySuccess2 = false;
+  excelFingerprints = false;
   emailMessage: string = '';
   lock_alias: string;
   gatewaysOfLock: GatewayLock[] = []
@@ -81,6 +82,7 @@ export class PopUpService {
   password: string;
   remoteEnable: number;
   records: Record[] = [];
+  fingerprints: Fingerprint[] = [];
   endDateUser: string;
   toEmail: string;
 

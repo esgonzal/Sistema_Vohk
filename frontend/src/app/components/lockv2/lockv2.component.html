@@ -309,6 +309,7 @@
                                 <div class="button-container">
                                     <input type="text" [(ngModel)]="textoBusqueda" placeholder="Buscar Huellas..." (input)="searchFingerprints()" />
                                     <div>
+                                        <button (click)="exportFingerprints()" class="nueva-button">Exportar</button>
                                         <button (click)="this.fingerprintService.fetchFingerprints(lockId)">Actualizar</button>
                                     </div>
                                 </div>
@@ -450,7 +451,8 @@
                   this.popupService.autorizar || this.popupService.desautorizar || this.popupService.changeRemoteEnable || this.popupService.congelar || 
                   this.popupService.descongelar || this.popupService.esencial || this.popupService.gateway || this.popupService.cardSuccess ||
                   this.popupService.cerradoAutomatico || this.popupService.needGateway || this.popupService.ekeySuccess || this.popupService.passcodeSuccess ||
-                  this.popupService.excelNameWindow || this.popupService.temporalPasscode || this.popupService.temporalPasscode2" style="z-index: 10;"></app-pop-up>
+                  this.popupService.excelNameWindow || this.popupService.temporalPasscode || this.popupService.temporalPasscode2 ||
+                  this.popupService.excelFingerprints" style="z-index: 10;"></app-pop-up>
 
 <app-ekey *ngIf="this.popupService.createEkey" style="z-index: 10;"></app-ekey>
 <app-passcode *ngIf="this.popupService.createPasscode" style="z-index: 10;"></app-passcode>

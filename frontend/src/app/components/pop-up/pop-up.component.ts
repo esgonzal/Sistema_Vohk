@@ -736,6 +736,24 @@ export class PopUpComponent implements OnInit {
       this.error = "Por favor ingrese un nombre"
     }
   }
+  exportFingerprintsToExcel(): void {
+    if (this.name !== undefined) {
+      const cleanedFingerprints = this.popupService.fingerprints.map(fingerprint => ({
+        ID: fingerprint.fingerprintId,
+        Nombre: fingerprint.fingerprintName,
+        Creador: fingerprint.senderUsername,
+        Tiempo_de_Asignación: this.lockService.formatTimestamp(fingerprint.createDate),
+        Periodo_de_Validez: this.lockService.periodoValidezFingerprint(fingerprint),
+      }));
+      const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(cleanedFingerprints);
+      const wb: XLSX.WorkBook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+      XLSX.writeFile(wb, this.name.concat('.xlsx'));
+      this.popupService.excelFingerprints = false;
+    } else {
+      this.error = "Por favor ingrese un nombre"
+    }
+  }
   async createTemporalPasscode() {
     let response;
     let code: string;

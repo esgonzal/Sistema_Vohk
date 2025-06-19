@@ -424,6 +424,24 @@
         <button (click)="exportToExcel()">Exportar</button>
     </div>
 </div>
+<div class="container" *ngIf="popupService.excelFingerprints" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        Introduzca un nombre para el archivo
+    </div>
+    <div id="content">
+        <div class="form-area">
+            <form class="common-form">
+                Nombre
+                <input type="text" class="form-input" name="name" [(ngModel)]="name" />
+                <p class="error">{{error}}</p>
+            </form>
+        </div>
+    </div>
+    <div id="actions">
+        <button (click)="this.popupService.excelFingerprints=false">Cancelar</button>
+        <button (click)="exportFingerprintsToExcel()">Exportar</button>
+    </div>
+</div>
 <div class="container" *ngIf="popupService.temporalPasscode" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
     <div class="header">
         Crear Invitación
