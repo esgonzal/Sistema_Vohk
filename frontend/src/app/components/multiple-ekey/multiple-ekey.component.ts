@@ -213,7 +213,7 @@ export class MultipleEkeyComponent implements OnInit {
     } finally {
       this.isLoading = false;
     }
-    return false;
+    return true;
   }
   async generarEmail2(eKey: { account: string; name: string; type: string; startDatepicker: string; startTimepicker: string, endDatepicker: string, endTimepicker: string, email: string }) {
     if (this.ekeyService.selectedLocks.length === 1) {
@@ -384,7 +384,7 @@ export class MultipleEkeyComponent implements OnInit {
         // Crear el objeto de eKey según el formato requerido
         const formattedPhoneNumber = String(phoneNumber).replace(/\s+/g, '');
         const eKey = {
-          account: `+${formattedPhoneNumber}`, // Cuenta de Destino
+          account: `+56${formattedPhoneNumber}`, // Cuenta de Destino
           name: `${ownerName} - ${department}`, // Nombre de Ekey
           type: '1', // Tipo: 1 (Permanente)
           email: email // Correo

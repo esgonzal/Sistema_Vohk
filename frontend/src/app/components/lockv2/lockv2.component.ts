@@ -295,6 +295,7 @@ export class Lockv2Component implements OnInit {
       console.error("Error while fetching records:", error);
     } finally {
       this.recordsDataSource = new MatTableDataSource(this.records);
+      console.log(this.records)
       this.isLoading = false;
     }
   }
@@ -761,6 +762,16 @@ export class Lockv2Component implements OnInit {
     this.popupService.excelFingerprints = true;
   }
   //FUNCIONES RECORD
+  mostrarOperador(record: any) {
+    if (record.keyName) {
+      return record.keyName;
+    } else if (record.username) {
+      return record.username;
+    } else {
+      return '';
+    }
+  }
+
   async openExcelNameWindow() {
     await this.fetchAllRecords(1);
     this.popupService.excelNameWindow = true;
