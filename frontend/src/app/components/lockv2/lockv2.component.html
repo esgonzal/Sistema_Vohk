@@ -60,7 +60,7 @@
             <div>
                 <div class="tablist">
                     <mat-tab-group backgroundColor="primary" color="warn" (selectedTabChange)="onTabChanged($event)">
-                        <mat-tab label="Ekeys">
+                        <mat-tab label="Ekeys" [attr.data-tab]="'ekeys'">
                             <div class="contenido">
                                 <ng-template mat-tab-label>
                                     <label matTooltip="Método de apertura de la aplicación móvil Vöhk">Ekeys</label>
@@ -146,7 +146,7 @@
                                 </div>
                             </div>
                         </mat-tab>
-                        <mat-tab label="Códigos" *ngIf="lockService.checkFeature(featureValue, 0)">
+                        <mat-tab label="Códigos" *ngIf="lockService.checkFeature(featureValue, 0)" [attr.data-tab]="'passcodes'">
                             <div class="contenido">
                                 <ng-template mat-tab-label>
                                     <label matTooltip="Introduce una secuencia numérica en la pantalla táctil de la cerradura">Códigos</label>
@@ -224,7 +224,7 @@
                                 </div>
                             </div>
                         </mat-tab>
-                        <mat-tab label="Tarjetas" *ngIf="lockService.checkFeature(featureValue, 1)">
+                        <mat-tab label="Tarjetas" *ngIf="lockService.checkFeature(featureValue, 1)" [attr.data-tab]="'cards'">
                             <div class="contenido">
                                 <ng-template mat-tab-label>
                                     <label matTooltip="Acerca una tarjeta de proximidad a la cerradura para abrirla">Tarjetas</label>
@@ -301,7 +301,7 @@
                                 </div>
                             </div>
                         </mat-tab>
-                        <mat-tab label="Huellas" *ngIf="lockService.checkFeature(featureValue, 2)">
+                        <mat-tab label="Huellas" *ngIf="lockService.checkFeature(featureValue, 2)" [attr.data-tab]="'fingerprints'">
                             <div class="contenido">
                                 <ng-template mat-tab-label>
                                     <label matTooltip="Usa la huella digital de tus dedos para abrir una cerradura">Huellas</label>
@@ -365,7 +365,7 @@
                                 </div>
                             </div>
                         </mat-tab>
-                        <mat-tab label="Registros">
+                        <mat-tab label="Registros" [attr.data-tab]="'records'">
                             <div class="contenido">
                                 <ng-template mat-tab-label>
                                     <label matTooltip="Revisa las aperturas exitosas y fallidas de la cerradura">Registros</label>

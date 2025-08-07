@@ -691,8 +691,8 @@ export class PopUpComponent implements OnInit {
     } finally {
       this.isLoading = false;
     }
-    
-    
+
+
   }
   copyToClipboard() {
     const emailContent = this.popupService.emailMessage;
@@ -719,7 +719,7 @@ export class PopUpComponent implements OnInit {
       attempt();
     }
   }
-  exportToExcel(): void {
+  exportToExcel1(): void {
     if (this.name !== undefined) {
       const cleanedRecords = this.popupService.records.map(record => ({
         Operador: record.username,
@@ -735,6 +735,37 @@ export class PopUpComponent implements OnInit {
     } else {
       this.error = "Por favor ingrese un nombre"
     }
+  }
+  exportToExcel(): void {
+    if (!this.name) {
+      this.error = "Por favor ingrese un nombre";
+      return;
+    }
+    const cleanedRecords = this.popupService.records.map(record => {
+      const row: any = {};
+      if ([1, 26, 28, 41].includes(record.recordTypeFromLock)) {//Abrir con la aplicación
+        row.Operador = record.keyName;
+      } else {
+        row.Operador = record.username;
+      }
+      row.Metodo_Apertura = this.lockService.consultarMetodo(record.recordTypeFromLock, record.username);
+      row.Horario_Apertura = this.lockService.formatTimestamp(record.lockDate);
+      row.Estado = this.lockService.consultarSuccess(record.success);
+      if ([1, 26, 28, 41].includes(record.recordTypeFromLock)) {//Abrir con la aplicación
+        row.Cuenta = record.username
+      }
+      if ([4,7].includes(record.recordTypeFromLock)) {//Abrir con código de acceso
+        row.Codigo = record.keyboardPwd
+      }
+      return row;
+    });
+    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(cleanedRecords, {
+      header: ['Operador', 'Metodo_Apertura', 'Horario_Apertura', 'Estado', 'Cuenta', 'Codigo']
+    });
+    const wb: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+    XLSX.writeFile(wb, this.name.concat('.xlsx'));
+    this.popupService.excelNameWindow = false;
   }
   exportFingerprintsToExcel(): void {
     if (this.name !== undefined) {

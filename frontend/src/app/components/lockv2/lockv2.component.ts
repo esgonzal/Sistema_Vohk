@@ -36,7 +36,7 @@ export class Lockv2Component implements OnInit {
   faWifi = faWifi
   faGear = faGear
   faDoorOpen = faDoorOpen
-  faPlus= faPlus
+  faPlus = faPlus
   userID = sessionStorage.getItem('user') ?? ''
   lockId: number = Number(sessionStorage.getItem('lockID') ?? '')
   userType = sessionStorage.getItem('userType') ?? '';
@@ -144,7 +144,7 @@ export class Lockv2Component implements OnInit {
   recordEndDate: Date;
   endDate: number;
   selectedType = '';
-  
+  tabTypes: string[] = ['ekeys'];
 
   constructor(
     private router: Router,
@@ -169,6 +169,10 @@ export class Lockv2Component implements OnInit {
     for (const feature of this.featureList) {
       this.lockService.checkFeature(this.featureValue, feature.bit);
     }
+    if (this.lockService.checkFeature(this.featureValue, 0)) this.tabTypes.push('passcodes');
+    if (this.lockService.checkFeature(this.featureValue, 1)) this.tabTypes.push('cards');
+    if (this.lockService.checkFeature(this.featureValue, 2)) this.tabTypes.push('fingerprints');
+    this.tabTypes.push('records');
     //let lockResponse = await lastValueFrom(this.lockService.getLockListAccount(this.userID)) as LockListResponse;
     //console.log(lockResponse)
     //this.lockService.adminLocks = lockResponse.list;
@@ -335,7 +339,6 @@ export class Lockv2Component implements OnInit {
     try {
       const response = await lastValueFrom(this.recordService.getRecords(this.userID, this.lockId, pageNo, 100)) as RecordResponse
       if (response?.list) {
-        this.allRecords = [];
         this.allRecords.push(...response.list);
         if (response.pages > pageNo) {
           await this.fetchAllRecords(pageNo + 1);
@@ -380,29 +383,30 @@ export class Lockv2Component implements OnInit {
   async onTabChanged(event: MatTabChangeEvent): Promise<void> {
     this.isLoading = true;
     this.selectedTabIndex = event.index;
-    switch (this.selectedTabIndex) {
-      case 0:
+    const selectedTab = this.tabTypes[event.index]
+    switch (selectedTab) {
+      case 'ekeys':
         this.textoBusqueda = '';
         await this.ekeyService.fetchEkeys(this.lockId);
         this.isLoading = false;
         break;
-      case 1:
+      case 'passcodes':
         this.textoBusqueda = '';
         await this.passcodeService.fetchPasscodes(this.lockId);
         this.isLoading = false;
         break;
-      case 2:
+      case 'cards':
         this.textoBusqueda = '';
         await this.cardService.fetchCards(this.lockId);
         this.isLoading = false;
         break;
-      case 3:
+      case 'fingerprints':
         this.textoBusqueda = '';
         await this.fingerprintService.fetchFingerprints(this.lockId);
         console.log(this.fingerprintService.fingerprints)
         this.isLoading = false;
         break;
-      case 4:
+      case 'records':
         this.textoBusqueda = '';
         this.recordCurrentPage = 1;
         await this.fetchRecords();
@@ -414,7 +418,7 @@ export class Lockv2Component implements OnInit {
     return Number(palabra)
   }
   //SETTINGS
-  async editName(){
+  async editName() {
     this.popupService.userID = this.userID;
     this.popupService.lockID = this.lockId;
     this.popupService.elementType = 'lock';
@@ -773,8 +777,10 @@ export class Lockv2Component implements OnInit {
   }
 
   async openExcelNameWindow() {
+    this.allRecords = [];
     await this.fetchAllRecords(1);
     this.popupService.excelNameWindow = true;
+    console.log(this.allRecords)
     this.popupService.records = this.allRecords;
   }
   searchRecords() {
@@ -791,8 +797,8 @@ export class Lockv2Component implements OnInit {
       );
     });
   }
-  onSelected(value: string): void { 
-    this.selectedType = value; 
+  onSelected(value: string): void {
+    this.selectedType = value;
     this.fetchRecords();
   }
   fetchNextPage() {

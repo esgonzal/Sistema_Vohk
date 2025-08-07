@@ -17,7 +17,7 @@ export class LockServiceService {
   userID: string;
   lockID: number;
   adminLocks: LockData[];
-  locksForTransfer: {id: number, alias: string}[];
+  locksForTransfer: { id: number, alias: string }[];
   private sessionStorageKey = 'filteredLocks';
 
   // Getter for filteredLocks
@@ -86,43 +86,43 @@ export class LockServiceService {
     } else if (passcode.keyboardPwdType === 5) {
       var inicio = moment(passcode.startDate).format(" HH:mm")
       var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = inicio.concat(" - ", final," Fin de Semana");
+      respuesta = inicio.concat(" - ", final, " Fin de Semana");
     } else if (passcode.keyboardPwdType === 6) {
       var inicio = moment(passcode.startDate).format(" HH:mm")
       var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = inicio.concat(" - ", final," Diaria");
+      respuesta = inicio.concat(" - ", final, " Diaria");
     } else if (passcode.keyboardPwdType === 7) {
       var inicio = moment(passcode.startDate).format(" HH:mm")
       var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = inicio.concat(" - ", final," Dia de Trabajo");
+      respuesta = inicio.concat(" - ", final, " Dia de Trabajo");
     } else if (passcode.keyboardPwdType === 8) {
       var inicio = moment(passcode.startDate).format(" HH:mm")
       var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = inicio.concat(" - ", final," Lunes")
+      respuesta = inicio.concat(" - ", final, " Lunes")
     } else if (passcode.keyboardPwdType === 9) {
       var inicio = moment(passcode.startDate).format(" HH:mm")
       var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = inicio.concat(" - ", final," Martes")
+      respuesta = inicio.concat(" - ", final, " Martes")
     } else if (passcode.keyboardPwdType === 10) {
       var inicio = moment(passcode.startDate).format(" HH:mm")
       var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = inicio.concat(" - ", final," Miercoles")
+      respuesta = inicio.concat(" - ", final, " Miercoles")
     } else if (passcode.keyboardPwdType === 11) {
       var inicio = moment(passcode.startDate).format(" HH:mm")
       var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = inicio.concat(" - ", final," Jueves")
+      respuesta = inicio.concat(" - ", final, " Jueves")
     } else if (passcode.keyboardPwdType === 12) {
       var inicio = moment(passcode.startDate).format(" HH:mm")
       var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = inicio.concat(" - ", final," Viernes")
+      respuesta = inicio.concat(" - ", final, " Viernes")
     } else if (passcode.keyboardPwdType === 13) {
       var inicio = moment(passcode.startDate).format(" HH:mm")
       var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = inicio.concat(" - ", final," Sabado")
+      respuesta = inicio.concat(" - ", final, " Sabado")
     } else {
       var inicio = moment(passcode.startDate).format(" HH:mm")
       var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = inicio.concat(" - ", final," Domingo")
+      respuesta = inicio.concat(" - ", final, " Domingo")
     }
     return respuesta;
   }
@@ -279,7 +279,103 @@ export class LockServiceService {
     if (success == 0) { return 'Fallido' }
     else { return 'Exito' }
   }
-  consultarMetodo(tipo: number, operador: string) {
+  consultarMetodo(tipo: number, operador: string): string {
+    const metodoMap: { [key: number]: string | ((operador: string) => string) } = {
+      1: 'Abrir con la aplicación',
+      4: 'Abrir con código de acceso',
+      5: 'modify a passcode on the lock',
+      6: 'delete a passcode on the lock',
+      7: (operador: string) => `Abrir con código de acceso—${operador}`,
+      8: 'clear passcodes from the lock',
+      9: 'passcode be squeezed out',
+      10: 'unlock with passcode with delete function, passcode before it will all be deleted',
+      11: (operador: string) => `Abrir con código de acceso—${operador}`,
+      12: (operador: string) => `Abrir con código de acceso—${operador}`,
+      13: (operador: string) => `Abrir con código de acceso—${operador}`,
+      14: 'lock power on',
+      15: 'add card success',
+      16: 'clear cards',
+      17: 'Abrir con Tarjeta RF',
+      18: 'delete an card',
+      19: 'unlock by wrist strap success',
+      20: 'Abrir con huella digital',
+      21: 'add fingerprint',
+      22: 'Abrir con huella digital',
+      23: 'delete a fingerprint',
+      24: 'clear fingerprints',
+      25: 'Abrir con Tarjeta RF',
+      26: 'Cerrar con Aplicación',
+      27: 'unlock by Mechanical key',
+      28: 'Abrir de forma remota',
+      29: 'apply some force on the Lock',
+      30: 'Door sensor closed',
+      31: 'Door sensor open',
+      32: 'open from inside',
+      33: 'lock by fingerprint',
+      34: 'lock by passcode',
+      35: 'lock by card',
+      36: 'lock by Mechanical key',
+      37: 'Remote Control',
+      38: 'unlock by passcode failed—The door has been double locked',
+      39: 'unlock by IC card failed—The door has been double locked',
+      40: 'Abrir con huella digital',
+      41: 'unlock by app failed—The door has been double locked',
+      42: 'received new local mail',
+      43: "received new other cities' mail",
+      44: 'Tamper alert',
+      45: 'Se cierra automáticamente al final del Modo de Paso',
+      46: 'unlock by unlock key',
+      47: 'lock by lock key',
+      48: '¡Detectados intentos de acceso no autorizados!',
+      49: 'unlock by hotel card',
+      50: 'Unlocked due to the high temperature',
+      51: 'unlock by card failed—card in blacklist',
+      52: 'Dead lock with APP',
+      53: 'Dead lock with passcode',
+      54: 'The car left (for parking lock)',
+      55: 'unlock with key fob',
+      57: 'Unlock with QR code success',
+      58: "Unlock with QR code failed, it's expired",
+      59: 'Double locked',
+      60: 'Cancel double lock',
+      61: 'Lock with QR code success',
+      62: 'Lock with QR code failed, the lock is double locked',
+      63: 'Auto unlock at passage mode',
+      64: 'Door unclosed alarm',
+      65: 'Failed to unlock',
+      66: 'Failed to lock',
+      67: 'Face unlock success',
+      68: 'Face unlock failed - door locked from inside',
+      69: 'Lock with face',
+      70: 'Face registration success',
+      71: 'Face unlock failed - expired or ineffective',
+      72: 'Delete face success',
+      73: 'Clear face success',
+      74: 'IC card unlock failed - CPU secure information error',
+      75: 'App authorized button unlock success',
+      76: 'Gateway authorized button unlock success',
+      77: 'Dual authentication Bluetooth unlock verification success, waiting for second user',
+      78: 'Dual authentication password unlock verification success, waiting for second user',
+      79: 'Dual authentication fingerprint unlock verification success, waiting for second user',
+      80: 'Dual authentication IC card unlock verification success, waiting for second user',
+      81: 'Dual authentication face card unlock verification success, waiting for second user',
+      82: 'Dual authentication wireless key unlock verification success, waiting for second user',
+      83: 'Dual authentication palm vein unlock verification success, waiting for second user',
+      84: 'Palm vein unlock success',
+      85: 'Palm vein unlock success',
+      86: 'Lock with palm vein',
+      87: 'Register palm vein success',
+      88: 'Palm vein unlock failed - expired or ineffective'
+    };
+    const metodo = metodoMap[tipo];
+    if (!metodo) return 'Unknown type';
+    // If it's a function, call it with operador
+    if (typeof metodo === 'function') {
+      return metodo(operador);
+    }
+    return metodo;
+  }
+  consultarMetodo2(tipo: number, operador: string) {
     switch (tipo) {
       case 1:
         return 'Abrir con la aplicación';
@@ -462,34 +558,34 @@ export class LockServiceService {
   formatTimestamp(timestamp: string): string {
     const date = new Date(timestamp);
     const formattedMoment = moment(date).format('DD/MM/YYYY HH:mm');
-    return formattedMoment; 
+    return formattedMoment;
   }
   getLockListAccount(userID: string): Observable<LockListResponse> {
     let pageNo = 1;
     let pageSize = 100;
-    let body = {userID, pageNo, pageSize};
+    let body = { userID, pageNo, pageSize };
     let url = this.URL.concat('/v0/lock/list');
     return this.http.post<LockListResponse>(url, body)
   }
   getLockDetails(userID: string, lockID: number): Observable<LockDetails> {
-    let body = {userID, lockID};
+    let body = { userID, lockID };
     let url = this.URL.concat('/v0/lock/details');
     return this.http.post<LockDetails>(url, body)
   }
   setAutoLock(userID: string, lockID: number, seconds: number): Observable<operationResponse> {
-    let body = {userID, lockID, seconds}
+    let body = { userID, lockID, seconds }
     let url = this.URL.concat('/v0/lock/setAutoLock');
     return this.http.post<operationResponse>(url, body);
   }
   transferLock(userID: string, receiverUsername: string, lockID: string): Observable<operationResponse> {
-    let body = {userID, receiverUsername, lockID}
+    let body = { userID, receiverUsername, lockID }
     let url = this.URL.concat('/v0/lock/transfer');
     return this.http.post<operationResponse>(url, body);
   }
   changeName(userID: string, lockID: number, newName: string): Observable<operationResponse> {
-    let body = {userID, lockID, newName}
+    let body = { userID, lockID, newName }
     let url = this.URL.concat('/v0/lock/editName');
     return this.http.post<operationResponse>(url, body);
   }
-  
+
 }

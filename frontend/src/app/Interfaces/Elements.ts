@@ -66,6 +66,7 @@ export interface recurringPeriodFingerprint {
     endTime: string;
 }
 export interface Record {
+    keyName: string;
     recordId: string;
     lockId: number;
     recordTypeFromLock: number;
