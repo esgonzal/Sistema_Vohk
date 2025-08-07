@@ -299,7 +299,7 @@ export class Lockv2Component implements OnInit {
       console.error("Error while fetching records:", error);
     } finally {
       this.recordsDataSource = new MatTableDataSource(this.records);
-      console.log(this.records)
+      //console.log(this.records)
       this.isLoading = false;
     }
   }
@@ -780,7 +780,6 @@ export class Lockv2Component implements OnInit {
     this.allRecords = [];
     await this.fetchAllRecords(1);
     this.popupService.excelNameWindow = true;
-    console.log(this.allRecords)
     this.popupService.records = this.allRecords;
   }
   searchRecords() {
