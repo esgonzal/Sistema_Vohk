@@ -3,11 +3,15 @@ const router = express.Router();
 const axios = require('axios');
 const { accessTokenStorage } = require('./accessTokenStorage');
 const TTLOCK_CLIENT_ID = 'c4114592f7954ca3b751c44d81ef2c7d';
-const URL = 'https://api.vohkapp.com';
+const URL = 'https://api.vohk.cl';
+const nodemailer = require('nodemailer');
+const fs = require('fs').promises;
+const path = require('path');
+const USER = "soporte@vohk.cl";
+const PASS = "khto bghq ckfz txla";
 
-router.post('/get', async(req, res) => {
+router.post('/get', async (req, res) => {
     let { userID, lockID, type, startDate, name, endDate } = req.body;
-    console.log("Se creo un codigo")
     try {
         let date = Date.now()
         const storedData = accessTokenStorage[userID];
@@ -44,7 +48,7 @@ router.post('/get', async(req, res) => {
         res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
-router.post('/add', async(req, res) => {
+router.post('/add', async (req, res) => {
     let { userID, lockID, keyboardPwd, keyboardPwdType, keyboardPwdName, startDate, endDate } = req.body;
     try {
         let date = Date.now()
@@ -84,7 +88,104 @@ router.post('/add', async(req, res) => {
         res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
-router.post('/delete', async(req, res) => {
+router.post('/add2', async (req, res) => {
+    const { userID, selectedLocks, keyboardPwd, keyboardPwdType, keyboardPwdName, startDate, endDate, email } = req.body;
+    
+    if (!userID || !selectedLocks || !Array.isArray(selectedLocks) || selectedLocks.length === 0) {
+        return res.status(400).json({ errmsg: 'Missing userID or selectedLocks' });
+    }
+    try {
+        const storedData = accessTokenStorage[userID];
+        const accessToken = storedData ? storedData.accessToken : null;
+        if (!accessToken) {
+            return res.json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
+        }
+        const locksResults  = [];
+        for (const lock of selectedLocks) {
+            try {
+                let date = Date.now()
+                let ttlockData = {
+                    clientId: TTLOCK_CLIENT_ID,
+                    accessToken: accessToken,
+                    lockId: lock.id,
+                    keyboardPwd: keyboardPwd,
+                    addType: '2',
+                    keyboardPwdType: keyboardPwdType,
+                    date,
+                    keyboardPwdName: keyboardPwdName,
+                    startDate: startDate,
+                    endDate: endDate,
+                };
+                let headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Authorization': `Bearer ${accessToken}`
+                };
+                let ttlockResponse = await axios.post(
+                    'https://euapi.ttlock.com/v3/keyboardPwd/add',
+                    ttlockData, { headers }
+                );
+                //console.log(ttlockResponse.data)
+                if (typeof ttlockResponse === 'object' && ttlockResponse.data.hasOwnProperty('keyboardPwdId')) {
+                    locksResults .push({
+                        lockID: lock.id,
+                        lockAlias: lock.alias,
+                        passcodePwd: keyboardPwd,
+                        success: true
+                    })
+                } else {
+                    locksResults .push({
+                        lockID: lock.id,
+                        lockAlias: lock.alias,
+                        errcode: ttlockResponse.data.errcode,
+                        success: false
+                    })
+                }
+            } catch (lockError) {
+                console.error(lockError);
+                locksResults .push({
+                    lockID: lock.id,
+                    lockAlias: lock.alias,
+                    errcode: lockError.message || 'Error calling TTLock API'
+                });
+            }
+        }
+        let emailResult;
+        if (email && email.includes("@")) {
+            const successfulLocks = locksResults.filter(r => r.success);
+            if (successfulLocks.length > 0) {
+                const lockAliasesString = successfulLocks.map(lock => `- ${lock.lockAlias}`).join('\n');
+                const templatePath = path.join(__dirname, '..', 'nodemailer', 'templates', 'sharePasscode.html');
+                const templateContent = await fs.readFile(templatePath, 'utf8');
+                // Replace placeholders
+                const emailContent = templateContent
+                    .replace(/{{code}}/g, keyboardPwd)
+                    .replace(/{{lock_alias}}/g, lockAliasesString)
+                    .replace(/{{start}}/g, formatDate(startDate))
+                    .replace(/{{end}}/g, formatDate(endDate));
+                try {
+                    const emailResponse = await transporter.sendMail({
+                        from: USER,
+                        to: email,
+                        subject: "Un código temporal ha sido compartido contigo",
+                        html: emailContent
+                    });
+                    emailResult = { emailContent, emailSent: true };
+                } catch (emailError) {
+                    console.error(emailError);
+                    emailResult = { emailContent, emailSent: false, emailError: emailError.toString() };
+                }
+            }
+        }
+        res.json({
+            locks: locksResults,
+            email: emailResult
+        }); 
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ errmsg: 'Error with My API' });
+    }
+});
+router.post('/delete', async (req, res) => {
     let { userID, lockID, passcodeID } = req.body;
     try {
         let date = Date.now()
@@ -116,7 +217,7 @@ router.post('/delete', async(req, res) => {
         res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
-router.post('/change', async(req, res) => {
+router.post('/change', async (req, res) => {
     let { userID, lockID, passcodeID, newName, newPwd, newStartDate, newEndDate } = req.body;
     try {
         let date = Date.now()
@@ -152,7 +253,7 @@ router.post('/change', async(req, res) => {
         res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
-router.post('/getListLock', async(req, res) => {
+router.post('/getListLock', async (req, res) => {
     let { userID, lockID, pageNo, pageSize } = req.body;
     try {
         let date = Date.now()
@@ -187,7 +288,7 @@ router.post('/getListLock', async(req, res) => {
         res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
-router.post('/sendEmail', async(req, res) => {
+router.post('/sendEmail', async (req, res) => {
     let { name, email, motivo, code, lock_alias, start, end } = req.body;
     console.log(req.body)
     try {
@@ -201,6 +302,23 @@ router.post('/sendEmail', async(req, res) => {
         res.status(500).json({ errmsg: 'Error with sending email' });
     }
 });
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: USER,
+        pass: PASS
+    },
+});
+function formatDate(ms) {
+    const d = new Date(parseInt(ms));
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0'); // months are 0-indexed
+    const year = d.getFullYear();
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
+}
 
 
 module.exports = router;

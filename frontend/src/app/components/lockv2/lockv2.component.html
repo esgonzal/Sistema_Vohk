@@ -6,7 +6,8 @@
                 <div class="nombre_cerradura">
                     {{Alias}}
                 </div>
-                <div class="nombre_comunidad" matTooltip="Comunidad a la que pertenece la cerradura" *ngIf="lockGroup !== 'undefined'">
+                <div class="nombre_comunidad" matTooltip="Comunidad a la que pertenece la cerradura"
+                    *ngIf="lockGroup !== 'undefined'">
                     Comunidad: {{lockGroup}}
                 </div>
                 <div class="rol_usuario">
@@ -14,7 +15,8 @@
                         Rol: Administrador Principal
                     </div>
                     <div *ngIf="userType==='110302' && keyRight==='1'">
-                        Rol: Administrador Secundario // {{lockService.periodoValidez(Number(startDateDeUser),Number(endDateDeUser))}}
+                        Rol: Administrador Secundario //
+                        {{lockService.periodoValidez(Number(startDateDeUser),Number(endDateDeUser))}}
                     </div>
                     <div *ngIf="userType==='110302' && keyRight==='0'">
                         Rol: Usuario // {{lockService.periodoValidez(Number(startDateDeUser),Number(endDateDeUser))}}
@@ -42,7 +44,9 @@
                         <button mat-menu-item *ngIf="userType==='110301'" (click)="TransferirLock()"><span>Transferir
                                 Dispositivo</span></button>
                         -->
-                        <button mat-menu-item *ngIf="(userType==='110301' || (userType==='110302' && keyRight==='1'))  && lockService.checkFeature(featureValue, 22)" (click)="PassageMode()"><span>Modo de Paso</span></button>
+                        <button mat-menu-item
+                            *ngIf="(userType==='110301' || (userType==='110302' && keyRight==='1'))  && lockService.checkFeature(featureValue, 22)"
+                            (click)="PassageMode()"><span>Modo de Paso</span></button>
                         <button mat-menu-item (click)="esencial()">Datos esenciales</button>
                     </mat-menu>
                 </div>
@@ -51,7 +55,8 @@
                             [icon]="faPlus"></fa-icon></button>
                 </div>
                 <div>
-                    <button (click)="Unlock()" *ngIf="lockService.checkFeature(featureValue, 10)" matTooltip="Presione para abrir la cerradura remotamente si es que está conectada a un dispositivo hub"><fa-icon
+                    <button (click)="Unlock()" *ngIf="lockService.checkFeature(featureValue, 10)"
+                        matTooltip="Presione para abrir la cerradura remotamente si es que está conectada a un dispositivo hub"><fa-icon
                             [icon]="faDoorOpen"></fa-icon></button>
                 </div>
             </div>
@@ -66,7 +71,8 @@
                                     <label matTooltip="Método de apertura de la aplicación móvil Vöhk">Ekeys</label>
                                 </ng-template>
                                 <div class="button-container">
-                                    <input type="text" [(ngModel)]="textoBusqueda" placeholder="Buscar Ekeys..." (input)="searchEkeys()" />
+                                    <input type="text" [(ngModel)]="textoBusqueda" placeholder="Buscar Ekeys..."
+                                        (input)="searchEkeys()" />
                                     <div>
                                         <button (click)="crearEkey()">Generar</button>
                                         <button (click)="this.ekeyService.fetchEkeys(lockId)">Actualizar</button>
@@ -82,7 +88,8 @@
                                         </ng-container>
                                         <!---->
                                         <ng-container matColumnDef="Destinatario">
-                                            <th mat-header-cell *matHeaderCellDef class="table-cell">Cuenta de destinatario
+                                            <th mat-header-cell *matHeaderCellDef class="table-cell">Cuenta de
+                                                destinatario
                                             </th>
                                             <td mat-cell *matCellDef="let ekey" class="table-cell">
                                                 {{ekey.username}}</td>
@@ -90,11 +97,13 @@
                                         <!---->
                                         <ng-container matColumnDef="Rol">
                                             <th mat-header-cell *matHeaderCellDef class="table-cell">Rol</th>
-                                            <td mat-cell *matCellDef="let ekey" class="table-cell">{{ ekey.keyRight === 0 ? 'Usuario' : 'Administrador Secundario' }}</td>
+                                            <td mat-cell *matCellDef="let ekey" class="table-cell">{{ ekey.keyRight ===
+                                                0 ? 'Usuario' : 'Administrador Secundario' }}</td>
                                         </ng-container>
                                         <!---->
                                         <ng-container matColumnDef="Fecha">
-                                            <th mat-header-cell *matHeaderCellDef class="table-cell">Tiempo de asignación
+                                            <th mat-header-cell *matHeaderCellDef class="table-cell">Tiempo de
+                                                asignación
                                             </th>
                                             <td mat-cell *matCellDef="let ekey" class="table-cell">
                                                 {{lockService.formatTimestamp(ekey.date)}} </td>
@@ -109,7 +118,8 @@
                                         <!---->
                                         <ng-container matColumnDef="Valido">
                                             <th mat-header-cell *matHeaderCellDef class="table-cell">Estado</th>
-                                            <td mat-cell *matCellDef="let ekey" class="table-cell" [innerHTML]="lockService.consultarEstadoEkey(ekey)">
+                                            <td mat-cell *matCellDef="let ekey" class="table-cell"
+                                                [innerHTML]="lockService.consultarEstadoEkey(ekey)">
                                             </td>
                                         </ng-container>
                                         <!---->
@@ -117,26 +127,45 @@
                                             <th mat-header-cell *matHeaderCellDef class="table-cell">Operacion</th>
                                             <td mat-cell *matCellDef="let ekey" class="table-cell">
                                                 <!--BOTONES EDITAR-->
-                                                <button [matMenuTriggerFor]="editarMenu" aria-label="Settings" class="custom-button">Editar</button>
+                                                <button [matMenuTriggerFor]="editarMenu" aria-label="Settings"
+                                                    class="custom-button">Editar</button>
                                                 <mat-menu #editarMenu="matMenu">
 
-                                                    <button mat-menu-item *ngIf="(userType==='110301') || (userType==='110302' && keyRight==='1') || ekey.username===userID" (click)="cambiarNombreEkey(ekey.keyId)"><span>Editar
+                                                    <button mat-menu-item
+                                                        *ngIf="(userType==='110301') || (userType==='110302' && keyRight==='1') || ekey.username===userID"
+                                                        (click)="cambiarNombreEkey(ekey.keyId)"><span>Editar
                                                             Nombre</span></button>
-                                                    <button mat-menu-item *ngIf="(userType==='110301') || (userType==='110302' && keyRight==='1') || ekey.username===userID" (click)="cambiarPeriodoEkey(ekey.keyId)"><span>Editar
+                                                    <button mat-menu-item
+                                                        *ngIf="(userType==='110301') || (userType==='110302' && keyRight==='1') || ekey.username===userID"
+                                                        (click)="cambiarPeriodoEkey(ekey.keyId)"><span>Editar
                                                             Periodo</span></button>
                                                 </mat-menu>
                                                 <!--BOTON ADMIN-->
-                                                <button [matMenuTriggerFor]="adminMenu" aria-label="Settings" class="custom-button">Admin</button>
+                                                <button [matMenuTriggerFor]="adminMenu" aria-label="Settings"
+                                                    class="custom-button">Admin</button>
                                                 <mat-menu #adminMenu="matMenu">
-                                                    <button mat-menu-item *ngIf="(userType==='110301' || userType==='110302' && keyRight==='1') && ekey.keyStatus==='110401'" (click)="congelar(ekey.keyId, ekey.username)"><span>Congelar</span></button>
-                                                    <button mat-menu-item *ngIf="(userType==='110301' || userType==='110302' && keyRight==='1') && ekey.keyStatus==='110405'" (click)="descongelar(ekey.keyId, ekey.username)"><span>Descongelar</span></button>
-                                                    <button mat-menu-item *ngIf="userType==='110301' && ekey.keyRight===0" (click)="Autorizar(ekey.keyId, ekey.username)"><span>Autorizar</span></button>
-                                                    <button mat-menu-item *ngIf="userType==='110301' && ekey.keyRight===1" (click)="Desautorizar(ekey.keyId, ekey.username)"><span>Desautorizar</span></button>
-                                                    <button mat-menu-item *ngIf="(userType==='110301' || userType==='110302' && keyRight==='1') && gateway==='1'" (click)="aperturaRemota(ekey.keyId, ekey.remoteEnable)"><span>Habilitar
+                                                    <button mat-menu-item
+                                                        *ngIf="(userType==='110301' || userType==='110302' && keyRight==='1') && ekey.keyStatus==='110401'"
+                                                        (click)="congelar(ekey.keyId, ekey.username)"><span>Congelar</span></button>
+                                                    <button mat-menu-item
+                                                        *ngIf="(userType==='110301' || userType==='110302' && keyRight==='1') && ekey.keyStatus==='110405'"
+                                                        (click)="descongelar(ekey.keyId, ekey.username)"><span>Descongelar</span></button>
+                                                    <button mat-menu-item
+                                                        *ngIf="userType==='110301' && ekey.keyRight===0"
+                                                        (click)="Autorizar(ekey.keyId, ekey.username)"><span>Autorizar</span></button>
+                                                    <button mat-menu-item
+                                                        *ngIf="userType==='110301' && ekey.keyRight===1"
+                                                        (click)="Desautorizar(ekey.keyId, ekey.username)"><span>Desautorizar</span></button>
+                                                    <button mat-menu-item
+                                                        *ngIf="(userType==='110301' || userType==='110302' && keyRight==='1') && gateway==='1'"
+                                                        (click)="aperturaRemota(ekey.keyId, ekey.remoteEnable)"><span>Habilitar
                                                             apertura remota</span></button>
                                                 </mat-menu>
                                                 <!--BOTON ELIMINAR-->
-                                                <button *ngIf=" (userType==='110301') || (userType==='110302' && keyRight==='1') || ekey.username===userID" class="custom-button-eliminar" (click)="borrarEkey(ekey.keyId,ekey.username)">Eliminar</button>
+                                                <button
+                                                    *ngIf=" (userType==='110301') || (userType==='110302' && keyRight==='1') || ekey.username===userID"
+                                                    class="custom-button-eliminar"
+                                                    (click)="borrarEkey(ekey.keyId,ekey.username)">Eliminar</button>
                                             </td>
                                         </ng-container>
                                         <!---->
@@ -149,17 +178,21 @@
                         <mat-tab label="Códigos" *ngIf="lockService.checkFeature(featureValue, 0)" [attr.data-tab]="'passcodes'">
                             <div class="contenido">
                                 <ng-template mat-tab-label>
-                                    <label matTooltip="Introduce una secuencia numérica en la pantalla táctil de la cerradura">Códigos</label>
+                                    <label
+                                        matTooltip="Introduce una secuencia numérica en la pantalla táctil de la cerradura">Códigos</label>
                                 </ng-template>
                                 <div class="button-container">
-                                    <input type="text" [(ngModel)]="textoBusqueda" placeholder="Buscar Códigos..." (input)="searchPasscodes()" />
+                                    <input type="text" [(ngModel)]="textoBusqueda" placeholder="Buscar Códigos..."
+                                        (input)="searchPasscodes()" />
                                     <div>
                                         <button (click)="crearPasscode()" class="nueva-button">Generar</button>
-                                        <button (click)="this.passcodeService.fetchPasscodes(lockId)">Actualizar</button>
+                                        <button
+                                            (click)="this.passcodeService.fetchPasscodes(lockId)">Actualizar</button>
                                     </div>
                                 </div>
                                 <div>
-                                    <table mat-table [dataSource]="this.passcodeService.passcodesDataSource" class="table">
+                                    <table mat-table [dataSource]="this.passcodeService.passcodesDataSource"
+                                        class="table">
                                         <!---->
                                         <ng-container matColumnDef="Nombre">
                                             <th mat-header-cell *matHeaderCellDef class="table-cell">Nombre</th>
@@ -180,7 +213,8 @@
                                         </ng-container>
                                         <!---->
                                         <ng-container matColumnDef="Fecha">
-                                            <th mat-header-cell *matHeaderCellDef class="table-cell">Tiempo de asignación
+                                            <th mat-header-cell *matHeaderCellDef class="table-cell">Tiempo de
+                                                asignación
                                             </th>
                                             <td mat-cell *matCellDef="let passcode" class="table-cell">
                                                 {{lockService.formatTimestamp(passcode.sendDate)}}
@@ -196,7 +230,8 @@
                                         <!---->
                                         <ng-container matColumnDef="Valido">
                                             <th mat-header-cell *matHeaderCellDef class="table-cell">Estado</th>
-                                            <td mat-cell *matCellDef="let passcode" class="table-cell" [style.color]="lockService.consultarEstadoPasscode(passcode) === 'Valido' ? 'green' : 'red'">
+                                            <td mat-cell *matCellDef="let passcode" class="table-cell"
+                                                [style.color]="lockService.consultarEstadoPasscode(passcode) === 'Valido' ? 'green' : 'red'">
                                                 {{lockService.consultarEstadoPasscode(passcode)}}</td>
                                         </ng-container>
                                         <!---->
@@ -204,17 +239,22 @@
                                             <th mat-header-cell *matHeaderCellDef class="table-cell">Operacion</th>
                                             <td mat-cell *matCellDef="let passcode" class="table-cell">
                                                 <!--BOTONES EDITAR-->
-                                                <button [matMenuTriggerFor]="editarMenu" aria-label="Settings" class="custom-button">Editar</button>
+                                                <button [matMenuTriggerFor]="editarMenu" aria-label="Settings"
+                                                    class="custom-button">Editar</button>
                                                 <mat-menu #editarMenu="matMenu">
-                                                    <button mat-menu-item (click)="cambiarNombrePasscode(passcode)"><span>Editar
+                                                    <button mat-menu-item
+                                                        (click)="cambiarNombrePasscode(passcode)"><span>Editar
                                                             Nombre</span></button>
-                                                    <button mat-menu-item *ngIf="passcode.keyboardPwdType=== 1 || passcode.keyboardPwdType=== 2 || passcode.keyboardPwdType=== 3 || passcode.keyboardPwdType=== 4" (click)="cambiarPeriodoPasscode(passcode)"><span>Editar
+                                                    <button mat-menu-item
+                                                        *ngIf="passcode.keyboardPwdType=== 1 || passcode.keyboardPwdType=== 2 || passcode.keyboardPwdType=== 3 || passcode.keyboardPwdType=== 4"
+                                                        (click)="cambiarPeriodoPasscode(passcode)"><span>Editar
                                                             Periodo</span></button>
                                                     <button mat-menu-item (click)="cambiarPasscode(passcode)">Editar
                                                         Secuencia</button>
                                                 </mat-menu>
                                                 <!--BOTON ELIMINAR-->
-                                                <button class="custom-button-eliminar" (click)="borrarPasscode(passcode.keyboardPwdId)">Eliminar</button>
+                                                <button class="custom-button-eliminar"
+                                                    (click)="borrarPasscode(passcode.keyboardPwdId)">Eliminar</button>
                                             </td>
                                         </ng-container>
                                         <!---->
@@ -227,10 +267,12 @@
                         <mat-tab label="Tarjetas" *ngIf="lockService.checkFeature(featureValue, 1)" [attr.data-tab]="'cards'">
                             <div class="contenido">
                                 <ng-template mat-tab-label>
-                                    <label matTooltip="Acerca una tarjeta de proximidad a la cerradura para abrirla">Tarjetas</label>
+                                    <label
+                                        matTooltip="Acerca una tarjeta de proximidad a la cerradura para abrirla">Tarjetas</label>
                                 </ng-template>
                                 <div class="button-container">
-                                    <input type="text" [(ngModel)]="textoBusqueda" placeholder="Buscar Tarjetas..." (input)="searchCards()" />
+                                    <input type="text" [(ngModel)]="textoBusqueda" placeholder="Buscar Tarjetas..."
+                                        (input)="searchCards()" />
                                     <div>
                                         <button (click)="crearCard()" class="nueva-button">Generar</button>
                                         <button (click)="this.cardService.fetchCards(lockId)">Actualizar</button>
@@ -259,7 +301,8 @@
                                         </ng-container>
                                         <!---->
                                         <ng-container matColumnDef="Fecha">
-                                            <th mat-header-cell *matHeaderCellDef class="table-cell">Tiempo de asignación
+                                            <th mat-header-cell *matHeaderCellDef class="table-cell">Tiempo de
+                                                asignación
                                             </th>
                                             <td mat-cell *matCellDef="let card" class="table-cell">
                                                 {{lockService.formatTimestamp(card.createDate)}}
@@ -276,22 +319,27 @@
                                         <!---->
                                         <ng-container matColumnDef="Valido">
                                             <th mat-header-cell *matHeaderCellDef class="table-cell">Estado</th>
-                                            <td mat-cell *matCellDef="let card" class="table-cell" [innerHTML]="lockService.consultarEstado(card.endDate)"></td>
+                                            <td mat-cell *matCellDef="let card" class="table-cell"
+                                                [innerHTML]="lockService.consultarEstado(card.endDate)"></td>
                                         </ng-container>
                                         <!---->
                                         <ng-container matColumnDef="Botones">
                                             <th mat-header-cell *matHeaderCellDef class="table-cell">Operacion</th>
                                             <td mat-cell *matCellDef="let card" class="table-cell">
                                                 <!--BOTONES EDITAR-->
-                                                <button [matMenuTriggerFor]="editarMenu" aria-label="Settings" class="custom-button">Editar</button>
+                                                <button [matMenuTriggerFor]="editarMenu" aria-label="Settings"
+                                                    class="custom-button">Editar</button>
                                                 <mat-menu #editarMenu="matMenu">
-                                                    <button mat-menu-item (click)="cambiarNombreCard(card.cardId)"><span>Editar
-                                                        Nombre</span></button>
-                                                    <button mat-menu-item (click)="cambiarPeriodoCard(card.cardId)"><span>Editar
-                                                        Periodo</span></button>
+                                                    <button mat-menu-item
+                                                        (click)="cambiarNombreCard(card.cardId)"><span>Editar
+                                                            Nombre</span></button>
+                                                    <button mat-menu-item
+                                                        (click)="cambiarPeriodoCard(card.cardId)"><span>Editar
+                                                            Periodo</span></button>
                                                 </mat-menu>
                                                 <!--BOTON ELIMINAR-->
-                                                <button class="custom-button-eliminar" (click)="borrarCard(card.cardId)">Eliminar</button>
+                                                <button class="custom-button-eliminar"
+                                                    (click)="borrarCard(card.cardId)">Eliminar</button>
                                             </td>
                                         </ng-container>
                                         <!---->
@@ -304,17 +352,21 @@
                         <mat-tab label="Huellas" *ngIf="lockService.checkFeature(featureValue, 2)" [attr.data-tab]="'fingerprints'">
                             <div class="contenido">
                                 <ng-template mat-tab-label>
-                                    <label matTooltip="Usa la huella digital de tus dedos para abrir una cerradura">Huellas</label>
+                                    <label
+                                        matTooltip="Usa la huella digital de tus dedos para abrir una cerradura">Huellas</label>
                                 </ng-template>
                                 <div class="button-container">
-                                    <input type="text" [(ngModel)]="textoBusqueda" placeholder="Buscar Huellas..." (input)="searchFingerprints()" />
+                                    <input type="text" [(ngModel)]="textoBusqueda" placeholder="Buscar Huellas..."
+                                        (input)="searchFingerprints()" />
                                     <div>
                                         <button (click)="exportFingerprints()" class="nueva-button">Exportar</button>
-                                        <button (click)="this.fingerprintService.fetchFingerprints(lockId)">Actualizar</button>
+                                        <button
+                                            (click)="this.fingerprintService.fetchFingerprints(lockId)">Actualizar</button>
                                     </div>
                                 </div>
                                 <div>
-                                    <table mat-table [dataSource]="this.fingerprintService.fingerprintsDataSource" class="table">
+                                    <table mat-table [dataSource]="this.fingerprintService.fingerprintsDataSource"
+                                        class="table">
                                         <!---->
                                         <ng-container matColumnDef="Nombre">
                                             <th mat-header-cell *matHeaderCellDef class="table-cell">Nombre</th>
@@ -330,7 +382,8 @@
                                         </ng-container>
                                         <!---->
                                         <ng-container matColumnDef="Fecha">
-                                            <th mat-header-cell *matHeaderCellDef class="table-cell">Tiempo de asignación
+                                            <th mat-header-cell *matHeaderCellDef class="table-cell">Tiempo de
+                                                asignación
                                             </th>
                                             <td mat-cell *matCellDef="let fingerprint" class="table-cell">
                                                 {{lockService.formatTimestamp(fingerprint.createDate)}}</td>
@@ -345,16 +398,20 @@
                                         <!---->
                                         <ng-container matColumnDef="Valido">
                                             <th mat-header-cell *matHeaderCellDef class="table-cell">Estado</th>
-                                            <td mat-cell *matCellDef="let fingerprint" class="table-cell" [innerHTML]="lockService.consultarEstado(fingerprint.endDate)"></td>
+                                            <td mat-cell *matCellDef="let fingerprint" class="table-cell"
+                                                [innerHTML]="lockService.consultarEstado(fingerprint.endDate)"></td>
                                         </ng-container>
                                         <!---->
                                         <ng-container matColumnDef="Botones">
                                             <th mat-header-cell *matHeaderCellDef class="table-cell">Operacion</th>
                                             <td mat-cell *matCellDef="let fingerprint" class="table-cell">
-                                                <button class="custom-button-eliminar" (click)="borrarFingerprint(fingerprint.fingerprintId)">Eliminar</button>
-                                                <button class="custom-button" (click)="cambiarNombreFingerprint(fingerprint.fingerprintId)">Editar
+                                                <button class="custom-button-eliminar"
+                                                    (click)="borrarFingerprint(fingerprint.fingerprintId)">Eliminar</button>
+                                                <button class="custom-button"
+                                                    (click)="cambiarNombreFingerprint(fingerprint.fingerprintId)">Editar
                                                     Nombre</button>
-                                                <button class="custom-button" (click)="cambiarPeriodoFingerprint(fingerprint.fingerprintId)">Editar
+                                                <button class="custom-button"
+                                                    (click)="cambiarPeriodoFingerprint(fingerprint.fingerprintId)">Editar
                                                     Periodo</button>
                                             </td>
                                         </ng-container>
@@ -368,11 +425,13 @@
                         <mat-tab label="Registros" [attr.data-tab]="'records'">
                             <div class="contenido">
                                 <ng-template mat-tab-label>
-                                    <label matTooltip="Revisa las aperturas exitosas y fallidas de la cerradura">Registros</label>
+                                    <label
+                                        matTooltip="Revisa las aperturas exitosas y fallidas de la cerradura">Registros</label>
                                 </ng-template>
                                 <div class="button-container">
                                     <div>
-                                        <select #recordType name="recordType" (change)="onSelected(recordType.value)" style="border-radius: 20px; text-indent: 7px; width: 90px">
+                                        <select #recordType name="recordType" (change)="onSelected(recordType.value)"
+                                            style="border-radius: 20px; text-indent: 7px; width: 90px">
                                             <option default value=undefined>Todos</option>
                                             <option value="4">Código</option>
                                             <option value="7">Tarjeta</option>
@@ -381,12 +440,15 @@
 
                                         <mat-form-field class="custom-form-field">
                                             <mat-label>Inicio</mat-label>
-                                            <input matInput [matDatepicker]="startDatePicker" [(ngModel)]="recordStartDate" class="custom-input" (click)="startDatePicker.open()">
+                                            <input matInput [matDatepicker]="startDatePicker"
+                                                [(ngModel)]="recordStartDate" class="custom-input"
+                                                (click)="startDatePicker.open()">
                                             <mat-datepicker #startDatePicker></mat-datepicker>
                                         </mat-form-field>
                                         <mat-form-field class="custom-form-field">
                                             <mat-label>Final</mat-label>
-                                            <input matInput [matDatepicker]="endDatePicker" [(ngModel)]="recordEndDate" class="custom-input" (click)="endDatePicker.open()">
+                                            <input matInput [matDatepicker]="endDatePicker" [(ngModel)]="recordEndDate"
+                                                class="custom-input" (click)="endDatePicker.open()">
                                             <mat-datepicker #endDatePicker></mat-datepicker>
                                         </mat-form-field>
 
@@ -405,15 +467,18 @@
                                         </ng-container>
                                         <!---->
                                         <ng-container matColumnDef="Metodo_Apertura">
-                                            <th mat-header-cell *matHeaderCellDef class="table-cell header">Método de Apertura
+                                            <th mat-header-cell *matHeaderCellDef class="table-cell header">Método de
+                                                Apertura
                                             </th>
                                             <td mat-cell *matCellDef="let record" class="table-cell">
-                                                {{lockService.consultarMetodo(record.recordTypeFromLock, record.username)}}
+                                                {{lockService.consultarMetodo(record.recordTypeFromLock,
+                                                record.username)}}
                                             </td>
                                         </ng-container>
                                         <!---->
                                         <ng-container matColumnDef="Horario_Apertura">
-                                            <th mat-header-cell *matHeaderCellDef class="table-cell header">Horario de apertura
+                                            <th mat-header-cell *matHeaderCellDef class="table-cell header">Horario de
+                                                apertura
                                             </th>
                                             <td mat-cell *matCellDef="let record" class="table-cell">
                                                 {{lockService.formatTimestamp(record.lockDate)}}
@@ -422,7 +487,8 @@
                                         <!---->
                                         <ng-container matColumnDef="Estado">
                                             <th mat-header-cell *matHeaderCellDef class="header">Estado</th>
-                                            <td mat-cell *matCellDef="let record" class="table-cell" [style.color]="lockService.consultarSuccess(record.success) === 'Exito' ? 'green' : 'red'">
+                                            <td mat-cell *matCellDef="let record" class="table-cell"
+                                                [style.color]="lockService.consultarSuccess(record.success) === 'Exito' ? 'green' : 'red'">
                                                 {{lockService.consultarSuccess(record.success)}}</td>
                                         </ng-container>
                                         <!---->

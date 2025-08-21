@@ -91,5 +91,6 @@
 </div>
 <app-pop-up *ngIf="this.popupService.selectLocksForMultipleEkeys || 
                     this.popupService.addRecipientsForMultipleEkeys || 
-                    this.popupService.selectLocksForEkey ||
-                    this.popupService.ekeySuccess2" style="z-index: 10"></app-pop-up>
+                    this.popupService.selectLocksForEkey" style="z-index: 10"></app-pop-up>
+
+<app-access-modal *ngIf="this.popupService.ekeySuccess2" style="z-index: 10"></app-access-modal>

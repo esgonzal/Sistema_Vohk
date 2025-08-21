@@ -1,19 +1,19 @@
 import { NgModule } from '@angular/core';
 import { AppComponent } from './app.component';
 import { Loginv2Component } from './components/loginv2/loginv2.component';
-import { NavbarComponent } from './components/navbar/navbar.component';
+import { NavbarComponent } from './components/functions/navbar/navbar.component';
 import { Comunidadesv2Component } from './components/comunidadesv2/comunidadesv2.component';
 import { Lockv2Component } from './components/lockv2/lockv2.component';
-import { EkeyComponent } from './components/ekey/ekey.component';
-import { PasscodeComponent } from './components/passcode/passcode.component';
-import { CardComponent } from './components/card/card.component';
-import { MultipleEkeyComponent } from './components/multiple-ekey/multiple-ekey.component';
+import { EkeyComponent } from './components/access_methods/ekey/ekey.component';
+import { PasscodeComponent } from './components/access_methods/passcode/passcode.component';
+import { CardComponent } from './components/access_methods/card/card.component';
+import { MultipleEkeyComponent } from './components/access_methods/multiple-ekey/multiple-ekey.component';
 import { PopUpComponent } from './components/pop-up/pop-up.component';
-import { PassageModeComponent } from './components/passage-mode/passage-mode.component';
-import { TransferLockComponent } from './components/transfer-lock/transfer-lock.component';
-import { TransferHubComponent } from './components/transfer-hub/transfer-hub.component';
+import { PassageModeComponent } from './components/functions/passage-mode/passage-mode.component';
+import { TransferLockComponent } from './components/functions/transfer-lock/transfer-lock.component';
+import { TransferHubComponent } from './components/functions/transfer-hub/transfer-hub.component';
 
-import { LoaderComponent } from './components/loader/loader.component';
+import { LoaderComponent } from './components/functions/loader/loader.component';
 
 import { DatePipe } from '@angular/common';
 import { HttpClientModule } from "@angular/common/http";
@@ -48,6 +48,9 @@ import { GroupService } from './services/group.service';
 
 import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
+import { CameraComponent } from './components/camera/camera.component';
+import { AccessModalComponent } from './components/access_methods/access-modal/access-modal.component';
+import { FunctionsModalComponent } from './components/functions/functions-modal/functions-modal.component';
 
 
 export const CUSTOM_DATE_FORMATS = {
@@ -78,6 +81,9 @@ export const CUSTOM_DATE_FORMATS = {
     Comunidadesv2Component,
     Lockv2Component,
     TransferHubComponent,
+    CameraComponent,
+    AccessModalComponent,
+    FunctionsModalComponent,
   ],
   imports: [
     BrowserModule,

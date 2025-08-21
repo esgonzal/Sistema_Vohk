@@ -75,6 +75,9 @@ app.use('/mail', emailRouter);
 //Integration Test
 const testRouter = require('../backend/routes/automation/monday_test.js');
 app.use('/test', testRouter);
+//Camera Test
+const cameraTest = require('../backend/routes/camera/camera.js');
+app.use('/camera', cameraTest);
 
 // HTTP Configuration
 const httpPort = 8080;

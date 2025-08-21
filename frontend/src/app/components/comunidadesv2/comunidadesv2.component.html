@@ -36,6 +36,7 @@
                 {{chosenGroup.groupName}}
             </div>
             <div class="groupButtons" *ngIf="chosenGroup.groupId !== -1" style="display: flex;">
+                <button class="menuButton" style="margin-right: 5px;" (click)="invitaciones(chosenGroup)">Invitaciones</button>
                 <div *ngIf="userID==='soporte@vohk.cl'">
                     <button class="menuButton" style="margin-right: 5px;" (click)="descargarExcel(chosenGroup)">Descargar eKeys</button>
                 </div>
@@ -83,5 +84,12 @@
         </div>
     </div>
 </div>
-<app-pop-up *ngIf=" this.popupService.delete || this.popupService.cambiarNombre || this.popupService.addLockGROUP || this.popupService.removeLockGROUP || this.popupService.newGroup || this.popupService.invalidLock " style="z-index: 1001;
+<app-pop-up *ngIf=" this.popupService.addLockGROUP || this.popupService.removeLockGROUP || this.popupService.newGroup" style="z-index: 1001;
                     "></app-pop-up>
+
+<app-access-modal 
+    *ngIf="this.popupService.delete || this.popupService.cambiarNombre || this.popupService.invitation || 
+    this.popupService.selectLocksForPasscode || this.popupService.emailSentInvitation" 
+    style="z-index: 1001;"></app-access-modal>
+
+<app-functions-modal *ngIf="this.popupService.invalidLock" style="z-index: 1001;"></app-functions-modal>

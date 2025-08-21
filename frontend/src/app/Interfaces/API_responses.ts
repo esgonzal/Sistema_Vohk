@@ -59,6 +59,25 @@ export interface createPasscodeResponse {
     keyboardPwdId: number;
     keyboardPwd: string;
 }
+// Individual lock result
+export interface LockResult {
+  lockID: number;
+  lockAlias: string;
+  passcodePwd?: string; // present if success
+  success: boolean;
+  errcode?: number | string; // present if success === false
+}
+// Email info
+export interface EmailResult {
+  emailContent: string;
+  emailSent: boolean;
+  emailError?: string; // present if sending failed
+}
+// Full invitation response
+export interface InvitationResponse {
+  locks: LockResult[];
+  email?: EmailResult;
+}
 export interface addCardResponse {
     errcode: number;
     errmsg: string;

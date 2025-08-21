@@ -2,15 +2,15 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import moment from 'moment';
 import { lastValueFrom } from 'rxjs';
-import { UserServiceService } from '../../services/user-service.service';
-import { LockServiceService } from '../../services/lock-service.service';
-import { EkeyServiceService } from '../../services/ekey-service.service';
-import { LockListResponse, sendEkeyResponse } from '../../Interfaces/API_responses'
-import { Formulario } from '../../Interfaces/Formulario';
+import { UserServiceService } from '../../../services/user-service.service';
+import { LockServiceService } from '../../../services/lock-service.service';
+import { EkeyServiceService } from '../../../services/ekey-service.service';
+import { LockListResponse, sendEkeyResponse } from '../../../Interfaces/API_responses'
+import { Formulario } from '../../../Interfaces/Formulario';
 import { PopUpService } from 'src/app/services/pop-up.service';
 import { DomSanitizer } from '@angular/platform-browser';
-import { LockData } from '../../Interfaces/Lock';
-import { DarkModeService } from '../../services/dark-mode.service';
+import { LockData } from '../../../Interfaces/Lock';
+import { DarkModeService } from '../../../services/dark-mode.service';
 
 
 @Component({

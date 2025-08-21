@@ -57,6 +57,9 @@ export class PopUpService {
   cardSuccess = false;
   ekeySuccess2 = false;
   excelFingerprints = false;
+  invitation = false;
+  selectLocksForPasscode = false;
+  emailSentInvitation = false;
   emailMessage: string = '';
   lock_alias: string;
   gatewaysOfLock: GatewayLock[] = []
@@ -96,5 +99,5 @@ export class PopUpService {
       this.selectedLockIds_forMultipleEkeys.push({ id: lockId, alias: lockAlias });
     }
     console.log("selectedLocks: ", this.selectedLockIds_forMultipleEkeys);
-}
+  }
 }

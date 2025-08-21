@@ -86,12 +86,10 @@ router.post('/sendEmail', async(req, res) => {
     }
 });
 router.post('/sharePasscode', async(req, res) => {
-    const { name, email, motivo, code, lock_alias, start, end } = req.body;
+    const { email, code, lock_alias, start, end } = req.body;
     const templatePath = path.join(__dirname, 'templates', 'sharePasscode.html');
     const templateContent = await fs.readFile(templatePath, 'utf8');
     const emailContent = templateContent
-        .replace(/{{name}}/g, name)
-        .replace(/{{motivo}}/g, motivo)
         .replace(/{{code}}/g, code)
         .replace(/{{lock_alias}}/g, lock_alias)
         .replace(/{{start}}/g, start)

@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { PassageModeService } from '../../services/passage-mode.service';
+import { PassageModeService } from '../../../services/passage-mode.service';
 import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 import { operationResponse } from 'src/app/Interfaces/API_responses';
-import { DarkModeService } from '../../services/dark-mode.service';
+import { DarkModeService } from '../../../services/dark-mode.service';
 import { PopUpService } from 'src/app/services/pop-up.service';
 
 @Component({

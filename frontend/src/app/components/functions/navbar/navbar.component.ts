@@ -3,8 +3,8 @@ import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 import { logoutResponse } from 'src/app/Interfaces/API_responses';
 import { UserServiceService } from 'src/app/services/user-service.service';
-import { DarkModeService } from '../../services/dark-mode.service';
-import { PopUpService } from '../../services/pop-up.service';
+import { DarkModeService } from '../../../services/dark-mode.service';
+import { PopUpService } from '../../../services/pop-up.service';
 
 @Component({
   selector: 'app-navbar',

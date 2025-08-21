@@ -1,0 +1,14 @@
+Algo
+<video id="live" controls autoplay></video>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script>
+  const video = document.getElementById('live');
+  if (Hls.isSupported()) {
+    const hls = new Hls();
+    hls.loadSource('http://localhost:8080/camera/hls/live.m3u8');
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      video.play();
+    });
+  }
+</script>

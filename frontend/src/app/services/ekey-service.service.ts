@@ -12,8 +12,8 @@ import { MatTableDataSource } from '@angular/material/table';
 })
 export class EkeyServiceService {
 
-  URL = 'https://api.vohk.cl';
-  //URL = 'http://localhost:8080';
+  //URL = 'https://api.vohk.cl';
+  URL = 'http://localhost:8080';
   userID =  sessionStorage.getItem('user') ?? ''
   lockID: number;
   username = sessionStorage.getItem('user') ?? ''

@@ -1,0 +1,332 @@
+:host {
+    display: flex;
+    position: fixed;
+    flex-direction: column;
+    top: 0px;
+    right: 0px;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.container {
+    width: 500px;
+    box-shadow: 5px 5px 4px rgba(19, 19, 19, 0.2);
+    border-radius: 10px;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    z-index: 1003;
+}
+
+.container_sin_width {
+    width: 800px;
+    box-shadow: 5px 5px 4px rgba(19, 19, 19, 0.2);
+    border-radius: 10px;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    z-index: 1003;
+}
+
+.container_50 {
+    width: 600px;
+    box-shadow: 5px 5px 4px rgba(19, 19, 19, 0.2);
+    border-radius: 10px;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+}
+
+.container_60 {
+    width: 600px;
+    box-shadow: 5px 5px 4px rgba(19, 19, 19, 0.2);
+    border-radius: 10px;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+}
+
+.container_80 {
+    width: 80%;
+    box-shadow: 5px 5px 4px rgba(19, 19, 19, 0.2);
+    border-radius: 10px;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    border-bottom: 1px solid #ccc;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #000000;
+}
+
+.linea {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.linea_alternative {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.list_locks {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+    gap: 10px;
+    width: 100%;
+}
+
+.lock-item {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+}
+
+.lock-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.lock-table th,
+.lock-table td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: left;
+}
+
+.lock-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    text-align: center;
+}
+
+#content {
+    flex-grow: 1;
+    padding: 10px;
+    font-size: 18px;
+    max-height: 60vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#content img {
+    max-width: 100%;
+    height: auto;
+    transform: scale(1.3);
+}
+
+#actions {
+    display: flex;
+    justify-content: space-around;
+    height: 70px;
+    padding-bottom: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #ccc;
+}
+
+button {
+    padding: 10px 40px;
+    background-color: #F5C754;
+    border: 1px solid black;
+    border-radius: 20px;
+    cursor: pointer;
+    align-self: center;
+}
+
+.form-area {
+    text-align: center;
+}
+
+.common-form {
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+    margin: auto;
+}
+
+.common-form2 {
+    display: flex;
+    flex-direction: column;
+    margin: auto;
+}
+
+.big-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-input {
+    height: 35px;
+    margin-bottom: 20px;
+    border: 1px solid black;
+    padding-left: 15px;
+    border-radius: 20px;
+}
+
+.input-container {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: center;
+}
+
+.recipient-pair {
+    border-bottom: 1px solid #ccc;
+    /* Change color as needed */
+    padding-top: 20px;
+}
+
+.x-button {
+    font-size: 12px;
+    /* Adjust the font size to your preference */
+    background: red;
+    border: 1px solid;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 10px;
+    width: 20px;
+    /* Equal width and height for a perfect circle */
+    height: 20px;
+    border-radius: 50%;
+}
+
+.error {
+    font-size: smaller;
+    color: red;
+    text-align: center;
+}
+
+.confirmation-message {
+    font-size: 14px;
+    /* Adjust the font size as needed */
+    text-align: center;
+    margin-top: 10px;
+    /* Add some top margin for spacing */
+    color: #4CAF50;
+    /* Green color or adjust to your preferred color */
+}
+
+.mat-datepicker-content {
+    position: relative;
+    /* Ensure z-index works */
+    z-index: 10000;
+    /* Set a higher z-index value than the popup window */
+}
+
+.linea_ekey {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.linea_ekey label {
+    padding: 8px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.input-container_ekey {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: space-between;
+    width: 600px;
+    margin-bottom: 10px;
+}
+
+.form-input_ekey {
+    height: 35px;
+    border: 1px, solid black;
+    padding-left: 15px;
+}
+
+.form-button_ekey {
+    height: 35px;
+    border: 1px solid black;
+    background-color: #f9c114;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.person-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.person-number {
+    margin-right: 10px;
+    font-weight: bold;
+    /* Optionally make the number bold */
+}
+
+.person-inputs {
+    display: flex;
+    align-items: baseline;
+}
+
+.person-inputs input {
+    border-radius: 20px;
+    border: 1px solid black;
+    margin-right: 10px;
+    /* Adjust spacing between inputs */
+    flex-grow: 1;
+    /* Take remaining space in the row */
+}
+
+.remove-button {
+    display: contents;
+    background: transparent;
+    border: none;
+    color: red;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 10px;
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+.person-container:nth-child(1) input {
+    margin-top: 5px;
+    /* Add margin to the first input to prevent overlap with header */
+}
+
+.dark-mode,
+.dark-mode .container,
+.dark-mode .header {
+    color: #fff;
+    background-color: #121C24;
+}
+
+@media screen and (max-width: 600px) {
+    .container {
+        width: 100%;
+        margin: 10px;
+    }
+    .header {
+        font-size: 16px;
+    }
+    #content {
+        font-size: 14px;
+    }
+}

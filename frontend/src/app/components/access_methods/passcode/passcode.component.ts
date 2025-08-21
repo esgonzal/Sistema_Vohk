@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
-import { Formulario } from '../../Interfaces/Formulario';
-import { PasscodeServiceService } from '../../services/passcode-service.service';
+import { Formulario } from '../../../Interfaces/Formulario';
+import { PasscodeServiceService } from '../../../services/passcode-service.service';
 import { Router } from '@angular/router';
 import moment from 'moment';
-import { LockServiceService } from '../../services/lock-service.service';
-import { PopUpService } from '../../services/pop-up.service';
-import { createPasscodeResponse } from '../../Interfaces/API_responses';
+import { LockServiceService } from '../../../services/lock-service.service';
+import { PopUpService } from '../../../services/pop-up.service';
+import { createPasscodeResponse } from '../../../Interfaces/API_responses';
 import { lastValueFrom } from 'rxjs';
 import { DarkModeService } from 'src/app/services/dark-mode.service';
 

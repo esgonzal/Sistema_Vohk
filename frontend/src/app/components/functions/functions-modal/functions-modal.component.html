@@ -1,0 +1,151 @@
+<app-loader [loader]="isLoading"></app-loader>
+<div class="container" *ngIf="popupService.esencial" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        Datos esenciales de la cerraduras
+    </div>
+    <div id="content">
+        <div class="linea_alternative">
+            <span class="input-container">
+                Número de la cerradura
+                {{popupService.detalles.lockName}}
+            </span>
+        </div>
+        <div class="linea_alternative">
+            <span class="input-container">
+                MAC
+                {{popupService.detalles.lockMac}}
+            </span>
+        </div>
+        <div class="linea_alternative">
+            <span class="input-container">
+                LockID
+                {{popupService.detalles.lockId}}
+            </span>
+        </div>
+        <div class="linea_alternative">
+            <span class="input-container">
+                Firmware
+                {{popupService.detalles.firmwareRevision}}
+            </span>
+        </div>
+    </div>
+    <div id="actions">
+        <button (click)="popupService.esencial= false">Ok</button>
+    </div>
+</div>
+<div class="container" *ngIf="popupService.needGateway" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        Función no permitida
+    </div>
+    <div id="content">
+        Para utilizar esta función necesita conectar esta cerradura a un dispositivo gateway.
+    </div>
+    <div id="actions">
+        <button (click)="popupService.needGateway = false">Ok</button>
+    </div>
+</div>
+<div class="container" *ngIf="popupService.invalidLock" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        Accesso Denegado
+    </div>
+    <div id="content">
+        No tiene permiso para acceder a esta cerradura. Comuníquese con el administrador de la cerradura para solucionar este problema.
+    </div>
+    <div id="actions">
+        <button (click)="popupService.invalidLock = false">Ok</button>
+    </div>
+</div>
+<div class="container" *ngIf="popupService.selectLocksForTransfer" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        Seleccione las cerraduras
+    </div>
+    <div id="content" style="justify-content: flex-start; ">
+        <table class="lock-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Seleccionado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <ng-container *ngIf="lockService.adminLocks.length > 0; else noLocks">
+                    <tr *ngFor="let lock of lockService.adminLocks">
+                        <td>{{ lock.lockAlias }}</td>
+                        <td style="text-align: center">
+                            <input type="checkbox" [checked]="isLockSelected(lock.lockId)" (change)="toggleLockSelection(lock.lockId, lock.lockAlias)">
+                        </td>
+                    </tr>
+                </ng-container>
+                <ng-template #noLocks>
+                    <tr>
+                        <td colspan="2">No existen cerraduras disponibles para transferir.</td>
+                    </tr>
+                </ng-template>
+            </tbody>
+        </table>
+    </div>
+    <p class="error">{{error}}</p>
+    <div id="actions">
+        <button (click)="popupService.selectLocksForTransfer = false">Volver</button>
+        <button (click)="this.popupService.selectLocksForTransfer = false; confirmLockSelection()">Confirmar</button>
+    </div>
+</div>
+<div class="container" *ngIf="popupService.selectHubsForTransfer" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        Seleccione los Gateways
+    </div>
+    <div id="content" style="justify-content: flex-start; ">
+        <table class="lock-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Red</th>
+                    <th>N° Dispositivos</th>
+                    <th>Seleccionado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <ng-container *ngIf="gatewayService.gateways.length > 0; else noLocks">
+                    <tr *ngFor="let hub of gatewayService.gateways">
+                        <td>{{ hub.gatewayName }}</td>
+                        <td>{{ hub.networkName }}</td>
+                        <td>{{ hub.lockNum }}</td>
+                        <td style="text-align: center">
+
+                            <input type="checkbox" [checked]="isHubSelected(hub.gatewayId)" (change)="toggleHubSelection(hub.gatewayId)">
+
+                        </td>
+                    </tr>
+                </ng-container>
+                <ng-template #noLocks>
+                    <tr>
+                        <td colspan="2">No existen gateways disponibles para transferir.</td>
+                    </tr>
+                </ng-template>
+            </tbody>
+        </table>
+    </div>
+    <p class="error">{{error}}</p>
+    <div id="actions">
+        <button (click)="popupService.selectHubsForTransfer = false">Volver</button>
+        <button (click)="this.popupService.selectHubsForTransfer = false; confirmLockSelection()">Confirmar</button>
+    </div>
+</div>
+<div class="container" *ngIf="popupService.excelNameWindow" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        Introduzca un nombre para el archivo
+    </div>
+    <div id="content">
+        <div class="form-area">
+            <form class="common-form">
+                Nombre
+                <input type="text" class="form-input" name="name" [(ngModel)]="name" />
+                <p class="error">{{error}}</p>
+            </form>
+        </div>
+    </div>
+    <div id="actions">
+        <button (click)="this.popupService.excelNameWindow=false">Cancelar</button>
+        <button (click)="exportToExcel()">Exportar</button>
+    </div>
+</div>

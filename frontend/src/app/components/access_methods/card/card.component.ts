@@ -6,7 +6,7 @@ import moment from 'moment';
 import { LockServiceService } from 'src/app/services/lock-service.service';
 import { lastValueFrom } from 'rxjs';
 import { addCardResponse } from 'src/app/Interfaces/API_responses';
-import { DarkModeService } from '../../services/dark-mode.service';
+import { DarkModeService } from '../../../services/dark-mode.service';
 
 @Component({
   selector: 'app-card',

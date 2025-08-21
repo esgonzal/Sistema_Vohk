@@ -1,0 +1,283 @@
+<app-loader [loader]="isLoading"></app-loader>
+<div class="container" *ngIf="popupService.delete" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        ¿Está seguro que desea eliminar {{popupService.elementType}}?
+    </div>
+    <div id="content">
+        <p class="error">{{error}}</p>
+    </div>
+    <div id="actions">
+        <button (click)="popupService.delete = false">No</button>
+        <button (click)="delete()">Si</button>
+    </div>
+</div>
+<div class="container" *ngIf="popupService.autorizar" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        ¿Está seguro que desea autorizar a {{popupService.elementType}}?
+    </div>
+    <div id="content">
+    </div>
+    <div id="actions">
+        <button (click)="popupService.autorizar = false">No</button>
+        <button (click)="autorizar()">Si</button>
+    </div>
+</div>
+<div class="container" *ngIf="popupService.desautorizar" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        ¿Está seguro que desea desautorizar a {{popupService.elementType}}?
+    </div>
+    <div id="content">
+    </div>
+    <div id="actions">
+        <button (click)="popupService.desautorizar = false">No</button>
+        <button (click)="desautorizar()">Si</button>
+    </div>
+</div>
+<div class="container" *ngIf="popupService.changeRemoteEnable" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        Por favor confirme sus acciones
+    </div>
+    <div id="content">
+        <div class="linea_alternative" style="gap:10px;margin-bottom:0px">
+            <span class="input-container">
+                Apertura Remota
+            </span>
+            <span class="input-container">
+                <mat-slide-toggle [(ngModel)]="remoteEnableToggle"
+                    (change)="remoteEnableToggleChange($event)"></mat-slide-toggle>
+            </span>
+        </div>
+    </div>
+    <div id="actions">
+        <button (click)="popupService.changeRemoteEnable = false">Cancelar</button>
+        <button (click)="cambiarRemoteUnlock()">Confirmar</button>
+    </div>
+</div>
+<div class="container" *ngIf="popupService.congelar" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        ¿Está seguro que desea congelar a {{popupService.elementType}}?
+    </div>
+    <div id="content">
+    </div>
+    <div id="actions">
+        <button (click)="popupService.congelar = false">No</button>
+        <button (click)="congelar()">Si</button>
+    </div>
+</div>
+<div class="container" *ngIf="popupService.descongelar" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        ¿Está seguro que desea descongelar a {{popupService.elementType}}?
+    </div>
+    <div id="content">
+    </div>
+    <div id="actions">
+        <button (click)="popupService.descongelar = false">No</button>
+        <button (click)="descongelar()">Si</button>
+    </div>
+</div>
+<div class="container" *ngIf="popupService.cambiarNombre" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        Introduzca el nuevo nombre
+    </div>
+    <div id="content">
+        <div class="form-area">
+            <form class="common-form">
+                Nombre
+                <input type="text" class="form-input" name="name" [(ngModel)]="name" style="margin-bottom:0px" />
+                <p class="error">{{error}}</p>
+            </form>
+        </div>
+    </div>
+    <div id="actions">
+        <button (click)="popupService.cambiarNombre = false">Volver</button>
+        <button (click)="cambiarNombre()">Guardar</button>
+    </div>
+</div>
+<div class="container" *ngIf="popupService.cambiarPeriodo" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        Introduzca la nueva fecha
+    </div>
+    <div id="content">
+        <div class="form-area">
+            <form #editPeriod="ngForm" (ngSubmit)="cambiarPeriodo(editPeriod.value)" class="common-form">
+                <div class="linea">
+                    Periodo de inicio
+                    <span class="input-container">
+                        <mat-form-field appearance="fill">
+                            <mat-label>Fecha</mat-label>
+                            <input matInput [matDatepicker]="startDatePicker" name="startDate" required="required"
+                                ngModel (dateChange)="startTimePicker.open()">
+                            <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
+                            <mat-datepicker #startDatePicker></mat-datepicker>
+                        </mat-form-field>
+                        <mat-form-field appearance="fill">
+                            <mat-label>Hora</mat-label>
+                            <input matInput [ngxTimepicker]="startTimePicker" name="startHour" required="required"
+                                [format]="24" ngModel>
+                        </mat-form-field>
+                        <ngx-material-timepicker #startTimePicker [hoursOnly]="true"></ngx-material-timepicker>
+                    </span>
+                </div>
+                <div class="linea">
+                    Periodo de finalización
+                    <span class="input-container">
+                        <mat-form-field appearance="fill">
+                            <mat-label>Fecha</mat-label>
+                            <input matInput [matDatepicker]="endDatePicker" name="endDate" required="required" ngModel
+                                (dateChange)="endTimePicker.open()">
+                            <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
+                            <mat-datepicker #endDatePicker></mat-datepicker>
+                        </mat-form-field>
+                        <mat-form-field appearance="fill">
+                            <mat-label>Hora</mat-label>
+                            <input matInput [ngxTimepicker]="endTimePicker" name="endHour" required="required"
+                                [format]="24" ngModel>
+                        </mat-form-field>
+                        <ngx-material-timepicker #endTimePicker [hoursOnly]="true"></ngx-material-timepicker>
+                    </span>
+                </div>
+                <p class="error">{{error}}</p>
+                <div id="actions">
+                    <button (click)="popupService.cambiarPeriodo = false">Volver</button>
+                    <button type="submit">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="container" *ngIf="popupService.editarPasscode" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        Introduzca la nueva secuencia de números
+    </div>
+    <div id="content">
+        <div class="form-area">
+            <form class="common-form">
+                <div class="linea">
+                    Nuevo código
+                    <span class="input-container">
+                        <input type="password" class="form-input" name="passcodePwd" [(ngModel)]="passcodePwd" />
+                    </span>
+                </div>
+                <!--
+                <div *ngIf="popupService.passcode.keyboardPwdType !== 1 && popupService.passcode.keyboardPwdType !== 2 && popupService.passcode.keyboardPwdType !== 3 && popupService.passcode.keyboardPwdType !== 4" class="linea">
+                    Hora de finalización
+                    <span class="input-container">
+                        <mat-form-field appearance="fill">
+                            <mat-label>Hora</mat-label>
+                            <input matInput [ngxTimepicker]="endTimePicker" name="endHour" [format]="24" [(ngModel)]="endHour">
+                        </mat-form-field>
+                        <ngx-material-timepicker #endTimePicker [hoursOnly]="true"></ngx-material-timepicker>
+                    </span>
+                </div>
+                -->
+                <p class="error">{{error}}</p>
+            </form>
+        </div>
+    </div>
+    <div id="actions">
+        <button (click)="popupService.editarPasscode= false">Volver</button>
+        <button (click)="editarPasscode()">Guardar</button>
+    </div>
+</div>
+<div class="container" *ngIf="popupService.ekeySuccess" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        La eKey ha sido creada correctamente
+    </div>
+    <div id="actions">
+        <button (click)="closeWindow()">Ok</button>
+    </div>
+</div>
+<div class="container" *ngIf="popupService.ekeySuccess2" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        Las eKeys se han creado correctamente
+    </div>
+    <div id="actions">
+        <button (click)="closeWindow()">Ok</button>
+    </div>
+</div>
+<div class="container" *ngIf="popupService.passcodeSuccess" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        El código ha sido creado correctamente
+    </div>
+    <div id="actions">
+        <button (click)="closeWindow()">Ok</button>
+    </div>
+</div>
+<div class="container" *ngIf="popupService.cardSuccess" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        La tarjeta ha sido creada correctamente
+    </div>
+    <div id="actions">
+        <button (click)="closeWindow()">Ok</button>
+    </div>
+</div>
+<div class="container" *ngIf="popupService.invitation" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        Crear Invitación
+    </div>
+    <div id="content">
+        <div class="form-area">
+            <form class="common-form">
+                <p>
+                    Nombre de la Invitación
+                    <input style="border-radius:20px;border:1px solid black" type="text" class="form-input" name="name"
+                        [(ngModel)]="name" />
+                </p>
+                <p>
+                    Contraseña del Código
+                    <input style="border-radius:20px;border:1px solid black" type="text" class="form-input" name="passcodePwd"
+                        [(ngModel)]="passcodePwd" placeholder="4-9 digits"/>
+                </p>
+                <p>
+                    <button class="addLocks" (click)="openLockSelector()">Cerraduras</button>
+                </p>
+                <p>
+                    Correo de Notificación
+                    <input style="border-radius:20px;border:1px solid black" type="text" class="form-input" name="email"
+                        [(ngModel)]="email" />
+                </p>
+                <p class="error">{{error}}</p>
+            </form>
+        </div>
+    </div>
+    <div id="actions">
+        <button (click)="popupService.invitation = false">Volver</button>
+        <button (click)="createInvitation()">Continuar</button>
+    </div>
+</div>
+<div class="container" *ngIf="popupService.selectLocksForPasscode" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        Seleccione Cerradura
+    </div>
+    <div id="content">
+        <div class="form-area">
+            <div *ngFor="let lock of passcodeService.availableLocks">
+                <label>
+                    <input type="checkbox" [value]="lock.id"
+                        (change)="passcodeService.toggleLock(lock)"
+                        [checked]="passcodeService.isLockSelected(lock.id)">
+                    {{ lock.alias }}
+                </label>
+            </div>
+        </div>
+    </div>
+    <div id="actions">
+        <button (click)="selectLocks()">OK</button>
+    </div>
+</div>
+<div class="container_sin_width" *ngIf="popupService.emailSentInvitation" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        Se envió el siguiente correo
+    </div>
+    <div id="content" style="background-color: rgb(245, 245, 245);">
+        <!--<textarea [(ngModel)]="emailMessage" rows="10" cols="50"></textarea>-->
+        <div [innerHTML]="emailMessage"></div>
+    </div>
+    <div id="actions">
+        <button (click)="copyToClipboard()">Copiar mensaje</button>
+        <button (click)="closeSentInvitation()">Ok</button>
+    </div>
+    <div *ngIf="isCopied" class="confirmation-message">
+        El mensaje fue copiado.
+    </div>
+</div>

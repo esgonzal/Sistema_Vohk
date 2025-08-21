@@ -14,6 +14,7 @@ import { GatewayService } from 'src/app/services/gateway.service';
 import { faHome } from '@fortawesome/free-solid-svg-icons'
 import { Ekey } from 'src/app/Interfaces/Elements';
 import * as XLSX from 'xlsx';
+import { PasscodeServiceService } from 'src/app/services/passcode-service.service';
 
 @Component({
   selector: 'app-comunidadesv2',
@@ -37,6 +38,7 @@ export class Comunidadesv2Component implements OnInit {
 
   constructor(private groupService: GroupService,
     private ekeyService: EkeyServiceService,
+    private passcodeService: PasscodeServiceService,
     private lockService: LockServiceService,
     private router: Router,
     public popupService: PopUpService,
@@ -273,6 +275,22 @@ export class Comunidadesv2Component implements OnInit {
     this.isLoading = false;
     // Guardar el archivo con el nombre del grupo
     XLSX.writeFile(wb, `Ekeys_${group.groupName}.xlsx`);
+  }
+  invitaciones(group: Group) {
+    const eligibleLocks = group.locks.filter(lock => {
+      const hasGateway = lock.hasGateway === 1;
+      const allowsCodes = this.lockService.checkFeature(lock.featureValue, 0);
+      return hasGateway && allowsCodes;
+    });
+    // store all locks in passcodeService
+    this.passcodeService.availableLocks = eligibleLocks.map(lock => ({
+      id: lock.lockId,
+      alias: lock.lockAlias
+    }));
+
+    // start with all selected
+    this.passcodeService.selectedLocks = [...this.passcodeService.availableLocks];
+    this.popupService.invitation = true
   }
   @HostListener('window:resize', ['$event'])
   onResize(event: Event) {

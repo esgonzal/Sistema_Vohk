@@ -5,7 +5,7 @@ import { operationResponse } from 'src/app/Interfaces/API_responses';
 import { LockServiceService } from 'src/app/services/lock-service.service';
 import { PopUpService } from 'src/app/services/pop-up.service';
 import { UserServiceService } from 'src/app/services/user-service.service';
-import { DarkModeService } from '../../services/dark-mode.service';
+import { DarkModeService } from '../../../services/dark-mode.service';
 import { LockData } from 'src/app/Interfaces/Lock';
 
 @Component({

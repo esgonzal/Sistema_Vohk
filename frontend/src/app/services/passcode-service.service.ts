@@ -1,17 +1,18 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { lastValueFrom, Observable } from 'rxjs';
-import { PasscodeResponse, createPasscodeResponse, operationResponse } from '../Interfaces/API_responses';
+import { InvitationResponse, PasscodeResponse, createPasscodeResponse, operationResponse } from '../Interfaces/API_responses';
 import { Passcode } from '../Interfaces/Elements';
 import { MatTableDataSource } from '@angular/material/table';
+import { LockData } from '../Interfaces/Lock';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PasscodeServiceService {
 
-  URL = 'https://api.vohk.cl';
-  //URL = 'http://localhost:8080';
+  //URL = 'https://api.vohk.cl';
+  URL = 'http://localhost:8080';
   username: string;
   lockAlias: string;
   endDateUser: string;
@@ -22,6 +23,9 @@ export class PasscodeServiceService {
   lockID: number = Number(sessionStorage.getItem('lockID') ?? '')
   passcodes: Passcode[] = [];
   passcodesDataSource: MatTableDataSource<Passcode>;
+  currentLocks: LockData[] = []
+  selectedLocks: { id: number, alias: string }[] = [];
+  availableLocks: { id: number, alias: string }[] = [];
 
   constructor(private http: HttpClient) { }
 
@@ -73,6 +77,7 @@ export class PasscodeServiceService {
   }
   generateCustomPasscode(userID: string, lockID: number, keyboardPwd: string, keyboardPwdType: string, keyboardPwdName?: string, startDate?: string, endDate?: string): Observable<createPasscodeResponse> {
     let body = { userID, lockID, keyboardPwd, keyboardPwdType, keyboardPwdName, startDate, endDate };
+    console.log(body)
     let url = this.URL.concat('/v0/passcode/add');
     return this.http.post<createPasscodeResponse>(url, body);
   }
@@ -93,7 +98,6 @@ export class PasscodeServiceService {
     console.log("url: ", url)
     return this.http.post<any>(url, body);
   }
-
   sendEmail_passcodePermanent(to: string, from: string, lock_alias: string, code: string) {//Template para passcode permanente
     let body = { to, from, lock_alias, code };
     let url = this.URL.concat('/mail/passcodePermanent');
@@ -154,5 +158,32 @@ export class PasscodeServiceService {
     let body = { to: to, from: from, lock_alias: alias, code: code, days: days, start: start, end: end };
     let url = this.URL.concat('/mail/passcodeDays');
     return this.http.post(url, body)
+  }
+
+  toggleLock(lock: { id: number; alias: string }) {
+    const index = this.selectedLocks.findIndex(l => l.id === lock.id);
+    if (index !== -1) {
+      this.selectedLocks.splice(index, 1); // uncheck
+    } else {
+      this.selectedLocks.push(lock); // check
+    }
+  }
+  isLockSelected(lockId: number): boolean {
+    return this.selectedLocks.some(l => l.id === lockId);
+  }
+
+  generateCustomPasscode2(
+    userID: string,
+    selectedLocks: { id: number; alias: string }[],
+    keyboardPwd: string,
+    keyboardPwdType: string,
+    keyboardPwdName?: string,
+    startDate?: string,
+    endDate?: string,
+    email?: string
+  ): Observable<InvitationResponse> {
+    let body = { userID, selectedLocks, keyboardPwd, keyboardPwdType, keyboardPwdName, startDate, endDate, email };
+    let url = this.URL.concat('/v0/passcode/add2');
+    return this.http.post<InvitationResponse>(url, body);
   }
 }

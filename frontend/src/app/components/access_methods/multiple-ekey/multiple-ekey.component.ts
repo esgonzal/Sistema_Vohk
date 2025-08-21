@@ -1,12 +1,12 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import moment from 'moment';
-import { EkeyServiceService } from '../../services/ekey-service.service';
-import { PopUpService } from '../../services/pop-up.service';
-import { LockServiceService } from '../../services/lock-service.service';
+import { EkeyServiceService } from '../../../services/ekey-service.service';
+import { PopUpService } from '../../../services/pop-up.service';
+import { LockServiceService } from '../../../services/lock-service.service';
 import { lastValueFrom } from 'rxjs';
-import { UserServiceService } from '../../services/user-service.service';
-import { sendEkeyResponse } from '../../Interfaces/API_responses';
+import { UserServiceService } from '../../../services/user-service.service';
+import { sendEkeyResponse } from '../../../Interfaces/API_responses';
 import { DomSanitizer } from '@angular/platform-browser';
 import { DarkModeService } from 'src/app/services/dark-mode.service';
 import * as XLSX from 'xlsx';
@@ -372,14 +372,15 @@ export class MultipleEkeyComponent implements OnInit {
     // Comenzar desde la fila 3 (índice 2)
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
+      console.log(row)
 
 
       // Asegurarse de que la fila tenga suficientes datos
       if (row.length >= 4) {
-        const department = row[0]; // B: Departamento
-        const ownerName = row[1]; // C: Nombre Propietario
-        const phoneNumber = row[2]; // D: N° Telefono
-        const email = row[3]; // E: Correo
+        const department = row[1]; // B: Departamento
+        const ownerName = row[2]; // C: Nombre Propietario
+        const phoneNumber = row[3]; // D: N° Telefono
+        const email = row[4]; // E: Correo
 
         // Crear el objeto de eKey según el formato requerido
         const formattedPhoneNumber = String(phoneNumber).replace(/\s+/g, '');

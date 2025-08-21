@@ -3,10 +3,11 @@ import { RouterModule, Routes } from '@angular/router';
 import { Loginv2Component } from './components/loginv2/loginv2.component';
 import { Comunidadesv2Component } from './components/comunidadesv2/comunidadesv2.component';
 import { Lockv2Component } from './components/lockv2/lockv2.component';
-import { EkeyComponent } from './components/ekey/ekey.component';
-import { PasscodeComponent } from './components/passcode/passcode.component';
-import { CardComponent } from './components/card/card.component';
-import { MultipleEkeyComponent } from './components/multiple-ekey/multiple-ekey.component';
+import { EkeyComponent } from './components/access_methods/ekey/ekey.component';
+import { PasscodeComponent } from './components/access_methods/passcode/passcode.component';
+import { CardComponent } from './components/access_methods/card/card.component';
+import { MultipleEkeyComponent } from './components/access_methods/multiple-ekey/multiple-ekey.component';
+import { CameraComponent } from './components/camera/camera.component';
 
 const routes: Routes = [
   { path: 'login', component: Loginv2Component },
@@ -16,7 +17,7 @@ const routes: Routes = [
   { path: 'users/:username/lock/:id/passcode', component: PasscodeComponent },
   { path: 'users/:username/lock/:id/card', component: CardComponent },
   { path: 'users/:username/lock/:id/ekey/multiple', component: MultipleEkeyComponent },
-  
+  { path: 'test/camera', component: CameraComponent }
   
   
 ];
