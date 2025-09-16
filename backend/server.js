@@ -7,10 +7,37 @@ const app = express();
 // Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+/*
 const corsOptions = {
     origin: ['https://app.vohk.cl', 'http://localhost:4200'],
 };
 app.use(cors(corsOptions));
+*/
+
+// CORS and Cross-Origin Isolation headers
+app.use((req, res, next) => {
+  const allowedOrigins = ['https://app.vohk.cl', 'http://localhost:4200'];
+  const origin = req.headers.origin;
+
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+
+  // Required for SharedArrayBuffer and WASM threads
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+
+  next();
+});
 
 // API v0
 const { accessTokenStorage, storeAccessToken } = require('../backend/routes/v0/accessTokenStorage.js');
