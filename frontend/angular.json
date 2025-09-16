@@ -29,7 +29,10 @@
             "styles": [
               "src/styles.css"
             ],
-            "scripts": []
+            "scripts": [
+              "src/assets/hik-sdk/dist/jsPlugin-3.0.0.min.js",
+              "src/assets/hik-sdk/dist/timeBar.js"
+            ]
           },
           "configurations": {
             "production": {
