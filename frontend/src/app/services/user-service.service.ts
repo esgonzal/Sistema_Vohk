@@ -11,8 +11,8 @@ import { PhoneNumberUtil } from 'google-libphonenumber';
 })
 export class UserServiceService {
 
-  //URL = 'https://api.vohk.cl';
-  URL = 'http://localhost:8080';
+  URL = 'https://api.vohk.cl';
+  //URL = 'http://localhost:8080';
   loggedIn = false;
   private phoneNumberUtil: PhoneNumberUtil;
 

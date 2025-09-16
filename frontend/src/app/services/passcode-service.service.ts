@@ -11,8 +11,8 @@ import { LockData } from '../Interfaces/Lock';
 })
 export class PasscodeServiceService {
 
-  //URL = 'https://api.vohk.cl';
-  URL = 'http://localhost:8080';
+  URL = 'https://api.vohk.cl';
+  //URL = 'http://localhost:8080';
   username: string;
   lockAlias: string;
   endDateUser: string;

@@ -12,9 +12,9 @@ import { MatTableDataSource } from '@angular/material/table';
 })
 export class EkeyServiceService {
 
-  //URL = 'https://api.vohk.cl';
-  URL = 'http://localhost:8080';
-  userID =  sessionStorage.getItem('user') ?? ''
+  URL = 'https://api.vohk.cl';
+  //URL = 'http://localhost:8080';
+  userID = sessionStorage.getItem('user') ?? ''
   lockID: number;
   username = sessionStorage.getItem('user') ?? ''
   lockAlias: string;
@@ -74,13 +74,27 @@ export class EkeyServiceService {
     let url = this.URL.concat('/v0/ekey/getListLock');
     return this.http.post<EkeyResponse>(url, body);
   }
-  sendEkey(userID: string, lockID: number, lockAlias: string, recieverName: string, keyName: string, 
-           startDate: string, endDate: string, keyRight: number, remoteEnable: number, email: string, 
-           keyType?: number, startDay?: string, endDay?: string, weekDays?: string): Observable<sendEkeyResponse> {
+  sendEkey(userID: string, lockID: number, lockAlias: string, recieverName: string, keyName: string,
+    startDate: string, endDate: string, keyRight: number, remoteEnable: number, email: string,
+    keyType?: number, startDay?: string, endDay?: string, weekDays?: string): Observable<sendEkeyResponse> {
     let body = { userID, lockID, lockAlias, recieverName, keyName, startDate, endDate, keyRight, remoteEnable, email, keyType, startDay, endDay, weekDays };
     let url = this.URL.concat('/v0/ekey/send');
     //console.log(body)
     return this.http.post<sendEkeyResponse>(url, body);
+  }
+  sendEkey2(
+    userID: string, 
+    selectedLocks: { id: number; alias: string }[], 
+    recieverName: string, 
+    keyName: string,
+    startDate: string, 
+    endDate: string, 
+    keyRight: number, 
+    remoteEnable: number, 
+    email: string) {
+    let body = { userID, selectedLocks, recieverName, keyName, startDate, endDate, keyRight, remoteEnable, email };
+    let url = this.URL.concat('/v0/ekey/send2');
+    return this.http.post(url, body);
   }
   deleteEkey(userID: string, keyID: number, lockID: number, keyUsername: string): Observable<operationResponse> {
     let body = { userID, keyID, lockID, keyUsername };
@@ -118,12 +132,12 @@ export class EkeyServiceService {
     return this.http.post<operationResponse>(url, body);
   }
   generateEmail(userID: string, lockAlias: string, recieverName: string, startDate: string, endDate: string, email?: string): Observable<sendEkeyResponse> {
-    let body = {userID, lockAlias, recieverName, startDate, endDate, email}
+    let body = { userID, lockAlias, recieverName, startDate, endDate, email }
     let url = this.URL.concat('/v0/ekey/generateEmail');
     return this.http.post<sendEkeyResponse>(url, body);
   }
   sendEmail(toEmail: string, emailContent: string): Observable<sendEkeyResponse> {
-    let body = {toEmail, emailContent}
+    let body = { toEmail, emailContent }
     let url = this.URL.concat('/mail/sendEmail');
     return this.http.post<sendEkeyResponse>(url, body);
   }
