@@ -1,6 +1,10 @@
 <div class="pagina_completa" *ngIf="this.popupService.createPasscode" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
     <app-loader [loader]="isLoading"></app-loader>
     <div class="form-area">
+        <div class="multipleButton" *ngIf="this.passcodeService.username == 'soporte@vohk.cl'">
+            <button (click)="toMultiplePasscodes()" title="Crear más de un código al mismo tiempo para la(s) cerradura(s) designada(s)">Generar múltiples
+                códigos</button>
+        </div>
         <form #formInput="ngForm" (ngSubmit)="validarNuevaPass(formInput.value)" class="common-form">
             <div class="linea">
                 <span class="input-container">

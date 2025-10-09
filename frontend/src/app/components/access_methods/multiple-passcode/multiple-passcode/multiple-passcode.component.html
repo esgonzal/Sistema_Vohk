@@ -1,0 +1,65 @@
+<div class="pagina_completa" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <app-loader [loader]="isLoading"></app-loader>
+    <div class="form-area">
+        <h2 class="titulo" style="margin-bottom: 50px">
+            Ingrese los datos para generar códigos
+        </h2>
+        <div class="botones">
+            <!-- Botón para subir archivo -->
+            <button class="import" (click)="fileInput.click()">Importar desde Archivo</button>
+            <!-- Botón para descargar formato de excel -->
+            <button class="import" (click)="downloadExcelTemplate()">Descargar Plantilla de Excel</button>
+            <!-- Input oculto para cargar el archivo -->
+            <input type="file" #fileInput (change)="onFileSelected($event)" accept=".xlsx, .xls, .csv"
+                style="display: none;" />
+            <button class="addLocks" (click)="openLockSelector()">Añadir cerraduras</button>
+
+        </div>
+        <div class="content-container ">
+            <table class="passcode-table">
+                <thead>
+                    <tr>
+                        <th class="th_name">Nombre</th>
+                        <th class="th_tipo">Tipo</th>
+                        <th class="th_code">Código</th>
+                        <th class="th_eliminar">Eliminar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let passcode of passcodes; let i = index">
+                        <!--Nombre-->
+                        <td style="width: 30%">
+                            <input type="text" [(ngModel)]="passcode.name" name="name_{{ i }}"
+                                style="width: 100%; max-width: 100%; box-sizing: border-box" required
+                                [class.invalid-input]="!passcode.name" />
+                        </td>
+                        <!--Tipo-->
+                        <td style="width: 35%">
+                            <select [(ngModel)]="passcode.tipo" name="tipo_{{ i }}" [class.invalid-input]="!passcode.tipo"
+                                style="width: 100%; max-width: 100%; box-sizing: border-box">
+                                <option [ngValue]="2">Permanente Customizado</option>
+                                <option [ngValue]="3">Permanente</option>
+                            </select>
+                        </td>
+                        <!--Codigo-->
+                        <td style="width: 20%">
+                            <input type="number" [(ngModel)]="passcode.code" name="code_{{ i }}"
+                                style="width: 100%; max-width: 100%; box-sizing: border-box" 
+                                [required]="passcode.tipo == 2" [disabled]="passcode.tipo == 3"
+                                [class.invalid-input]="passcode.tipo == 2 && !passcode.code" />
+                        </td>
+                        <!--Eliminar-->
+                        <td style="width: 10%">
+                            <button (click)="removePasscode(i)">X</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="error">{{error}}</p>
+        <button class="form-button" (click)="addPasscode()">Sumar Código</button>
+        <button class="form-button" (click)="validarInputs()">Generar Códigos</button>
+    </div>
+</div>
+
+<app-access-modal *ngIf="this.popupService.selectLocksForMultiplePasscodes || this.popupService.multiplePasscodesResult" style="z-index: 10"></app-access-modal>

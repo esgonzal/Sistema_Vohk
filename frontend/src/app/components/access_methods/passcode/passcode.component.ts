@@ -1,34 +1,72 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Formulario } from '../../../Interfaces/Formulario';
 import { PasscodeServiceService } from '../../../services/passcode-service.service';
 import { Router } from '@angular/router';
 import moment from 'moment';
 import { LockServiceService } from '../../../services/lock-service.service';
 import { PopUpService } from '../../../services/pop-up.service';
-import { createPasscodeResponse } from '../../../Interfaces/API_responses';
+import { createPasscodeResponse, LockListResponse } from '../../../Interfaces/API_responses';
 import { lastValueFrom } from 'rxjs';
 import { DarkModeService } from 'src/app/services/dark-mode.service';
+import { EkeyServiceService } from 'src/app/services/ekey-service.service';
+import { LockData } from 'src/app/Interfaces/Lock';
 
 @Component({
   selector: 'app-passcode',
   templateUrl: './passcode.component.html',
   styleUrls: ['./passcode.component.css'],
 })
-export class PasscodeComponent{
+export class PasscodeComponent implements OnInit {
 
-  constructor(public passcodeService: PasscodeServiceService, public lockService: LockServiceService, 
-              private router: Router, public popupService: PopUpService, public DarkModeService: DarkModeService) {
-    if(!this.passcodeService.userID || !this.passcodeService.username || !this.passcodeService.lockID || !this.passcodeService.endDateUser || !this.passcodeService.featureValue) {
+  constructor(
+    private ekeyService: EkeyServiceService,
+    public passcodeService: PasscodeServiceService,
+    public lockService: LockServiceService,
+    private router: Router,
+    public popupService: PopUpService,
+    public DarkModeService: DarkModeService) {
+    if (
+      !this.passcodeService.userID ||
+      !this.passcodeService.username ||
+      !this.passcodeService.lockID ||
+      !this.passcodeService.endDateUser ||
+      !this.passcodeService.featureValue) {
       this.router.navigate(['users', sessionStorage.getItem('user'), 'lock', sessionStorage.getItem('lockID')])
     }
-   }
-  
+  }
+
   isLoading: boolean = false;
   howManyHours = '';
   error = '';
   selectedType = '';
+  currentGroup = sessionStorage.getItem("lockGroupID") ?? '';
+  locksOfGroup: LockData[] = []
   onSelected(value: string): void { this.selectedType = value }
   onSelectedHour(value: string): void { this.howManyHours = value }
+
+  async ngOnInit() {
+    this.isLoading = true;
+    let pageNo = 1;
+    const pageSize = 100;
+    try {
+      while (true) {
+        let response = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.passcodeService.username, pageNo, pageSize, Number(this.currentGroup))) as LockListResponse;
+        const filteredLocks = response.list.filter(lock => lock.keyRight === 1 || lock.userType === "110301");
+        this.locksOfGroup.push(...filteredLocks);
+        if (response.pages > pageNo) {
+          pageNo++;
+        } else {
+          break;
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching locks:', error);
+    } finally {
+      this.popupService.locksOfGroup = this.locksOfGroup;
+      this.isLoading = false;
+      this.passcodeService.selectedLocks = [{ id: this.passcodeService.lockID, alias: this.passcodeService.lockAlias }];
+    }
+  }
 
   validaFechaUsuario(diaFinal: string, horaFinal: string, tipo: string): boolean {
     if (this.passcodeService.endDateUser !== '0') {
@@ -100,7 +138,7 @@ export class PasscodeComponent{
         else {
           if (datos.startHour) {
             //RECURRING PASSCODE
-            let hoy = moment({hour:0, minute:0}).valueOf()
+            let hoy = moment({ hour: 0, minute: 0 }).valueOf()
             let newStartDate = moment(hoy).add(this.lockService.transformarHora(datos.startHour)).valueOf()
             let newEndDate = moment(hoy).add(this.lockService.transformarHora(datos.endHour)).valueOf()
             response = await lastValueFrom(this.passcodeService.generatePasscode(this.passcodeService.userID, this.passcodeService.lockID, datos.passcodeType, newStartDate.toString(), datos.name, newEndDate.toString())) as createPasscodeResponse;
@@ -189,7 +227,7 @@ export class PasscodeComponent{
       } else if (response.errcode === 10003) {
         sessionStorage.clear();
         this.passcodeService.passcodesimple = false;
-      }  else {
+      } else {
         console.log("Algo salió mal", response)
       }
     } catch (error) {
@@ -197,6 +235,11 @@ export class PasscodeComponent{
     } finally {
       this.isLoading = false;
     }
+  }
+
+  toMultiplePasscodes() {
+    this.popupService.createPasscode = false;
+    this.router.navigate(["users", this.passcodeService.username, "lock", this.passcodeService.lockID, "passcode", "multiple"])
   }
 }
 

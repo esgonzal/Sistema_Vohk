@@ -38,6 +38,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatListModule } from '@angular/material/list'
 
 import { AppRoutingModule } from './app-routing.module';
 import { RouterModule } from '@angular/router';
@@ -51,6 +52,7 @@ import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { CameraComponent } from './components/camera/camera.component';
 import { AccessModalComponent } from './components/access_methods/access-modal/access-modal.component';
 import { FunctionsModalComponent } from './components/functions/functions-modal/functions-modal.component';
+import { MultiplePasscodeComponent } from './components/access_methods/multiple-passcode/multiple-passcode/multiple-passcode.component';
 
 
 export const CUSTOM_DATE_FORMATS = {
@@ -84,6 +86,7 @@ export const CUSTOM_DATE_FORMATS = {
     CameraComponent,
     AccessModalComponent,
     FunctionsModalComponent,
+    MultiplePasscodeComponent,
   ],
   imports: [
     BrowserModule,
@@ -108,6 +111,7 @@ export const CUSTOM_DATE_FORMATS = {
     MatSlideToggleModule,
     AppRoutingModule,
     MatTooltipModule,
+    MatListModule,
     RouterModule.forRoot([])
   ],
   providers: [

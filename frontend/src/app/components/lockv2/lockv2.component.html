@@ -508,17 +508,17 @@
                 </div>
             </div>
         </div>
-        <div class="funciones_cerradura" *ngIf="(userType==='110302' && keyRight==='0')">
-            Solicitud de Invitación
-        </div>
     </div>
 </div>
-<app-pop-up *ngIf="this.popupService.delete || this.popupService.cambiarNombre || this.popupService.cambiarPeriodo || this.popupService.editarPasscode || 
-                  this.popupService.autorizar || this.popupService.desautorizar || this.popupService.changeRemoteEnable || this.popupService.congelar || 
-                  this.popupService.descongelar || this.popupService.esencial || this.popupService.gateway || this.popupService.cardSuccess ||
-                  this.popupService.cerradoAutomatico || this.popupService.needGateway || this.popupService.ekeySuccess || this.popupService.passcodeSuccess ||
-                  this.popupService.excelNameWindow || this.popupService.temporalPasscode || this.popupService.temporalPasscode2 ||
+<app-pop-up *ngIf="this.popupService.gateway || this.popupService.cerradoAutomatico || this.popupService.needGateway ||
                   this.popupService.excelFingerprints" style="z-index: 10;"></app-pop-up>
+
+<app-access-modal *ngIf="this.popupService.delete || this.popupService.cambiarNombre || this.popupService.cambiarPeriodo || this.popupService.editarPasscode ||
+                    this.popupService.autorizar || this.popupService.desautorizar || this.popupService.changeRemoteEnable || this.popupService.congelar || 
+                    this.popupService.descongelar || this.popupService.cardSuccess || this.popupService.ekeySuccess || this.popupService.ekeySuccess2 || 
+                    this.popupService.passcodeSuccess || this.popupService.invitation" style="z-index: 10;"></app-access-modal>
+
+<app-functions-modal *ngIf="this.popupService.needGateway || this.popupService.esencial || this.popupService.excelRecords" style="z-index: 10;"></app-functions-modal>
 
 <app-ekey *ngIf="this.popupService.createEkey" style="z-index: 10;"></app-ekey>
 <app-passcode *ngIf="this.popupService.createPasscode" style="z-index: 10;"></app-passcode>

@@ -9,7 +9,7 @@ const TTLOCK_CLIENT_SECRET = '33b556bdb803763f2e647fc7a357dedf';
 const URL = 'https://api.vohk.cl';
 //const URL = 'http://localhost:8080';
 
-router.post('/send', async(req, res) => {
+router.post('/send', async (req, res) => {
     let { userID, lockID, recieverName, keyName, startDate, endDate, remoteEnable, keyRight, keyType, startDay, endDay, weekDays } = req.body;
     try {
         let date = Date.now()
@@ -57,8 +57,71 @@ router.post('/send', async(req, res) => {
         res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
+router.post('/send2', async (req, res) => {
+    let { userID, selectedLocks, recieverName, keyName, startDate, endDate, remoteEnable, keyRight } = req.body;
+    try {
+        let date = Date.now()
+        const storedData = accessTokenStorage[userID];
+        const accessToken = storedData ? storedData.accessToken : null;
+        if (!accessToken) {
+            return res.json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
+        }
+        const locksResults = [];
+        for (const lock of selectedLocks) {
+            try {
+                let ttlockData = {
+                    clientId: TTLOCK_CLIENT_ID,
+                    accessToken: accessToken,
+                    lockId: lock.id,
+                    receiverUsername: recieverName,
+                    keyName: keyName,
+                    startDate: startDate,
+                    endDate: endDate,
+                    remoteEnable: remoteEnable,
+                    keyRight: keyRight,
+                    createUser: 1,
+                    date: date,
+                };
+                let headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Authorization': `Bearer ${accessToken}`
+                };
+                let ttlockResponse = await axios.post(
+                    'https://euapi.ttlock.com/v3/key/send',
+                    ttlockData, { headers }
+                );
+                if (typeof ttlockResponse === 'object' &&
+                    ttlockResponse.data.hasOwnProperty('keyId') &&
+                    typeof ttlockResponse.data.keyId === 'number') { //Send ekey was successful
+                    locksResults.push({
+                        lockID: lock.id,
+                        lockAlias: lock.alias,
+                        success: true
+                    })
+                } else { //Send ekey was unsuccessful
+                    locksResults.push({
+                        lockID: lock.id,
+                        lockAlias: lock.alias,
+                        errcode: ttlockResponse.data.errcode,
+                        success: false
+                    })
+                }
+            } catch (lockError) {
+                console.error(lockError);
+                locksResults.push({
+                    lockID: lock.id,
+                    lockAlias: lock.alias,
+                    errcode: lockError.message || 'Error calling TTLock API'
+                });
+            }
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ errmsg: 'Error with TTLock API' });
+    }
+});
 
-router.post('/generateEmail', async(req, res) => {
+router.post('/generateEmail', async (req, res) => {
     let { userID, lockAlias, recieverName, startDate, endDate, email } = req.body;
     try {
         let emailResponse;
@@ -120,7 +183,7 @@ router.post('/generateEmail', async(req, res) => {
     }
 });
 
-router.post('/list', async(req, res) => {
+router.post('/list', async (req, res) => {
     let { userID, pageNo, pageSize, groupID } = req.body;
     try {
         let date = Date.now()
@@ -155,7 +218,7 @@ router.post('/list', async(req, res) => {
         res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
-router.post('/delete', async(req, res) => {
+router.post('/delete', async (req, res) => {
     let { userID, keyID } = req.body;
     try {
         let date = Date.now()
@@ -184,7 +247,7 @@ router.post('/delete', async(req, res) => {
         res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
-router.post('/freeze', async(req, res) => {
+router.post('/freeze', async (req, res) => {
     let { userID, keyID } = req.body;
     try {
         let date = Date.now()
@@ -214,7 +277,7 @@ router.post('/freeze', async(req, res) => {
         res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
-router.post('/unfreeze', async(req, res) => {
+router.post('/unfreeze', async (req, res) => {
     let { userID, keyID } = req.body;
     try {
         let date = Date.now()
@@ -244,7 +307,7 @@ router.post('/unfreeze', async(req, res) => {
         res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
-router.post('/modify', async(req, res) => {
+router.post('/modify', async (req, res) => {
     let { userID, keyID, newName, remoteEnable } = req.body;
     try {
         let date = Date.now()
@@ -275,7 +338,7 @@ router.post('/modify', async(req, res) => {
         res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
-router.post('/changePeriod', async(req, res) => {
+router.post('/changePeriod', async (req, res) => {
     let { userID, keyID, newStartDate, newEndDate } = req.body;
     try {
         let date = Date.now()
@@ -307,7 +370,7 @@ router.post('/changePeriod', async(req, res) => {
         res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
-router.post('/authorize', async(req, res) => {
+router.post('/authorize', async (req, res) => {
     let { userID, lockID, keyID } = req.body;
     try {
         let date = Date.now()
@@ -338,7 +401,7 @@ router.post('/authorize', async(req, res) => {
         res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
-router.post('/unauthorize', async(req, res) => {
+router.post('/unauthorize', async (req, res) => {
     let { userID, lockID, keyID } = req.body;
     try {
         let date = Date.now()
@@ -369,7 +432,7 @@ router.post('/unauthorize', async(req, res) => {
         res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
-router.post('/getListLock', async(req, res) => {
+router.post('/getListLock', async (req, res) => {
     let { userID, lockID, pageNo, pageSize } = req.body;
     try {
         let date = Date.now()

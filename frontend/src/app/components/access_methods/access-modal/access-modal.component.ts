@@ -352,7 +352,6 @@ export class AccessModalComponent implements OnInit {
   openLockSelector() {
     this.popupService.invitation = false;
     this.popupService.selectLocksForPasscode = true;
-    console.log(this.passcodeService.selectedLocks)
   }
   selectLocks() {
     this.popupService.selectLocksForPasscode = false;
@@ -416,5 +415,24 @@ export class AccessModalComponent implements OnInit {
       };
       attempt();
     }
+  }
+  confirmLockSelection() {
+    this.passcodeService.selectedLocks = this.selectedLocks;
+  }
+  toggleLockSelection(lockId: number, lockAlias: string) {
+    const index = this.selectedLocks.findIndex(lock => lock.id === lockId);
+    if (index !== -1) {
+      // If lock ID is already in the array, remove it
+      this.selectedLocks.splice(index, 1);
+    } else {
+      // If lock ID is not in the array, add it with the alias
+      this.selectedLocks.push({ id: lockId, alias: lockAlias });
+    }
+    this.lockService.locksForTransfer = this.selectedLocks;
+    console.log("selectedLocks: ", this.selectedLocks);
+  }
+  closeMultiplePasscodes() {
+    this.popupService.multiplePasscodesResult = false;
+    window.location.reload();
   }
 }

@@ -1,0 +1,132 @@
+.pagina_completa {
+    display: flex;
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+    background-color: #F7FAFA;
+    /* flex-direction: column;  */
+}
+
+.dark-mode,
+.dark-mode .pagina_completa {
+    color: #fff;
+    background-color: #121C24;
+}
+
+.form-area {
+    text-align: center;
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+.botones {
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.import {
+    border-radius: 20px;
+    border: 1px solid black;
+    background-color: #F5C754;
+}
+
+.addLocks {
+    height: 30px;
+    border-radius: 20px;
+    border: 1px solid black;
+    background-color: #F5C754;
+}
+
+.invalid-input {
+    border: 2px solid red;
+}
+
+.th_name {
+    width: 30%;
+}
+
+.th_tipo {
+    width: 35%;
+}
+
+.th_code {
+    width: 20%;
+}
+
+.th_eliminar {
+    width: 10%;
+}
+
+.form-button {
+    height: 40px;
+    width: 200px;
+    align-self: center;
+    border: 1px solid black;
+    background-color: #F5C754;
+    cursor: pointer;
+    border-radius: 20px;
+}
+
+.error {
+    color: red;
+    font-size: 12px;
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+
+.results-table th,
+.results-table td {
+  border: 1px solid #ccc;
+  padding: 5px;
+  text-align: center;
+}
+
+.success {
+  background-color: #d4edda; /* verde claro */
+}
+
+.failed {
+  background-color: #f8d7da; /* rojo claro */
+}
+
+/* Media Query para pantallas pequeñas */
+@media only screen and (max-width: 600px) {
+    .pagina_completa {
+        justify-content: flex-start;
+        flex-direction: column; /* Asegura que el layout de la página se mantenga como columna */
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .titulo {
+        font-size: 20px;
+    }
+
+    .botones {
+        justify-content: center;
+        font-size: 10px;
+    }
+
+    .content-container {
+        overflow-x: auto; /* Permite el desplazamiento horizontal */
+        width: 100%; /* Ajusta el contenedor al ancho de la página */
+    }
+
+    .form-button {
+        width: 150px;
+    }
+
+    .passcode-table {
+        width: 100%; /* Asegura que la tabla ocupe el ancho completo */
+        table-layout: fixed; /* Esto ayuda a que la tabla se ajuste mejor al contenedor */
+    }
+
+    .passcode-table th,
+    .passcode-table td {
+        width: 50vw; /* Mantiene un ancho grande en pantallas pequeñas */
+    }
+}

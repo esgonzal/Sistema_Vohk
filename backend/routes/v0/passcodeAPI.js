@@ -90,7 +90,7 @@ router.post('/add', async (req, res) => {
 });
 router.post('/add2', async (req, res) => {
     const { userID, selectedLocks, keyboardPwd, keyboardPwdType, keyboardPwdName, startDate, endDate, email } = req.body;
-    
+
     if (!userID || !selectedLocks || !Array.isArray(selectedLocks) || selectedLocks.length === 0) {
         return res.status(400).json({ errmsg: 'Missing userID or selectedLocks' });
     }
@@ -100,7 +100,7 @@ router.post('/add2', async (req, res) => {
         if (!accessToken) {
             return res.json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
         }
-        const locksResults  = [];
+        const locksResults = [];
         for (const lock of selectedLocks) {
             try {
                 let date = Date.now()
@@ -126,14 +126,14 @@ router.post('/add2', async (req, res) => {
                 );
                 //console.log(ttlockResponse.data)
                 if (typeof ttlockResponse === 'object' && ttlockResponse.data.hasOwnProperty('keyboardPwdId')) {
-                    locksResults .push({
+                    locksResults.push({
                         lockID: lock.id,
                         lockAlias: lock.alias,
                         passcodePwd: keyboardPwd,
                         success: true
                     })
                 } else {
-                    locksResults .push({
+                    locksResults.push({
                         lockID: lock.id,
                         lockAlias: lock.alias,
                         errcode: ttlockResponse.data.errcode,
@@ -142,7 +142,7 @@ router.post('/add2', async (req, res) => {
                 }
             } catch (lockError) {
                 console.error(lockError);
-                locksResults .push({
+                locksResults.push({
                     lockID: lock.id,
                     lockAlias: lock.alias,
                     errcode: lockError.message || 'Error calling TTLock API'
@@ -179,7 +179,7 @@ router.post('/add2', async (req, res) => {
         res.json({
             locks: locksResults,
             email: emailResult
-        }); 
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ errmsg: 'Error with My API' });
@@ -300,6 +300,111 @@ router.post('/sendEmail', async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ errmsg: 'Error with sending email' });
+    }
+});
+router.post('/multiplePasscodes', async (req, res) => {
+    const { userID, passcodes, selectedLocks } = req.body;
+    if (
+        !userID ||
+        !selectedLocks || !Array.isArray(selectedLocks) || selectedLocks.length === 0 ||
+        !passcodes || !Array.isArray(passcodes) || passcodes.length === 0) {
+        return res.status(400).json({ errmsg: 'Missing userID, selectedLocks or passcodes' });
+    }
+    try {
+        const storedData = accessTokenStorage[userID];
+        const accessToken = storedData ? storedData.accessToken : null;
+        if (!accessToken) {
+            return res.json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
+        }
+        const results = [];
+        for (const lock of selectedLocks) {
+            const lockResults = [];
+            for (const passcode of passcodes) {
+                try {
+                    let date = Date.now()
+                    let ttlockData, headers, ttlockResponse;
+                    if (passcode.tipo === 2) {
+                        ttlockData = {
+                            clientId: TTLOCK_CLIENT_ID,
+                            accessToken: accessToken,
+                            lockId: lock.id,
+                            keyboardPwd: passcode.code,
+                            keyboardPwdName: passcode.name,
+                            keyboardPwdType: 2,
+                            startDate: date,
+                            endDate: 0,
+                            addType: '2',
+                            date,
+                        };
+                        headers = {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'Authorization': `Bearer ${accessToken}`
+                        };
+                        ttlockResponse = await axios.post(
+                            'https://euapi.ttlock.com/v3/keyboardPwd/add',
+                            ttlockData, { headers }
+                        );
+                        //console.log(ttlockResponse.data)
+                    } else {
+                        ttlockData = {
+                            clientId: TTLOCK_CLIENT_ID,
+                            accessToken: accessToken,
+                            lockId: lock.id,
+                            keyboardPwdType: 2,
+                            keyboardPwdName: passcode.name,
+                            startDate: date,
+                            endDate: 0,
+                            date: date,
+                        };
+                        headers = {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'Authorization': `Bearer ${accessToken}`
+                        };
+                        ttlockResponse = await axios.post(
+                            'https://euapi.ttlock.com/v3/keyboardPwd/get',
+                            ttlockData, { headers }
+                        );
+                        //console.log(ttlockResponse.data)
+                    }
+                    if (ttlockResponse.data && ttlockResponse.data.hasOwnProperty('keyboardPwdId')) {
+                        lockResults.push({
+                            passcodeName: passcode.name,
+                            tipo: passcode.tipo,
+                            code: passcode.code || undefined,
+                            result: "success",
+                            codeId: ttlockResponse.data.keyboardPwdId,
+                            errcode: 0
+                        });
+                    } else {
+                        lockResults.push({
+                            passcodeName: passcode.name,
+                            tipo: passcode.tipo,
+                            code: passcode.code || undefined,
+                            result: "failed",
+                            errcode: ttlockResponse.data.errcode,
+                            errmsg: ttlockResponse.data.errmsg
+                        });
+                    }
+                } catch (error) {
+                    lockResults.push({
+                        passcodeName: passcode.name,
+                        tipo: passcode.tipo,
+                        result: "failed",
+                        errcode: error.response?.data?.errcode || "UNKNOWN",
+                        errmsg: error.response?.data?.errmsg || error.message
+                    });
+                }
+            }
+            results.push({
+                lockId: lock.id,
+                lockAlias: lock.alias,
+                passcodes: lockResults
+            });
+        }
+        res.json(Array.isArray(results) ? results : [results]);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
 

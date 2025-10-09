@@ -225,8 +225,8 @@
                 </p>
                 <p>
                     Contraseña del Código
-                    <input style="border-radius:20px;border:1px solid black" type="text" class="form-input" name="passcodePwd"
-                        [(ngModel)]="passcodePwd" placeholder="4-9 digits"/>
+                    <input style="border-radius:20px;border:1px solid black" type="text" class="form-input"
+                        name="passcodePwd" [(ngModel)]="passcodePwd" placeholder="4-9 digits" />
                 </p>
                 <p>
                     <button class="addLocks" (click)="openLockSelector()">Cerraduras</button>
@@ -253,8 +253,7 @@
         <div class="form-area">
             <div *ngFor="let lock of passcodeService.availableLocks">
                 <label>
-                    <input type="checkbox" [value]="lock.id"
-                        (change)="passcodeService.toggleLock(lock)"
+                    <input type="checkbox" [value]="lock.id" (change)="passcodeService.toggleLock(lock)"
                         [checked]="passcodeService.isLockSelected(lock.id)">
                     {{ lock.alias }}
                 </label>
@@ -265,7 +264,8 @@
         <button (click)="selectLocks()">OK</button>
     </div>
 </div>
-<div class="container_sin_width" *ngIf="popupService.emailSentInvitation" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+<div class="container_sin_width" *ngIf="popupService.emailSentInvitation"
+    [ngClass]="{'dark-mode': DarkModeService.darkMode}">
     <div class="header">
         Se envió el siguiente correo
     </div>
@@ -279,5 +279,78 @@
     </div>
     <div *ngIf="isCopied" class="confirmation-message">
         El mensaje fue copiado.
+    </div>
+</div>
+<div class="container" *ngIf="popupService.selectLocksForMultiplePasscodes"
+    [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        Seleccione las cerraduras
+    </div>
+    <div id="content" style="justify-content: flex-start; ">
+        <table class="lock-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Seleccionado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <ng-container *ngIf="popupService.locksOfGroup.length > 0; else noLocks">
+                    <tr *ngFor="let lock of popupService.locksOfGroup">
+                        <td>{{ lock.lockAlias }}</td>
+                        <td style="text-align: center">
+                            <input type="checkbox" [checked]="isLockSelected(lock.lockId)"
+                                (change)="toggleLockSelection(lock.lockId, lock.lockAlias)">
+                        </td>
+                    </tr>
+                </ng-container>
+                <ng-template #noLocks>
+                    <tr>
+                        <td colspan="2">No existen cerraduras disponibles para agregar a este grupo.</td>
+                    </tr>
+                </ng-template>
+            </tbody>
+        </table>
+    </div>
+    <p class="error">{{error}}</p>
+    <div id="actions">
+        <button (click)="popupService.selectLocksForMultiplePasscodes = false">Volver</button>
+        <button
+            (click)="this.popupService.selectLocksForMultiplePasscodes = false; confirmLockSelection()">Confirmar</button>
+    </div>
+</div>
+<div class="container_sin_width" *ngIf="popupService.multiplePasscodesResult"
+    [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        Resultados de creación de Passcodes
+    </div>
+    <div id="content">
+        <div class="table-wrapper">
+            <div *ngFor="let lock of popupService.multiplePasscodeResults" style="width: 90%;">
+                <h5>{{lock.lockAlias}}</h5>
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Código</th>
+                            <th>Tipo</th>
+                            <th>Error</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let passcode of lock.passcodes"
+                            [ngClass]="{'success': passcode.result === 'success', 'failed': passcode.result === 'failed'}">
+                            <td>{{passcode.passcodeName}}</td>
+                            <td>{{passcode.code || '-'}}</td>
+                            <td>{{passcode.tipo === 2 ? 'C' : 'P'}}</td>
+                            <td>{{passcode.result === 'failed' ? passcode.errmsg : '-'}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div id="actions">
+        <button (click)="closeMultiplePasscodes()">Ok</button>
     </div>
 </div>

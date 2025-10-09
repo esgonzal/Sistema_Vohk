@@ -318,6 +318,44 @@ button {
     background-color: #121C24;
 }
 
+.results-table {
+  width: 100%;
+  border-collapse: collapse; /* merge borders */
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.results-table th,
+.results-table td {
+  border: 1px solid #ccc; /* cell borders */
+  padding: 8px 10px;
+  text-align: center;
+}
+
+.results-table th {
+  background-color: #f4f4f4; /* light gray header */
+  font-weight: bold;
+}
+
+.results-table tr:nth-child(even) {
+  background-color: #fafafa; /* alternating row color */
+}
+
+.results-table tr.success {
+  background-color: #e7f9e7; /* light green */
+}
+
+.results-table tr.failed {
+  background-color: #f9e7e7; /* light red */
+}
+.table-wrapper {
+    max-height: 400px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
 @media screen and (max-width: 600px) {
     .container {
         width: 100%;

@@ -69,7 +69,7 @@ export class FunctionsModalComponent {
       const wb: XLSX.WorkBook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
       XLSX.writeFile(wb, this.name.concat('.xlsx'));
-      this.popupService.excelNameWindow = false;
+      this.popupService.excelRecords = false;
     } else {
       this.error = "Por favor ingrese un nombre"
     }

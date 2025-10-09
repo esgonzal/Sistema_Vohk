@@ -52,6 +52,7 @@ const checkAndLogoutExpiredSessions = () => {
         }
     }
 };
+
 const logoutIntervalId = setInterval(checkAndLogoutExpiredSessions, logoutInterval);
 //API de Usuario de TTLock
 const UserRouterV0 = require('../backend/routes/v0/UserAPI.js');

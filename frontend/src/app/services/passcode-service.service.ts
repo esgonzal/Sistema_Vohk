@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { lastValueFrom, Observable } from 'rxjs';
-import { InvitationResponse, PasscodeResponse, createPasscodeResponse, operationResponse } from '../Interfaces/API_responses';
+import { InvitationResponse, MultiplePasscodeResponse, PasscodeResponse, createPasscodeResponse, operationResponse } from '../Interfaces/API_responses';
 import { Passcode } from '../Interfaces/Elements';
 import { MatTableDataSource } from '@angular/material/table';
 import { LockData } from '../Interfaces/Lock';
@@ -64,7 +64,11 @@ export class PasscodeServiceService {
       //this.isLoading = false;
     }
   }
-
+  multiplePasscodes(userID: string, passcodes: {name: string, tipo: number, code: string}[]): Observable<MultiplePasscodeResponse[]> {
+    let body = {userID, passcodes, selectedLocks: this.selectedLocks}
+    let url = this.URL.concat('/v0/passcode/multiplePasscodes');
+    return this.http.post<MultiplePasscodeResponse[]>(url, body);
+  }
   getPasscodesofLock(userID: string, lockID: number, pageNo: number, pageSize: number): Observable<PasscodeResponse> {
     let body = { userID, lockID, pageNo, pageSize };
     let url = this.URL.concat('/v0/passcode/getListLock');
@@ -159,7 +163,6 @@ export class PasscodeServiceService {
     let url = this.URL.concat('/mail/passcodeDays');
     return this.http.post(url, body)
   }
-
   toggleLock(lock: { id: number; alias: string }) {
     const index = this.selectedLocks.findIndex(l => l.id === lock.id);
     if (index !== -1) {
@@ -186,4 +189,6 @@ export class PasscodeServiceService {
     let url = this.URL.concat('/v0/passcode/add2');
     return this.http.post<InvitationResponse>(url, body);
   }
+
+  
 }

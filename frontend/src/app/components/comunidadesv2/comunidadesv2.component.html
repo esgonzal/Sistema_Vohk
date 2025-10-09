@@ -84,7 +84,7 @@
         </div>
     </div>
 </div>
-<app-pop-up *ngIf=" this.popupService.addLockGROUP || this.popupService.removeLockGROUP || this.popupService.newGroup" style="z-index: 1001;
+<app-pop-up *ngIf="this.popupService.newGroup || this.popupService.addLockGROUP || this.popupService.removeLockGROUP" style="z-index: 1001;
                     "></app-pop-up>
 
 <app-access-modal 

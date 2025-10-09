@@ -168,3 +168,19 @@ export interface cameraFeedResponse {
     message: string;
     error: string;
 }
+
+export interface MultiplePasscodeResponse {
+    lockId: number;
+    lockAlias: string;
+    passcodes: PasscodeResult[];
+}
+
+export interface PasscodeResult {
+    passcodeName: string;
+    tipo: number;
+    code?: string;
+    codeId?: number;
+    result: string;
+    errcode: number;
+    errmsg?: string;
+}

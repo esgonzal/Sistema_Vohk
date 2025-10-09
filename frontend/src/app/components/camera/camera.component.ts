@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { Component, AfterViewInit } from '@angular/core';
 
 declare var JSPlugin: any;
 
@@ -7,163 +7,128 @@ declare var JSPlugin: any;
   templateUrl: './camera.component.html',
   styleUrls: ['./camera.component.css']
 })
-export class CameraComponent implements OnInit, AfterViewInit {
+export class CameraComponent implements AfterViewInit {
 
-  // Plugin instance
-  oPlugin: any;
-  iWind = 0;
+  userID = sessionStorage.getItem('user') ?? '';
+  accessToken = 'at.5899a83gddf8kiir2zrgrhnt5ihdni1v-4g4vmydfqx-19g5hwu-lwgmxsez7';
+  secretKey = 'vohk2024';
+  cameraSerial = 'FQ9225668';
+  cameraChannel = '1';
+  intercomSerial = 'FH4143313';
+  intercomChannel = '1';
+  domain = 'https://isaopen.ezvizlife.com';
+
+  cameraPlugin: any;
+  intercomPlugin: any;
+
   realplayFinished = true;
-
-  // Bindings for inputs
-  accessToken: string = '';
-  secretKey: string = '';
-  serialNumber: string = '';
-  channelNumber: string = '';
-  videoResolution: string = '';
-  domainValue: string = '';
-
-  oTimeBar: any = null;           // TimeBar instance
-  fileListMap: { [key: number]: any[] } = {}; // Map window index → file list
-  errorMessage: string = '';
-  volume:any;
-  eDate: any;
-  sDate: any;
-  storageType: any;
 
   constructor() { }
 
-  ngOnInit(): void { }
-
   ngAfterViewInit(): void {
-    this.oPlugin = new JSPlugin({
-      szId: 'playWind',
+    this.initCameraPlugin();
+    this.initIntercomPlugin();
+  }
+
+  initCameraPlugin() {
+    this.cameraPlugin = new JSPlugin({
+      szId: 'cameraPlay',
       iWidth: 600,
-      iHeight: 400,
-      iMaxSplit: 4,
-      iCurrentSplit: 2,
-      szBasePath: 'assets/hik-sdk/dist', // points to your copied dist folder
-      oStyle: {
-        border: '#343434',
-        borderSelect: 'red',
-        background: '#4C4B4B'
-      }
-    });
-
-    this.initPlugin();
-  }
-
-  repaintTimeBar(iWndIndex: number) {
-    if (!this.oTimeBar) return;
-
-    // Clear existing files
-    this.oTimeBar.clearWndFileList();
-
-    // Get files for the selected window
-    const fileList = this.fileListMap[iWndIndex];
-    if (fileList) {
-      fileList.forEach(file => {
-        this.oTimeBar.addFile(file.start, file.end, file.type);
-      });
-    } else {
-      console.log('fileList is null for window', iWndIndex);
-    }
-
-    // Repaint the timeBar
-    this.oTimeBar.repaint();
-  }
-
-  initPlugin() {
-    if (!this.oPlugin) return;
-
-    this.oPlugin.JS_SetWindowControlCallback({
-      windowEventSelect: (iWndIndex: number) => {
-        // When a window is selected, repaint the timeBar if needed
-        if (this.iWind !== iWndIndex) {
-          this.repaintTimeBar(iWndIndex); // you'll need to implement this in Angular
-        }
-        this.iWind = iWndIndex;
-        console.log('Selected window:', iWndIndex);
-      },
-      secretKeyError: (iWndIndex: number) => {
-        console.log('Secret Key Error!', iWndIndex);
-      },
-      pluginErrorHandler: (iWndIndex: number, iErrorCode: number, oError: any) => {
-        console.log('Plugin error', iWndIndex, iErrorCode, oError);
-      },
-      windowEventOver: (iWndIndex: number) => { /* optional */ },
-      windowEventOut: (iWndIndex: number) => { /* optional */ },
-      windowEventUp: (iWndIndex: number) => { /* optional */ },
-      windowFullCcreenChange: (bFull: boolean) => { /* optional */ },
-      firstFrameCallBack: (iWndIndex: number) => {
-        console.log('First frame displayed:', iWndIndex);
-      },
-      performanceLack: () => { console.warn('Plugin performance lack'); }
+      iHeight: 300,
+      iMaxSplit: 1,
+      iCurrentSplit: 1,
+      szBasePath: 'assets/hik-sdk/dist',
     });
   }
 
-  // Start live view
-  realplay() {
+  initIntercomPlugin() {
+    this.intercomPlugin = new JSPlugin({
+      szId: 'intercomPlay',
+      iWidth: 600,
+      iHeight: 300,
+      iMaxSplit: 1,
+      iCurrentSplit: 1,
+      szBasePath: 'assets/hik-sdk/dist',
+    });
+  }
+
+  startCameraFeed() {
     if (!this.realplayFinished) return;
-
-    if (!this.serialNumber || !this.channelNumber || !this.accessToken) return;
-
-    let url = `ezopen://open.ezviz.com/${this.serialNumber}/${this.channelNumber}`;
-    if (this.videoResolution === 'hd') {
-      url += '.hd.live';
-    } else {
-      url += '.live';
-    }
+    if (this.userID != 'soporte@vohk.cl') return;
+    this.realplayFinished = false;
+    const url = `ezopen://open.ezviz.com/${this.cameraSerial}/${this.cameraChannel}.live`;
 
     if (this.secretKey) {
-      this.oPlugin.JS_SetSecretKey(this.iWind, this.secretKey)
-        .then(() => console.log('JS_SetSecretKey success'))
-        .catch(() => console.log('JS_SetSecretKey failed'));
+      this.cameraPlugin.JS_SetSecretKey(0, this.secretKey);
     }
 
-    this.realplayFinished = false;
-
-    this.oPlugin.JS_Play(url, {
+    this.cameraPlugin.JS_Play(url, {
       playURL: url,
       ezuikit: true,
-      env: { domain: this.domainValue },
+      env: { domain: this.domain },
       accessToken: this.accessToken,
       mode: 'media'
-    }, this.iWind).then(() => {
-      this.realplayFinished = true;
-      console.log('realplay success');
+    }, 0).then(() => this.realplayFinished = true)
+      .catch(() => this.realplayFinished = true);
+  }
+
+  stopCameraFeed() {
+    if (this.cameraPlugin) this.cameraPlugin.JS_Stop(0);
+  }
+
+  startIntercomFeed() {
+    if (!this.realplayFinished) return;
+    if (this.userID != 'soporte@vohk.cl') return;
+    this.realplayFinished = false;
+    const url = `ezopen://open.ezviz.com/${this.intercomSerial}/${this.intercomChannel}.live`;
+
+    if (this.secretKey) {
+      this.intercomPlugin.JS_SetSecretKey(0, this.secretKey);
+    }
+
+    this.intercomPlugin.JS_Play(url, {
+      playURL: url,
+      ezuikit: true,
+      env: { domain: this.domain },
+      accessToken: this.accessToken,
+      mode: 'media'
+    }, 0).then(() => this.realplayFinished = true)
+      .catch(() => this.realplayFinished = true);
+  }
+
+  stopIntercomFeed() {
+    if (this.intercomPlugin) this.intercomPlugin.JS_Stop(0);
+  }
+
+  startTalk() {
+    if (!this.intercomPlugin) return;
+    if (this.userID != 'soporte@vohk.cl') return;
+
+    const oParams = {
+      accessToken: this.accessToken,
+      channelNo: this.intercomChannel,
+      deviceSerial: this.intercomSerial,
+      env: {
+        domain: this.domain
+      }
+    };
+
+    this.intercomPlugin.JS_StartEZUITalk(oParams, (info: any) => {
+      console.log('Talk callback info', info);
+    }).then(() => {
+      console.log('startTalk success');
     }).catch(() => {
-      this.realplayFinished = true;
-      console.log('realplay failed');
+      console.log('startTalk failed');
     });
   }
 
-  // Stop live view
-  stop() {
-    this.oPlugin.JS_Stop(this.iWind)
-      .then(() => console.log('stop success'))
-      .catch(() => console.log('stop failed'));
+  stopTalk() {
+    if (!this.intercomPlugin) return;
+
+    this.intercomPlugin.JS_StopEZUITalk()
+      .then(() => console.log('stopTalk success'))
+      .catch(() => console.log('stopTalk failed'));
   }
 
-  destroy() {}
-  fullScreenAll(){}
-  fullScreenSingle(){}
-  arrangeWindow(number: number){}
-  closeSound(){}
-  setVolume(){}
-  getVolume(){}
-  openSound(){}
-  slow(){}
-  fast(){}
-  stopPlayback(){}
-  resume(){}
-  pause(){}
-  playback(){}
-  stopTalk(){}
-  startTalk(){}
-  selectWindow(){}
-  stopAll(){}
-  capturePicture(JPEG: string){}
-  stopRecord(){}
-  startRecord(){}
-  getOSDTime(){}
+
 }

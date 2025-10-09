@@ -436,7 +436,6 @@ export class Lockv2Component implements OnInit {
         if (response.passageMode) {
           this.passageModeService.passageModeConfig = response;
           this.popupService.passageMode = true;
-          //this.router.navigate(["users", this.username, "lock", this.lockId, "passageMode"]);
         } else if (response.errcode === 10003) {
           sessionStorage.clear();
         } else {
@@ -445,7 +444,7 @@ export class Lockv2Component implements OnInit {
       } catch (error) {
         console.error("Error while fetching passage mode configurations:", error)
       } finally {
-        this.isLoading = false; // Set isLoading to false when data fetching is complete
+        this.isLoading = false;
       }
     } else {
       this.popupService.needGateway = true;
@@ -458,7 +457,6 @@ export class Lockv2Component implements OnInit {
       try {
         let response = await lastValueFrom(this.gatewayService.unlock(this.userID, this.lockId)) as operationResponse;
         if (response.errcode === 0) {
-          console.log("Cerradura desbloqueada")
         } else if (response.errcode === 10003) {
           sessionStorage.clear();
         } else {
@@ -479,7 +477,7 @@ export class Lockv2Component implements OnInit {
     this.popupService.lockID = this.lockId;
     this.popupService.endDateUser = this.endDateDeUser;
     this.popupService.lock_alias = this.Alias;
-    this.popupService.temporalPasscode = true;
+    this.popupService.invitation = true;
   }
   async esencial() {
     this.isLoading = true;
@@ -779,7 +777,7 @@ export class Lockv2Component implements OnInit {
   async openExcelNameWindow() {
     this.allRecords = [];
     await this.fetchAllRecords(1);
-    this.popupService.excelNameWindow = true;
+    this.popupService.excelRecords = true;
     this.popupService.records = this.allRecords;
   }
   searchRecords() {

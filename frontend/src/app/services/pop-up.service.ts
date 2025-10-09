@@ -5,6 +5,7 @@ import { GatewayAccount, GatewayLock } from '../Interfaces/Gateway';
 import { Group } from '../Interfaces/Group';
 import { RecipientList } from '../Interfaces/RecipientList';
 import { SafeHtml } from '@angular/platform-browser';
+import { MultiplePasscodeResponse } from '../Interfaces/API_responses';
 
 @Injectable({
   providedIn: 'root'
@@ -40,7 +41,7 @@ export class PopUpService {
   changeNickname = false;
   cardReader = false;
   emailSuccess = false;
-  excelNameWindow = false;
+  excelRecords = false;
   temporalPasscode = false;
   temporalPasscode2 = false;
   selectLocksForEkey = false;
@@ -60,6 +61,8 @@ export class PopUpService {
   invitation = false;
   selectLocksForPasscode = false;
   emailSentInvitation = false;
+  selectLocksForMultiplePasscodes = false;
+  multiplePasscodesResult = false;
   emailMessage: string = '';
   lock_alias: string;
   gatewaysOfLock: GatewayLock[] = []
@@ -88,6 +91,7 @@ export class PopUpService {
   fingerprints: Fingerprint[] = [];
   endDateUser: string;
   toEmail: string;
+  multiplePasscodeResults: MultiplePasscodeResponse[] = [];
 
   toggleLockSelection(lockId: number, lockAlias: string) {
     const index = this.selectedLockIds_forMultipleEkeys.findIndex(lock => lock.id === lockId);

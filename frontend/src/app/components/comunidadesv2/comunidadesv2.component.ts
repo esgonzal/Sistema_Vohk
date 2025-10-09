@@ -137,38 +137,6 @@ export class Comunidadesv2Component implements OnInit {
     await this.fetchLocksOfGroup(group);
     this.chosenGroup = group;
   }
-  /*
-  async getLocksWithoutGroup() {
-    this.locksWithoutGroup = [];
-    let pageNo = 1;
-    const pageSize = 100;
-    while (true) {
-      let response = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.userID, pageNo, pageSize, 0)) as LockListResponse;
-      if (response.list) {
-        this.locksWithoutGroup.push(...response.list.filter(lock => !lock.groupId))
-        if (response.pages > pageNo) {
-          pageNo++;
-        } else {
-          break;
-        }
-      } else if (response.errcode === 10003) {
-        sessionStorage.clear();
-      } else {
-        console.log(response)
-        break;
-      }
-    }
-    console.log("getLocksWithoutGroup: ", this.locksWithoutGroup)
-    this.groupService.locksWithoutGroup = this.locksWithoutGroup;
-  }
-  async chooseNoGroup() {
-    this.isLoading = true;
-    await this.getLocksWithoutGroup();
-    let newGroup: Group = { groupId: -1, groupName: "Sin Asociar", lockCount: 0, locks: [] };
-    this.chosenGroup = newGroup;
-    this.isLoading = false;
-  }
-  */
   searchGroups() {
     this.groupsFiltrados = this.groups.filter(group =>
       group.groupName.toLowerCase().includes(this.searchText.toLowerCase())

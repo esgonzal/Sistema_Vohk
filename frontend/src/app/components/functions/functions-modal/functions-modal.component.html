@@ -131,7 +131,7 @@
         <button (click)="this.popupService.selectHubsForTransfer = false; confirmLockSelection()">Confirmar</button>
     </div>
 </div>
-<div class="container" *ngIf="popupService.excelNameWindow" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+<div class="container" *ngIf="popupService.excelRecords" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
     <div class="header">
         Introduzca un nombre para el archivo
     </div>
@@ -145,7 +145,7 @@
         </div>
     </div>
     <div id="actions">
-        <button (click)="this.popupService.excelNameWindow=false">Cancelar</button>
+        <button (click)="this.popupService.excelRecords=false">Cancelar</button>
         <button (click)="exportToExcel()">Exportar</button>
     </div>
 </div>

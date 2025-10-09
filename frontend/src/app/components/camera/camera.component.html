@@ -1,102 +1,22 @@
-<div class="playContainer">
-  <div id="playWind" style="width: 600px; height: 400px;"></div>
-  <canvas id="timeBar" style="width: 600px; height: 40px;"></canvas>
-</div>
-
-<div class="button-box">
-
-  <!-- Necessary Parameters -->
-  <div class="items">
-    <h5>Necessary Parameters</h5>
+<div class="feeds">
     <div>
-      AccessToken:
-      <input style="width: 200px;" [(ngModel)]="accessToken" type="text" />
-      Secret Key:
-      <input style="width: 80px;" [(ngModel)]="secretKey" type="text" />
-      Serial Number:
-      <input style="width: 80px;" [(ngModel)]="serialNumber" type="text" />
-      Channel Number:
-      <input style="width: 30px;" [(ngModel)]="channelNumber" type="text" />
-      Domain:
-      <input style="width: 180px;" [(ngModel)]="domainValue" type="text" />
+        <div id="cameraPlay" class="player"></div>
+        <div class="controls">
+            <h4>Camera</h4>
+            <button (click)="startCameraFeed()">Start Camera</button>
+            <button (click)="stopCameraFeed()">Stop Camera</button>
+        </div>
     </div>
-  </div>
-
-  <!-- Live View Controls -->
-  <div class="items">
-    <h5>Live View</h5>
-    Resolution:
-    <select [(ngModel)]="videoResolution">
-      <option value="">standard definition</option>
-      <option value="hd">high definition</option>
-    </select>
-    <button (click)="realplay()">Start Live View</button>
-    <button (click)="stop()">Stop Live View</button>
-    <button (click)="getOSDTime()">Get OSD Time</button>
-    <button (click)="startRecord()">Start Recording</button>
-    <button (click)="stopRecord()">Stop Recording</button>
-    <button (click)="capturePicture('BMP')">Capture (BMP)</button>
-    <button (click)="capturePicture('JPEG')">Capture (JPEG)</button>
-    <br />
-    <button (click)="stopAll()">Stop All</button>
-    <button (click)="selectWindow()">Select Window</button>
-  </div>
-
-  <!-- Talk -->
-  <div class="items">
-    <h5>Talk</h5>
-    <button (click)="startTalk()">Start Talk</button>
-    <button (click)="stopTalk()">Stop Talk</button>
-  </div>
-
-  <!-- Playback -->
-  <div class="items">
-    <h5>Playback View</h5>
-    Storage Type:
-    <select [(ngModel)]="storageType">
-      <option value="local">local</option>
-      <option value="cloud">cloud</option>
-    </select>
-    Start Time <input type="text" [(ngModel)]="sDate" />
-    End Time <input type="text" [(ngModel)]="eDate" />
-    <br />
-    <button (click)="playback()">Start Playback</button>
-    <button (click)="pause()">Pause</button>
-    <button (click)="resume()">Resume</button>
-    <button (click)="stopPlayback()">Stop Playback</button>
-    <button (click)="fast()">Fast</button>
-    <button (click)="slow()">Slow</button>
-  </div>
-
-  <!-- Audio Controls -->
-  <div class="items">
-    <h5>Audio</h5>
-    <button (click)="openSound()">Turn on Audio</button>
-    <button (click)="getVolume()">Get Volume</button>
-    Volume:
-    <input type="range" min="0" max="100" [(ngModel)]="volume" (change)="setVolume()" />
-    <button (click)="closeSound()">Turn off Audio</button>
-  </div>
-
-  <!-- Window Division -->
-  <div class="items">
-    <h5>Window Division</h5>
-    <button (click)="arrangeWindow(1)">1x1</button>
-    <button (click)="arrangeWindow(2)">2x2</button>
-    <button (click)="arrangeWindow(3)">3x3</button>
-    <button (click)="arrangeWindow(4)">4x4</button>
-    <button (click)="fullScreenSingle()">Full Screen (A Window)</button>
-    <button (click)="fullScreenAll()">Full Screen (All Windows)</button>
-  </div>
-
-  <!-- Other -->
-  <div class="items">
-    <h5>Other</h5>
-    <button (click)="destroy()">Destroy</button>
-  </div>
-
-  <div class="items">
-    <div>Prompt</div>
-    <div id="error" style="color:red">{{errorMessage}}</div>
-  </div>
+    <div>
+        <div id="intercomPlay" class="player"></div>
+        <div class="controls">
+            <h4>Intercom</h4>
+            <button (click)="startIntercomFeed()">Start Intercom</button>
+            <button (click)="stopIntercomFeed()">Stop Intercom</button>
+            <div class="talk-controls">
+                <button (click)="startTalk()">Start Talk</button>
+                <button (click)="stopTalk()">Stop Talk</button>
+            </div>
+        </div>
+    </div>
 </div>

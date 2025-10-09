@@ -31,7 +31,8 @@
             ],
             "scripts": [
               "src/assets/hik-sdk/dist/jsPlugin-3.0.0.min.js",
-              "src/assets/hik-sdk/dist/timeBar.js"
+              "src/assets/hik-sdk/dist/timeBar.js",
+              "src/assets/hik-sdk/dist/talkEzui/ezuikit-talk.js"
             ]
           },
           "configurations": {
