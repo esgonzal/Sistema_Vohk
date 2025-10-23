@@ -2,7 +2,7 @@ import { Component, OnInit, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import moment from 'moment';
 import { lastValueFrom } from 'rxjs';
-import { EkeyResponse, GatewayAccountResponse, GroupResponse, LockListResponse } from 'src/app/Interfaces/API_responses';
+import { EkeyResponse, GroupResponse, LockListResponse } from 'src/app/Interfaces/API_responses';
 import { Group } from 'src/app/Interfaces/Group';
 import { LockData } from 'src/app/Interfaces/Lock';
 import { EkeyServiceService } from 'src/app/services/ekey-service.service';
@@ -10,7 +10,6 @@ import { GroupService } from 'src/app/services/group.service';
 import { PopUpService } from 'src/app/services/pop-up.service';
 import { DarkModeService } from '../../services/dark-mode.service';
 import { LockServiceService } from 'src/app/services/lock-service.service';
-import { GatewayService } from 'src/app/services/gateway.service';
 import { faHome } from '@fortawesome/free-solid-svg-icons'
 import { Ekey } from 'src/app/Interfaces/Elements';
 import * as XLSX from 'xlsx';
@@ -42,8 +41,7 @@ export class Comunidadesv2Component implements OnInit {
     private lockService: LockServiceService,
     private router: Router,
     public popupService: PopUpService,
-    public DarkModeService: DarkModeService,
-    private gatewayService: GatewayService,) {
+    public DarkModeService: DarkModeService) {
     this.updateCols();
   }
   async ngOnInit(): Promise<void> {
@@ -268,7 +266,7 @@ export class Comunidadesv2Component implements OnInit {
     const screenWidth = window.innerWidth;
     const imageWidthWithMargin = 220; // 200px width + 10px margin
     if (screenWidth <= 600) { // Mobile breakpoint
-      const numColumns = Math.floor(screenWidth / (imageWidthWithMargin / 2)); // Adjusting for smaller cards on mobile
+      //const numColumns = Math.floor(screenWidth / (imageWidthWithMargin / 2)); // Adjusting for smaller cards on mobile
       this.cols = 2;
     } else {
       const numColumns = Math.min(Math.floor(screenWidth / imageWidthWithMargin), 4); // Maximum of 4 columns on larger screens

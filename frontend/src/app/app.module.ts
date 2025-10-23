@@ -47,12 +47,13 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 import { GroupService } from './services/group.service';
 
-import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
+import { MAT_DATE_FORMATS } from '@angular/material/core';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { CameraComponent } from './components/camera/camera.component';
 import { AccessModalComponent } from './components/access_methods/access-modal/access-modal.component';
 import { FunctionsModalComponent } from './components/functions/functions-modal/functions-modal.component';
 import { MultiplePasscodeComponent } from './components/access_methods/multiple-passcode/multiple-passcode/multiple-passcode.component';
+import { MultipleCardsComponent } from './components/access_methods/multiple-cards/multiple-cards.component';
 
 
 export const CUSTOM_DATE_FORMATS = {
@@ -87,6 +88,7 @@ export const CUSTOM_DATE_FORMATS = {
     AccessModalComponent,
     FunctionsModalComponent,
     MultiplePasscodeComponent,
+    MultipleCardsComponent,
   ],
   imports: [
     BrowserModule,

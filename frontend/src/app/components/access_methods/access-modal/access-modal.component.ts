@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, OnInit, SecurityContext } from '@angular/
 import { DomSanitizer } from '@angular/platform-browser';
 import moment from 'moment';
 import { lastValueFrom } from 'rxjs';
-import { createPasscodeResponse, InvitationResponse, operationResponse } from 'src/app/Interfaces/API_responses';
+import { InvitationResponse, operationResponse } from 'src/app/Interfaces/API_responses';
 import { Formulario } from 'src/app/Interfaces/Formulario';
 import { CardServiceService } from 'src/app/services/card-service.service';
 import { DarkModeService } from 'src/app/services/dark-mode.service';
@@ -306,19 +306,9 @@ export class AccessModalComponent implements OnInit {
   }
   async editarPasscode() {
     let response;
-    let newStartDate;
-    let newEndDate;
     this.error = '';
     this.isLoading = true;
     try {
-      /*
-      if (this.popupService.passcode.keyboardPwdType === 5 || this.popupService.passcode.keyboardPwdType === 6 || this.popupService.passcode.keyboardPwdType === 7 || this.popupService.passcode.keyboardPwdType === 8 || this.popupService.passcode.keyboardPwdType === 9 || this.popupService.passcode.keyboardPwdType === 10 || this.popupService.passcode.keyboardPwdType === 11 || this.popupService.passcode.keyboardPwdType === 12 || this.popupService.passcode.keyboardPwdType === 13 || this.popupService.passcode.keyboardPwdType === 14) {
-        let today = moment({ hour: 0, minute: 0 }).valueOf()
-        let newStartDate = moment(today).add(this.lockService.transformarHora(this.startHour), "milliseconds").valueOf()
-        let newEndDate = moment(today).add(this.lockService.transformarHora(this.endHour), "milliseconds").valueOf()
-        response = await lastValueFrom(this.passcodeService.changePasscode(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, this.name, this.passcodePwd, newStartDate.toString(), newEndDate.toString()))
-      }
-      */
       response = await lastValueFrom(this.passcodeService.changePasscode(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, undefined, this.passcodePwd, undefined, undefined))
       //console.log(response)
       if (response?.errcode === 0) {
@@ -433,6 +423,10 @@ export class AccessModalComponent implements OnInit {
   }
   closeMultiplePasscodes() {
     this.popupService.multiplePasscodesResult = false;
+    window.location.reload();
+  }
+  closeMultipleCards() {
+    this.popupService.multipleCardsResult = false;
     window.location.reload();
   }
 }

@@ -43,7 +43,7 @@ router.post('/send', async (req, res) => {
             'https://euapi.ttlock.com/v3/key/send',
             ttlockData, { headers }
         );
-        //console.log(ttlockResponse.data)
+        console.log(ttlockResponse.data)
         if (typeof ttlockResponse === 'object' &&
             ttlockResponse.data.hasOwnProperty('keyId') &&
             typeof ttlockResponse.data.keyId === 'number') { //Send ekey was successful

@@ -4,8 +4,7 @@ import { LockData, LockDetails } from '../Interfaces/Lock';
 import { GatewayAccount, GatewayLock } from '../Interfaces/Gateway';
 import { Group } from '../Interfaces/Group';
 import { RecipientList } from '../Interfaces/RecipientList';
-import { SafeHtml } from '@angular/platform-browser';
-import { MultiplePasscodeResponse } from '../Interfaces/API_responses';
+import { CardResult, MultipleCardResponse, MultiplePasscodeResponse } from '../Interfaces/API_responses';
 
 @Injectable({
   providedIn: 'root'
@@ -63,9 +62,10 @@ export class PopUpService {
   emailSentInvitation = false;
   selectLocksForMultiplePasscodes = false;
   multiplePasscodesResult = false;
+  multipleCardsResult = false;
   emailMessage: string = '';
   lock_alias: string;
-  gatewaysOfLock: GatewayLock[] = []
+  
   gatewaysOfAccount: GatewayAccount[] = []
   detalles: LockDetails;
   currentTime: number;
@@ -92,6 +92,7 @@ export class PopUpService {
   endDateUser: string;
   toEmail: string;
   multiplePasscodeResults: MultiplePasscodeResponse[] = [];
+  multipleCardResults: CardResult[] = [];
 
   toggleLockSelection(lockId: number, lockAlias: string) {
     const index = this.selectedLockIds_forMultipleEkeys.findIndex(lock => lock.id === lockId);

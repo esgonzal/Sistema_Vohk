@@ -9,6 +9,7 @@ import { CardComponent } from './components/access_methods/card/card.component';
 import { MultipleEkeyComponent } from './components/access_methods/multiple-ekey/multiple-ekey.component';
 import { CameraComponent } from './components/camera/camera.component';
 import { MultiplePasscodeComponent } from './components/access_methods/multiple-passcode/multiple-passcode/multiple-passcode.component';
+import { MultipleCardsComponent } from './components/access_methods/multiple-cards/multiple-cards.component';
 
 const routes: Routes = [
   { path: 'login', component: Loginv2Component },
@@ -19,6 +20,7 @@ const routes: Routes = [
   { path: 'users/:username/lock/:id/card', component: CardComponent },
   { path: 'users/:username/lock/:id/ekey/multiple', component: MultipleEkeyComponent },
   { path: 'users/:username/lock/:id/passcode/multiple', component: MultiplePasscodeComponent },
+  { path: 'users/:username/lock/:id/card/multiple', component: MultipleCardsComponent },
   { path: 'test/camera', component: CameraComponent }
 ];
 

@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { lastValueFrom, Observable } from 'rxjs';
-import { EkeyResponse, operationResponse, sendEkeyResponse, LockListResponse, getByUserAndLockIdResponse } from '../Interfaces/API_responses';
+import { EkeyResponse, operationResponse, sendEkeyResponse, LockListResponse } from '../Interfaces/API_responses';
 import { LockData } from '../Interfaces/Lock';
 import { RecipientList } from '../Interfaces/RecipientList';
 import { Ekey } from '../Interfaces/Elements';

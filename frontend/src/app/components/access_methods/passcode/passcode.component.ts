@@ -123,6 +123,7 @@ export class PasscodeComponent implements OnInit {
     }
   }
   async crearpasscode(datos: Formulario) {
+    console.log(datos)
     let response;
     this.isLoading = true;
     try {
@@ -184,6 +185,7 @@ export class PasscodeComponent implements OnInit {
     }
   }
   validarNuevaPass(datos: Formulario) {
+    console.log(datos)
     this.error = '';
     if (!datos.passcodeType) {
       this.error = "Por favor elija un tipo de passcode"

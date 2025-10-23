@@ -354,3 +354,37 @@
         <button (click)="closeMultiplePasscodes()">Ok</button>
     </div>
 </div>
+<div class="container_sin_width" *ngIf="popupService.multipleCardsResult"
+    [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <div class="header">
+        Resultados de creación de Cards
+    </div>
+    <div id="content">
+        <div class="table-wrapper">
+            <div style="width: 90%;">
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Numero</th>
+                            <th>Tipo</th>
+                            <th>Error</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let card of popupService.multipleCardResults"
+                            [ngClass]="{'success': card.result === 'success', 'failed': card.result === 'failed'}">
+                            <td>{{card.cardName}}</td>
+                            <td>{{card.number || '-'}}</td>
+                            <td>{{card.tipo === 1 ? 'Permanente' : 'P'}}</td>
+                            <td>{{card.result === 'failed' ? card.errmsg : '-'}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div id="actions">
+        <button (click)="closeMultipleCards()">Ok</button>
+    </div>
+</div>

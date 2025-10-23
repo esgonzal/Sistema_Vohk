@@ -53,13 +53,6 @@
     width: 600px;
 }
 
-.form-input {
-    height: 30px;
-    margin-bottom: 20px;
-    border: 1px, solid black;
-    padding-left: 15px;
-}
-
 .form-button {
     height: 30px;
     width: 25%;

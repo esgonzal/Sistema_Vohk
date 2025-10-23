@@ -1,69 +1,78 @@
 <div class="pagina_completa" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
     <app-loader [loader]="isLoading"></app-loader>
     <div class="form-area">
+        <div class="multipleButton" *ngIf="cardService.userID==='soporte@vohk.cl'">
+            <button (click)="toMultipleCards()">Generar múltiples tarjetas</button>
+        </div>
         <form #formInput="ngForm" class="common-form">
             <div class="linea">
                 <span class="input-container">
-                        Nombre de la Tarjeta
-                        <input type="text" class="form-input" name="cardName" placeholder="..."
-                            [(ngModel)]="cardName" />
-                    </span>
+                    Nombre de la Tarjeta
+                    <input type="text" class="form-input" name="cardName" placeholder="..." [(ngModel)]="cardName" />
+                </span>
             </div>
             <div class="linea">
                 <span class="input-container">
-                        Tipo de Tarjeta
-                        <select #types name="cardType" (change)="onSelected(types.value)" ngModel
-                            style="width: 202px; height: 35px;border-radius:20px;border:1px solid black">
-                            <option default value="">No seleccionado</option>
-                            <option value="1">Permanente</option>
-                            <option value="2">Temporal</option>
-                        </select>
-                    </span>
+                    Tipo de Tarjeta
+                    <select #types name="cardType" (change)="onSelected(types.value)" ngModel
+                        style="width: 202px; height: 35px;border-radius:20px;border:1px solid black">
+                        <option default value="">No seleccionado</option>
+                        <option value="1">Permanente</option>
+                        <option value="2">Temporal</option>
+                    </select>
+                </span>
+            </div>
+            <div class="linea">
+                <span class="input-container">
+                    Numero de la Tarjeta
+                    <input type="text" class="form-input" name="cardNumber" placeholder="..."
+                        [(ngModel)]="cardNumber" />
+                </span>
             </div>
             <div class="linea" *ngIf="selectedType === '2'">
                 <span class="input-container">
-                        Fecha de Inicio
-                        <mat-form-field appearance="fill">
-                            <mat-label>Fecha</mat-label>
-                            <input matInput [matDatepicker]="startDatePicker" name="startDate" placeholder="DD/MM/YYYY"
-                                [(ngModel)]="startDate" required (dateChange)="startTimePicker.open()">
-                            <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
-                            <mat-datepicker #startDatePicker></mat-datepicker>
-                        </mat-form-field>
-                        Hora de Inicio
-                        <mat-form-field appearance="fill">
-                            <mat-label>Hora</mat-label>
-                            <input matInput [ngxTimepicker]="startTimePicker" name="startHour" placeholder="HH:mm"
-                                [(ngModel)]="startHour" required [format]="24">
-                        </mat-form-field>
-                        <ngx-material-timepicker #startTimePicker [hoursOnly]="true"></ngx-material-timepicker>
-                    </span>
+                    Fecha de Inicio
+                    <mat-form-field appearance="fill">
+                        <mat-label>Fecha</mat-label>
+                        <input matInput [matDatepicker]="startDatePicker" name="startDate" placeholder="DD/MM/YYYY"
+                            [(ngModel)]="startDate" required (dateChange)="startTimePicker.open()">
+                        <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
+                        <mat-datepicker #startDatePicker></mat-datepicker>
+                    </mat-form-field>
+                    Hora de Inicio
+                    <mat-form-field appearance="fill">
+                        <mat-label>Hora</mat-label>
+                        <input matInput [ngxTimepicker]="startTimePicker" name="startHour" placeholder="HH:mm"
+                            [(ngModel)]="startHour" required [format]="24">
+                    </mat-form-field>
+                    <ngx-material-timepicker #startTimePicker [hoursOnly]="true"></ngx-material-timepicker>
+                </span>
             </div>
             <div class="linea" *ngIf="selectedType === '2'">
                 <span class="input-container">
-                        Fecha de Finalización
-                        <mat-form-field appearance="fill">
-                            <mat-label>Fecha</mat-label>
-                            <input matInput [matDatepicker]="endDatePicker" name="endDate" placeholder="DD/MM/YYYY"
-                                [(ngModel)]="endDate" required (dateChange)="endTimePicker.open()">
-                            <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
-                            <mat-datepicker #endDatePicker></mat-datepicker>
-                        </mat-form-field>
-                        Hora de Finalización
-                        <mat-form-field appearance="fill">
-                            <mat-label>Hora</mat-label>
-                            <input matInput [ngxTimepicker]="endTimePicker" name="endHour" placeholder="HH:mm"
-                                [(ngModel)]="endHour" required [format]="24">
-                        </mat-form-field>
-                        <ngx-material-timepicker #endTimePicker [hoursOnly]="true"></ngx-material-timepicker>
-                    </span>
+                    Fecha de Finalización
+                    <mat-form-field appearance="fill">
+                        <mat-label>Fecha</mat-label>
+                        <input matInput [matDatepicker]="endDatePicker" name="endDate" placeholder="DD/MM/YYYY"
+                            [(ngModel)]="endDate" required (dateChange)="endTimePicker.open()">
+                        <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
+                        <mat-datepicker #endDatePicker></mat-datepicker>
+                    </mat-form-field>
+                    Hora de Finalización
+                    <mat-form-field appearance="fill">
+                        <mat-label>Hora</mat-label>
+                        <input matInput [ngxTimepicker]="endTimePicker" name="endHour" placeholder="HH:mm"
+                            [(ngModel)]="endHour" required [format]="24">
+                    </mat-form-field>
+                    <ngx-material-timepicker #endTimePicker [hoursOnly]="true"></ngx-material-timepicker>
+                </span>
             </div>
             <p class="error">{{error}}</p>
             <div class="linea">
                 <span style="display: flex;justify-content:space-around;">
-                        <button class="form-button" (click)="popupService.createCard=false">Volver</button>
-                        <button class="form-button" type="button" (click)="botonGenerarCard()">Continuar</button>
-                    </span>
+                    <button class="form-button" (click)="popupService.createCard=false">Volver</button>
+                    <button class="form-button" type="button" (click)="botonGenerarCard()">Continuar</button>
+                </span>
             </div>
         </form>
     </div>

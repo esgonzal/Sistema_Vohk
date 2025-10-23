@@ -1,6 +1,4 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
-import { Router } from '@angular/router';
-import { DomSanitizer } from '@angular/platform-browser';
 import { lastValueFrom } from 'rxjs';
 import { faBatteryFull, faWifi, faGear, faDoorOpen, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { MatTableDataSource } from '@angular/material/table';
@@ -16,7 +14,7 @@ import { GatewayService } from '../../services/gateway.service';
 import { PassageModeService } from '../../services/passage-mode.service';
 import { GroupService } from '../../services/group.service';
 import { UserServiceService } from '../../services/user-service.service';
-import { RecordResponse, EkeyResponse, PasscodeResponse, CardResponse, FingerprintResponse, GatewayAccountResponse, operationResponse, LockListResponse, GroupResponse } from '../../Interfaces/API_responses';
+import { RecordResponse, operationResponse, LockListResponse, GroupResponse } from '../../Interfaces/API_responses';
 import { Ekey, Passcode, Card, Fingerprint, Record } from '../../Interfaces/Elements';
 import { Group } from '../../Interfaces/Group';
 import { PassageMode } from '../../Interfaces/PassageMode';
@@ -147,8 +145,6 @@ export class Lockv2Component implements OnInit {
   tabTypes: string[] = ['ekeys'];
 
   constructor(
-    private router: Router,
-    private sanitizer: DomSanitizer,
     public ekeyService: EkeyServiceService,
     public passcodeService: PasscodeServiceService,
     public cardService: CardServiceService,

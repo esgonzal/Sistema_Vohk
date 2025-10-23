@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { lastValueFrom, Observable } from 'rxjs';
 import { InvitationResponse, MultiplePasscodeResponse, PasscodeResponse, createPasscodeResponse, operationResponse } from '../Interfaces/API_responses';
 import { Passcode } from '../Interfaces/Elements';

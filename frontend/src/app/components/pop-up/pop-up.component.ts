@@ -3,10 +3,8 @@ import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 
 import { PopUpService } from '../../services/pop-up.service';
-import { PasscodeServiceService } from '../../services/passcode-service.service';
 import { EkeyServiceService } from '../../services/ekey-service.service';
 import { CardServiceService } from '../../services/card-service.service';
-import { FingerprintServiceService } from '../../services/fingerprint-service.service';
 import { UserServiceService } from '../../services/user-service.service';
 import { LockServiceService } from '../../services/lock-service.service';
 import { GroupService } from '../../services/group.service';
@@ -14,15 +12,14 @@ import { GatewayService } from 'src/app/services/gateway.service';
 
 import { GatewayAccount } from '../../Interfaces/Gateway';
 import { Formulario } from '../../Interfaces/Formulario';
-import { operationResponse, addGroupResponse, GetLockTimeResponse, createPasscodeResponse, LockListResponse, sendEkeyResponse } from '../../Interfaces/API_responses';
+import { operationResponse, addGroupResponse, sendEkeyResponse } from '../../Interfaces/API_responses';
 
-import { last, lastValueFrom } from 'rxjs';
+import { lastValueFrom } from 'rxjs';
 import moment from 'moment';
 import { Clipboard } from '@angular/cdk/clipboard';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import * as XLSX from 'xlsx';
 import { LockData } from 'src/app/Interfaces/Lock';
-import { Ekey } from 'src/app/Interfaces/Elements';
 import { DarkModeService } from 'src/app/services/dark-mode.service';
 
 
@@ -67,9 +64,7 @@ export class PopUpComponent implements OnInit {
     private router: Router,
     private cdr: ChangeDetectorRef,
     public lockService: LockServiceService,
-    private passcodeService: PasscodeServiceService,
     private cardService: CardServiceService,
-    private fingerprintService: FingerprintServiceService,
     public gatewayService: GatewayService,
     private groupService: GroupService,
     public dialogRef: MatDialog,

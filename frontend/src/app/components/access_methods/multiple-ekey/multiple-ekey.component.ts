@@ -7,7 +7,6 @@ import { LockServiceService } from '../../../services/lock-service.service';
 import { lastValueFrom } from 'rxjs';
 import { UserServiceService } from '../../../services/user-service.service';
 import { sendEkeyResponse } from '../../../Interfaces/API_responses';
-import { DomSanitizer } from '@angular/platform-browser';
 import { DarkModeService } from 'src/app/services/dark-mode.service';
 import * as XLSX from 'xlsx';
 
@@ -29,7 +28,6 @@ export class MultipleEkeyComponent implements OnInit {
     public popupService: PopUpService,
     private lockService: LockServiceService,
     private userService: UserServiceService,
-    private sanitizer: DomSanitizer,
     public DarkModeService: DarkModeService) {
     if (!this.ekeyService.username || !this.ekeyService.userID || !this.ekeyService.lockID || !this.ekeyService.endDateUser) {
       this.router.navigate(['users', sessionStorage.getItem('user'), 'lock', sessionStorage.getItem('lockID')])
@@ -151,7 +149,7 @@ export class MultipleEkeyComponent implements OnInit {
     if (this.error === '') {
       for (const eKey of eKeys) {
         if (await this.crearEkey2(eKey)) {
-          await this.generarEmail2(eKey);
+          //await this.generarEmail2(eKey);
         }
         
       }
@@ -225,15 +223,7 @@ export class MultipleEkeyComponent implements OnInit {
         if (response.emailContent) {
           this.popupService.toEmail = response.toEmail;
           this.popupService.emailMessage = response.emailContent;
-          let sendEmailResponse = await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, response.emailContent));
-          //console.log(sendEmailResponse)
-          //this.popupService.emailSuccess = true;
-          //const updatedHtml = response.emailContent;
-          //let sendEmailResponse = await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, updatedHtml));
-          //console.log(sendEmailResponse); (success)
-          //this.popupService.createEkey = false;
-          //this.popupService.ekeySuccess = true;
-          //window.location.reload()
+          await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, response.emailContent));
         }
       } else if (eKey.type === '2') {
         // Periodic eKey email
@@ -245,7 +235,7 @@ export class MultipleEkeyComponent implements OnInit {
         if (response.emailContent) {
           this.popupService.toEmail = response.toEmail;
           this.popupService.emailMessage = response.emailContent;
-          let sendEmailResponse = await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, response.emailContent));
+          await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, response.emailContent));
           //this.popupService.emailSuccess = true;
           //const updatedHtml = response.emailContent;
           //let sendEmailResponse = await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, updatedHtml));
@@ -377,10 +367,10 @@ export class MultipleEkeyComponent implements OnInit {
 
       // Asegurarse de que la fila tenga suficientes datos
       if (row.length >= 4) {
-        const department = row[1]; // B: Departamento
-        const ownerName = row[2]; // C: Nombre Propietario
-        const phoneNumber = row[3]; // D: N° Telefono
-        const email = row[4]; // E: Correo
+        const department = row[0]; // B: Departamento
+        const ownerName = row[1]; // C: Nombre Propietario
+        const phoneNumber = row[2]; // D: N° Telefono
+        const email = row[3]; // E: Correo
 
         // Crear el objeto de eKey según el formato requerido
         const formattedPhoneNumber = String(phoneNumber).replace(/\s+/g, '');

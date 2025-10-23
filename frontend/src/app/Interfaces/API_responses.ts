@@ -59,21 +59,18 @@ export interface createPasscodeResponse {
     keyboardPwdId: number;
     keyboardPwd: string;
 }
-// Individual lock result
 export interface LockResult {
   lockID: number;
   lockAlias: string;
-  passcodePwd?: string; // present if success
+  passcodePwd?: string; 
   success: boolean;
-  errcode?: number | string; // present if success === false
+  errcode?: number | string; 
 }
-// Email info
 export interface EmailResult {
   emailContent: string;
   emailSent: boolean;
-  emailError?: string; // present if sending failed
+  emailError?: string; 
 }
-// Full invitation response
 export interface InvitationResponse {
   locks: LockResult[];
   email?: EmailResult;
@@ -113,17 +110,6 @@ export interface GetAccessTokenResponse {
     description: string;
     userID: string;
 }
-export interface ResetPasswordResponse {
-    description: string;
-    errcode: number;
-    errmsg: string;
-}
-export interface UserRegisterResponse {
-    description: string;
-    errcode: number;
-    errmsg: string;
-    username: string;
-}
 export interface GatewayAccountResponse {
     list: GatewayAccount[];
     pageNo: number;
@@ -142,33 +128,9 @@ export interface GetLockTimeResponse {
     errmsg: string;
     description: string;
 }
-export interface checkUserInDBResponse {
-    exists: boolean;
-}
-export interface getUserInDBResponse {
-    accountname: string;
-    originalusername: string;
-    nickname: string;
-    email: string;
-    phone: string;
-    password: string;
-}
-export interface getByUserAndLockIdResponse {
-    accountname: string;
-    lockid: number;
-    isuser: boolean;
-    message: string;
-}
 export interface logoutResponse {
     message: string;
 }
-export interface cameraFeedResponse {
-    success: boolean;
-    streamUrl: string;
-    message: string;
-    error: string;
-}
-
 export interface MultiplePasscodeResponse {
     lockId: number;
     lockAlias: string;
@@ -180,6 +142,18 @@ export interface PasscodeResult {
     tipo: number;
     code?: string;
     codeId?: number;
+    result: string;
+    errcode: number;
+    errmsg?: string;
+}
+
+export type MultipleCardResponse = CardResult[];
+
+export interface CardResult {
+    cardName: string;
+    tipo: number;
+    number?: string;
+    cardId?: number;
     result: string;
     errcode: number;
     errmsg?: string;

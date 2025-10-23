@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { lastValueFrom, Observable } from 'rxjs';
-import { CardResponse, operationResponse } from '../Interfaces/API_responses';
+import { CardResponse, CardResult, MultipleCardResponse, operationResponse } from '../Interfaces/API_responses';
 import { Card } from '../Interfaces/Elements';
 import { MatTableDataSource } from '@angular/material/table';
 
@@ -82,5 +82,10 @@ export class CardServiceService {
     let body = { userID, lockID, cardID, newStartDate, newEndDate };
     let url = this.URL.concat('/v0/card/changePeriod');
     return this.http.post<operationResponse>(url, body);
+  }
+  multipleCards(userID: string, lockID: number, cards: { name: string, tipo: number, number: string }[]): Observable<CardResult[]> {
+    let body = { userID, lockID, cards }
+    let url = this.URL.concat('/v0/card/multipleCards');
+    return this.http.post<CardResult[]>(url, body);
   }
 }

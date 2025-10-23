@@ -92,3 +92,15 @@
     color: #fff;
     background-color: #121C24;
 }
+
+.multipleButton {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+}
+
+.multipleButton button {
+    background-color: #F5C754;
+    border-radius: 20px;
+    border: 1px solid black;
+}

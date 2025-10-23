@@ -1,0 +1,62 @@
+<div class="pagina_completa" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+    <app-loader [loader]="isLoading"></app-loader>
+    <div class="form-area">
+        <h2 class="titulo" style="margin-bottom: 50px">
+            Ingrese los datos para generar tarjetas
+        </h2>
+        <div class="botones">
+            <!-- Botón para subir archivo -->
+            <button class="import" (click)="fileInput.click()">Importar desde Archivo</button>
+            <!-- Botón para descargar formato de excel -->
+            <!-- <button class="import" (click)="downloadExcelTemplate()">Descargar Plantilla de Excel</button> -->
+            <!-- Input oculto para cargar el archivo -->
+            <input type="file" #fileInput (change)="onFileSelected($event)" accept=".xlsx, .xls, .csv"
+                style="display: none;" />
+            <!-- <button class="addLocks" (click)="openLockSelector()">Añadir cerraduras</button> -->
+        </div>
+        <div class="content-container ">
+            <table class="card-table">
+                <thead>
+                    <tr>
+                        <th class="th_name">Nombre</th>
+                        <th class="th_tipo">Tipo</th>
+                        <th class="th_number">Numero</th>
+                        <th class="th_eliminar">Eliminar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let card of cards; let i = index">
+                        <!--Nombre-->
+                        <td style="width: 30%">
+                            <input type="text" [(ngModel)]="card.name" name="name_{{ i }}"
+                                style="width: 100%; max-width: 100%; box-sizing: border-box" required
+                                [class.invalid-input]="!card.name" />
+                        </td>
+                        <!--Tipo-->
+                        <td style="width: 35%">
+                            <select [(ngModel)]="card.tipo" name="tipo_{{ i }}" [class.invalid-input]="!card.tipo"
+                                style="width: 100%; max-width: 100%; box-sizing: border-box">
+                                <option [ngValue]="1">Permanente</option>
+                            </select>
+                        </td>
+                        <!--Numero-->
+                        <td style="width: 20%">
+                            <input type="number" [(ngModel)]="card.number" name="number_{{ i }}"
+                                style="width: 100%; max-width: 100%; box-sizing: border-box" 
+                                required [class.invalid-input]="!card.number" />
+                        </td>
+                        <!--Eliminar-->
+                        <td style="width: 10%">
+                            <button (click)="removeCard(i)">X</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="error">{{error}}</p>
+        <button class="form-button" (click)="addCard()">Sumar Tarjeta</button>
+        <button class="form-button" (click)="validarInputs()">Generar Tarjetas</button>
+    </div>
+</div>
+
+<app-access-modal *ngIf="this.popupService.multipleCardsResult" style="z-index: 10"></app-access-modal>

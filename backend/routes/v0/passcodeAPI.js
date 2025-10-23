@@ -304,6 +304,7 @@ router.post('/sendEmail', async (req, res) => {
 });
 router.post('/multiplePasscodes', async (req, res) => {
     const { userID, passcodes, selectedLocks } = req.body;
+    console.log(req.body);
     if (
         !userID ||
         !selectedLocks || !Array.isArray(selectedLocks) || selectedLocks.length === 0 ||
@@ -320,6 +321,7 @@ router.post('/multiplePasscodes', async (req, res) => {
         for (const lock of selectedLocks) {
             const lockResults = [];
             for (const passcode of passcodes) {
+                console.log(lockResults);
                 try {
                     let date = Date.now()
                     let ttlockData, headers, ttlockResponse;

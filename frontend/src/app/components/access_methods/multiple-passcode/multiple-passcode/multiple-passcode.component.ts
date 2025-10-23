@@ -1,12 +1,10 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
-import { MultiplePasscodeResponse, PasscodeResponse } from 'src/app/Interfaces/API_responses';
+import { MultiplePasscodeResponse } from 'src/app/Interfaces/API_responses';
 import { DarkModeService } from 'src/app/services/dark-mode.service';
-import { LockServiceService } from 'src/app/services/lock-service.service';
 import { PasscodeServiceService } from 'src/app/services/passcode-service.service';
 import { PopUpService } from 'src/app/services/pop-up.service';
-import { UserServiceService } from 'src/app/services/user-service.service';
 import * as XLSX from 'xlsx';
 
 @Component({
@@ -25,8 +23,6 @@ export class MultiplePasscodeComponent implements OnInit {
     private router: Router,
     private passcodeService: PasscodeServiceService,
     public popupService: PopUpService,
-    private lockService: LockServiceService,
-    private userService: UserServiceService,
     public DarkModeService: DarkModeService) {
     if (!this.passcodeService.username || !this.passcodeService.userID || !this.passcodeService.lockID || !this.passcodeService.endDateUser) {
       this.router.navigate(['users', sessionStorage.getItem('user'), 'lock', sessionStorage.getItem('lockID')])

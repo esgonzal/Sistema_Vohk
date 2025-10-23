@@ -8,7 +8,6 @@ import { EkeyServiceService } from '../../../services/ekey-service.service';
 import { LockListResponse, sendEkeyResponse } from '../../../Interfaces/API_responses'
 import { Formulario } from '../../../Interfaces/Formulario';
 import { PopUpService } from 'src/app/services/pop-up.service';
-import { DomSanitizer } from '@angular/platform-browser';
 import { LockData } from '../../../Interfaces/Lock';
 import { DarkModeService } from '../../../services/dark-mode.service';
 
@@ -43,7 +42,6 @@ export class EkeyComponent implements OnInit {
     private lockService: LockServiceService,
     public ekeyService: EkeyServiceService,
     public popupService: PopUpService,
-    private sanitizer: DomSanitizer,
     public DarkModeService: DarkModeService) {
     if (!this.ekeyService.username || !this.ekeyService.userID || !this.ekeyService.lockID || !this.ekeyService.endDateUser) {
       this.router.navigate(['users', sessionStorage.getItem('user'), 'lock', sessionStorage.getItem('lockID')])

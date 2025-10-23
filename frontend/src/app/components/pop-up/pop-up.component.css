@@ -32,33 +32,6 @@
     z-index: 1003;
 }
 
-.container_50 {
-    width: 600px;
-    box-shadow: 5px 5px 4px rgba(19, 19, 19, 0.2);
-    border-radius: 10px;
-    background-color: #fff;
-    display: flex;
-    flex-direction: column;
-}
-
-.container_60 {
-    width: 600px;
-    box-shadow: 5px 5px 4px rgba(19, 19, 19, 0.2);
-    border-radius: 10px;
-    background-color: #fff;
-    display: flex;
-    flex-direction: column;
-}
-
-.container_80 {
-    width: 80%;
-    box-shadow: 5px 5px 4px rgba(19, 19, 19, 0.2);
-    border-radius: 10px;
-    background-color: #fff;
-    display: flex;
-    flex-direction: column;
-}
-
 .header {
     border-bottom: 1px solid #ccc;
     display: flex;
@@ -67,32 +40,6 @@
     font-size: 20px;
     font-weight: bold;
     color: #000000;
-}
-
-.linea {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.linea_alternative {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    margin-bottom: 10px;
-}
-
-.list_locks {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
-    gap: 10px;
-    width: 100%;
-}
-
-.lock-item {
-    border: 1px solid #ccc;
-    padding: 10px;
-    text-align: center;
 }
 
 .lock-table {
@@ -160,30 +107,12 @@ button {
     margin: auto;
 }
 
-.common-form2 {
-    display: flex;
-    flex-direction: column;
-    margin: auto;
-}
-
-.big-form {
-    display: flex;
-    flex-direction: column;
-}
-
 .form-input {
     height: 35px;
     margin-bottom: 20px;
     border: 1px solid black;
     padding-left: 15px;
     border-radius: 20px;
-}
-
-.input-container {
-    display: flex;
-    flex-direction: row;
-    gap: 10px;
-    justify-content: center;
 }
 
 .recipient-pair {
@@ -229,59 +158,12 @@ button {
     /* Set a higher z-index value than the popup window */
 }
 
-.linea_ekey {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
 .linea_ekey label {
     padding: 8px;
     background-color: #f0f0f0;
     border: 1px solid #ccc;
     border-radius: 4px;
     cursor: pointer;
-}
-
-.input-container_ekey {
-    display: flex;
-    flex-direction: row;
-    gap: 10px;
-    justify-content: space-between;
-    width: 600px;
-    margin-bottom: 10px;
-}
-
-.form-input_ekey {
-    height: 35px;
-    border: 1px, solid black;
-    padding-left: 15px;
-}
-
-.form-button_ekey {
-    height: 35px;
-    border: 1px solid black;
-    background-color: #f9c114;
-    cursor: pointer;
-    line-height: 1;
-}
-
-.person-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
-}
-
-.person-number {
-    margin-right: 10px;
-    font-weight: bold;
-    /* Optionally make the number bold */
-}
-
-.person-inputs {
-    display: flex;
-    align-items: baseline;
 }
 
 .person-inputs input {
@@ -291,19 +173,6 @@ button {
     /* Adjust spacing between inputs */
     flex-grow: 1;
     /* Take remaining space in the row */
-}
-
-.remove-button {
-    display: contents;
-    background: transparent;
-    border: none;
-    color: red;
-    font-size: 14px;
-    cursor: pointer;
-    padding: 0;
-    margin-left: 10px;
-    margin-top: auto;
-    margin-bottom: auto;
 }
 
 .person-container:nth-child(1) input {

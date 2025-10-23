@@ -7,12 +7,12 @@ const app = express();
 // Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-/*
+
 const corsOptions = {
     origin: ['https://app.vohk.cl', 'http://localhost:4200'],
 };
 app.use(cors(corsOptions));
-*/
+/*
 
 // CORS and Cross-Origin Isolation headers
 app.use((req, res, next) => {
@@ -38,7 +38,7 @@ app.use((req, res, next) => {
 
   next();
 });
-
+*/
 // API v0
 const { accessTokenStorage, storeAccessToken } = require('../backend/routes/v0/accessTokenStorage.js');
 const logoutInterval = 30 * 60 * 1000;

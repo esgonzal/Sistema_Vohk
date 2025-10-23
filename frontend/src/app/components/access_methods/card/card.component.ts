@@ -33,6 +33,7 @@ export class CardComponent {
   endDate: string;
   endHour: string = '';
   selectedType = '';
+  cardNumber: string = "";
   onSelected(value: string): void { this.selectedType = value }
 
   validaFechaUsuario(diaFinal: string, horaFinal: string): boolean {
@@ -105,11 +106,14 @@ export class CardComponent {
     this.isLoading = true;
     try {
       if (this.selectedType === '1') {
+        /*
         if (this.cardService.cardNumber === undefined || this.cardService.cardNumber === '') {
           this.popupService.cardReader = true;
         }
-        if (this.cardService.cardNumber !== undefined) {
-          let addCardResponse = await lastValueFrom(this.cardService.addCard(this.cardService.userID, this.cardService.lockID, this.cardService.cardNumber, this.cardName, "0", "0")) as addCardResponse;
+          */
+         console.log(this.cardNumber);
+        if (this.cardNumber !== undefined) {
+          let addCardResponse = await lastValueFrom(this.cardService.addCard(this.cardService.userID, this.cardService.lockID, this.cardNumber, this.cardName, "0", "0")) as addCardResponse;
           if (addCardResponse.cardId) {
             this.cardService.cardNumber = '';
             this.router.navigate(["users", this.cardService.userID, "lock", this.cardService.lockID]);
@@ -143,5 +147,10 @@ export class CardComponent {
     } finally {
       this.isLoading = false;
     }
+  }
+
+  toMultipleCards() {
+    this.popupService.createCard = false;
+    this.router.navigate(['users', this.cardService.userID, 'lock', this.cardService.lockID, 'card', 'multiple'])
   }
 }
