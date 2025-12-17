@@ -1,139 +1,133 @@
 const express = require('express');
 const axios = require('axios');
 const router = express.Router();
-const MONDAY_API_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjQxODQ0NDM2MSwiYWFpIjoxMSwidWlkIjo2Njg1Nzc0MiwiaWFkIjoiMjAyNC0xMC0wMlQxMzoxNjo1Ny41MTZaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MjU3NzE2MjQsInJnbiI6InVzZTEifQ.xSFp7Dl1hEqHj9vvijISAVTJpEJtZrse8JDdp0P3FqU';
+
 const USER = 'XBKEscqiybHhdkbT5KZ1d4Nh';
 const COMPANY = 'CX67HbYo9xKSaW1YNZ5x2KUV';
 
+const MONDAY_API_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjMxNjI3NTAwOCwiYWFpIjoxMSwidWlkIjoyNTE4MTczNSwiaWFkIjoiMjAyNC0wMS0zMVQxNjo1OTowNy4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6NzA2NDk3NiwicmduIjoidXNlMSJ9.7r5JDi4lOgur0OCjM-DpB5ZSd31kEF0LG6ytFyihIkE'
+const MONDAY_API_URL = 'https://api.monday.com/v2';
 
-async function obtenerDatosElemento(pulseId) {
+const DTE_TYPE_MAP = {
+    'Factura electrónica': 33,
+    'Factura Electronica': 33,
+    'Boleta': 39,
+    'Boleta electrónica': 39,
+    'Guía de Despacho': 52,
+    'Nota de crédito': 61,
+    'Nota de débito': 56
+};
+
+async function getMondayItem(pulseId) {
     const query = `
-        query {
-            items(ids: [${pulseId}]) {
-                name
-                column_values {
-                    id
-                    text
-                    column {
-                        title
-                    }
-                }
-            }
+    query {
+      items(ids: [${pulseId}]) {
+        id
+        name
+        column_values {
+          id
+          text
+          value
+          column {
+            title
+          }
         }
-    `;
-
-    try {
-        const response = await axios.post(
-            'https://api.monday.com/v2', { query }, {
-                headers: {
-                    Authorization: MONDAY_API_TOKEN,
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
-        const itemData = response.data.data.items[0]; // Cambia aquí para acceder al primer elemento
-        return itemData;
-    } catch (error) {
-        console.error('Error obteniendo datos del elemento:', error.response ? error.response.data : error.message);
+      }
     }
-}
-
-function formatDate(isoDate) {
-    const date = new Date(isoDate);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Los meses en JS son base 0
-    const year = date.getFullYear();
-    return `${day}-${month}-${year}`;
-}
-
-async function enviarDatosAPI(startDate, endDate, comentario, direccion) {
-    const data = {
-        type_document: 1001,
-        start_date: startDate,
-        end_date: endDate,
-        comment: comentario, // Usando la variable comentario
-        ware_house_id: 1718,
-        type_document_sii: 33,
-        customer_id: 4327931,
-        address: direccion, // Usando la variable direccion
-        products: [{
-            product_id: 5757143,
-            price: 1,
-            quantity: 1,
-            tax_affected: true
-        }],
-        references: [{
-            reference_id: 12345678,
-            folio_ref: "string",
-            date_ref: startDate,
-            razon_ref: "Referencia de prueba",
-            rut_otr: "string"
-        }]
-    };
-
-    try {
-        const response = await axios.post('https://api.relbase.cl/api/v1/dtes', data, {
+  `;
+    const response = await axios.post(
+        MONDAY_API_URL,
+        { query },
+        {
             headers: {
-                'accept': 'application/json',
-                'Authorization': USER,
-                'Company': COMPANY,
+                Authorization: MONDAY_API_TOKEN,
                 'Content-Type': 'application/json'
             }
-        });
-        console.log('Respuesta de la API:', response.data);
-    } catch (error) {
-        console.error('Error al enviar la solicitud a la API:', error.response ? error.response.data : error.message);
-    }
+        }
+    );
+    return response.data.data.items?.[0] || null;
 }
 
-async function getClientes(query, page = 1) {
+async function getRelbaseDteByFolio({ folio, dteLabel }) {
+    if (!folio || !dteLabel) return null;
+    const typeDocument = DTE_TYPE_MAP[dteLabel];
+    if (!typeDocument) {
+        console.error('❌ Unknown DTE type:', dteLabel);
+        return null;
+    }
     try {
-        const response = await axios.get('https://api.relbase.cl/api/v1/clientes', {
-            params: {
-                query: query,
-                page: page
-            },
-            headers: {
-                'accept': 'application/json',
-                'Authorization': USER,
-                'Company': COMPANY
+        const response = await axios.get(
+            'https://api.relbase.cl/api/v1/dtes',
+            {
+                params: {
+                    type_document: typeDocument,
+                    query: folio
+                },
+                headers: {
+                    accept: 'application/json',
+                    Authorization: USER,
+                    Company: COMPANY
+                }
             }
-        });
-        console.log('Clientes encontrados:', response.data.data.customers);
-        return response.data;
+        );
+        const dte = response.data?.data?.dtes?.[0] || null;
+        if (!dte) {
+            console.warn(`⚠️ No DTE found for folio ${folio} (${typeDocument})`);
+            return null;
+        }
+        return dte;
     } catch (error) {
-        console.error('Error al consultar la API de Relbase:', error.response ? error.response.data : error.message);
+        console.error(
+            '🔥 Relbase DTE lookup failed:',
+            error.response?.data || error
+        );
+        return null;
     }
 }
-//getClientes('Ocasional');
 
-router.post('/', async(req, res) => {
+
+router.post('/', async (req, res) => {
     const data = req.body;
     if (data.challenge) {
-        res.status(200).send({ challenge: data.challenge });
-    } else {
-        const pulseId = data.event.pulseId;
-        try {
-            const itemData = await obtenerDatosElemento(pulseId);
-            const startDate = formatDate(data.event.triggerTime); // Formato de fecha
-            const endDate = formatDate(data.event.triggerTime);
-            let direccion = '';
-            let comentario = '';
-            const direccionCol = itemData.column_values.find(col => col.column && col.column.title === 'Direccion');
-            if (direccionCol) {
-                direccion = direccionCol.text || '';
-            }
-            const comentarioCol = itemData.column_values.find(col => col.column && col.column.title === 'Comentario');
-            if (comentarioCol) {
-                comentario = comentarioCol.text || '';
-            }
-
-            //const relbaseData = await enviarDatosAPI(startDate, endDate, comentario, direccion);
-            res.status(200).send('Webhook recibido');
-        } catch (error) {
-            console.error('Error procesando la solicitud:', error);
-            res.status(500).send('Error procesando la solicitud');
+        return res.status(200).send({ challenge: data.challenge });
+    }
+    res.status(200).send('ok');
+    try {
+        console.log('📩 Monday event received:');
+        console.log(JSON.stringify(data, null, 2));
+        const event = data.event;
+        if (!event) return;
+        if (event.type !== 'update_column_value') return;
+        const pulseId = event.pulseId;
+        const item = await getMondayItem(pulseId);
+        if (!item) {
+            console.error('❌ Item not found');
+            return;
         }
+        console.log(`📦 Item: ${item.name} (${item.id})`);
+        const folio = item.column_values.find(
+            col => col.column?.title === 'Folio'
+        )?.text;
+        const dteLabel = item.column_values.find(
+            col => col.column?.title == 'DTE emitido (intro)'
+        )?.text;
+        console.log('🧾 Folio:', folio);
+        item.column_values.forEach(col => {
+            console.log(`• ${col.column?.title}: ${col.text}`);
+        });
+        const dte = await getRelbaseDteByFolio({
+            folio,
+            dteLabel
+        });
+        if (dte) {
+            console.log('📄 Relbase DTE ID:', dte.id);
+            console.log('📎 PDF URL:', dte.pdf_file?.url);
+        }
+    } catch (error) {
+        console.error(
+            '🔥 Error processing Monday webhook:',
+            error.response?.data || error
+        );
     }
 });
 
