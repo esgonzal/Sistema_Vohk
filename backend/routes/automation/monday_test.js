@@ -1,6 +1,8 @@
 const express = require('express');
 const axios = require('axios');
 const router = express.Router();
+const FormData = require('form-data');
+const stream = require('stream');
 
 const USER = 'XBKEscqiybHhdkbT5KZ1d4Nh';
 const COMPANY = 'CX67HbYo9xKSaW1YNZ5x2KUV';
@@ -85,6 +87,51 @@ async function getRelbaseDteByFolio({ folio, dteLabel }) {
     }
 }
 
+async function uploadPdfToMonday({ itemId, columnId, pdfUrl }) {
+    // 1️⃣ Download PDF from Relbase
+    console.log("INSIDE function");
+    console.log("itemId: ", itemId);
+    console.log("columnId: ", columnId);
+    console.log("pdfUrl: ", pdfUrl);
+    const pdfResponse = await axios.get(pdfUrl, {
+        responseType: 'arraybuffer'
+    });
+    const buffer = Buffer.from(pdfResponse.data);
+    // 2️⃣ Prepare multipart form
+    const form = new FormData();
+    const mutation = `
+    mutation ($file: File!) {
+      add_file_to_column (
+        item_id: ${itemId},
+        column_id: "${columnId}",
+        file: $file
+      ) {
+        id
+      }
+    }
+  `;
+    form.append('query', mutation);
+    form.append(
+        'variables[file]',
+        buffer,
+        {
+            filename: 'DTE.pdf',
+            contentType: 'application/pdf'
+        }
+    );
+    // 3️⃣ Send to Monday
+    const response = await axios.post(
+        'https://api.monday.com/v2/file',
+        form,
+        {
+            headers: {
+                ...form.getHeaders(),
+                Authorization: MONDAY_API_TOKEN
+            }
+        }
+    );
+    return response.data;
+}
 
 router.post('/', async (req, res) => {
     const data = req.body;
@@ -93,8 +140,6 @@ router.post('/', async (req, res) => {
     }
     res.status(200).send('ok');
     try {
-        console.log('📩 Monday event received:');
-        console.log(JSON.stringify(data, null, 2));
         const event = data.event;
         if (!event) return;
         if (event.type !== 'update_column_value') return;
@@ -104,17 +149,12 @@ router.post('/', async (req, res) => {
             console.error('❌ Item not found');
             return;
         }
-        console.log(`📦 Item: ${item.name} (${item.id})`);
         const folio = item.column_values.find(
             col => col.column?.title === 'Folio'
         )?.text;
         const dteLabel = item.column_values.find(
             col => col.column?.title == 'DTE emitido (intro)'
         )?.text;
-        console.log('🧾 Folio:', folio);
-        item.column_values.forEach(col => {
-            console.log(`• ${col.column?.title}: ${col.text}`);
-        });
         const dte = await getRelbaseDteByFolio({
             folio,
             dteLabel
@@ -122,6 +162,16 @@ router.post('/', async (req, res) => {
         if (dte) {
             console.log('📄 Relbase DTE ID:', dte.id);
             console.log('📎 PDF URL:', dte.pdf_file?.url);
+        }
+        if (dte?.pdf_file?.url) {
+            console.log("file will try to be uploaded")
+            await uploadPdfToMonday({
+                itemId: item.id,
+                columnId: 'files', // ⚠️ must be the column ID, not the title
+                pdfUrl: dte.pdf_file.url
+            });
+
+            console.log('📤 PDF uploaded to Monday');
         }
     } catch (error) {
         console.error(
