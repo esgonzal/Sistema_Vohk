@@ -5,13 +5,34 @@ const cors = require('cors');
 const app = express();
 
 // Middleware
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+const allowedOrigins = ['http://localhost:4200', 'https://app.vohk.cl'];
 
+app.use(cors({
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like curl, Postman)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS not allowed for this origin'));
+    }
+  },
+  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization'],
+  credentials: true
+}));
+
+// Preflight for all routes
+app.options('*', cors());
+/*
 const corsOptions = {
     origin: ['https://app.vohk.cl', 'http://localhost:4200'],
 };
 app.use(cors(corsOptions));
+*/
 /*
 
 // CORS and Cross-Origin Isolation headers
@@ -99,13 +120,13 @@ app.use('/v1/group', GroupRouter);
 const emailRouter = require('../backend/routes/nodemailer/emailRoutes.js');
 app.use('/mail', emailRouter);
 
-
-//Integration Test
-const testRouter = require('../backend/routes/automation/monday_test.js');
-app.use('/test', testRouter);
 //Camera Test
 const cameraTest = require('../backend/routes/camera/camera.js');
 app.use('/camera', cameraTest);
+
+//Monday Test
+const mondayTest = require('../backend/routes/automation/monday_test.js');
+app.use('/monday', mondayTest);
 
 // HTTP Configuration
 const httpPort = 8080;
