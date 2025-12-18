@@ -125,30 +125,34 @@ async function getRelbaseDteByFolio({ folio, dteLabel }) {
 
 async function uploadPdfToMonday({ itemId, columnId, pdfUrl }) {
     // 1️⃣ Download PDF from Relbase
-    console.log("INSIDE function");
-    console.log("itemId: ", itemId);
-    console.log("columnId: ", columnId);
-    console.log("pdfUrl: ", pdfUrl);
     const pdfResponse = await axios.get(pdfUrl, {
         responseType: 'arraybuffer'
     });
     const buffer = Buffer.from(pdfResponse.data);
     // 2️⃣ Prepare multipart form
     const form = new FormData();
-    const mutation = `
-    mutation ($file: File!) {
-      add_file_to_column (
-        item_id: ${itemId},
-        column_id: "${columnId}",
-        file: $file
-      ) {
-        id
-      }
-    }
-  `;
-    form.append('query', mutation);
-    form.append('variables', JSON.stringify({}));
-    form.append('file', buffer, {
+    const operations = JSON.stringify({
+        query: `
+        mutation ($file: File!) {
+          add_file_to_column (
+            item_id: ${itemId},
+            column_id: "${columnId}",
+            file: $file
+          ) {
+            id
+          }
+        }
+        `,
+        variables: {
+            file: null
+        }
+    });
+    const map = JSON.stringify({
+        "0": ["variables.file"]
+    });
+    form.append('operations', operations);
+    form.append('map', map);
+    form.append('0', buffer, {
         filename: 'DTE.pdf',
         contentType: 'application/pdf'
     });
@@ -204,7 +208,7 @@ router.post('/', async (req, res) => {
             console.log("file will try to be uploaded")
             await uploadPdfToMonday({
                 itemId: item.id,
-                columnId: 'files', // ⚠️ must be the column ID, not the title
+                columnId: 'archivo', // ⚠️ must be the column ID, not the title
                 pdfUrl: dte.pdf_file.url
             });
             console.log('📤 PDF uploaded to Monday');
