@@ -164,7 +164,9 @@ async function uploadPdfToMonday({ itemId, columnId, pdfUrl }) {
             headers: {
                 Authorization: MONDAY_API_TOKEN,
                 ...form.getHeaders()
-            }
+            },
+            maxBodyLength: Infinity,
+            maxContentLength: Infinity
         }
     );
     console.log('📡 Monday response:', JSON.stringify(response.data, null, 2));
