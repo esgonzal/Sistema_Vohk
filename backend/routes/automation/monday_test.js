@@ -7,7 +7,7 @@ const stream = require('stream');
 const USER = 'XBKEscqiybHhdkbT5KZ1d4Nh';
 const COMPANY = 'CX67HbYo9xKSaW1YNZ5x2KUV';
 
-const MONDAY_API_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjI3NTkwOTkxNSwiYWFpIjoxMSwidWlkIjoxNjAyOTA4MSwiaWFkIjoiMjAyMy0wOC0xOFQwNDo0NTowNi4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6NzA2NDk3NiwicmduIjoidXNlMSJ9.RR2tMA7onXPMJG9Q2SYl6JCAhtHD_RIXEPW-Vj-yHHo'
+const MONDAY_API_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjMxNjI3NTAwOCwiYWFpIjoxMSwidWlkIjoyNTE4MTczNSwiaWFkIjoiMjAyNC0wMS0zMVQxNjo1OTowNy4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6NzA2NDk3NiwicmduIjoidXNlMSJ9.7r5JDi4lOgur0OCjM-DpB5ZSd31kEF0LG6ytFyihIkE'
 const MONDAY_API_URL = 'https://api.monday.com/v2';
 
 const DTE_TYPE_MAP = {
@@ -141,12 +141,9 @@ async function uploadPdfToMonday({ itemId, columnId, pdfUrl }) {
     const pdfResponse = await axios.get(pdfUrl, {
         responseType: 'arraybuffer'
     });
-
     const buffer = Buffer.from(pdfResponse.data);
-
     // 2. Build multipart form
     const form = new FormData();
-
     // 3. GraphQL mutation (NO inline values)
     const mutation = `
     mutation addFile($itemId: Int!, $columnId: String!, $file: File!) {
@@ -159,7 +156,6 @@ async function uploadPdfToMonday({ itemId, columnId, pdfUrl }) {
         }
     }
     `;
-
     // 4. operations
     form.append(
         'operations',
@@ -172,7 +168,6 @@ async function uploadPdfToMonday({ itemId, columnId, pdfUrl }) {
             }
         })
     );
-
     // 5. map (multipart spec)
     form.append(
         'map',
@@ -180,13 +175,11 @@ async function uploadPdfToMonday({ itemId, columnId, pdfUrl }) {
             '0': ['variables.file']
         })
     );
-
     // 6. actual file
     form.append('0', buffer, {
         filename: 'DTE.pdf',
         contentType: 'application/pdf'
     });
-
     // 7. send request
     const response = await axios.post(
         'https://api.monday.com/v2/file',
@@ -198,7 +191,6 @@ async function uploadPdfToMonday({ itemId, columnId, pdfUrl }) {
             }
         }
     );
-
     console.log('📡 Monday response:', response.data);
     return response.data;
 }
@@ -253,7 +245,6 @@ async function updateStatusColumn({ boardId, itemId, columnId, statusLabel }) {
     }
 }
 
-
 router.post('/', async (req, res) => {
     const data = req.body;
     if (data.challenge) {
@@ -302,6 +293,7 @@ router.post('/', async (req, res) => {
                 statusLabel: mapDteStatus(dte)
             });
         }
+        /*
         if (dte?.pdf_file?.url) {
             console.log("file will try to be uploaded")
             await uploadPdfToMonday({
@@ -310,6 +302,7 @@ router.post('/', async (req, res) => {
                 pdfUrl: dte.pdf_file.url
             });
         }
+        */
     } catch (error) {
         console.error(
             '🔥 Error processing Monday webhook:',
