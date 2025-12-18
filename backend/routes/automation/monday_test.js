@@ -15,10 +15,23 @@ const DTE_TYPE_MAP = {
     'Factura': 33,
     'Boleta': 39,
     'Boleta electrónica': 39,
+    'Nota de Venta': 1001,
     'Guía de Despacho': 52,
     'Nota de crédito': 61,
     'Nota de débito': 56
 };
+
+function mapDteStatus(dte) {
+    const today = new Date();
+    const endDate = new Date(dte.end_date);
+    if (dte.status === 'paid') return 'Pagado';
+    if (dte.status === 'partial') return 'Abono';
+    if (!dte.status || dte.status === 'pending') {
+        if (today > endDate) return 'Vencida';
+        return 'Pendiente';
+    }
+    return 'No Aplica';
+}
 
 async function printBoardColumns(boardId) {
     const query = `
@@ -213,6 +226,33 @@ async function updateNumberColumn({ boardId, itemId, columnId, numberValue }) {
     return response.data;
 }
 
+async function updateStatusColumn({ boardId, itemId, columnId, statusLabel }) {
+    const mutation = `
+        mutation changeColumnValue($boardId: ID!, $itemId: Int!, $columnId: String!, $value: JSON!) {
+            change_column_value(board_id: $boardId, item_id: $itemId, column_id: $columnId, value: $value) {
+                id
+            }
+        }
+    `;
+    const variables = {
+        boardId,
+        itemId,
+        columnId,
+        value: JSON.stringify({ label: statusLabel }) // important: wrap label in JSON
+    };
+    try {
+        const response = await axios.post(
+            MONDAY_API_URL,
+            { query: mutation, variables },
+            { headers: { Authorization: MONDAY_API_TOKEN, 'Content-Type': 'application/json' } }
+        );
+        console.log('📡 Monday status column updated:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('🔥 Failed to update status column:', error.response?.data || error);
+    }
+}
+
 
 router.post('/', async (req, res) => {
     const data = req.body;
@@ -227,7 +267,6 @@ router.post('/', async (req, res) => {
         const pulseId = event.pulseId;
         const item = await getMondayItem(pulseId);
         const boardId = event.boardId;
-
         await printBoardColumns(boardId);
         if (!item) {
             console.error('❌ Item not found');
@@ -247,12 +286,23 @@ router.post('/', async (req, res) => {
             console.log('📄 Relbase DTE ID:', dte.id);
             console.log('📎 PDF URL:', dte.pdf_file?.url);
         }
-        await updateNumberColumn({
-            boardId: boardId,
-            itemId: item.id,
-            columnId: 'n_meros',
-            numberValue: dte.real_amount_total
-        });
+        if (dte.real_amount_total) {
+            await updateNumberColumn({
+                boardId: boardId,
+                itemId: item.id,
+                columnId: 'n_meros',
+                numberValue: dte.real_amount_total
+            });
+        }
+        if (dte.status) {
+            await updateStatusColumn({
+                boardId,
+                itemId: item.id,
+                columnId: 'estado',
+                statusLabel: mapDteStatus(dte)
+            });
+        }
+        /*
         if (dte?.pdf_file?.url) {
             console.log("file will try to be uploaded")
             await uploadPdfToMonday({
@@ -262,6 +312,7 @@ router.post('/', async (req, res) => {
             });
             console.log('📤 PDF uploaded to Monday');
         }
+        */
     } catch (error) {
         console.error(
             '🔥 Error processing Monday webhook:',
