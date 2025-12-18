@@ -190,6 +190,28 @@ async function uploadPdfToMonday({ itemId, columnId, pdfUrl }) {
     return response.data;
 }
 
+async function updateNumberColumn({ itemId, columnId, numberValue }) {
+    const query = `
+        mutation {
+            change_column_value(
+                item_id: ${itemId},
+                column_id: "${columnId}",
+                value: "${numberValue}"
+            ) {
+                id
+            }
+        }
+    `;
+    const response = await axios.post(MONDAY_API_URL, { query }, {
+        headers: {
+            Authorization: MONDAY_API_TOKEN,
+            'Content-Type': 'application/json'
+        }
+    });
+    console.log('📡 Monday response:', response.data);
+    return response.data;
+}
+
 
 router.post('/', async (req, res) => {
     const data = req.body;
@@ -224,6 +246,11 @@ router.post('/', async (req, res) => {
             console.log('📄 Relbase DTE ID:', dte.id);
             console.log('📎 PDF URL:', dte.pdf_file?.url);
         }
+        await updateNumberColumn({
+            itemId: item.id,
+            columnId: 'n_meros',
+            numberValue: dte.real_amount_total
+        });
         if (dte?.pdf_file?.url) {
             console.log("file will try to be uploaded")
             await uploadPdfToMonday({
