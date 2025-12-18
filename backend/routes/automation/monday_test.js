@@ -190,10 +190,11 @@ async function uploadPdfToMonday({ itemId, columnId, pdfUrl }) {
     return response.data;
 }
 
-async function updateNumberColumn({ itemId, columnId, numberValue }) {
+async function updateNumberColumn({ boardId, itemId, columnId, numberValue }) {
     const query = `
         mutation {
             change_column_value(
+                board_id: ${boardId},
                 item_id: ${itemId},
                 column_id: "${columnId}",
                 value: "${numberValue}"
@@ -247,6 +248,7 @@ router.post('/', async (req, res) => {
             console.log('📎 PDF URL:', dte.pdf_file?.url);
         }
         await updateNumberColumn({
+            boardId: boardId,
             itemId: item.id,
             columnId: 'n_meros',
             numberValue: dte.real_amount_total
