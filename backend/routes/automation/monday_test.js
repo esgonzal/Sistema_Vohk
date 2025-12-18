@@ -11,6 +11,7 @@ const MONDAY_API_URL = 'https://api.monday.com/v2';
 const DTE_TYPE_MAP = {
     'Factura': 33,
     'Boleta': 39,
+    'Nota de Venta': 1001,
 };
 
 function mapDteStatus(dte) {
@@ -27,13 +28,25 @@ function mapDteStatus(dte) {
 
 function parseItemName(name) {
     if (!name) return null;
-    const match = name.trim().match(/^(FE|BE)\s*(\d+)$/i);
+    const match = name.trim().match(/^(FE|BE|NV)\s*(\d+)$/i);
     if (!match) return null;
     const [, type, folio] = match;
+    let dteLabel;
+    switch (type.toUpperCase()) {
+        case 'FE':
+            dteLabel = 'Factura';
+            break;
+        case 'BE':
+            dteLabel = 'Boleta';
+            break;
+        case 'NV':
+            dteLabel = 'Nota de Venta';
+            break;
+        default:
+            return null;
+    }
     return {
-        dteLabel: type.toUpperCase() === 'FE'
-            ? 'Factura'
-            : 'Boleta',
+        dteLabel,
         folio
     };
 }
@@ -50,6 +63,11 @@ function mapTipoDoc(dte) {
         return 'Nota de Venta';
     }
     return 'Otro';
+}
+
+function formatSellerName(vendedor) {
+    if (!vendedor) return null;
+    return `${vendedor.first_name.trim()} ${vendedor.last_name.trim()}`;
 }
 
 async function printBoardColumns(boardId) {
@@ -149,6 +167,29 @@ async function getRelbaseDteByFolio({ folio, dteLabel }) {
     } catch (error) {
         console.error(
             '🔥 Relbase DTE lookup failed:',
+            error.response?.data || error
+        );
+        return null;
+    }
+}
+
+async function getRelbaseSeller(sellerId) {
+    if (!sellerId) return null;
+    try {
+        const response = await axios.get(
+            `https://api.relbase.cl/api/v1/vendedores/${sellerId}`,
+            {
+                headers: {
+                    accept: 'application/json',
+                    Authorization: USER,
+                    Company: COMPANY
+                }
+            }
+        );
+        return response.data?.data || null;
+    } catch (error) {
+        console.error(
+            '🔥 Relbase seller lookup failed:',
             error.response?.data || error
         );
         return null;
@@ -266,6 +307,43 @@ async function updateStatusColumn({ boardId, itemId, columnId, statusLabel }) {
     }
 }
 
+async function updateDropdownColumn({ boardId, itemId, columnId, labels }) {
+    if (!Array.isArray(labels) || labels.length === 0) return;
+    const mutation = `
+        mutation changeColumnValue(
+            $boardId: ID!,
+            $itemId: ID!,
+            $columnId: String!,
+            $value: JSON!
+        ) {
+            change_column_value(
+                board_id: $boardId,
+                item_id: $itemId,
+                column_id: $columnId,
+                value: $value
+            ) {
+                id
+            }
+        }
+    `;
+    const variables = {
+        boardId: String(boardId),
+        itemId: String(itemId),
+        columnId,
+        value: JSON.stringify({ labels })
+    };
+    await axios.post(
+        MONDAY_API_URL,
+        { query: mutation, variables },
+        {
+            headers: {
+                Authorization: MONDAY_API_TOKEN,
+                'Content-Type': 'application/json'
+            }
+        }
+    );
+}
+
 router.post('/', async (req, res) => {
     const data = req.body;
     if (data.challenge) {
@@ -292,7 +370,8 @@ router.post('/', async (req, res) => {
         const { folio, dteLabel } = parsed;
         const dte = await getRelbaseDteByFolio({ folio, dteLabel });
         if (!dte) return;
-        console.log('📄 Relbase DTE ID:', dte.id);
+        const seller = await getRelbaseSeller(dte.seller_id);
+        const sellerName = formatSellerName(seller);
         // FECHA EMISION
         await updateDateColumn({
             boardId,
@@ -322,6 +401,12 @@ router.post('/', async (req, res) => {
             statusLabel: mapTipoDoc(dte)
         });
         // VENDEDOR
+        await updateDropdownColumn({
+            boardId,
+            itemId: item.id,
+            columnId: 'dropdown_mkyrk2t1',
+            labels: [sellerName]
+        });
     } catch (error) {
         console.error(
             '🔥 Error processing Monday webhook:',
