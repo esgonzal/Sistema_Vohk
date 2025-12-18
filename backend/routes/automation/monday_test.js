@@ -267,7 +267,7 @@ router.post('/', async (req, res) => {
         const pulseId = event.pulseId;
         const item = await getMondayItem(pulseId);
         const boardId = event.boardId;
-        //await printBoardColumns(boardId);
+        await printBoardColumns(boardId);
         if (!item) {
             console.error('❌ Item not found');
             return;
@@ -302,17 +302,14 @@ router.post('/', async (req, res) => {
                 statusLabel: mapDteStatus(dte)
             });
         }
-        /*
         if (dte?.pdf_file?.url) {
             console.log("file will try to be uploaded")
             await uploadPdfToMonday({
                 itemId: item.id,
-                columnId: 'archivo', // ⚠️ must be the column ID, not the title
+                columnId: 'archivo',
                 pdfUrl: dte.pdf_file.url
             });
-            console.log('📤 PDF uploaded to Monday');
         }
-        */
     } catch (error) {
         console.error(
             '🔥 Error processing Monday webhook:',
