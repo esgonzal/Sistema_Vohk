@@ -7,7 +7,7 @@ const stream = require('stream');
 const USER = 'XBKEscqiybHhdkbT5KZ1d4Nh';
 const COMPANY = 'CX67HbYo9xKSaW1YNZ5x2KUV';
 
-const MONDAY_API_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjMxNjI3NTAwOCwiYWFpIjoxMSwidWlkIjoyNTE4MTczNSwiaWFkIjoiMjAyNC0wMS0zMVQxNjo1OTowNy4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6NzA2NDk3NiwicmduIjoidXNlMSJ9.7r5JDi4lOgur0OCjM-DpB5ZSd31kEF0LG6ytFyihIkE'
+const MONDAY_API_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjI3NTkwOTkxNSwiYWFpIjoxMSwidWlkIjoxNjAyOTA4MSwiaWFkIjoiMjAyMy0wOC0xOFQwNDo0NTowNi4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6NzA2NDk3NiwicmduIjoidXNlMSJ9.RR2tMA7onXPMJG9Q2SYl6JCAhtHD_RIXEPW-Vj-yHHo'
 const MONDAY_API_URL = 'https://api.monday.com/v2';
 
 const DTE_TYPE_MAP = {
