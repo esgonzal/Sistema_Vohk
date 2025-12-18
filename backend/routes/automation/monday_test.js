@@ -228,17 +228,17 @@ async function updateNumberColumn({ boardId, itemId, columnId, numberValue }) {
 
 async function updateStatusColumn({ boardId, itemId, columnId, statusLabel }) {
     const mutation = `
-        mutation changeColumnValue($boardId: ID!, $itemId: Int!, $columnId: String!, $value: JSON!) {
+        mutation changeColumnValue($boardId: ID!, $itemId: ID!, $columnId: String!, $value: JSON!) {
             change_column_value(board_id: $boardId, item_id: $itemId, column_id: $columnId, value: $value) {
                 id
             }
         }
     `;
     const variables = {
-        boardId,
-        itemId,
+        boardId: String(boardId),
+        itemId: String(itemId),
         columnId,
-        value: JSON.stringify({ label: statusLabel }) // important: wrap label in JSON
+        value: JSON.stringify({ label: statusLabel })
     };
     try {
         const response = await axios.post(
@@ -267,7 +267,7 @@ router.post('/', async (req, res) => {
         const pulseId = event.pulseId;
         const item = await getMondayItem(pulseId);
         const boardId = event.boardId;
-        await printBoardColumns(boardId);
+        //await printBoardColumns(boardId);
         if (!item) {
             console.error('❌ Item not found');
             return;
