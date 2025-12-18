@@ -135,7 +135,7 @@ async function uploadPdfToMonday({ itemId, columnId, pdfUrl }) {
         query: `
         mutation ($file: File!) {
           add_file_to_column (
-            item_id: ${itemId},
+            item_id: "${itemId}",
             column_id: "${columnId}",
             file: $file
           ) {
