@@ -1,8 +1,6 @@
 const express = require('express');
 const axios = require('axios');
 const router = express.Router();
-const FormData = require('form-data');
-const stream = require('stream');
 
 const USER = 'XBKEscqiybHhdkbT5KZ1d4Nh';
 const COMPANY = 'CX67HbYo9xKSaW1YNZ5x2KUV';
@@ -38,6 +36,20 @@ function parseItemName(name) {
             : 'Boleta',
         folio
     };
+}
+
+function mapTipoDoc(dte) {
+    if (!dte?.type_document_name) return 'No Aplica';
+    if (dte.type_document_name === 'FACTURA ELECTRÓNICA') {
+        return 'Factura';
+    }
+    if (dte.type_document_name === 'BOLETA ELECTRÓNICA') {
+        return 'Boleta';
+    }
+    if (dte.type_document_name === 'NOTA DE VENTA') {
+        return 'Nota de Venta';
+    }
+    return 'Otro';
 }
 
 async function printBoardColumns(boardId) {
@@ -143,86 +155,88 @@ async function getRelbaseDteByFolio({ folio, dteLabel }) {
     }
 }
 
-async function uploadPdfToMonday({ itemId, columnId, pdfUrl }) {
-    // 1. Download the PDF
-    const pdfResponse = await axios.get(pdfUrl, {
-        responseType: 'arraybuffer'
-    });
-    const buffer = Buffer.from(pdfResponse.data);
-    // 2. Build multipart form
-    const form = new FormData();
-    // 3. GraphQL mutation (NO inline values)
+async function updateDateColumn({ boardId, itemId, columnId, date }) {
+    if (!date) return;
     const mutation = `
-    mutation addFile($itemId: Int!, $columnId: String!, $file: File!) {
-        add_file_to_column(
-            item_id: $itemId,
-            column_id: $columnId,
-            file: $file
+        mutation changeColumnValue(
+            $boardId: ID!,
+            $itemId: ID!,
+            $columnId: String!,
+            $value: JSON!
         ) {
-            id
-        }
-    }
-    `;
-    // 4. operations
-    form.append(
-        'operations',
-        JSON.stringify({
-            query: mutation,
-            variables: {
-                itemId: Number(itemId),
-                columnId,
-                file: null
-            }
-        })
-    );
-    // 5. map (multipart spec)
-    form.append(
-        'map',
-        JSON.stringify({
-            '0': ['variables.file']
-        })
-    );
-    // 6. actual file
-    form.append('0', buffer, {
-        filename: 'DTE.pdf',
-        contentType: 'application/pdf'
-    });
-    // 7. send request
-    const response = await axios.post(
-        'https://api.monday.com/v2/file',
-        form,
-        {
-            headers: {
-                Authorization: MONDAY_API_TOKEN,
-                ...form.getHeaders()
-            }
-        }
-    );
-    console.log('📡 Monday response:', response.data);
-    return response.data;
-}
-
-async function updateNumberColumn({ boardId, itemId, columnId, numberValue }) {
-    const query = `
-        mutation {
             change_column_value(
-                board_id: ${boardId},
-                item_id: ${itemId},
-                column_id: "${columnId}",
-                value: "${numberValue}"
+                board_id: $boardId,
+                item_id: $itemId,
+                column_id: $columnId,
+                value: $value
             ) {
                 id
             }
         }
     `;
-    const response = await axios.post(MONDAY_API_URL, { query }, {
-        headers: {
-            Authorization: MONDAY_API_TOKEN,
-            'Content-Type': 'application/json'
+    const variables = {
+        boardId: String(boardId),
+        itemId: String(itemId),
+        columnId,
+        value: JSON.stringify({
+            date // must be YYYY-MM-DD
+        })
+    };
+    try {
+        const response = await axios.post(
+            MONDAY_API_URL,
+            { query: mutation, variables },
+            {
+                headers: {
+                    Authorization: MONDAY_API_TOKEN,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+        console.log('📅 Monday date column updated:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error(
+            '🔥 Failed to update date column:',
+            error.response?.data || error
+        );
+    }
+}
+
+async function updateNumberColumn({ boardId, itemId, columnId, numberValue }) {
+    const mutation = `
+        mutation changeColumnValue(
+            $boardId: ID!,
+            $itemId: ID!,
+            $columnId: String!,
+            $value: JSON!
+        ) {
+            change_column_value(
+                board_id: $boardId,
+                item_id: $itemId,
+                column_id: $columnId,
+                value: $value
+            ) {
+                id
+            }
         }
-    });
-    console.log('📡 Monday response:', response.data);
-    return response.data;
+    `;
+    const variables = {
+        boardId: String(boardId),
+        itemId: String(itemId),
+        columnId,
+        value: JSON.stringify(numberValue)
+    };
+    return axios.post(
+        MONDAY_API_URL,
+        { query: mutation, variables },
+        {
+            headers: {
+                Authorization: MONDAY_API_TOKEN,
+                'Content-Type': 'application/json'
+            }
+        }
+    );
 }
 
 async function updateStatusColumn({ boardId, itemId, columnId, statusLabel }) {
@@ -265,7 +279,7 @@ router.post('/', async (req, res) => {
         const itemId = event.pulseId;
         const boardId = event.boardId;
         const item = await getMondayItem(itemId);
-        await printBoardColumns(boardId);
+        //await printBoardColumns(boardId);
         if (!item) {
             console.error('❌ Item not found');
             return;
@@ -279,32 +293,35 @@ router.post('/', async (req, res) => {
         const dte = await getRelbaseDteByFolio({ folio, dteLabel });
         if (!dte) return;
         console.log('📄 Relbase DTE ID:', dte.id);
-        if (dte.real_amount_total) {
-            await updateNumberColumn({
-                boardId: boardId,
-                itemId: item.id,
-                columnId: 'n_meros',
-                numberValue: dte.real_amount_total
-            });
-        }
-        if (dte.status) {
-            await updateStatusColumn({
-                boardId,
-                itemId: item.id,
-                columnId: 'estado',
-                statusLabel: mapDteStatus(dte)
-            });
-        }
-        /*
-        if (dte?.pdf_file?.url) {
-            console.log("file will try to be uploaded")
-            await uploadPdfToMonday({
-                itemId: item.id,
-                columnId: 'archivo',
-                pdfUrl: dte.pdf_file.url
-            });
-        }
-        */
+        // FECHA EMISION
+        await updateDateColumn({
+            boardId,
+            itemId: item.id,
+            columnId: 'date',
+            date: dte.start_date // "2025-12-18"
+        });
+        // ESTADO PAGO
+        await updateStatusColumn({
+            boardId,
+            itemId: item.id,
+            columnId: 'color_mkyryrxb',
+            statusLabel: mapDteStatus(dte)
+        });
+        // VALOR FACTURA
+        await updateNumberColumn({
+            boardId,
+            itemId: item.id,
+            columnId: 'numeric_mkyr63qj',
+            numberValue: Number(dte.real_amount_total)
+        });
+        // TIPO DOC
+        await updateStatusColumn({
+            boardId,
+            itemId: item.id,
+            columnId: 'color_mkyr7e09',
+            statusLabel: mapTipoDoc(dte)
+        });
+        // VENDEDOR
     } catch (error) {
         console.error(
             '🔥 Error processing Monday webhook:',
