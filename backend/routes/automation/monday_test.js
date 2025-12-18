@@ -19,6 +19,7 @@ function mapDteStatus(dte) {
     const endDate = new Date(dte.end_date);
     if (dte.status === 'paid') return 'Pagado';
     if (dte.status === 'partial') return 'Abono';
+    if (dte.status === 'cancel') return 'Anulada';
     if (!dte.status || dte.status === 'pending') {
         if (today > endDate) return 'Vencida';
         return 'Pendiente';
