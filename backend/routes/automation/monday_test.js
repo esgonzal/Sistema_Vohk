@@ -11,14 +11,50 @@ const MONDAY_API_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjMxNjI3NTAwOCwiYWFpIjoxM
 const MONDAY_API_URL = 'https://api.monday.com/v2';
 
 const DTE_TYPE_MAP = {
-    'Factura electrónica': 33,
-    'Factura Electronica': 33,
+    'factura': 33,
+    'Factura': 33,
     'Boleta': 39,
     'Boleta electrónica': 39,
     'Guía de Despacho': 52,
     'Nota de crédito': 61,
     'Nota de débito': 56
 };
+
+async function printBoardColumns(boardId) {
+    const query = `
+      query {
+        boards(ids: [${boardId}]) {
+          id
+          name
+          columns {
+            id
+            title
+            type
+          }
+        }
+      }
+    `;
+    const response = await axios.post(
+        MONDAY_API_URL,
+        { query },
+        {
+            headers: {
+                Authorization: MONDAY_API_TOKEN,
+                'Content-Type': 'application/json'
+            }
+        }
+    );
+    const board = response.data?.data?.boards?.[0];
+    if (!board) {
+        console.error('❌ Board not found');
+        return;
+    }
+    console.log(`📋 Board: ${board.name} (${board.id})`);
+    console.log('🧱 Columns:');
+    board.columns.forEach(col => {
+        console.log(`• ID: ${col.id} | Title: ${col.title} | Type: ${col.type}`);
+    });
+}
 
 async function getMondayItem(pulseId) {
     const query = `
@@ -111,25 +147,23 @@ async function uploadPdfToMonday({ itemId, columnId, pdfUrl }) {
     }
   `;
     form.append('query', mutation);
-    form.append(
-        'variables[file]',
-        buffer,
-        {
-            filename: 'DTE.pdf',
-            contentType: 'application/pdf'
-        }
-    );
+    form.append('variables', JSON.stringify({}));
+    form.append('file', buffer, {
+        filename: 'DTE.pdf',
+        contentType: 'application/pdf'
+    });
     // 3️⃣ Send to Monday
     const response = await axios.post(
         'https://api.monday.com/v2/file',
         form,
         {
             headers: {
-                ...form.getHeaders(),
-                Authorization: MONDAY_API_TOKEN
+                Authorization: MONDAY_API_TOKEN,
+                ...form.getHeaders()
             }
         }
     );
+    console.log('📡 Monday response:', JSON.stringify(response.data, null, 2));
     return response.data;
 }
 
@@ -170,7 +204,6 @@ router.post('/', async (req, res) => {
                 columnId: 'files', // ⚠️ must be the column ID, not the title
                 pdfUrl: dte.pdf_file.url
             });
-
             console.log('📤 PDF uploaded to Monday');
         }
     } catch (error) {
