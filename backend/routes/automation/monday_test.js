@@ -234,7 +234,7 @@ async function updateDateColumn({ boardId, itemId, columnId, date }) {
                 }
             }
         );
-        console.log('📅 Monday date column updated:', response.data);
+        //console.log('📅 Monday date column updated:', response.data);
         return response.data;
     } catch (error) {
         console.error(
@@ -300,7 +300,7 @@ async function updateStatusColumn({ boardId, itemId, columnId, statusLabel }) {
             { query: mutation, variables },
             { headers: { Authorization: MONDAY_API_TOKEN, 'Content-Type': 'application/json' } }
         );
-        console.log('📡 Monday status column updated:', response.data);
+        //console.log('📡 Monday status column updated:', response.data);
         return response.data;
     } catch (error) {
         console.error('🔥 Failed to update status column:', error.response?.data || error);
