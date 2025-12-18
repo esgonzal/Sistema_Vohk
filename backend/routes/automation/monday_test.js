@@ -11,14 +11,8 @@ const MONDAY_API_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjMxNjI3NTAwOCwiYWFpIjoxM
 const MONDAY_API_URL = 'https://api.monday.com/v2';
 
 const DTE_TYPE_MAP = {
-    'factura': 33,
     'Factura': 33,
     'Boleta': 39,
-    'Boleta electrónica': 39,
-    'Nota de Venta': 1001,
-    'Guía de Despacho': 52,
-    'Nota de crédito': 61,
-    'Nota de débito': 56
 };
 
 function mapDteStatus(dte) {
@@ -31,6 +25,19 @@ function mapDteStatus(dte) {
         return 'Pendiente';
     }
     return 'No Aplica';
+}
+
+function parseItemName(name) {
+    if (!name) return null;
+    const match = name.trim().match(/^(FE|BE)\s*(\d+)$/i);
+    if (!match) return null;
+    const [, type, folio] = match;
+    return {
+        dteLabel: type.toUpperCase() === 'FE'
+            ? 'Factura'
+            : 'Boleta',
+        folio
+    };
 }
 
 async function printBoardColumns(boardId) {
@@ -254,29 +261,24 @@ router.post('/', async (req, res) => {
     try {
         const event = data.event;
         if (!event) return;
-        if (event.type !== 'update_column_value') return;
-        const pulseId = event.pulseId;
-        const item = await getMondayItem(pulseId);
+        if (event.type !== 'create_pulse') return;
+        const itemId = event.pulseId;
         const boardId = event.boardId;
+        const item = await getMondayItem(itemId);
         await printBoardColumns(boardId);
         if (!item) {
             console.error('❌ Item not found');
             return;
         }
-        const folio = item.column_values.find(
-            col => col.column?.title === 'Folio'
-        )?.text;
-        const dteLabel = item.column_values.find(
-            col => col.column?.title == 'DTE emitido (intro)'
-        )?.text;
-        const dte = await getRelbaseDteByFolio({
-            folio,
-            dteLabel
-        });
-        if (dte) {
-            console.log('📄 Relbase DTE ID:', dte.id);
-            console.log('📎 PDF URL:', dte.pdf_file?.url);
+        const parsed = parseItemName(item.name);
+        if (!parsed) {
+            console.error('❌ Invalid item name format:', item.name);
+            return;
         }
+        const { folio, dteLabel } = parsed;
+        const dte = await getRelbaseDteByFolio({ folio, dteLabel });
+        if (!dte) return;
+        console.log('📄 Relbase DTE ID:', dte.id);
         if (dte.real_amount_total) {
             await updateNumberColumn({
                 boardId: boardId,
