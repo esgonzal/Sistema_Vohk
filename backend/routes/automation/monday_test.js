@@ -179,6 +179,9 @@ router.post('/', async (req, res) => {
         if (event.type !== 'update_column_value') return;
         const pulseId = event.pulseId;
         const item = await getMondayItem(pulseId);
+        const boardId = event.boardId;
+
+        await printBoardColumns(boardId);
         if (!item) {
             console.error('❌ Item not found');
             return;
