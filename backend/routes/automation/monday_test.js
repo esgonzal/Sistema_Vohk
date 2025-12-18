@@ -317,16 +317,12 @@ async function updateDropdownColumn({ boardId, itemId, columnId, labels }) {
         labelsType: typeof labels,
         isArray: Array.isArray(labels)
     });
-
     if (!Array.isArray(labels) || labels.length === 0) {
         console.warn('⚠️ [Dropdown] Labels invalid or empty, aborting');
         return;
     }
-
-    const formattedLabels = labels.map(label => ({ name: label }));
-
-    console.log('🧾 Formatted labels:', formattedLabels);
-
+    // ⬇️ IMPORTANT: labels must be plain strings
+    console.log('🧾 Using labels (strings only):', labels);
     const mutation = `
         mutation changeColumnValue(
             $boardId: ID!,
@@ -344,20 +340,15 @@ async function updateDropdownColumn({ boardId, itemId, columnId, labels }) {
             }
         }
     `;
-
-    const valuePayload = {
-        labels: formattedLabels
-    };
-
     const variables = {
         boardId: String(boardId),
         itemId: String(itemId),
         columnId,
-        value: JSON.stringify(valuePayload)
+        value: JSON.stringify({
+            labels // ← ARRAY OF STRINGS
+        })
     };
-
     console.log('🧾 GraphQL variables:', JSON.stringify(variables, null, 2));
-
     try {
         const response = await axios.post(
             MONDAY_API_URL,
@@ -369,21 +360,14 @@ async function updateDropdownColumn({ boardId, itemId, columnId, labels }) {
                 }
             }
         );
-
-        console.log('🟢 [Dropdown] SUCCESS');
-        console.log('📦 Monday response:', JSON.stringify(response.data, null, 2));
-
+        console.log('🟢 [Dropdown] RESPONSE:', JSON.stringify(response.data, null, 2));
         if (response.data?.errors) {
             console.error('🚨 [Dropdown] GraphQL errors:', response.data.errors);
         }
-
         return response.data;
     } catch (error) {
         console.error('🔴 [Dropdown] FAILED');
-        console.error(
-            '🔥 Axios error:',
-            error.response?.data || error.message || error
-        );
+        console.error(error.response?.data || error.message || error);
     } finally {
         console.log('🟡 [Dropdown] END');
     }
