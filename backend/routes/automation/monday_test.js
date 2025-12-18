@@ -127,22 +127,28 @@ async function uploadPdfToMonday({ itemId, columnId, pdfUrl }) {
     const pdfResponse = await axios.get(pdfUrl, {
         responseType: 'arraybuffer'
     });
-
     const buffer = Buffer.from(pdfResponse.data);
     const form = new FormData();
-
-    const mutation =
-        'mutation ($file: File!) { add_file_to_column(item_id: ' +
-        itemId +
-        ', column_id: "' +
-        columnId +
-        '", file: $file) { id } }';
-
+    const mutation = `
+    mutation addFile($itemId: Int!, $columnId: String!, $file: File!) {
+        add_file_to_column(
+            item_id: $itemId,
+            column_id: $columnId,
+            file: $file
+        ) {
+            id
+        }
+    }
+    `;
     form.append(
         'operations',
         JSON.stringify({
             query: mutation,
-            variables: { file: null }
+            variables: {
+                itemId: Number(itemId),
+                columnId,
+                file: null
+            }
         })
     );
     form.append(
