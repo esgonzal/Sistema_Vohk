@@ -124,11 +124,17 @@ async function getRelbaseDteByFolio({ folio, dteLabel }) {
 }
 
 async function uploadPdfToMonday({ itemId, columnId, pdfUrl }) {
+    // 1. Download the PDF
     const pdfResponse = await axios.get(pdfUrl, {
         responseType: 'arraybuffer'
     });
+
     const buffer = Buffer.from(pdfResponse.data);
+
+    // 2. Build multipart form
     const form = new FormData();
+
+    // 3. GraphQL mutation (NO inline values)
     const mutation = `
     mutation addFile($itemId: Int!, $columnId: String!, $file: File!) {
         add_file_to_column(
@@ -140,6 +146,8 @@ async function uploadPdfToMonday({ itemId, columnId, pdfUrl }) {
         }
     }
     `;
+
+    // 4. operations
     form.append(
         'operations',
         JSON.stringify({
@@ -151,16 +159,22 @@ async function uploadPdfToMonday({ itemId, columnId, pdfUrl }) {
             }
         })
     );
+
+    // 5. map (multipart spec)
     form.append(
         'map',
         JSON.stringify({
             '0': ['variables.file']
         })
     );
+
+    // 6. actual file
     form.append('0', buffer, {
         filename: 'DTE.pdf',
         contentType: 'application/pdf'
     });
+
+    // 7. send request
     const response = await axios.post(
         'https://api.monday.com/v2/file',
         form,
@@ -171,6 +185,7 @@ async function uploadPdfToMonday({ itemId, columnId, pdfUrl }) {
             }
         }
     );
+
     console.log('📡 Monday response:', response.data);
     return response.data;
 }
