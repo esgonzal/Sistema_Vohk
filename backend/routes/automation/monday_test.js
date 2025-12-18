@@ -124,39 +124,37 @@ async function getRelbaseDteByFolio({ folio, dteLabel }) {
 }
 
 async function uploadPdfToMonday({ itemId, columnId, pdfUrl }) {
-    // 1️⃣ Download PDF from Relbase
     const pdfResponse = await axios.get(pdfUrl, {
         responseType: 'arraybuffer'
     });
+
     const buffer = Buffer.from(pdfResponse.data);
-    // 2️⃣ Prepare multipart form
     const form = new FormData();
-    const operations = JSON.stringify({
-        query: `
-        mutation ($file: File!) {
-          add_file_to_column (
-            item_id: "${itemId}",
-            column_id: "${columnId}",
-            file: $file
-          ) {
-            id
-          }
-        }
-        `,
-        variables: {
-            file: null
-        }
-    });
-    const map = JSON.stringify({
-        "0": ["variables.file"]
-    });
-    form.append('operations', operations);
-    form.append('map', map);
+
+    const mutation =
+        'mutation ($file: File!) { add_file_to_column(item_id: ' +
+        itemId +
+        ', column_id: "' +
+        columnId +
+        '", file: $file) { id } }';
+
+    form.append(
+        'operations',
+        JSON.stringify({
+            query: mutation,
+            variables: { file: null }
+        })
+    );
+    form.append(
+        'map',
+        JSON.stringify({
+            '0': ['variables.file']
+        })
+    );
     form.append('0', buffer, {
         filename: 'DTE.pdf',
         contentType: 'application/pdf'
     });
-    // 3️⃣ Send to Monday
     const response = await axios.post(
         'https://api.monday.com/v2/file',
         form,
@@ -164,14 +162,13 @@ async function uploadPdfToMonday({ itemId, columnId, pdfUrl }) {
             headers: {
                 Authorization: MONDAY_API_TOKEN,
                 ...form.getHeaders()
-            },
-            maxBodyLength: Infinity,
-            maxContentLength: Infinity
+            }
         }
     );
-    console.log('📡 Monday response:', JSON.stringify(response.data, null, 2));
+    console.log('📡 Monday response:', response.data);
     return response.data;
 }
+
 
 router.post('/', async (req, res) => {
     const data = req.body;
