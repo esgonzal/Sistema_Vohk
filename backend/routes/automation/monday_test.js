@@ -448,7 +448,7 @@ router.post('/update', async (req, res) => {
         if (!event) return;
         const itemId = event.pulseId;
         const boardId = event.boardId;
-        
+
         // 1️⃣ Get Monday item
         const item = await getMondayItem(itemId);
         if (!item) {
@@ -462,38 +462,42 @@ router.post('/update', async (req, res) => {
             return;
         }
         const { folio, dteLabel } = parsed;
-        console.log('🔄 [UPDATE] Triggered for ', dteLabel,': ',folio);
+        console.log('🔄 [UPDATE] Triggered for ', dteLabel, ': ', folio);
         // 3️⃣ Fetch DTE again from Relbase
         const dte = await getRelbaseDteByFolio({ folio, dteLabel });
-        if (!dte) {
-            console.warn('⚠️ No DTE found in Relbase');
-            return;
-        }
+        if (!dte) return;
+        const seller = await getRelbaseSeller(dte.seller_id);
+        const sellerName = formatSellerName(seller);
         // 4️⃣ Update columns (same logic as create)
+        // FECHA EMISION
         await updateDateColumn({
             boardId,
             itemId: item.id,
-            columnId: 'date', // fecha emisión
-            date: dte.start_date
+            columnId: 'date',
+            date: dte.start_date // "2025-12-18"
         });
+        // ESTADO PAGO
         await updateStatusColumn({
             boardId,
             itemId: item.id,
-            columnId: 'color_mkyryrxb', // estado pago
+            columnId: 'color_mkyryrxb',
             statusLabel: mapDteStatus(dte)
         });
+        // VALOR FACTURA
         await updateNumberColumn({
             boardId,
             itemId: item.id,
             columnId: 'numeric_mkyr63qj',
             numberValue: Number(dte.real_amount_total)
         });
+        // TIPO DOC
         await updateStatusColumn({
             boardId,
             itemId: item.id,
             columnId: 'color_mkyr7e09',
             statusLabel: mapTipoDoc(dte)
         });
+        // VENDEDOR
         await updateDropdownColumn({
             boardId,
             itemId: item.id,
