@@ -372,7 +372,7 @@ router.post('/', async (req, res) => {
         const itemId = event.pulseId;
         const boardId = event.boardId;
         const item = await getMondayItem(itemId);
-        //await printBoardColumns(boardId);
+        await printBoardColumns(boardId);
         if (!item) {
             console.error('❌ Item not found');
             return;
@@ -429,5 +429,84 @@ router.post('/', async (req, res) => {
         );
     }
 });
+
+router.post('/update', async (req, res) => {
+    const data = req.body;
+    // Monday webhook handshake
+    if (data.challenge) {
+        return res.status(200).send({ challenge: data.challenge });
+    }
+    res.status(200).send('ok');
+    try {
+        const event = data.event;
+        if (!event) return;
+        const itemId = event.pulseId;
+        const boardId = event.boardId;
+        console.log('🔄 [UPDATE] Triggered for item:', itemId);
+        // 1️⃣ Get Monday item
+        const item = await getMondayItem(itemId);
+        if (!item) {
+            console.error('❌ Item not found');
+            return;
+        }
+        // 2️⃣ Parse item name: FE 2257 / BE 991 / NV 123
+        const parsed = parseItemName(item.name);
+        if (!parsed) {
+            console.error('❌ Invalid item name format:', item.name);
+            return;
+        }
+        const { folio, dteLabel } = parsed;
+        // 3️⃣ Fetch DTE again from Relbase
+        const dte = await getRelbaseDteByFolio({ folio, dteLabel });
+        if (!dte) {
+            console.warn('⚠️ No DTE found in Relbase');
+            return;
+        }
+        // 4️⃣ Update columns (same logic as create)
+        await updateDateColumn({
+            boardId,
+            itemId: item.id,
+            columnId: 'date', // fecha emisión
+            date: dte.start_date
+        });
+        await updateStatusColumn({
+            boardId,
+            itemId: item.id,
+            columnId: 'color_mkyryrxb', // estado pago
+            statusLabel: mapDteStatus(dte)
+        });
+        await updateNumberColumn({
+            boardId,
+            itemId: item.id,
+            columnId: 'numeric_mkyr63qj',
+            numberValue: Number(dte.real_amount_total)
+        });
+        await updateStatusColumn({
+            boardId,
+            itemId: item.id,
+            columnId: 'color_mkyr7e09',
+            statusLabel: mapTipoDoc(dte)
+        });
+        // 5️⃣ Seller (optional but consistent)
+        if (dte.seller_id) {
+            const seller = await getRelbaseSeller(dte.seller_id);
+            const sellerName = formatSellerName(seller);
+            if (sellerName) {
+                await updateDropdownColumn({
+                    boardId,
+                    itemId: item.id,
+                    columnId: 'dropdown_mkyrk2t1',
+                    labels: [sellerName]
+                });
+            }
+        }
+    } catch (error) {
+        console.error(
+            '🔥 [UPDATE] Error processing webhook:',
+            error.response?.data || error
+        );
+    }
+});
+
 
 module.exports = router;
