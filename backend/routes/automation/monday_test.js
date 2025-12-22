@@ -422,6 +422,12 @@ router.post('/', async (req, res) => {
             columnId: 'dropdown_mkyrk2t1',
             labels: [sellerName]
         });
+        await updateDateColumn({
+            boardId,
+            itemId: item.id,
+            columnId: 'date_mkyvc0pp',
+            date: dte.end_date // "2025-12-18"
+        });
     } catch (error) {
         console.error(
             '🔥 Error processing Monday webhook:',
@@ -442,7 +448,7 @@ router.post('/update', async (req, res) => {
         if (!event) return;
         const itemId = event.pulseId;
         const boardId = event.boardId;
-        console.log('🔄 [UPDATE] Triggered for item:', itemId);
+        
         // 1️⃣ Get Monday item
         const item = await getMondayItem(itemId);
         if (!item) {
@@ -456,6 +462,7 @@ router.post('/update', async (req, res) => {
             return;
         }
         const { folio, dteLabel } = parsed;
+        console.log('🔄 [UPDATE] Triggered for ', dteLabel,': ',folio);
         // 3️⃣ Fetch DTE again from Relbase
         const dte = await getRelbaseDteByFolio({ folio, dteLabel });
         if (!dte) {
@@ -487,19 +494,18 @@ router.post('/update', async (req, res) => {
             columnId: 'color_mkyr7e09',
             statusLabel: mapTipoDoc(dte)
         });
-        // 5️⃣ Seller (optional but consistent)
-        if (dte.seller_id) {
-            const seller = await getRelbaseSeller(dte.seller_id);
-            const sellerName = formatSellerName(seller);
-            if (sellerName) {
-                await updateDropdownColumn({
-                    boardId,
-                    itemId: item.id,
-                    columnId: 'dropdown_mkyrk2t1',
-                    labels: [sellerName]
-                });
-            }
-        }
+        await updateDropdownColumn({
+            boardId,
+            itemId: item.id,
+            columnId: 'dropdown_mkyrk2t1',
+            labels: [sellerName]
+        });
+        await updateDateColumn({
+            boardId,
+            itemId: item.id,
+            columnId: 'date_mkyvc0pp',
+            date: dte.end_date // "2025-12-18"
+        });
     } catch (error) {
         console.error(
             '🔥 [UPDATE] Error processing webhook:',
