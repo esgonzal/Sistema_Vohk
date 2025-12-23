@@ -8,86 +8,185 @@ const COMPANY = 'CX67HbYo9xKSaW1YNZ5x2KUV';
 const MONDAY_API_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjMxNjI3NTAwOCwiYWFpIjoxMSwidWlkIjoyNTE4MTczNSwiaWFkIjoiMjAyNC0wMS0zMVQxNjo1OTowNy4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6NzA2NDk3NiwicmduIjoidXNlMSJ9.7r5JDi4lOgur0OCjM-DpB5ZSd31kEF0LG6ytFyihIkE'
 const MONDAY_API_URL = 'https://api.monday.com/v2';
 
-const DTE_TYPE_MAP = {
-    'Factura': 33,
-    'Boleta': 39,
-    'Nota de Venta': 1001,
-};
+const fs = require('fs');
+const path = require('path');
+const FOLIO_FILE = path.join(__dirname, '../data/last_folios.json');
 
-function mapDteStatus(dte) {
-    const today = new Date();
-    const endDate = new Date(dte.end_date);
-    if (dte.status === 'paid') return 'Pagado';
-    if (dte.status === 'partial') return 'Abono';
-    if (dte.status === 'cancel') return 'Anulada';
-    if (!dte.status || dte.status === 'pending') {
-        if (today > endDate) return 'Vencida';
-        return 'Pendiente';
+//ENDPOINTS
+router.post('/', async (req, res) => {
+    const data = req.body;
+    if (data.challenge) {
+        return res.status(200).send({ challenge: data.challenge });
     }
-    return 'No Aplica';
-}
-
-function parseItemName(name) {
-    if (!name) return null;
-    const match = name.trim().match(/^(FE|BE|NV)\s*(\d+)$/i);
-    if (!match) return null;
-    const [, type, folio] = match;
-    let dteLabel;
-    switch (type.toUpperCase()) {
-        case 'FE':
-            dteLabel = 'Factura';
-            break;
-        case 'BE':
-            dteLabel = 'Boleta';
-            break;
-        case 'NV':
-            dteLabel = 'Nota de Venta';
-            break;
-        default:
-            return null;
-    }
-    return {
-        dteLabel,
-        folio
-    };
-}
-
-function mapTipoDoc(dte) {
-    if (!dte?.type_document_name) return 'No Aplica';
-    if (dte.type_document_name === 'FACTURA ELECTRÓNICA') {
-        return 'Factura';
-    }
-    if (dte.type_document_name === 'BOLETA ELECTRÓNICA') {
-        return 'Boleta';
-    }
-    if (dte.type_document_name === 'NOTA DE VENTA') {
-        return 'Nota de Venta';
-    }
-    return 'Otro';
-}
-
-function formatSellerName(vendedor) {
-    if (!vendedor) return null;
-    return `${vendedor.first_name.trim()} ${vendedor.last_name.trim()}`;
-}
-
-async function printBoardColumns(boardId) {
-    const query = `
-      query {
-        boards(ids: [${boardId}]) {
-          id
-          name
-          columns {
-            id
-            title
-            type
-          }
+    res.status(200).send('ok');
+    try {
+        const event = data.event;
+        if (!event) return;
+        if (event.type !== 'create_pulse') return;
+        const itemId = event.pulseId;
+        const boardId = event.boardId;
+        const item = await getMondayItem(itemId);
+        await printBoardColumns(boardId);
+        if (!item) {
+            console.error('❌ Item not found');
+            return;
         }
-      }
+        const parsed = parseItemName(item.name);
+        if (!parsed) {
+            console.error('❌ Invalid item name format:', item.name);
+            return;
+        }
+        const { folio, dteLabel } = parsed;
+        const dte = await getRelbaseDteByFolio({ folio, dteLabel });
+        if (!dte) return;
+        const seller = await getRelbaseSeller(dte.seller_id);
+        const sellerName = formatSellerName(seller);
+        // FECHA EMISION
+        await updateDateColumn({
+            boardId,
+            itemId: item.id,
+            columnId: 'date',
+            date: dte.start_date // "2025-12-18"
+        });
+        // ESTADO PAGO
+        await updateStatusColumn({
+            boardId,
+            itemId: item.id,
+            columnId: 'color_mkyryrxb',
+            statusLabel: mapDteStatus(dte)
+        });
+        // VALOR FACTURA
+        await updateNumberColumn({
+            boardId,
+            itemId: item.id,
+            columnId: 'numeric_mkyr63qj',
+            numberValue: Number(dte.real_amount_total)
+        });
+        // TIPO DOC
+        await updateStatusColumn({
+            boardId,
+            itemId: item.id,
+            columnId: 'color_mkyr7e09',
+            statusLabel: mapTipoDoc(dte)
+        });
+        // VENDEDOR
+        await updateDropdownColumn({
+            boardId,
+            itemId: item.id,
+            columnId: 'dropdown_mkyrk2t1',
+            labels: [sellerName]
+        });
+        await updateDateColumn({
+            boardId,
+            itemId: item.id,
+            columnId: 'date_mkyvc0pp',
+            date: dte.end_date // "2025-12-18"
+        });
+    } catch (error) {
+        console.error(
+            '🔥 Error processing Monday webhook:',
+            error.response?.data || error
+        );
+    }
+});
+
+router.post('/update', async (req, res) => {
+    const data = req.body;
+    // Monday webhook handshake
+    if (data.challenge) {
+        return res.status(200).send({ challenge: data.challenge });
+    }
+    res.status(200).send('ok');
+    try {
+        const event = data.event;
+        if (!event) return;
+        const itemId = event.pulseId;
+        const boardId = event.boardId;
+
+        // 1️⃣ Get Monday item
+        const item = await getMondayItem(itemId);
+        if (!item) {
+            console.error('❌ Item not found');
+            return;
+        }
+        // 2️⃣ Parse item name: FE 2257 / BE 991 / NV 123
+        const parsed = parseItemName(item.name);
+        if (!parsed) {
+            console.error('❌ Invalid item name format:', item.name);
+            return;
+        }
+        const { folio, dteLabel } = parsed;
+        console.log('🔄 [UPDATE] Triggered for ', dteLabel, ': ', folio);
+        // 3️⃣ Fetch DTE again from Relbase
+        const dte = await getRelbaseDteByFolio({ folio, dteLabel });
+        if (!dte) return;
+        const seller = await getRelbaseSeller(dte.seller_id);
+        const sellerName = formatSellerName(seller);
+        // 4️⃣ Update columns (same logic as create)
+        // FECHA EMISION
+        await updateDateColumn({
+            boardId,
+            itemId: item.id,
+            columnId: 'date',
+            date: dte.start_date // "2025-12-18"
+        });
+        // ESTADO PAGO
+        await updateStatusColumn({
+            boardId,
+            itemId: item.id,
+            columnId: 'color_mkyryrxb',
+            statusLabel: mapDteStatus(dte)
+        });
+        // VALOR FACTURA
+        await updateNumberColumn({
+            boardId,
+            itemId: item.id,
+            columnId: 'numeric_mkyr63qj',
+            numberValue: Number(dte.real_amount_total)
+        });
+        // TIPO DOC
+        await updateStatusColumn({
+            boardId,
+            itemId: item.id,
+            columnId: 'color_mkyr7e09',
+            statusLabel: mapTipoDoc(dte)
+        });
+        // VENDEDOR
+        await updateDropdownColumn({
+            boardId,
+            itemId: item.id,
+            columnId: 'dropdown_mkyrk2t1',
+            labels: [sellerName]
+        });
+        await updateDateColumn({
+            boardId,
+            itemId: item.id,
+            columnId: 'date_mkyvc0pp',
+            date: dte.end_date // "2025-12-18"
+        });
+    } catch (error) {
+        console.error(
+            '🔥 [UPDATE] Error processing webhook:',
+            error.response?.data || error
+        );
+    }
+});
+
+//GET or CREATE ITEMS IN MONDAY
+async function createMondayItem({ boardId, itemName }) {
+    const mutation = `
+        mutation {
+            create_item(
+                board_id: ${boardId},
+                item_name: "${itemName}"
+            ) {
+                id
+            }
+        }
     `;
     const response = await axios.post(
         MONDAY_API_URL,
-        { query },
+        { query: mutation },
         {
             headers: {
                 Authorization: MONDAY_API_TOKEN,
@@ -95,16 +194,8 @@ async function printBoardColumns(boardId) {
             }
         }
     );
-    const board = response.data?.data?.boards?.[0];
-    if (!board) {
-        console.error('❌ Board not found');
-        return;
-    }
-    console.log(`📋 Board: ${board.name} (${board.id})`);
-    console.log('🧱 Columns:');
-    board.columns.forEach(col => {
-        console.log(`• ID: ${col.id} | Title: ${col.title} | Type: ${col.type}`);
-    });
+
+    return response.data?.data?.create_item || null;
 }
 
 async function getMondayItem(pulseId) {
@@ -135,6 +226,65 @@ async function getMondayItem(pulseId) {
         }
     );
     return response.data.data.items?.[0] || null;
+}
+
+//RELBASE FUNCTIONS
+async function getRelbaseSeller(sellerId) {
+    if (!sellerId) return null;
+    try {
+        const response = await axios.get(
+            `https://api.relbase.cl/api/v1/vendedores/${sellerId}`,
+            {
+                headers: {
+                    accept: 'application/json',
+                    Authorization: USER,
+                    Company: COMPANY
+                }
+            }
+        );
+        return response.data?.data || null;
+    } catch (error) {
+        console.error(
+            '🔥 Relbase seller lookup failed:',
+            error.response?.data || error
+        );
+        return null;
+    }
+}
+
+async function checkForNewDtes(boardId) {
+    console.log('⏱️ [DTE CHECK] Starting scan');
+    const lastFolios = readLastFolios();
+    let updated = false;
+    for (const typeDocument of Object.keys(DTE_TYPE_CONFIG)) {
+        const config = DTE_TYPE_CONFIG[typeDocument];
+        let folio = lastFolios[typeDocument] + 1;
+        console.log(`🔎 Checking ${config.prefix} starting at folio ${folio}`);
+        while (true) {
+            const dte = await getRelbaseDteByTypeAndFolio(typeDocument, folio);
+            if (!dte) {
+                console.log(`⛔ No DTE found for ${config.prefix} ${folio}`);
+                break;
+            }
+            console.log(
+                `🧾 Found DTE ${typeDocument} folio ${folio}, pushing to Monday`
+            );
+            const itemName = `${config.prefix} ${folio}`;
+            console.log(`✅ New DTE found → ${itemName}`);
+            await createMondayItem({
+                boardId,
+                itemName
+            });
+            lastFolios[typeDocument] = folio;
+            updated = true;
+            folio++;
+        }
+    }
+    if (updated) {
+        writeLastFolios(lastFolios);
+        console.log('💾 Folios updated:', lastFolios);
+    }
+    console.log('🏁 [DTE CHECK] Finished');
 }
 
 async function getRelbaseDteByFolio({ folio, dteLabel }) {
@@ -174,12 +324,15 @@ async function getRelbaseDteByFolio({ folio, dteLabel }) {
     }
 }
 
-async function getRelbaseSeller(sellerId) {
-    if (!sellerId) return null;
+async function getRelbaseDteByTypeAndFolio(typeDocument, folio) {
     try {
         const response = await axios.get(
-            `https://api.relbase.cl/api/v1/vendedores/${sellerId}`,
+            'https://api.relbase.cl/api/v1/dtes',
             {
+                params: {
+                    type_document: typeDocument,
+                    query: folio
+                },
                 headers: {
                     accept: 'application/json',
                     Authorization: USER,
@@ -187,16 +340,17 @@ async function getRelbaseSeller(sellerId) {
                 }
             }
         );
-        return response.data?.data || null;
+        return response.data?.data?.dtes?.[0] || null;
     } catch (error) {
         console.error(
-            '🔥 Relbase seller lookup failed:',
-            error.response?.data || error
+            `🔥 Relbase lookup failed for ${typeDocument}-${folio}`,
+            error.response?.data || error.message
         );
         return null;
     }
 }
 
+//UPDATE COLUMNS IN MONDAY
 async function updateDateColumn({ boardId, itemId, columnId, date }) {
     if (!date) return;
     const mutation = `
@@ -359,164 +513,125 @@ async function updateDropdownColumn({ boardId, itemId, columnId, labels }) {
     }
 }
 
-router.post('/', async (req, res) => {
-    const data = req.body;
-    if (data.challenge) {
-        return res.status(200).send({ challenge: data.challenge });
-    }
-    res.status(200).send('ok');
-    try {
-        const event = data.event;
-        if (!event) return;
-        if (event.type !== 'create_pulse') return;
-        const itemId = event.pulseId;
-        const boardId = event.boardId;
-        const item = await getMondayItem(itemId);
-        await printBoardColumns(boardId);
-        if (!item) {
-            console.error('❌ Item not found');
-            return;
-        }
-        const parsed = parseItemName(item.name);
-        if (!parsed) {
-            console.error('❌ Invalid item name format:', item.name);
-            return;
-        }
-        const { folio, dteLabel } = parsed;
-        const dte = await getRelbaseDteByFolio({ folio, dteLabel });
-        if (!dte) return;
-        const seller = await getRelbaseSeller(dte.seller_id);
-        const sellerName = formatSellerName(seller);
-        // FECHA EMISION
-        await updateDateColumn({
-            boardId,
-            itemId: item.id,
-            columnId: 'date',
-            date: dte.start_date // "2025-12-18"
-        });
-        // ESTADO PAGO
-        await updateStatusColumn({
-            boardId,
-            itemId: item.id,
-            columnId: 'color_mkyryrxb',
-            statusLabel: mapDteStatus(dte)
-        });
-        // VALOR FACTURA
-        await updateNumberColumn({
-            boardId,
-            itemId: item.id,
-            columnId: 'numeric_mkyr63qj',
-            numberValue: Number(dte.real_amount_total)
-        });
-        // TIPO DOC
-        await updateStatusColumn({
-            boardId,
-            itemId: item.id,
-            columnId: 'color_mkyr7e09',
-            statusLabel: mapTipoDoc(dte)
-        });
-        // VENDEDOR
-        await updateDropdownColumn({
-            boardId,
-            itemId: item.id,
-            columnId: 'dropdown_mkyrk2t1',
-            labels: [sellerName]
-        });
-        await updateDateColumn({
-            boardId,
-            itemId: item.id,
-            columnId: 'date_mkyvc0pp',
-            date: dte.end_date // "2025-12-18"
-        });
-    } catch (error) {
-        console.error(
-            '🔥 Error processing Monday webhook:',
-            error.response?.data || error
-        );
-    }
-});
+//HELPER FUNCTIONS
+setTimeout(() => {
+    console.log('⏱️ Starting automatic DTE checker (every 5 minutes)');
+    setInterval(() => {
+        checkForNewDtes(18392646892);
+    }, 5 * 60 * 1000);
+}, 10_000); // wait 10s after boot
 
-router.post('/update', async (req, res) => {
-    const data = req.body;
-    // Monday webhook handshake
-    if (data.challenge) {
-        return res.status(200).send({ challenge: data.challenge });
-    }
-    res.status(200).send('ok');
-    try {
-        const event = data.event;
-        if (!event) return;
-        const itemId = event.pulseId;
-        const boardId = event.boardId;
+const DTE_TYPE_MAP = {
+    'Factura': 33,
+    'Boleta': 39,
+    'Nota de Venta': 1001,
+};
 
-        // 1️⃣ Get Monday item
-        const item = await getMondayItem(itemId);
-        if (!item) {
-            console.error('❌ Item not found');
-            return;
-        }
-        // 2️⃣ Parse item name: FE 2257 / BE 991 / NV 123
-        const parsed = parseItemName(item.name);
-        if (!parsed) {
-            console.error('❌ Invalid item name format:', item.name);
-            return;
-        }
-        const { folio, dteLabel } = parsed;
-        console.log('🔄 [UPDATE] Triggered for ', dteLabel, ': ', folio);
-        // 3️⃣ Fetch DTE again from Relbase
-        const dte = await getRelbaseDteByFolio({ folio, dteLabel });
-        if (!dte) return;
-        const seller = await getRelbaseSeller(dte.seller_id);
-        const sellerName = formatSellerName(seller);
-        // 4️⃣ Update columns (same logic as create)
-        // FECHA EMISION
-        await updateDateColumn({
-            boardId,
-            itemId: item.id,
-            columnId: 'date',
-            date: dte.start_date // "2025-12-18"
-        });
-        // ESTADO PAGO
-        await updateStatusColumn({
-            boardId,
-            itemId: item.id,
-            columnId: 'color_mkyryrxb',
-            statusLabel: mapDteStatus(dte)
-        });
-        // VALOR FACTURA
-        await updateNumberColumn({
-            boardId,
-            itemId: item.id,
-            columnId: 'numeric_mkyr63qj',
-            numberValue: Number(dte.real_amount_total)
-        });
-        // TIPO DOC
-        await updateStatusColumn({
-            boardId,
-            itemId: item.id,
-            columnId: 'color_mkyr7e09',
-            statusLabel: mapTipoDoc(dte)
-        });
-        // VENDEDOR
-        await updateDropdownColumn({
-            boardId,
-            itemId: item.id,
-            columnId: 'dropdown_mkyrk2t1',
-            labels: [sellerName]
-        });
-        await updateDateColumn({
-            boardId,
-            itemId: item.id,
-            columnId: 'date_mkyvc0pp',
-            date: dte.end_date // "2025-12-18"
-        });
-    } catch (error) {
-        console.error(
-            '🔥 [UPDATE] Error processing webhook:',
-            error.response?.data || error
-        );
-    }
-});
+const DTE_TYPE_CONFIG = {
+    33: { prefix: 'FE', label: 'Factura' },
+    39: { prefix: 'BE', label: 'Boleta' },
+    1001: { prefix: 'NV', label: 'Nota de Venta' }
+};
 
+function readLastFolios() {
+    return JSON.parse(fs.readFileSync(FOLIO_FILE, 'utf8'));
+}
+
+function writeLastFolios(folios) {
+    fs.writeFileSync(FOLIO_FILE, JSON.stringify(folios, null, 2));
+}
+
+function mapDteStatus(dte) {
+    const today = new Date();
+    const endDate = new Date(dte.end_date);
+    if (dte.status === 'paid') return 'Pagado';
+    if (dte.status === 'partial') return 'Abono';
+    if (dte.status === 'cancel') return 'Anulada';
+    if (!dte.status || dte.status === 'pending') {
+        if (today > endDate) return 'Vencida';
+        return 'Pendiente';
+    }
+    return 'No Aplica';
+}
+
+function parseItemName(name) {
+    if (!name) return null;
+    const match = name.trim().match(/^(FE|BE|NV)\s*(\d+)$/i);
+    if (!match) return null;
+    const [, type, folio] = match;
+    let dteLabel;
+    switch (type.toUpperCase()) {
+        case 'FE':
+            dteLabel = 'Factura';
+            break;
+        case 'BE':
+            dteLabel = 'Boleta';
+            break;
+        case 'NV':
+            dteLabel = 'Nota de Venta';
+            break;
+        default:
+            return null;
+    }
+    return {
+        dteLabel,
+        folio
+    };
+}
+
+function mapTipoDoc(dte) {
+    if (!dte?.type_document_name) return 'No Aplica';
+    if (dte.type_document_name === 'FACTURA ELECTRÓNICA') {
+        return 'Factura';
+    }
+    if (dte.type_document_name === 'BOLETA ELECTRÓNICA') {
+        return 'Boleta';
+    }
+    if (dte.type_document_name === 'NOTA DE VENTA') {
+        return 'Nota de Venta';
+    }
+    return 'Otro';
+}
+
+function formatSellerName(vendedor) {
+    if (!vendedor) return null;
+    return `${vendedor.first_name.trim()} ${vendedor.last_name.trim()}`;
+}
+
+async function printBoardColumns(boardId) {
+    const query = `
+      query {
+        boards(ids: [${boardId}]) {
+          id
+          name
+          columns {
+            id
+            title
+            type
+          }
+        }
+      }
+    `;
+    const response = await axios.post(
+        MONDAY_API_URL,
+        { query },
+        {
+            headers: {
+                Authorization: MONDAY_API_TOKEN,
+                'Content-Type': 'application/json'
+            }
+        }
+    );
+    const board = response.data?.data?.boards?.[0];
+    if (!board) {
+        console.error('❌ Board not found');
+        return;
+    }
+    console.log(`📋 Board: ${board.name} (${board.id})`);
+    console.log('🧱 Columns:');
+    board.columns.forEach(col => {
+        console.log(`• ID: ${col.id} | Title: ${col.title} | Type: ${col.type}`);
+    });
+}
 
 module.exports = router;
