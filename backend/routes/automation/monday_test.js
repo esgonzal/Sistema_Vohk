@@ -10,7 +10,7 @@ const MONDAY_API_URL = 'https://api.monday.com/v2';
 
 const fs = require('fs');
 const path = require('path');
-const FOLIO_FILE = path.join(__dirname, '../data/last_folios.json');
+const FOLIO_FILE = path.join(__dirname, '../../data/last_folios.json');
 
 //ENDPOINTS
 router.post('/', async (req, res) => {
@@ -274,7 +274,7 @@ async function checkForNewDtes(boardId) {
             await createMondayItem({
                 boardId,
                 itemName
-            });
+            }); 
             lastFolios[typeDocument] = folio;
             updated = true;
             folio++;
