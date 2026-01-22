@@ -522,7 +522,7 @@ setTimeout(() => {
     console.log('⏱️ Starting automatic DTE checker (every 10 minutes)');
     setInterval(() => {
         checkForNewDtes(18392646892);
-    }, 10 * 60 * 1000);
+    }, 5 * 60 * 1000);
 }, 10_000); // wait 10s after boot
 
 const DTE_TYPE_MAP = {
