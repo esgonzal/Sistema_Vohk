@@ -76,6 +76,7 @@ router.post('/', async (req, res) => {
             columnId: 'dropdown_mkyrk2t1',
             labels: [sellerName]
         });
+        // FECHA FINAL
         await updateDateColumn({
             boardId,
             itemId: item.id,
@@ -158,6 +159,7 @@ router.post('/update', async (req, res) => {
             columnId: 'dropdown_mkyrk2t1',
             labels: [sellerName]
         });
+        // FECHA FINAL
         await updateDateColumn({
             boardId,
             itemId: item.id,
@@ -253,28 +255,23 @@ async function getRelbaseSeller(sellerId) {
 }
 
 async function checkForNewDtes(boardId) {
-    console.log('⏱️ [DTE CHECK] Starting scan');
+    //console.log('⏱️ [DTE CHECK] Starting scan');
     const lastFolios = readLastFolios();
     let updated = false;
     for (const typeDocument of Object.keys(DTE_TYPE_CONFIG)) {
         const config = DTE_TYPE_CONFIG[typeDocument];
         let folio = lastFolios[typeDocument] + 1;
-        console.log(`🔎 Checking ${config.prefix} starting at folio ${folio}`);
+        //console.log(`🔎 Checking ${config.prefix} starting at folio ${folio}`);
         while (true) {
             const dte = await getRelbaseDteByTypeAndFolio(typeDocument, folio);
-            if (!dte) {
-                console.log(`⛔ No DTE found for ${config.prefix} ${folio}`);
+            if (!dte || Number(dte.folio) !== Number(folio)) {
+                //console.log(`⛔ No DTE found for ${config.prefix} ${folio}`);
                 break;
             }
-            console.log(
-                `🧾 Found DTE ${typeDocument} folio ${folio}, pushing to Monday`
-            );
+            //console.log(`🧾 Found DTE ${typeDocument} folio ${folio}, pushing to Monday`);
             const itemName = `${config.prefix} ${folio}`;
-            console.log(`✅ New DTE found → ${itemName}`);
-            await createMondayItem({
-                boardId,
-                itemName
-            }); 
+            //console.log(`✅ New DTE found → ${itemName}`);
+            await createMondayItem({ boardId, itemName });
             lastFolios[typeDocument] = folio;
             updated = true;
             folio++;
@@ -284,7 +281,7 @@ async function checkForNewDtes(boardId) {
         writeLastFolios(lastFolios);
         console.log('💾 Folios updated:', lastFolios);
     }
-    console.log('🏁 [DTE CHECK] Finished');
+    //console.log('🏁 [DTE CHECK] Finished');
 }
 
 async function getRelbaseDteByFolio({ folio, dteLabel }) {
@@ -309,7 +306,8 @@ async function getRelbaseDteByFolio({ folio, dteLabel }) {
                 }
             }
         );
-        const dte = response.data?.data?.dtes?.[0] || null;
+        const dtes = response.data?.data?.dtes || [];
+        const dte = pickExactDte(dtes, folio, typeDocument);
         if (!dte) {
             console.warn(`⚠️ No DTE found for folio ${folio} (${typeDocument})`);
             return null;
@@ -340,7 +338,13 @@ async function getRelbaseDteByTypeAndFolio(typeDocument, folio) {
                 }
             }
         );
-        return response.data?.data?.dtes?.[0] || null;
+        const dtes = response.data?.data?.dtes || [];
+        const dte = pickExactDte(dtes, folio, typeDocument);
+        if (!dte) {
+            console.warn(`⛔ No exact match for ${typeDocument}-${folio}`);
+            return null;
+        }
+        return dte;
     } catch (error) {
         console.error(
             `🔥 Relbase lookup failed for ${typeDocument}-${folio}`,
@@ -515,10 +519,10 @@ async function updateDropdownColumn({ boardId, itemId, columnId, labels }) {
 
 //HELPER FUNCTIONS
 setTimeout(() => {
-    console.log('⏱️ Starting automatic DTE checker (every 5 minutes)');
+    console.log('⏱️ Starting automatic DTE checker (every 10 minutes)');
     setInterval(() => {
         checkForNewDtes(18392646892);
-    }, 5 * 60 * 1000);
+    }, 10 * 60 * 1000);
 }, 10_000); // wait 10s after boot
 
 const DTE_TYPE_MAP = {
@@ -633,5 +637,21 @@ async function printBoardColumns(boardId) {
         console.log(`• ID: ${col.id} | Title: ${col.title} | Type: ${col.type}`);
     });
 }
+
+function pickExactDte(dtes, folio, typeDocument) {
+    if (!Array.isArray(dtes)) return null;
+    // Exact match only
+    const exact = dtes.filter(d =>
+        Number(d.folio) === Number(folio) &&
+        Number(d.type_document) === Number(typeDocument)
+    );
+    if (exact.length === 0) return null;
+    // If somehow multiple exist, pick the newest
+    exact.sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+    );
+    return exact[0];
+}
+
 
 module.exports = router;
