@@ -103,7 +103,7 @@ router.post('/update', async (req, res) => {
         if (!event) return;
         const itemId = event.pulseId;
         const boardId = event.boardId;
-        await printBoardColumns(boardId);
+        await printBoardColumns(boardId, itemId);
         // 1️⃣ Get Monday item
         const item = await getMondayItem(itemId);
         if (!item) {
@@ -644,7 +644,7 @@ function formatSellerName(vendedor) {
     return `${vendedor.first_name.trim()} ${vendedor.last_name.trim()}`;
 }
 
-async function printBoardColumns(boardId) {
+async function printBoardColumns(boardId, itemId) {
     const query = `
       query {
         boards(ids: [${boardId}]) {
@@ -654,6 +654,15 @@ async function printBoardColumns(boardId) {
             id
             title
             type
+          }
+        }
+        items(ids: [${itemId}]) {
+          id
+          name
+          column_values {
+            id
+            text
+            value
           }
         }
       }
@@ -669,14 +678,26 @@ async function printBoardColumns(boardId) {
         }
     );
     const board = response.data?.data?.boards?.[0];
+    const item = response.data?.data?.items?.[0];
     if (!board) {
         console.error('❌ Board not found');
+        return;
+    }
+    if (!item) {
+        console.error('❌ Item not found');
         return;
     }
     console.log(`📋 Board: ${board.name} (${board.id})`);
     console.log('🧱 Columns:');
     board.columns.forEach(col => {
-        console.log(`• ID: ${col.id} | Title: ${col.title} | Type: ${col.type}`);
+        console.log(`• ${col.id} | ${col.title} | ${col.type}`);
+    });
+    console.log(`📦 Item: ${item.name} (${item.id})`);
+    console.log('🧩 Column values:');
+    item.column_values.forEach(col => {
+        console.log(
+            `• ${col.id} → text="${col.text}" value=${col.value}`
+        );
     });
 }
 
