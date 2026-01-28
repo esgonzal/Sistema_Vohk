@@ -522,9 +522,9 @@ setTimeout(() => {
     setInterval(() => {
         checkForNewDtes(18392646892);
     }, 5 * 60 * 1000);
-    setInterval(() => {
-        runBackfillOnce();
-    }, 10080 * 60 * 1000);
+    setTimeout(async () => {
+        await runBackfillOnce();
+    }, 10_000);
 }, 10_000); // wait 10s after boot
 
 const DTE_TYPE_MAP = {
