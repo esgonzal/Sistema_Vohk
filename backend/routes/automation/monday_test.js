@@ -290,12 +290,12 @@ async function checkForNewDtes(boardId) {
         while (true) {
             const dte = await getRelbaseDteByTypeAndFolio(typeDocument, folio);
             if (!dte || Number(dte.folio) !== Number(folio)) {
-                //console.log(`⛔ No DTE found for ${config.prefix} ${folio}`);
+                console.log(`⛔ No DTE found for ${config.prefix} ${folio}`);
                 break;
             }
             //console.log(`🧾 Found DTE ${typeDocument} folio ${folio}, pushing to Monday`);
             const itemName = `${config.prefix} ${folio}`;
-            //console.log(`✅ New DTE found → ${itemName}`);
+            console.log(`✅ New DTE found → ${itemName}`);
             // 🔐 Guardrail: check Monday first
             const exists = await mondayItemExists({ boardId, itemName });
             if (exists) {
@@ -555,9 +555,11 @@ async function updateDropdownColumn({ boardId, itemId, columnId, labels }) {
 
 //HELPER FUNCTIONS
 setTimeout(() => {
+    /*
     setInterval(() => {
         checkForNewDtes(18392646892);
     }, 5 * 60 * 1000);
+    */
     /*
     setTimeout(async () => {
         await runBackfillOnce();
