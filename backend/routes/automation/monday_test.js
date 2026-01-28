@@ -450,6 +450,18 @@ async function getRelbaseDteByTypeAndFolio(typeDocument, folio) {
             }
         );
         const dtes = response.data?.data?.dtes || [];
+        if (folio == '1265') {
+            console.log('🔍 Relbase response summary', {
+                requested: { typeDocument, folio },
+                totalReturned: dtes.length,
+                sample: dtes.slice(0, 3).map(d => ({
+                    folio: d.folio,
+                    type_document: d.type_document,
+                    id: d.id
+                }))
+            });
+        }
+
         const dte = pickExactDte(dtes, folio, typeDocument);
         if (!dte) {
             console.warn(`⛔ No exact match for ${typeDocument}-${folio}`);
@@ -819,18 +831,40 @@ async function printBoardColumns(boardId, itemId) {
 
 function pickExactDte(dtes, folio, typeDocument) {
     if (!Array.isArray(dtes)) return null;
-    // Exact match only
+    console.log('🧪 pickExactDte input', {
+        lookingFor: {
+            folio: Number(folio),
+            typeDocument: Number(typeDocument)
+        },
+        candidates: dtes.length
+    });
+    dtes.forEach(d => {
+        if (Number(d.folio) === Number(folio)) {
+            console.log('👀 Folio match found', {
+                folio: d.folio,
+                type_document: d.type_document,
+                typeMatch: Number(d.type_document) === Number(typeDocument),
+                rawType: typeof d.type_document
+            });
+        }
+    });
     const exact = dtes.filter(d =>
         Number(d.folio) === Number(folio) &&
         Number(d.type_document) === Number(typeDocument)
     );
-    if (exact.length === 0) return null;
-    // If somehow multiple exist, pick the newest
+    if (exact.length === 0) {
+        console.warn('❌ Exact match rejected', {
+            folio,
+            typeDocument
+        });
+        return null;
+    }
     exact.sort(
         (a, b) => new Date(b.created_at) - new Date(a.created_at)
     );
     return exact[0];
 }
+
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
