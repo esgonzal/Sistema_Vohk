@@ -655,6 +655,10 @@ function pickExactDte(dtes, folio, typeDocument) {
     return exact[0];
 }
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function backfillDtes({ boardId, fromFolios, toFolios }) {
     for (const typeDocument of Object.keys(DTE_TYPE_CONFIG)) {
         const config = DTE_TYPE_CONFIG[typeDocument];
@@ -667,7 +671,7 @@ async function backfillDtes({ boardId, fromFolios, toFolios }) {
             }
             const itemName = `${config.prefix} ${folio}`;
             await createMondayItem({ boardId, itemName });
-
+            await sleep(300); 
             folio++;
         }
     }
