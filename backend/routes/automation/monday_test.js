@@ -103,7 +103,7 @@ router.post('/update', async (req, res) => {
         if (!event) return;
         const itemId = event.pulseId;
         const boardId = event.boardId;
-
+        await printBoardColumns(boardId);
         // 1️⃣ Get Monday item
         const item = await getMondayItem(itemId);
         if (!item) {
