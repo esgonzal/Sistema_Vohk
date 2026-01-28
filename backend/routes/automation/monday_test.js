@@ -255,6 +255,28 @@ async function mondayItemExists({ boardId, itemName }) {
     return response.data?.data?.items_by_column_values?.length > 0;
 }
 
+async function getExistingItemNames(boardId) {
+    const query = `
+      query {
+        boards(ids: [${boardId}]) {
+          items_page(limit: 500) {
+            items {
+              name
+            }
+          }
+        }
+      }
+    `;
+    const res = await axios.post(
+        MONDAY_API_URL,
+        { query },
+        { headers: { Authorization: MONDAY_API_TOKEN } }
+    );
+    const items =
+        res.data?.data?.boards?.[0]?.items_page?.items || [];
+    return new Set(items.map(i => i.name.trim()));
+}
+
 //RELBASE FUNCTIONS
 async function getRelbaseSeller(sellerId) {
     if (!sellerId) return null;
@@ -279,7 +301,7 @@ async function getRelbaseSeller(sellerId) {
     }
 }
 
-async function checkForNewDtes(boardId) {
+async function checkForNewDtes2(boardId) {
     //console.log('⏱️ [DTE CHECK] Starting scan');
     const lastFolios = readLastFolios();
     let updated = false;
@@ -318,6 +340,59 @@ async function checkForNewDtes(boardId) {
         console.log('💾 Folios updated:', lastFolios);
     }
     //console.log('🏁 [DTE CHECK] Finished');
+}
+
+async function checkForNewDtes(boardId) {
+    const lastFolios = readLastFolios();
+    const existingNames = await getExistingItemNames(boardId);
+    let updated = false;
+    for (const typeDocument of Object.keys(DTE_TYPE_CONFIG)) {
+        const config = DTE_TYPE_CONFIG[typeDocument];
+        let folio = lastFolios[typeDocument] + 1;
+        while (true) {
+            const dte = await getRelbaseDteByTypeAndFolio(
+                typeDocument,
+                folio
+            );
+            if (!dte || Number(dte.folio) !== Number(folio)) {
+                console.log(`⛔ No DTE for ${config.prefix} ${folio}`);
+                break;
+            }
+            const itemName = `${config.prefix} ${folio}`;
+            if (existingNames.has(itemName)) {
+                console.log(`⏭️ Exists: ${itemName}`);
+                lastFolios[typeDocument] = folio;
+                folio++;
+                updated = true;
+                continue;
+            }
+            console.log(`➕ Creating ${itemName}`);
+            const item = await createMondayItem({
+                boardId,
+                itemName
+            });
+            if (!item?.id) {
+                console.error(`❌ Failed to create ${itemName}`);
+                break;
+            }
+            // ⛓️ Populate synchronously
+            await populateItemFromDte({
+                boardId,
+                itemId: item.id,
+                dte
+            });
+            existingNames.add(itemName);
+            lastFolios[typeDocument] = folio;
+            updated = true;
+            folio++;
+            // throttle
+            await new Promise(r => setTimeout(r, 400));
+        }
+    }
+    if (updated) {
+        writeLastFolios(lastFolios);
+        console.log('💾 Folios updated:', lastFolios);
+    }
 }
 
 async function getRelbaseDteByFolio({ folio, dteLabel }) {
@@ -553,6 +628,47 @@ async function updateDropdownColumn({ boardId, itemId, columnId, labels }) {
     }
 }
 
+async function populateItemFromDte({ boardId, itemId, dte }) {
+    const seller = await getRelbaseSeller(dte.seller_id);
+    const sellerName = formatSellerName(seller);
+    await updateDateColumn({
+        boardId,
+        itemId,
+        columnId: 'date',
+        date: dte.start_date
+    });
+    await updateStatusColumn({
+        boardId,
+        itemId,
+        columnId: 'color_mkyryrxb',
+        statusLabel: mapDteStatus(dte)
+    });
+    await updateNumberColumn({
+        boardId,
+        itemId,
+        columnId: 'numeric_mkyr63qj',
+        numberValue: Number(dte.real_amount_total)
+    });
+    await updateStatusColumn({
+        boardId,
+        itemId,
+        columnId: 'color_mkyr7e09',
+        statusLabel: mapTipoDoc(dte)
+    });
+    await updateDropdownColumn({
+        boardId,
+        itemId,
+        columnId: 'dropdown_mkyrk2t1',
+        labels: [sellerName]
+    });
+    await updateDateColumn({
+        boardId,
+        itemId,
+        columnId: 'date_mkyvc0pp',
+        date: dte.end_date
+    });
+}
+
 //HELPER FUNCTIONS
 setTimeout(() => {
     /*
@@ -560,11 +676,11 @@ setTimeout(() => {
         checkForNewDtes(18392646892);
     }, 5 * 60 * 1000);
     */
-    /*
     setTimeout(async () => {
-        await runBackfillOnce();
+        console.log('🕰️ Starting ONE-TIME DTE backfill');
+        await checkForNewDtes(18392646892);
+        console.log('✅ Backfill finished');
     }, 10_000);
-    */
 }, 10_000); // wait 10s after boot
 
 const DTE_TYPE_MAP = {
