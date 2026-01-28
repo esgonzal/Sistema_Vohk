@@ -519,10 +519,12 @@ async function updateDropdownColumn({ boardId, itemId, columnId, labels }) {
 
 //HELPER FUNCTIONS
 setTimeout(() => {
-    console.log('⏱️ Starting automatic DTE checker (every 10 minutes)');
     setInterval(() => {
         checkForNewDtes(18392646892);
     }, 5 * 60 * 1000);
+    setInterval(() => {
+        runBackfillOnce();
+    }, 10080 * 60 * 1000);
 }, 10_000); // wait 10s after boot
 
 const DTE_TYPE_MAP = {
@@ -653,5 +655,41 @@ function pickExactDte(dtes, folio, typeDocument) {
     return exact[0];
 }
 
+async function backfillDtes({ boardId, fromFolios, toFolios }) {
+    for (const typeDocument of Object.keys(DTE_TYPE_CONFIG)) {
+        const config = DTE_TYPE_CONFIG[typeDocument];
+        let folio = fromFolios[typeDocument];
+        while (folio <= toFolios[typeDocument]) {
+            const dte = await getRelbaseDteByTypeAndFolio(typeDocument, folio);
+            if (!dte || Number(dte.folio) !== Number(folio)) {
+                folio++;
+                continue;
+            }
+            const itemName = `${config.prefix} ${folio}`;
+            await createMondayItem({ boardId, itemName });
+
+            folio++;
+        }
+    }
+}
+
+async function runBackfillOnce() {
+    console.log('🕰️ Starting DTE backfill (ONE TIME ONLY)');
+
+    await backfillDtes({
+        boardId: 18392646892,
+        fromFolios: {
+            "33": 1195,
+            "39": 930,
+            "1001": 1465
+        },
+        toFolios: {
+            "33": 2254,
+            "39": 1637,
+            "1001": 1466
+        }
+    });
+    console.log('✅ Backfill finished');
+}
 
 module.exports = router;
