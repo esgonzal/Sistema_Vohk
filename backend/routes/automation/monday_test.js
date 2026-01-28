@@ -434,40 +434,51 @@ async function getRelbaseDteByFolio({ folio, dteLabel }) {
 }
 
 async function getRelbaseDteByTypeAndFolio(typeDocument, folio) {
+    let page = 1;
+    let totalPages = 1;
     try {
-        const response = await axios.get(
-            'https://api.relbase.cl/api/v1/dtes',
-            {
-                params: {
-                    type_document: typeDocument,
-                    query: folio
-                },
-                headers: {
-                    accept: 'application/json',
-                    Authorization: USER,
-                    Company: COMPANY
+        while (page <= totalPages) {
+            const response = await axios.get(
+                'https://api.relbase.cl/api/v1/dtes',
+                {
+                    params: {
+                        type_document: typeDocument,
+                        query: folio,
+                        page
+                    },
+                    headers: {
+                        accept: 'application/json',
+                        Authorization: USER,
+                        Company: COMPANY
+                    }
                 }
-            }
-        );
-        const dtes = response.data?.data?.dtes || [];
-        if (folio == '1265') {
-            console.log('🔍 Relbase response summary', {
-                requested: { typeDocument, folio },
-                totalReturned: dtes.length,
-                sample: dtes.slice(0, 3).map(d => ({
-                    folio: d.folio,
-                    type_document: d.type_document,
-                    id: d.id
-                }))
+            );
+            const meta = response.data?.meta;
+            const dtes = response.data?.data?.dtes || [];
+            totalPages = meta?.total_pages ?? 1;
+            console.log('🔍 Relbase page scan', {
+                typeDocument,
+                folio,
+                page,
+                totalPages,
+                returned: dtes.length
             });
+            const dte = pickExactDte(dtes, folio, typeDocument);
+            if (dte) {
+                console.log('✅ Exact DTE found', {
+                    folio,
+                    typeDocument,
+                    page
+                });
+                return dte;
+            }
+            page++;
         }
-
-        const dte = pickExactDte(dtes, folio, typeDocument);
-        if (!dte) {
-            console.warn(`⛔ No exact match for ${typeDocument}-${folio}`);
-            return null;
-        }
-        return dte;
+        console.warn(`⛔ DTE not found after scanning all pages`, {
+            typeDocument,
+            folio
+        });
+        return null;
     } catch (error) {
         console.error(
             `🔥 Relbase lookup failed for ${typeDocument}-${folio}`,
@@ -831,23 +842,6 @@ async function printBoardColumns(boardId, itemId) {
 
 function pickExactDte(dtes, folio, typeDocument) {
     if (!Array.isArray(dtes)) return null;
-    console.log('🧪 pickExactDte input', {
-        lookingFor: {
-            folio: Number(folio),
-            typeDocument: Number(typeDocument)
-        },
-        candidates: dtes.length
-    });
-    dtes.forEach(d => {
-        if (Number(d.folio) === Number(folio)) {
-            console.log('👀 Folio match found', {
-                folio: d.folio,
-                type_document: d.type_document,
-                typeMatch: Number(d.type_document) === Number(typeDocument),
-                rawType: typeof d.type_document
-            });
-        }
-    });
     const exact = dtes.filter(d =>
         Number(d.folio) === Number(folio) &&
         Number(d.type_document) === Number(typeDocument)
