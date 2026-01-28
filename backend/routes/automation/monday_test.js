@@ -14,7 +14,9 @@ const FOLIO_FILE = path.join(__dirname, '../../data/last_folios.json');
 
 //ENDPOINTS
 router.post('/', async (req, res) => {
+    
     const data = req.body;
+    console.log('📩 Webhook received:', data.event);
     if (data.challenge) {
         return res.status(200).send({ challenge: data.challenge });
     }
@@ -26,7 +28,7 @@ router.post('/', async (req, res) => {
         const itemId = event.pulseId;
         const boardId = event.boardId;
         const item = await getMondayItem(itemId);
-        await printBoardColumns(boardId);
+        //await printBoardColumns(boardId);
         if (!item) {
             console.error('❌ Item not found');
             return;
@@ -522,9 +524,11 @@ setTimeout(() => {
     setInterval(() => {
         checkForNewDtes(18392646892);
     }, 5 * 60 * 1000);
+    /*
     setTimeout(async () => {
         await runBackfillOnce();
     }, 10_000);
+    */
 }, 10_000); // wait 10s after boot
 
 const DTE_TYPE_MAP = {
