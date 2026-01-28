@@ -456,20 +456,8 @@ async function getRelbaseDteByTypeAndFolio(typeDocument, folio) {
             const meta = response.data?.meta;
             const dtes = response.data?.data?.dtes || [];
             totalPages = meta?.total_pages ?? 1;
-            console.log('🔍 Relbase page scan', {
-                typeDocument,
-                folio,
-                page,
-                totalPages,
-                returned: dtes.length
-            });
             const dte = pickExactDte(dtes, folio, typeDocument);
             if (dte) {
-                console.log('✅ Exact DTE found', {
-                    folio,
-                    typeDocument,
-                    page
-                });
                 return dte;
             }
             page++;
