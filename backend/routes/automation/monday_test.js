@@ -14,9 +14,7 @@ const FOLIO_FILE = path.join(__dirname, '../../data/last_folios.json');
 
 //ENDPOINTS
 router.post('/', async (req, res) => {
-    
     const data = req.body;
-    console.log('📩 Webhook received:', data.event);
     if (data.challenge) {
         return res.status(200).send({ challenge: data.challenge });
     }
@@ -232,6 +230,31 @@ async function getMondayItem(pulseId) {
     return response.data.data.items?.[0] || null;
 }
 
+async function mondayItemExists({ boardId, itemName }) {
+    const query = `
+        query {
+            items_by_column_values(
+                board_id: ${boardId},
+                column_id: "name",
+                column_value: "${itemName}"
+            ) {
+                id
+            }
+        }
+    `;
+    const response = await axios.post(
+        MONDAY_API_URL,
+        { query },
+        {
+            headers: {
+                Authorization: MONDAY_API_TOKEN,
+                'Content-Type': 'application/json'
+            }
+        }
+    );
+    return response.data?.data?.items_by_column_values?.length > 0;
+}
+
 //RELBASE FUNCTIONS
 async function getRelbaseSeller(sellerId) {
     if (!sellerId) return null;
@@ -273,10 +296,21 @@ async function checkForNewDtes(boardId) {
             //console.log(`🧾 Found DTE ${typeDocument} folio ${folio}, pushing to Monday`);
             const itemName = `${config.prefix} ${folio}`;
             //console.log(`✅ New DTE found → ${itemName}`);
+            // 🔐 Guardrail: check Monday first
+            const exists = await mondayItemExists({ boardId, itemName });
+            if (exists) {
+                console.log(`⏭️ ${itemName} already exists, skipping`);
+                folio++;
+                continue;
+            }
+            //console.log(`➕ Creating ${itemName}`);
             await createMondayItem({ boardId, itemName });
+            // Only advance stored folio when we actually created something
             lastFolios[typeDocument] = folio;
             updated = true;
             folio++;
+            // ⏳ Be nice to Monday
+            await new Promise(r => setTimeout(r, 300));
         }
     }
     if (updated) {
@@ -675,7 +709,7 @@ async function backfillDtes({ boardId, fromFolios, toFolios }) {
             }
             const itemName = `${config.prefix} ${folio}`;
             await createMondayItem({ boardId, itemName });
-            await sleep(300); 
+            await sleep(300);
             folio++;
         }
     }
