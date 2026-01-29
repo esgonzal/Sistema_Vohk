@@ -312,7 +312,7 @@ async function checkForNewDtes2(boardId) {
         while (true) {
             const dte = await getRelbaseDteByTypeAndFolio(typeDocument, folio);
             if (!dte || Number(dte.folio) !== Number(folio)) {
-                console.log(`⛔ No DTE found for ${config.prefix} ${folio}`);
+                //console.log(`⛔ No DTE found for ${config.prefix} ${folio}`);
                 break;
             }
             //console.log(`🧾 Found DTE ${typeDocument} folio ${folio}, pushing to Monday`);
@@ -463,10 +463,7 @@ async function getRelbaseDteByTypeAndFolio(typeDocument, folio) {
             }
             page++;
         }
-        console.warn(`⛔ DTE not found after scanning all pages`, {
-            typeDocument,
-            folio
-        });
+        //console.warn(`⛔ DTE not found after scanning all pages`, {typeDocument,folio});
         return null;
     } catch (error) {
         console.error(
