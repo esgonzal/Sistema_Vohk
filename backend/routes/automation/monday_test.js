@@ -715,7 +715,7 @@ function mapDteStatus(dte) {
     if (dte.status === 'partial') return 'Abono';
     if (dte.status === 'cancel') return 'Anulada';
     if (!dte.status || dte.status === 'pending') {
-        if (today > endDate) return 'Vencida';
+        if (today > endDate) return 'Vencido';
         return 'Pendiente';
     }
     return 'No Aplica';
