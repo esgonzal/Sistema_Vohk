@@ -103,7 +103,7 @@ router.post('/update', async (req, res) => {
         if (!event) return;
         const itemId = event.pulseId;
         const boardId = event.boardId;
-        await printBoardColumns(boardId, itemId);
+        //await printBoardColumns(boardId, itemId);
         // 1️⃣ Get Monday item
         const item = await getMondayItem(itemId);
         if (!item) {
@@ -423,6 +423,7 @@ async function getRelbaseDteByFolio({ folio, dteLabel }) {
             console.warn(`⚠️ No DTE found for folio ${folio} (${typeDocument})`);
             return null;
         }
+        console.log("EL DTE : ", dte);
         return dte;
     } catch (error) {
         console.error(
