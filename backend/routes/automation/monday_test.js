@@ -423,7 +423,7 @@ async function getRelbaseDteByFolio({ folio, dteLabel }) {
             console.warn(`⚠️ No DTE found for folio ${folio} (${typeDocument})`);
             return null;
         }
-        console.log("EL DTE : ", dte);
+        //console.log("EL DTE : ", dte);
         return dte;
     } catch (error) {
         console.error(
