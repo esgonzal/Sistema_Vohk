@@ -301,7 +301,7 @@ async function getRelbaseSeller(sellerId) {
     }
 }
 
-async function checkForNewDtes2(boardId) {
+async function checkForNewDtes(boardId) {
     //console.log('⏱️ [DTE CHECK] Starting scan');
     const lastFolios = readLastFolios();
     let updated = false;
@@ -342,7 +342,7 @@ async function checkForNewDtes2(boardId) {
     //console.log('🏁 [DTE CHECK] Finished');
 }
 
-async function checkForNewDtes(boardId) {
+async function checkForNewDte2(boardId) {
     const lastFolios = readLastFolios();
     const existingNames = await getExistingItemNames(boardId);
     let updated = false;
@@ -682,16 +682,16 @@ async function populateItemFromDte({ boardId, itemId, dte }) {
 
 //HELPER FUNCTIONS
 setTimeout(() => {
-    /*
     setInterval(() => {
         checkForNewDtes(18392646892);
     }, 5 * 60 * 1000);
-    */
-    setTimeout(async () => {
-        console.log('🕰️ Starting ONE-TIME DTE backfill');
-        await checkForNewDtes(18392646892);
-        console.log('✅ Backfill finished');
-    }, 10_000);
+    /*
+     setTimeout(async () => {
+         console.log('🕰️ Starting ONE-TIME DTE backfill');
+         await checkForNewDtes2(18392646892);
+         console.log('✅ Backfill finished');
+     }, 10_000);
+     */
 }, 10_000); // wait 10s after boot
 
 const DTE_TYPE_MAP = {
