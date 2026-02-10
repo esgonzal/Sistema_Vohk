@@ -174,7 +174,7 @@ async function mondayItemExists({ boardId, itemName }) {
     return response.data?.data?.items_by_column_values?.length > 0;
 }
 
-//RELBASE FUNCTIONS
+//RELBASE API FUNCTIONS
 async function checkForNewDtes(boardId) {
     const lastFolios = readLastFolios();
     let updated = false;
@@ -433,6 +433,10 @@ async function updateDropdownColumn({ boardId, itemId, columnId, labels }) {
     }
 }
 
+async function updateLinkColumn({ boardId, itemId, columnId, url}) {
+
+}
+
 async function updateMondayItem({ boardId, itemId, dte }) {
     const seller = await getRelbaseSeller(dte.seller_id);
     const sellerName = formatSellerName(seller);
@@ -472,6 +476,12 @@ async function updateMondayItem({ boardId, itemId, dte }) {
         columnId: 'date_mkyvc0pp',
         date: dte.end_date
     });
+    await updateLinkColumn({
+        boardId,
+        itemId,
+        columnId: 'link_mm0ekked',
+        url: dte.xml_inter_file.url
+    });
 }
 
 //HELPER FUNCTIONS
@@ -500,30 +510,13 @@ const DTE_MAP = {
     }
 };
 
-const PREFIX_TO_LABEL = {
-    FE: 'Factura',
-    BE: 'Boleta',
-    NV: 'Nota de Venta'
-};
-
-const DTE_TYPES = {
-    'Factura': { type: 33, prefix: 'FE' },
-    'Boleta': { type: 39, prefix: 'BE' },
-    'Nota de Venta': { type: 1001, prefix: 'NV' }
-};
-
-const DTE_TYPE_MAP = {
-    'Factura': 33,
-    'Boleta': 39,
-    'Nota de Venta': 1001,
-};
-
 const DTE_TYPE_CONFIG = {
     33: { prefix: 'FE', label: 'Factura' },
     39: { prefix: 'BE', label: 'Boleta' },
     1001: { prefix: 'NV', label: 'Nota de Venta' }
 };
 
+//READ OR WRITE JSON FILES
 function readLastFolios() {
     return JSON.parse(fs.readFileSync(FOLIO_FILE, 'utf8'));
 }
@@ -547,6 +540,7 @@ function writeWatchlist(data) {
     );
 }
 
+//MAP VARIABLES
 function mapDteStatus(dte) {
     const today = new Date();
     const endDate = new Date(dte.end_date);
@@ -595,6 +589,7 @@ function formatSellerName(vendedor) {
     return `${vendedor.first_name.trim()} ${vendedor.last_name.trim()}`;
 }
 
+//MISC
 function pickExactDte(dtes, folio, typeDocument) {
     if (!Array.isArray(dtes)) return null;
     const exact = dtes.filter(d =>
