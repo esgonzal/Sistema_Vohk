@@ -433,8 +433,39 @@ async function updateDropdownColumn({ boardId, itemId, columnId, labels }) {
     }
 }
 
-async function updateLinkColumn({ boardId, itemId, columnId, url}) {
-
+async function updateLinkColumn({ boardId, itemId, columnId, url, text }) {
+    if (!url) return;
+    const mutation = `
+        mutation ($boardId: ID!, $itemId: ID!, $columnId: String!, $value: JSON!) {
+            change_column_value(
+                board_id: $boardId,
+                item_id: $itemId,
+                column_id: $columnId,
+                value: $value
+            ) {
+                id
+            }
+        }
+    `;
+    const variables = {
+        boardId: String(boardId),
+        itemId: String(itemId),
+        columnId,
+        value: JSON.stringify({
+            url,
+            text: text || 'XML'
+        })
+    };
+    await axios.post(
+        MONDAY_API_URL,
+        { query: mutation, variables },
+        {
+            headers: {
+                Authorization: MONDAY_API_TOKEN,
+                'Content-Type': 'application/json'
+            }
+        }
+    );
 }
 
 async function updateMondayItem({ boardId, itemId, dte }) {
@@ -480,7 +511,8 @@ async function updateMondayItem({ boardId, itemId, dte }) {
         boardId,
         itemId,
         columnId: 'link_mm0ekked',
-        url: dte.xml_inter_file.url
+        url: dte.xml_inter_file.url,
+        text: 'XML'
     });
 }
 
