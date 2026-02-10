@@ -73,6 +73,7 @@ router.post('/update', async (req, res) => {
         const { prefix, typeDocument, folio_number, dteLabel } = parsed;
         const dte = await getRelbaseDte(typeDocument, folio_number);
         if (!dte) return;
+        console.log(dte)
         await updateMondayItem({ boardId, itemId, dte });
     } catch (error) {
         console.error(
