@@ -27,7 +27,6 @@ router.post('/', async (req, res) => {
         const itemId = event.pulseId;
         const boardId = event.boardId;
         const item = await getMondayItem(itemId);
-        //await printBoardColumns(boardId);
         if (!item) {
             console.error('❌ Item not found');
             return;
@@ -37,11 +36,11 @@ router.post('/', async (req, res) => {
             console.error('❌ Invalid item name format:', item.name);
             return;
         }
-        const { folio, dteLabel } = parsed;
-        const dte = await getRelbaseDteByFolio({ folio, dteLabel });
+        const { prefix, typeDocument, folio_number, dteLabel } = parsed;    
+        const dte = await getRelbaseDte(typeDocument, folio_number);
         if (!dte) return;
-        await updateMondayFromDte({ boardId, itemId: item.id, dte });
-        addDteToWatchlist({ dte, boardId, itemId: createdItem.id });
+        await updateMondayItem({ boardId, itemId, dte });
+        addDteToWatchlist({ boardId, itemId, dte });
     } catch (error) {
         console.error(
             '🔥 Error processing Monday webhook:',
@@ -66,7 +65,7 @@ router.post('/update', async (req, res) => {
         const parsed = parseItemName(item.name);
         if (!parsed) return;
         const { folio, dteLabel } = parsed;
-        const dte = await getRelbaseDteByFolio({ folio, dteLabel });
+        const dte = await getRelbaseDte({ dteLabel, folio });
         if (!dte) return;
         await updateMondayFromDte({ boardId, itemId: item.id, dte });
     } catch (error) {
@@ -222,7 +221,7 @@ async function checkForNewDtes2(boardId) {
         const config = DTE_TYPE_CONFIG[typeDocument];
         let folio = lastFolios[typeDocument] + 1;
         while (true) {
-            const dte = await getRelbaseDteByTypeAndFolio(typeDocument, folio);
+            const dte = await getRelbaseDte(typeDocument, folio);
             if (!dte || Number(dte.folio) !== Number(folio)) {
                 break;
             }
@@ -248,7 +247,7 @@ async function checkForNewDtes2(boardId) {
         console.log('💾 Folios updated:', lastFolios);
     }
 }
-
+/*
 async function getRelbaseDteByFolio({ folio, dteLabel }) {
     if (!folio || !dteLabel) return null;
     const typeDocument = DTE_TYPE_MAP[dteLabel];
@@ -322,6 +321,43 @@ async function getRelbaseDteByTypeAndFolio(typeDocument, folio) {
     } catch (error) {
         console.error(
             `🔥 Relbase lookup failed for ${typeDocument}-${folio}`,
+            error.response?.data || error.message
+        );
+        return null;
+    }
+}*/
+
+async function getRelbaseDte(typeDocument, folio_number) {
+    let page = 1;
+    let totalPages = 1;
+    try {
+        while (page <= totalPages) {
+            const response = await axios.get(
+                'https://api.relbase.cl/api/v1/dtes',
+                {
+                    params: {
+                        type_document: typeDocument,
+                        query: folio_number,
+                        page
+                    },
+                    headers: {
+                        accept: 'application/json',
+                        Authorization: USER,
+                        Company: COMPANY
+                    }
+                }
+            );
+            const meta = response.data?.meta;
+            const dtes = response.data?.data?.dtes || [];
+            totalPages = meta?.total_pages ?? 1;
+            const dte = pickExactDte(dtes, folio_number, typeDocument);
+            if (dte) return dte;
+            page++;
+        }
+        return null;
+    } catch (error) {
+        console.error(
+            `Relbase lookup failed for ${typeDocument}-${folio_number}`,
             error.response?.data || error.message
         );
         return null;
@@ -532,7 +568,7 @@ async function populateItemFromDte({ boardId, itemId, dte }) {
     });
 }
 
-async function updateMondayFromDte({ boardId, itemId, dte }) {
+async function updateMondayItem({ boardId, itemId, dte }) {
     const seller = await getRelbaseSeller(dte.seller_id);
     const sellerName = formatSellerName(seller);
     await updateDateColumn({
@@ -582,6 +618,36 @@ setTimeout(() => {
         scanWatchlist();
     }, 60 * 60 * 1000)
 }, 10_000);
+
+const DTE_MAP = {
+    FE: {
+        typeDocument: 33,
+        label: "Factura",
+        prefix: "FE"
+    },
+    BE: {
+        typeDocument: 39,
+        label: "Boleta",
+        prefix: "BE"
+    },
+    NV: {
+        typeDocument: 1001,
+        label: "Nota de Venta",
+        prefix: "NV"
+    }
+};
+
+const PREFIX_TO_LABEL = {
+    FE: 'Factura',
+    BE: 'Boleta',
+    NV: 'Nota de Venta'
+};
+
+const DTE_TYPES = {
+    'Factura': { type: 33, prefix: 'FE' },
+    'Boleta': { type: 39, prefix: 'BE' },
+    'Nota de Venta': { type: 1001, prefix: 'NV' }
+};
 
 const DTE_TYPE_MAP = {
     'Factura': 33,
@@ -636,24 +702,14 @@ function parseItemName(name) {
     if (!name) return null;
     const match = name.trim().match(/^(FE|BE|NV)\s*(\d+)$/i);
     if (!match) return null;
-    const [, type, folio] = match;
-    let dteLabel;
-    switch (type.toUpperCase()) {
-        case 'FE':
-            dteLabel = 'Factura';
-            break;
-        case 'BE':
-            dteLabel = 'Boleta';
-            break;
-        case 'NV':
-            dteLabel = 'Nota de Venta';
-            break;
-        default:
-            return null;
-    }
+    const [, prefix, folio] = match;
+    const config = DTE_MAP[prefix.toUpperCase()];
+    if (!config) return null;
     return {
-        dteLabel,
-        folio
+        prefix: config.prefix,             // FE
+        folio_number: Number(folio),       // 1409
+        typeDocument: config.typeDocument, // 33
+        dteLabel: config.label             // Factura
     };
 }
 
@@ -692,7 +748,9 @@ function pickExactDte(dtes, folio, typeDocument) {
     return exact[0];
 }
 
-function addDteToWatchlist(dte) {
+function addDteToWatchlist({ dte, boardId, itemId }) {
+    console.log("trying to add the dte ", dte.folio, " to the watchlist");
+    console.log("DTE: ", dte);
     const watchlist = readWatchlist();
     const key = `${dte.type_document}-${dte.folio}`;
     if (watchlist[key]) {
@@ -701,6 +759,8 @@ function addDteToWatchlist(dte) {
     watchlist[key] = {
         type_document: dte.type_document,
         folio: dte.folio,
+        boardId,
+        itemId,
         start_date: dte.start_date,
         end_date: dte.end_date,
         status: dte.status
@@ -713,10 +773,7 @@ async function scanWatchlist() {
     const today = new Date();
     let changed = false;
     for (const [key, dte] of Object.entries(watchlist)) {
-        const relbaseDte = await getRelbaseDteByTypeAndFolio(
-            dte.type_document,
-            dte.folio
-        );
+        const relbaseDte = await getRelbaseDte(dte.type_document, dte.folio);
         if (!relbaseDte) {
             continue;
         }
