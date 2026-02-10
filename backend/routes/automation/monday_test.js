@@ -692,9 +692,10 @@ function scheduleWatchlistScan() {
     const next = new Date(now);
     next.setMinutes(0, 0, 0);
     if (now.getHours() < 12) {
-        next.setHours(12);
+        next.setHours(12, 0, 0, 0);
     } else {
-        next.setHours(24); // midnight of next day
+        next.setDate(next.getDate() + 1);
+        next.setHours(0, 0, 0, 0);
     }
     const delay = next.getTime() - now.getTime();
     console.log(
