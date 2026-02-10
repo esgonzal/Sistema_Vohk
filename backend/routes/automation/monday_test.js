@@ -73,7 +73,6 @@ router.post('/update', async (req, res) => {
         const { prefix, typeDocument, folio_number, dteLabel } = parsed;
         const dte = await getRelbaseDte(typeDocument, folio_number);
         if (!dte) return;
-        console.log(dte)
         await updateMondayItem({ boardId, itemId, dte });
     } catch (error) {
         console.error(
@@ -435,7 +434,6 @@ async function updateDropdownColumn({ boardId, itemId, columnId, labels }) {
 }
 
 async function updateLinkColumn({ boardId, itemId, columnId, url, text }) {
-    console.log("update the link")
     if (!url) return;
     const mutation = `
         mutation ($boardId: ID!, $itemId: ID!, $columnId: String!, $value: JSON!) {
@@ -458,7 +456,6 @@ async function updateLinkColumn({ boardId, itemId, columnId, url, text }) {
             text: text || 'XML'
         })
     };
-    console.log("the variables are: ", variables);
     await axios.post(
         MONDAY_API_URL,
         { query: mutation, variables },
