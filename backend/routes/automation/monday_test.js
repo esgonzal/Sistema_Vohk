@@ -36,7 +36,7 @@ router.post('/', async (req, res) => {
             console.error('❌ Invalid item name format:', item.name);
             return;
         }
-        const { prefix, typeDocument, folio_number, dteLabel } = parsed;    
+        const { prefix, typeDocument, folio_number, dteLabel } = parsed;
         const dte = await getRelbaseDte(typeDocument, folio_number);
         if (!dte) return;
         await updateMondayItem({ boardId, itemId, dte });
@@ -61,13 +61,19 @@ router.post('/update', async (req, res) => {
         const itemId = event.pulseId;
         const boardId = event.boardId;
         const item = await getMondayItem(itemId);
-        if (!item) return;
+        if (!item) {
+            console.error('❌ Item not found');
+            return;
+        }
         const parsed = parseItemName(item.name);
-        if (!parsed) return;
-        const { folio, dteLabel } = parsed;
-        const dte = await getRelbaseDte({ dteLabel, folio });
+        if (!parsed) {
+            console.error('❌ Invalid item name format:', item.name);
+            return;
+        }
+        const { prefix, typeDocument, folio_number, dteLabel } = parsed;
+        const dte = await getRelbaseDte(typeDocument, folio_number);
         if (!dte) return;
-        await updateMondayFromDte({ boardId, itemId: item.id, dte });
+        await updateMondayItem({ boardId, itemId, dte });
     } catch (error) {
         console.error(
             '🔥 [UPDATE] Error processing webhook:',
@@ -168,53 +174,8 @@ async function mondayItemExists({ boardId, itemName }) {
     return response.data?.data?.items_by_column_values?.length > 0;
 }
 
-async function getExistingItemNames(boardId) {
-    const query = `
-      query {
-        boards(ids: [${boardId}]) {
-          items_page(limit: 500) {
-            items {
-              name
-            }
-          }
-        }
-      }
-    `;
-    const res = await axios.post(
-        MONDAY_API_URL,
-        { query },
-        { headers: { Authorization: MONDAY_API_TOKEN } }
-    );
-    const items =
-        res.data?.data?.boards?.[0]?.items_page?.items || [];
-    return new Set(items.map(i => i.name.trim()));
-}
-
 //RELBASE FUNCTIONS
-async function getRelbaseSeller(sellerId) {
-    if (!sellerId) return null;
-    try {
-        const response = await axios.get(
-            `https://api.relbase.cl/api/v1/vendedores/${sellerId}`,
-            {
-                headers: {
-                    accept: 'application/json',
-                    Authorization: USER,
-                    Company: COMPANY
-                }
-            }
-        );
-        return response.data?.data || null;
-    } catch (error) {
-        console.error(
-            '🔥 Relbase seller lookup failed:',
-            error.response?.data || error
-        );
-        return null;
-    }
-}
-
-async function checkForNewDtes2(boardId) {
+async function checkForNewDtes(boardId) {
     const lastFolios = readLastFolios();
     let updated = false;
     for (const typeDocument of Object.keys(DTE_TYPE_CONFIG)) {
@@ -234,6 +195,7 @@ async function checkForNewDtes2(boardId) {
                 continue;
             }
             const createdItem = await createMondayItem({ boardId, itemName });
+            console.log('🧱 Created Monday item:', createdItem);
             if (!createdItem?.id) return;
             addDteToWatchlist({ dte, boardId, itemId: createdItem.id });
             lastFolios[typeDocument] = folio;
@@ -247,85 +209,6 @@ async function checkForNewDtes2(boardId) {
         console.log('💾 Folios updated:', lastFolios);
     }
 }
-/*
-async function getRelbaseDteByFolio({ folio, dteLabel }) {
-    if (!folio || !dteLabel) return null;
-    const typeDocument = DTE_TYPE_MAP[dteLabel];
-    if (!typeDocument) {
-        console.error('❌ Unknown DTE type:', dteLabel);
-        return null;
-    }
-    try {
-        const response = await axios.get(
-            'https://api.relbase.cl/api/v1/dtes',
-            {
-                params: {
-                    type_document: typeDocument,
-                    query: folio
-                },
-                headers: {
-                    accept: 'application/json',
-                    Authorization: USER,
-                    Company: COMPANY
-                }
-            }
-        );
-        const dtes = response.data?.data?.dtes || [];
-        const dte = pickExactDte(dtes, folio, typeDocument);
-        if (!dte) {
-            console.warn(`⚠️ No DTE found for folio ${folio} (${typeDocument})`);
-            return null;
-        }
-        //console.log("EL DTE : ", dte);
-        return dte;
-    } catch (error) {
-        console.error(
-            '🔥 Relbase DTE lookup failed:',
-            error.response?.data || error
-        );
-        return null;
-    }
-}
-
-async function getRelbaseDteByTypeAndFolio(typeDocument, folio) {
-    let page = 1;
-    let totalPages = 1;
-    try {
-        while (page <= totalPages) {
-            const response = await axios.get(
-                'https://api.relbase.cl/api/v1/dtes',
-                {
-                    params: {
-                        type_document: typeDocument,
-                        query: folio,
-                        page
-                    },
-                    headers: {
-                        accept: 'application/json',
-                        Authorization: USER,
-                        Company: COMPANY
-                    }
-                }
-            );
-            const meta = response.data?.meta;
-            const dtes = response.data?.data?.dtes || [];
-            totalPages = meta?.total_pages ?? 1;
-            const dte = pickExactDte(dtes, folio, typeDocument);
-            if (dte) {
-                return dte;
-            }
-            page++;
-        }
-        //console.warn(`⛔ DTE not found after scanning all pages`, {typeDocument,folio});
-        return null;
-    } catch (error) {
-        console.error(
-            `🔥 Relbase lookup failed for ${typeDocument}-${folio}`,
-            error.response?.data || error.message
-        );
-        return null;
-    }
-}*/
 
 async function getRelbaseDte(typeDocument, folio_number) {
     let page = 1;
@@ -359,6 +242,29 @@ async function getRelbaseDte(typeDocument, folio_number) {
         console.error(
             `Relbase lookup failed for ${typeDocument}-${folio_number}`,
             error.response?.data || error.message
+        );
+        return null;
+    }
+}
+
+async function getRelbaseSeller(sellerId) {
+    if (!sellerId) return null;
+    try {
+        const response = await axios.get(
+            `https://api.relbase.cl/api/v1/vendedores/${sellerId}`,
+            {
+                headers: {
+                    accept: 'application/json',
+                    Authorization: USER,
+                    Company: COMPANY
+                }
+            }
+        );
+        return response.data?.data || null;
+    } catch (error) {
+        console.error(
+            '🔥 Relbase seller lookup failed:',
+            error.response?.data || error
         );
         return null;
     }
@@ -527,47 +433,6 @@ async function updateDropdownColumn({ boardId, itemId, columnId, labels }) {
     }
 }
 
-async function populateItemFromDte({ boardId, itemId, dte }) {
-    const seller = await getRelbaseSeller(dte.seller_id);
-    const sellerName = formatSellerName(seller);
-    await updateDateColumn({
-        boardId,
-        itemId,
-        columnId: 'date',
-        date: dte.start_date
-    });
-    await updateStatusColumn({
-        boardId,
-        itemId,
-        columnId: 'color_mkyryrxb',
-        statusLabel: mapDteStatus(dte)
-    });
-    await updateNumberColumn({
-        boardId,
-        itemId,
-        columnId: 'numeric_mkyr63qj',
-        numberValue: Number(dte.real_amount_total)
-    });
-    await updateStatusColumn({
-        boardId,
-        itemId,
-        columnId: 'color_mkyr7e09',
-        statusLabel: mapTipoDoc(dte)
-    });
-    await updateDropdownColumn({
-        boardId,
-        itemId,
-        columnId: 'dropdown_mkyrk2t1',
-        labels: [sellerName]
-    });
-    await updateDateColumn({
-        boardId,
-        itemId,
-        columnId: 'date_mkyvc0pp',
-        date: dte.end_date
-    });
-}
-
 async function updateMondayItem({ boardId, itemId, dte }) {
     const seller = await getRelbaseSeller(dte.seller_id);
     const sellerName = formatSellerName(seller);
@@ -612,11 +477,9 @@ async function updateMondayItem({ boardId, itemId, dte }) {
 //HELPER FUNCTIONS
 setTimeout(() => {
     setInterval(() => {
-        checkForNewDtes2(18392646892);
+        checkForNewDtes(18392646892);
     }, 5 * 60 * 1000);
-    setInterval(() => {
-        scanWatchlist();
-    }, 60 * 60 * 1000)
+    scheduleWatchlistScan();
 }, 10_000);
 
 const DTE_MAP = {
@@ -739,7 +602,6 @@ function pickExactDte(dtes, folio, typeDocument) {
         Number(d.type_document) === Number(typeDocument)
     );
     if (exact.length === 0) {
-        console.warn('❌ Exact match rejected', { folio, typeDocument });
         return null;
     }
     exact.sort(
@@ -751,6 +613,8 @@ function pickExactDte(dtes, folio, typeDocument) {
 function addDteToWatchlist({ dte, boardId, itemId }) {
     console.log("trying to add the dte ", dte.folio, " to the watchlist");
     console.log("DTE: ", dte);
+    console.log("boardId: ", boardId);
+    console.log("itemId: ", itemId);
     const watchlist = readWatchlist();
     const key = `${dte.type_document}-${dte.folio}`;
     if (watchlist[key]) {
@@ -775,6 +639,8 @@ async function scanWatchlist() {
     for (const [key, dte] of Object.entries(watchlist)) {
         const relbaseDte = await getRelbaseDte(dte.type_document, dte.folio);
         if (!relbaseDte) {
+            delete watchlist[key];
+            changed = true;
             continue;
         }
         const newStatus = relbaseDte.status;
@@ -794,7 +660,7 @@ async function scanWatchlist() {
             needsUpdate = true;
         }
         if (needsUpdate) {
-            await updateMonday(dte);
+            await updateMondayItem({ boardId: dte.boardId, itemId: dte.itemId, dte });
             changed = true;
         }
         if (shouldDeleteFromWatchlist(dte, today)) {
@@ -819,6 +685,27 @@ function shouldDeleteFromWatchlist(dte, today) {
         return daysBetween(startDate, today) > 7;
     }
     return daysBetween(endDate, today) > 7;
+}
+
+function scheduleWatchlistScan() {
+    const now = new Date();
+    const next = new Date(now);
+    next.setMinutes(0, 0, 0);
+    if (now.getHours() < 12) {
+        next.setHours(12);
+    } else {
+        next.setHours(24); // midnight of next day
+    }
+    const delay = next.getTime() - now.getTime();
+    console.log(
+        `⏰ scanWatchlist scheduled in ${Math.round(delay / 1000 / 60)} minutes`
+    );
+    setTimeout(() => {
+        scanWatchlist();
+        setInterval(() => {
+            scanWatchlist();
+        }, 12 * 60 * 60 * 1000);
+    }, delay);
 }
 
 module.exports = router;
