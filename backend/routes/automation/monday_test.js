@@ -471,6 +471,7 @@ async function updateLinkColumn({ boardId, itemId, columnId, url, text }) {
 async function updateMondayItem({ boardId, itemId, dte }) {
     const seller = await getRelbaseSeller(dte.seller_id);
     const sellerName = formatSellerName(seller);
+    console.log("linea 474: ", sellerName)
     await updateDateColumn({
         boardId,
         itemId,
@@ -507,13 +508,15 @@ async function updateMondayItem({ boardId, itemId, dte }) {
         columnId: 'date_mkyvc0pp',
         date: dte.end_date
     });
-    await updateLinkColumn({
-        boardId,
-        itemId,
-        columnId: 'link_mm0ekked',
-        url: dte.xml_inter_file.url,
-        text: 'XML'
-    });
+    if (dte.type_document == 33) {
+        await updateLinkColumn({
+            boardId,
+            itemId,
+            columnId: 'link_mm0ekked',
+            url: dte.xml_inter_file.url,
+            text: 'XML'
+        });
+    }
 }
 
 //HELPER FUNCTIONS
@@ -617,6 +620,7 @@ function mapTipoDoc(dte) {
 }
 
 function formatSellerName(vendedor) {
+    console.log("linea 620: ", vendedor)
     if (!vendedor) return null;
     return `${vendedor.first_name.trim()} ${vendedor.last_name.trim()}`;
 }
@@ -683,7 +687,7 @@ async function scanWatchlist() {
             needsUpdate = true;
         }
         if (needsUpdate) {
-            console.log("Updating the dte ", dte.type_document, ":" , dte.folio)
+            console.log("Updating the dte ", dte.type_document, ":", dte.folio)
             await updateMondayItem({ boardId: dte.boardId, itemId: dte.itemId, dte });
             changed = true;
         }
