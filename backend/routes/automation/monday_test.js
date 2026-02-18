@@ -470,7 +470,6 @@ async function updateLinkColumn({ boardId, itemId, columnId, url, text }) {
 
 async function updateMondayItem({ boardId, itemId, dte }) {
     console.log("linea 472: ", dte)
-    //console.log("linea 473: ", dte.seller_id)
     const seller = await getRelbaseSeller(dte.seller_id);
     const sellerName = formatSellerName(seller);
     console.log("linea 474: ", sellerName)
@@ -667,7 +666,6 @@ async function scanWatchlist() {
     let changed = false;
     for (const [key, dte] of Object.entries(watchlist)) {
         const relbaseDte = await getRelbaseDte(dte.type_document, dte.folio);
-        console.log("linea 670: ", relbaseDte)
         if (!relbaseDte) {
             delete watchlist[key];
             changed = true;
@@ -691,6 +689,7 @@ async function scanWatchlist() {
         }
         if (needsUpdate) {
             console.log("Updating the dte ", dte.type_document, ":", dte.folio)
+            console.log("linea 692: ", relbaseDte)
             await updateMondayItem({ boardId: dte.boardId, itemId: dte.itemId, relbaseDte });
             changed = true;
         }
