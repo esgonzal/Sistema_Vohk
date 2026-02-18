@@ -470,7 +470,7 @@ async function updateLinkColumn({ boardId, itemId, columnId, url, text }) {
 
 async function updateMondayItem({ boardId, itemId, dte }) {
     console.log("linea 472: ", dte)
-    console.log("linea 473: ", dte.seller_id)
+    //console.log("linea 473: ", dte.seller_id)
     const seller = await getRelbaseSeller(dte.seller_id);
     const sellerName = formatSellerName(seller);
     console.log("linea 474: ", sellerName)
