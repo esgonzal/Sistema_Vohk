@@ -667,6 +667,7 @@ async function scanWatchlist() {
     let changed = false;
     for (const [key, dte] of Object.entries(watchlist)) {
         const relbaseDte = await getRelbaseDte(dte.type_document, dte.folio);
+        console.log("linea 670: ", relbaseDte)
         if (!relbaseDte) {
             delete watchlist[key];
             changed = true;
