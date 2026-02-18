@@ -690,7 +690,7 @@ async function scanWatchlist() {
         if (needsUpdate) {
             console.log("Updating the dte ", dte.type_document, ":", dte.folio)
             console.log("linea 692: ", relbaseDte)
-            await updateMondayItem({ boardId: dte.boardId, itemId: dte.itemId, relbaseDte });
+            await updateMondayItem({ boardId: dte.boardId, itemId: dte.itemId, dte: relbaseDte  });
             changed = true;
         }
         if (shouldDeleteFromWatchlist(dte, today)) {
