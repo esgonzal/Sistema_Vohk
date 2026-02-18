@@ -469,10 +469,8 @@ async function updateLinkColumn({ boardId, itemId, columnId, url, text }) {
 }
 
 async function updateMondayItem({ boardId, itemId, dte }) {
-    console.log("linea 472: ", dte)
     const seller = await getRelbaseSeller(dte.seller_id);
     const sellerName = formatSellerName(seller);
-    console.log("linea 474: ", sellerName)
     await updateDateColumn({
         boardId,
         itemId,
@@ -521,13 +519,6 @@ async function updateMondayItem({ boardId, itemId, dte }) {
 }
 
 //HELPER FUNCTIONS
-setTimeout(() => {
-    setInterval(() => {
-        checkForNewDtes(18392646892);
-    }, 5 * 60 * 1000);
-    scheduleWatchlistScan();
-}, 10_000);
-
 const DTE_MAP = {
     FE: {
         typeDocument: 33,
@@ -689,8 +680,7 @@ async function scanWatchlist() {
         }
         if (needsUpdate) {
             console.log("Updating the dte ", dte.type_document, ":", dte.folio)
-            console.log("linea 692: ", relbaseDte)
-            await updateMondayItem({ boardId: dte.boardId, itemId: dte.itemId, dte: relbaseDte  });
+            await updateMondayItem({ boardId: dte.boardId, itemId: dte.itemId, dte: relbaseDte });
             changed = true;
         }
         if (shouldDeleteFromWatchlist(dte, today)) {
@@ -717,14 +707,28 @@ function shouldDeleteFromWatchlist(dte, today) {
     return daysBetween(endDate, today) > 7;
 }
 
-function scheduleWatchlistScan() {
-    // Run immediately
-    scanWatchlist();
-
-    // Then every 3 minutes
+setTimeout(() => {
     setInterval(() => {
+        checkForNewDtes(18392646892);
+    }, 5 * 60 * 1000);
+    scheduleWatchlistScan();
+}, 10_000);
+
+function scheduleWatchlistScan() {
+    const now = new Date();
+    const next = new Date(now);
+    next.setMinutes(0, 0, 0);
+    if (now.getHours() < 12) {
+        next.setHours(12, 0, 0, 0);
+    } else {
+        next.setDate(next.getDate() + 1);
+        next.setHours(0, 0, 0, 0);
+    }
+    const delay = next.getTime() - now.getTime();
+    setTimeout(() => {
         scanWatchlist();
-    }, 3 * 60 * 1000);
+        setInterval(() => { scanWatchlist(); }, 12 * 60 * 60 * 1000);
+    }, delay);
 }
 
 module.exports = router;
