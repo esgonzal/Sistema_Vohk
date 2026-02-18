@@ -638,10 +638,6 @@ function pickExactDte(dtes, folio, typeDocument) {
 }
 
 function addDteToWatchlist({ dte, boardId, itemId }) {
-    console.log("trying to add the dte ", dte.folio, " to the watchlist");
-    console.log("DTE: ", dte);
-    console.log("boardId: ", boardId);
-    console.log("itemId: ", itemId);
     const watchlist = readWatchlist();
     const key = `${dte.type_document}-${dte.folio}`;
     if (watchlist[key]) {
@@ -725,14 +721,11 @@ function scheduleWatchlistScan() {
         next.setHours(0, 0, 0, 0);
     }
     const delay = next.getTime() - now.getTime();
-    console.log(
-        `⏰ scanWatchlist scheduled in ${Math.round(delay / 1000 / 60)} minutes`
-    );
     setTimeout(() => {
         scanWatchlist();
         setInterval(() => {
             scanWatchlist();
-        }, 12 * 60 * 60 * 1000);
+        }, 3 * 60 * 1000);
     }, delay);
 }
 
