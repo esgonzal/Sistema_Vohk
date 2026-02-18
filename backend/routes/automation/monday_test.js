@@ -683,7 +683,7 @@ async function scanWatchlist() {
             needsUpdate = true;
         }
         if (needsUpdate) {
-            console.log("Updating the dte ", dte.typeDocument, ":" , dte.folio)
+            console.log("Updating the dte ", dte.type_document, ":" , dte.folio)
             await updateMondayItem({ boardId: dte.boardId, itemId: dte.itemId, dte });
             changed = true;
         }
