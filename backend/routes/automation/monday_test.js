@@ -683,6 +683,7 @@ async function scanWatchlist() {
             needsUpdate = true;
         }
         if (needsUpdate) {
+            console.log("Updating the dte ", dte.typeDocument, ":" , dte.folio)
             await updateMondayItem({ boardId: dte.boardId, itemId: dte.itemId, dte });
             changed = true;
         }
@@ -711,22 +712,13 @@ function shouldDeleteFromWatchlist(dte, today) {
 }
 
 function scheduleWatchlistScan() {
-    const now = new Date();
-    const next = new Date(now);
-    next.setMinutes(0, 0, 0);
-    if (now.getHours() < 12) {
-        next.setHours(12, 0, 0, 0);
-    } else {
-        next.setDate(next.getDate() + 1);
-        next.setHours(0, 0, 0, 0);
-    }
-    const delay = next.getTime() - now.getTime();
-    setTimeout(() => {
+    // Run immediately
+    scanWatchlist();
+
+    // Then every 3 minutes
+    setInterval(() => {
         scanWatchlist();
-        setInterval(() => {
-            scanWatchlist();
-        }, 3 * 60 * 1000);
-    }, delay);
+    }, 3 * 60 * 1000);
 }
 
 module.exports = router;
