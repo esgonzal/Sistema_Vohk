@@ -575,6 +575,9 @@ function mapDteStatus(dte) {
     if (dte.status === 'partial') return 'Abono';
     if (dte.status === 'cancel') return 'Anulada';
     if (dte.status === 'accepted') return 'Pagado';
+    if (dte.status === 'installment') return 'Abono';
+    if (dte.status === 'invoiced') return 'Facturada'
+    if (dte.status === 'canceled') return 'Anulada';
     if (!dte.status || dte.status === 'pending') {
         if (today > endDate) return 'Vencido';
         return 'Pendiente';
@@ -612,7 +615,6 @@ function mapTipoDoc(dte) {
 }
 
 function formatSellerName(vendedor) {
-    console.log("linea 620: ", vendedor)
     if (!vendedor) return null;
     return `${vendedor.first_name.trim()} ${vendedor.last_name.trim()}`;
 }
