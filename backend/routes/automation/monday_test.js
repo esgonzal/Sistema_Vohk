@@ -706,7 +706,7 @@ function shouldDeleteFromWatchlist(dte, today) {
     if (dte.status === "paid") {
         return daysBetween(startDate, today) > 7;
     }
-    return daysBetween(endDate, today) > 7;
+    return daysBetween(endDate, today) > 90;
 }
 
 setTimeout(() => {
