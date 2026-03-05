@@ -12,6 +12,7 @@ const fs = require('fs');
 const path = require('path');
 const FOLIO_FILE = path.join(__dirname, '../../data/last_folios.json');
 const WATCHLIST_PATH = path.join(__dirname, '../../data/watchlist.json');
+let isRunning = false;
 
 //ENDPOINTS
 router.post('/', async (req, res) => {
@@ -176,37 +177,49 @@ async function mondayItemExists({ boardId, itemName }) {
 
 //RELBASE API FUNCTIONS
 async function checkForNewDtes(boardId) {
-    const lastFolios = readLastFolios();
-    let updated = false;
-    for (const typeDocument of Object.keys(DTE_TYPE_CONFIG)) {
-        const config = DTE_TYPE_CONFIG[typeDocument];
-        let folio = lastFolios[typeDocument] + 1;
-        while (true) {
-            const dte = await getRelbaseDte(typeDocument, folio);
-            if (!dte || Number(dte.folio) !== Number(folio)) {
-                break;
-            }
-            const itemName = `${config.prefix} ${folio}`;
-            console.log(`✅ New DTE found → ${itemName}`);
-            const exists = await mondayItemExists({ boardId, itemName });
-            if (exists) {
-                console.log(`⏭️ ${itemName} already exists, skipping`);
-                folio++;
-                continue;
-            }
-            const createdItem = await createMondayItem({ boardId, itemName });
-            console.log('🧱 Created Monday item:', createdItem);
-            if (!createdItem?.id) return;
-            addDteToWatchlist({ dte, boardId, itemId: createdItem.id });
-            lastFolios[typeDocument] = folio;
-            updated = true;
-            folio++;
-            await new Promise(r => setTimeout(r, 300));
-        }
+    if (isRunning) {
+        console.log("⏳ Skipping run — already running");
+        return;
     }
-    if (updated) {
-        writeLastFolios(lastFolios);
-        console.log('💾 Folios updated:', lastFolios);
+    isRunning = true;
+    try {
+        const lastFolios = readLastFolios();
+        let updated = false;
+        for (const typeDocument of Object.keys(DTE_TYPE_CONFIG)) {
+            const config = DTE_TYPE_CONFIG[typeDocument];
+            let folio = lastFolios[typeDocument] + 1;
+            while (true) {
+                const dte = await getRelbaseDte(typeDocument, folio);
+                if (!dte || Number(dte.folio) !== Number(folio)) {
+                    break;
+                }
+                const itemName = `${config.prefix} ${folio}`;
+                console.log(`✅ New DTE found → ${itemName}`);
+                const exists = await mondayItemExists({ boardId, itemName });
+                if (exists) {
+                    console.log(`⏭️ ${itemName} already exists, skipping`);
+                    folio++;
+                    continue;
+                }
+                const createdItem = await createMondayItem({ boardId, itemName });
+                console.log('🧱 Created Monday item:', createdItem);
+                if (!createdItem?.id) {
+                    console.log("⚠️ Creation failed, stopping scan for this type");
+                    break;
+                }
+                addDteToWatchlist({ dte, boardId, itemId: createdItem.id });
+                lastFolios[typeDocument] = folio;
+                updated = true;
+                folio++;
+                await new Promise(r => setTimeout(r, 300));
+            }
+        }
+        if (updated) {
+            writeLastFolios(lastFolios);
+            console.log('💾 Folios updated:', lastFolios);
+        }
+    } finally {
+        isRunning = false;
     }
 }
 
