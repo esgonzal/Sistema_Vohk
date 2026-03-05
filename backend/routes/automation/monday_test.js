@@ -150,13 +150,13 @@ async function getMondayItem(pulseId) {
     return response.data.data.items?.[0] || null;
 }
 
-async function mondayItemExists({ boardId, itemName }) {
+async function mondayItemExists({ boardId, key }) {
     const query = `
         query {
             items_by_column_values(
                 board_id: ${boardId},
-                column_id: "name",
-                column_value: "${itemName}"
+                column_id: "text_mm1587bb",
+                column_value: "${key}"
             ) {
                 id
             }
@@ -194,10 +194,12 @@ async function checkForNewDtes(boardId) {
                     break;
                 }
                 const itemName = `${config.prefix} ${folio}`;
+                const key = `${config.prefix}-${folio}`;
                 console.log(`✅ New DTE found → ${itemName}`);
-                const exists = await mondayItemExists({ boardId, itemName });
+                const exists = await mondayItemExists({ boardId, key });
                 if (exists) {
-                    console.log(`⏭️ ${itemName} already exists, skipping`);
+                    console.log(`⏭️ ${key} already exists, skipping`);
+                    updated = true;
                     folio++;
                     continue;
                 }
@@ -481,6 +483,47 @@ async function updateLinkColumn({ boardId, itemId, columnId, url, text }) {
     );
 }
 
+async function updateKeyColumn({ boardId, itemId, columnId, text }) {
+    if (!text) return;
+    const mutation = `
+        mutation ($boardId: ID!, $itemId: ID!, $columnId: String!, $value: String!) {
+            change_simple_column_value(
+                board_id: $boardId,
+                item_id: $itemId,
+                column_id: $columnId,
+                value: $value
+            ) {
+                id
+            }
+        }
+    `;
+    const variables = {
+        boardId: String(boardId),
+        itemId: String(itemId),
+        columnId,
+        value: text
+    };
+    try {
+        const response = await axios.post(
+            MONDAY_API_URL,
+            { query: mutation, variables },
+            {
+                headers: {
+                    Authorization: MONDAY_API_TOKEN,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+        if (response.data?.errors) {
+            console.error('🚨 [KeyColumn] GraphQL errors:', response.data.errors);
+        }
+        return response.data;
+    } catch (error) {
+        console.error('🔴 [KeyColumn] FAILED');
+        console.error(error.response?.data || error.message || error);
+    }
+}
+
 async function updateMondayItem({ boardId, itemId, dte }) {
     const seller = await getRelbaseSeller(dte.seller_id);
     const sellerName = formatSellerName(seller);
@@ -529,6 +572,20 @@ async function updateMondayItem({ boardId, itemId, dte }) {
             text: 'XML'
         });
     }
+    let prefix;
+    if (dte.type_document == 33) {
+        prefix = 'FE';
+    } else if (dte.type_document == 39) {
+        prefix = 'BE';
+    } else {
+        prefix = 'NV';
+    }
+    await updateKeyColumn({
+        boardId,
+        itemId,
+        columnId: 'text_mm1587bb',
+        text: `${prefix}-${dte.folio}`
+    });
 }
 
 //HELPER FUNCTIONS
