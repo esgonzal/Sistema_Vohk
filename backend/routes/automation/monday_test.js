@@ -730,6 +730,7 @@ async function scanWatchlist() {
     for (const [key, dte] of Object.entries(watchlist)) {
         const relbaseDte = await getRelbaseDte(dte.type_document, dte.folio);
         if (!relbaseDte) {
+            console.warn(`Skipping ${dte.type_document}-${dte.folio} due to lookup failure`);
             delete watchlist[key];
             changed = true;
             continue;
@@ -752,7 +753,11 @@ async function scanWatchlist() {
         }
         if (needsUpdate) {
             console.log("Updating the dte ", dte.type_document, ":", dte.folio)
-            await updateMondayItem({ boardId: dte.boardId, itemId: dte.itemId, dte: relbaseDte });
+            try {
+                await updateMondayItem({ boardId: dte.boardId, itemId: dte.itemId, dte: relbaseDte });
+            } catch (err) {
+                console.error("Update failed for", dte.itemId, err.message);
+            }
             changed = true;
         }
         if (shouldDeleteFromWatchlist(dte, today)) {
