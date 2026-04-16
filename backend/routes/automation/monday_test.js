@@ -155,31 +155,6 @@ async function getMondayItem(pulseId) {
     return response.data.data.items?.[0] || null;
 }
 
-async function mondayItemExists({ boardId, key }) {
-    const query = `
-        query {
-            items_by_column_values(
-                board_id: ${boardId},
-                column_id: "text_mm1587bb",
-                column_value: "${key}"
-            ) {
-                id
-            }
-        }
-    `;
-    const response = await axios.post(
-        MONDAY_API_URL,
-        { query },
-        {
-            headers: {
-                Authorization: MONDAY_API_TOKEN,
-                'Content-Type': 'application/json'
-            }
-        }
-    );
-    return response.data?.data?.items_by_column_values?.length > 0;
-}
-
 //RELBASE API FUNCTIONS
 async function processDte({ boardId, itemId, typeDocument, folio_number }) {
     const key = `${typeDocument}-${folio_number}`;
@@ -203,12 +178,13 @@ async function checkForNewDtes(boardId) {
     isRunning = true;
     try {
         const lastFolios = readLastFolios();
-        const watchlist = readWatchlist();
+        //const watchlist = readWatchlist();
         let updated = false;
         for (const typeDocument of Object.keys(DTE_TYPE_CONFIG)) {
             const config = DTE_TYPE_CONFIG[typeDocument];
             let folio = lastFolios[typeDocument] + 1;
             while (true) {
+                const watchlist = readWatchlist();
                 const key = `${typeDocument}-${folio}`;
                 // 🔎 Step 1: Check if exists in Relbase (STOP condition)
                 const dteExists = await getRelbaseDte(typeDocument, folio);
@@ -549,6 +525,68 @@ async function updateKeyColumn({ boardId, itemId, columnId, text }) {
 async function updateMondayItem({ boardId, itemId, dte }) {
     const seller = await getRelbaseSeller(dte.seller_id);
     const sellerName = formatSellerName(seller);
+    const columnValues = {
+        date: dte.start_date ? { date: dte.start_date } : null,
+        color_mkyryrxb: { label: mapDteStatus(dte) },
+        numeric_mkyr63qj: Number(dte.real_amount_total),
+        color_mkyr7e09: { label: mapTipoDoc(dte) },
+        dropdown_mkyrk2t1: sellerName ? { labels: [sellerName] } : null,
+        date_mkyvc0pp: dte.end_date ? { date: dte.end_date } : null
+    };
+    Object.keys(columnValues).forEach(key => {
+        if (columnValues[key] === null) {
+            delete columnValues[key];
+        }
+    });
+    const mutation = `
+        mutation ($boardId: ID!, $itemId: ID!, $values: JSON!) {
+            change_multiple_column_values(
+                board_id: $boardId,
+                item_id: $itemId,
+                column_values: $values
+            ) {
+                id
+            }
+        }
+    `;
+    const variables = {
+        boardId: String(boardId),
+        itemId: String(itemId),
+        values: JSON.stringify(columnValues)
+    };
+    try {
+        const response = await axios.post(
+            MONDAY_API_URL,
+            { query: mutation, variables },
+            {
+                headers: {
+                    Authorization: MONDAY_API_TOKEN,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+        if (response.data?.errors) {
+            console.error('🚨 [Bulk Update] GraphQL errors:', response.data.errors);
+        }
+    } catch (error) {
+        console.error('🔥 Failed bulk update:', error.response?.data || error.message);
+        throw error;
+    }
+    if (dte.type_document == 33 && dte.xml_inter_file?.url) {
+        await updateLinkColumn({
+            boardId,
+            itemId,
+            columnId: 'link_mm0ekked',
+            url: dte.xml_inter_file.url,
+            text: 'XML'
+        });
+    }
+}
+
+/*
+async function updateMondayItem({ boardId, itemId, dte }) {
+    const seller = await getRelbaseSeller(dte.seller_id);
+    const sellerName = formatSellerName(seller);
     await updateDateColumn({
         boardId,
         itemId,
@@ -609,6 +647,7 @@ async function updateMondayItem({ boardId, itemId, dte }) {
         text: `${prefix}-${dte.folio}`
     });
 }
+    */
 
 //HELPER FUNCTIONS
 const DTE_MAP = {
