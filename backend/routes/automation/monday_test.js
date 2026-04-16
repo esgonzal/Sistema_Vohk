@@ -15,7 +15,7 @@ const WATCHLIST_PATH = path.join(__dirname, '../../data/watchlist.json');
 let isRunning = false;
 
 //ENDPOINTS
-router.post('/', async (req, res) => {
+router.post('/consult', async (req, res) => {
     const data = req.body;
     if (data.challenge) {
         return res.status(200).send({ challenge: data.challenge });
@@ -37,15 +37,20 @@ router.post('/', async (req, res) => {
             console.error('❌ Invalid item name format:', item.name);
             return;
         }
-        const { prefix, typeDocument, folio_number, dteLabel } = parsed;
-        const dte = await getRelbaseDte(typeDocument, folio_number);
-        if (!dte) return;
-        await updateMondayItem({ boardId, itemId, dte });
-        addDteToWatchlist({ boardId, itemId, dte });
+        const { typeDocument, folio_number } = parsed;
+        const key = `${typeDocument}-${folio_number}`;
+        const watchlist = readWatchlist();
+        if (watchlist[key]) {
+            console.log(`💀 Duplicate detected: ${key}`);
+            // optional: delete duplicate immediately
+            return;
+        }
+        console.log(`✅ New DTE detected: ${key}`);
+        await processDte({ boardId, itemId, typeDocument, folio_number });
     } catch (error) {
         console.error(
-            '🔥 Error processing Monday webhook:',
-            error.response?.data || error
+            '🔥 Error in /consult:',
+            error.response?.data || error.message
         );
     }
 });
@@ -176,6 +181,20 @@ async function mondayItemExists({ boardId, key }) {
 }
 
 //RELBASE API FUNCTIONS
+async function processDte({ boardId, itemId, typeDocument, folio_number }) {
+    const key = `${typeDocument}-${folio_number}`;
+    const watchlist = readWatchlist();
+    if (watchlist[key]) return;
+    const dte = await getRelbaseDte(typeDocument, folio_number);
+    if (!dte) return;
+    try {
+        await updateMondayItem({ boardId, itemId, dte });
+        addDteToWatchlist({ boardId, itemId, dte });
+    } catch (err) {
+        console.error("❌ Failed to update item:", itemId, err.message);
+    }
+}
+
 async function checkForNewDtes(boardId) {
     if (isRunning) {
         console.log("⏳ Skipping run — already running");
@@ -184,32 +203,35 @@ async function checkForNewDtes(boardId) {
     isRunning = true;
     try {
         const lastFolios = readLastFolios();
+        const watchlist = readWatchlist();
         let updated = false;
         for (const typeDocument of Object.keys(DTE_TYPE_CONFIG)) {
             const config = DTE_TYPE_CONFIG[typeDocument];
             let folio = lastFolios[typeDocument] + 1;
             while (true) {
-                const dte = await getRelbaseDte(typeDocument, folio);
-                if (!dte || Number(dte.folio) !== Number(folio)) {
+                const key = `${typeDocument}-${folio}`;
+                // 🔎 Step 1: Check if exists in Relbase (STOP condition)
+                const dteExists = await getRelbaseDte(typeDocument, folio);
+                if (!dteExists || Number(dteExists.folio) !== Number(folio)) {
+                    // ⛔ No more DTEs yet → stop loop
                     break;
                 }
-                const itemName = `${config.prefix} ${folio}`;
-                const key = `${config.prefix}-${folio}`;
-                console.log(`✅ New DTE found → ${itemName}`);
-                const exists = await mondayItemExists({ boardId, key });
-                if (exists) {
-                    console.log(`⏭️ ${key} already exists, skipping`);
+                // 🔎 Step 2: Check if already processed
+                if (watchlist[key]) {
+                    console.log(`⏭️ Already processed: ${key}`);
+                    lastFolios[typeDocument] = folio;
                     updated = true;
                     folio++;
                     continue;
                 }
+                // 🧱 Step 3: Create item ONLY
+                const itemName = `${config.prefix} ${folio}`;
                 const createdItem = await createMondayItem({ boardId, itemName });
                 console.log('🧱 Created Monday item:', createdItem);
                 if (!createdItem?.id) {
                     console.log("⚠️ Creation failed, stopping scan for this type");
                     break;
                 }
-                addDteToWatchlist({ dte, boardId, itemId: createdItem.id });
                 lastFolios[typeDocument] = folio;
                 updated = true;
                 folio++;
@@ -709,6 +731,7 @@ function addDteToWatchlist({ dte, boardId, itemId }) {
     const watchlist = readWatchlist();
     const key = `${dte.type_document}-${dte.folio}`;
     if (watchlist[key]) {
+        console.log(`⚠️ Already added by another process: ${key}`);
         return;
     }
     watchlist[key] = {
@@ -730,10 +753,8 @@ async function scanWatchlist() {
     for (const [key, dte] of Object.entries(watchlist)) {
         const relbaseDte = await getRelbaseDte(dte.type_document, dte.folio);
         if (!relbaseDte) {
-            console.warn(`Skipping ${dte.type_document}-${dte.folio} due to lookup failure`);
-            delete watchlist[key];
-            changed = true;
-            continue;
+            console.warn(`⚠️ Temporary lookup failure for ${key}`);
+            continue; // do NOT delete
         }
         const newStatus = relbaseDte.status;
         const newEndDate = relbaseDte.end_date;
@@ -757,6 +778,12 @@ async function scanWatchlist() {
                 await updateMondayItem({ boardId: dte.boardId, itemId: dte.itemId, dte: relbaseDte });
             } catch (err) {
                 console.error("Update failed for", dte.itemId, err.message);
+                // 💀 If item no longer exists → remove from watchlist
+                if (err.message.includes("Item not found") || err.message.includes("invalid")) {
+                    console.log(`🧹 Removing broken item from watchlist: ${key}`);
+                    delete watchlist[key];
+                    changed = true;
+                }
             }
             changed = true;
         }
@@ -781,7 +808,7 @@ function shouldDeleteFromWatchlist(dte, today) {
     if (dte.status === "paid") {
         return daysBetween(startDate, today) > 7;
     }
-    return daysBetween(endDate, today) > 90;
+    return daysBetween(endDate, today) > 30;
 }
 
 setTimeout(() => {
