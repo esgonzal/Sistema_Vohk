@@ -709,7 +709,7 @@ function mapDteStatus(dte) {
     if (dte.status === 'installment') return 'Abono';
     if (dte.status === 'invoiced') return 'Facturada'
     if (dte.status === 'canceled') return 'Anulada';
-    if (dte.status === 'rejected') return 'Rechzada';
+    if (dte.status === 'rejected') return 'Rechazada';
     if (!dte.status || dte.status === 'pending') {
         if (today > endDate) return 'Vencido';
         return 'Pendiente';
