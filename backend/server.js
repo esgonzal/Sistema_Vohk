@@ -3,6 +3,7 @@ const http = require('http');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const app = express();
+const { Server } = require('socket.io');
 
 // Middleware
 
@@ -11,7 +12,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const allowedOrigins = ['http://localhost:4200', 'https://app.vohk.cl'];
 
 app.use(cors({
-  origin: function(origin, callback) {
+  origin: function (origin, callback) {
     // Allow requests with no origin (like curl, Postman)
     if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) !== -1) {
@@ -20,8 +21,8 @@ app.use(cors({
       callback(new Error(`CORS not allowed for this origin: ${origin}`));
     }
   },
-  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
 
@@ -60,49 +61,23 @@ app.use((req, res, next) => {
   next();
 });
 */
+
 // API v0
 const { accessTokenStorage, storeAccessToken } = require('../backend/routes/v0/accessTokenStorage.js');
 const logoutInterval = 30 * 60 * 1000;
 const checkAndLogoutExpiredSessions = () => {
-    const currentTime = Date.now();
-    for (const userId in accessTokenStorage) {
-        const user = accessTokenStorage[userId];
-        if (user && user.loginTime && currentTime - user.loginTime >= logoutInterval) {
-            delete accessTokenStorage[userId];
-            console.log(`Logged out user with ID: ${userId}`);
-        }
+  const currentTime = Date.now();
+  for (const userId in accessTokenStorage) {
+    const user = accessTokenStorage[userId];
+    if (user && user.loginTime && currentTime - user.loginTime >= logoutInterval) {
+      delete accessTokenStorage[userId];
+      console.log(`Logged out user with ID: ${userId}`);
     }
+  }
 };
-
 const logoutIntervalId = setInterval(checkAndLogoutExpiredSessions, logoutInterval);
-//API de Usuario de TTLock
-const UserRouterV0 = require('../backend/routes/v0/UserAPI.js');
-app.use('/v0/user', UserRouterV0);
-//API de eKeys de TTLock
-const ekeyRouterV0 = require('../backend/routes/v0/ekeyAPI.js');
-app.use('/v0/ekey', ekeyRouterV0);
-//API de Passcodes de TTLock
-const passcodeRouterV0 = require('../backend/routes/v0/passcodeAPI.js');
-app.use('/v0/passcode', passcodeRouterV0);
-//API de Cards de TTLock
-const cardRouterV0 = require('../backend/routes/v0/cardAPI.js');
-app.use('/v0/card', cardRouterV0);
-//API de Fingerprints de TTLock
-const fingerprintRouterV0 = require('../backend/routes/v0/fingerprintAPI.js');
-app.use('/v0/fingerprint', fingerprintRouterV0);
-//API de Records de TTLock
-const recordRouterV0 = require('../backend/routes/v0/recordAPI.js');
-app.use('/v0/record', recordRouterV0);
-//API de Gateway de TTLock
-const gatewayRouterV0 = require('../backend/routes/v0/gatewayAPI.js');
-app.use('/v0/gateway', gatewayRouterV0);
-//API de Grupo de TTLock
-const groupRouterV0 = require('../backend/routes/v0/groupAPI.js');
-app.use('/v0/group', groupRouterV0);
-//API de Lock de TTLock
-const lockRouterV0 = require('../backend/routes/v0/lockAPI.js');
-app.use('/v0/lock', lockRouterV0);
-
+const v0Routes = require('./routes/v0');
+app.use('/v0', v0Routes);
 // API v1
 const UserRouter = require('../backend/routes/v1/userAPI');
 app.use('/v1/user', UserRouter);
@@ -119,11 +94,20 @@ app.use('/v1/group', GroupRouter);
 //Email
 const emailRouter = require('../backend/routes/nodemailer/emailRoutes.js');
 app.use('/mail', emailRouter);
-
 //Camera Test
 const cameraTest = require('../backend/routes/camera/camera.js');
 app.use('/camera', cameraTest);
+app.post('/api/alert', (req, res) => {
+  console.log('🚨  ALERT RECEIVED:', req.body);
+  const io = req.app.get('io');
+  if (io) {
+    io.emit('intruder-alert', req.body);
+  }
 
+  res.status(200).json({
+    message: 'Alert received'
+  });
+});
 //Monday Test
 const mondayTest = require('../backend/routes/automation/monday_test.js');
 app.use('/monday', mondayTest);
@@ -131,6 +115,16 @@ app.use('/monday', mondayTest);
 // HTTP Configuration
 const httpPort = 8080;
 const httpServer = http.createServer(app);
+
+const io = new Server(httpServer, {
+    cors: {
+        origin: allowedOrigins, // reuse your existing config
+        methods: ['GET', 'POST'],
+        credentials: true
+    }
+});
+// make it accessible inside routes
+app.set('io', io);
 
 httpServer.listen(httpPort, () => {
     console.log(`HTTP Server is running on port ${httpPort}`);

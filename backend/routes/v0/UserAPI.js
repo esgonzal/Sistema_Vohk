@@ -6,42 +6,42 @@ const TTLOCK_CLIENT_ID = 'c4114592f7954ca3b751c44d81ef2c7d';
 const TTLOCK_CLIENT_SECRET = '33b556bdb803763f2e647fc7a357dedf';
 const { accessTokenStorage, storeAccessToken } = require('./accessTokenStorage');
 
-router.post('/login', async(req, res) => {
-    let { nombre, clave } = req.body;
+router.post('/login', async (req, res) => {
+    const { nombre, clave } = req.body || {};
+    if (!nombre || !clave) {
+        return res.status(400).json({ errmsg: 'Missing credentials' });
+    }
     try {
-        let ttlockData = {
-            clientId: TTLOCK_CLIENT_ID,
-            clientSecret: TTLOCK_CLIENT_SECRET,
-            username: nombre,
-            password: clave
-        };
-        let headers = {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        };
-        let ttlockResponse = await axios.post(
+        const response = await axios.post(
             'https://euapi.ttlock.com/oauth2/token',
-            ttlockData, { headers }
+            new URLSearchParams({
+                clientId: TTLOCK_CLIENT_ID,
+                clientSecret: TTLOCK_CLIENT_SECRET,
+                username: nombre,
+                password: clave
+            }),
+            {
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            }
         );
-        //console.log(ttlockResponse)
-        if (ttlockResponse.data.access_token) {
-            storeAccessToken(nombre, ttlockResponse.data.access_token);
-            console.log(accessTokenStorage)
-            res.json({ errcode: 0, userID: nombre });
-        } else {
-            res.json(ttlockResponse.data);
+        const { data } = response;
+        if (data?.access_token) {
+            storeAccessToken(nombre, data.access_token);
+            return res.json({ errcode: 0, userID: nombre });
         }
+        return res.json(data);
     } catch (error) {
         console.error(error);
         res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
-router.post('/logout', async(req, res) => {
+router.post('/logout', async (req, res) => {
     try {
         const { userID } = req.body;
-        if (accessTokenStorage.hasOwnProperty(userID)) {
+        if (accessTokenStorage[userID]) {
             delete accessTokenStorage[userID];
             res.json({ errmsg: 'Success' });
-            console.log(accessTokenStorage)
+            //console.log(accessTokenStorage)
         } else {
             res.json({ errmsg: 'Fail' });
         }
