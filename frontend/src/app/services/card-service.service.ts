@@ -11,7 +11,7 @@ import { MatTableDataSource } from '@angular/material/table';
 export class CardServiceService {
 
   URL = 'https://api.vohk.cl';
-  //URL = 'http://localhost:8080';
+  //URL = 'http://localhost:8081';
   userID = sessionStorage.getItem('user') ?? ''
   lockID: number = Number(sessionStorage.getItem('lockID') ?? '')
   lockAlias: string;
@@ -23,45 +23,29 @@ export class CardServiceService {
 
   constructor(private http: HttpClient) { }
 
-  async fetchCards(lockId: number) {
+  async fetchCards(lockID: number) {
     this.cards = [];
-    //this.isLoading = true;
     try {
-      await this.fetchCardsPage(1, lockId);
+      const response = await lastValueFrom(
+        this.getCardsofLock(this.userID, lockID)
+      );
+      const typedResponse = response as CardResponse;
+      if (typedResponse?.list) {
+        this.cards = typedResponse.list;
+      } else if (typedResponse.errcode === 10003) {
+        sessionStorage.clear();
+      } else {
+        console.log("Cards not available");
+      }
     } catch (error) {
       console.error("Error while fetching cards:", error);
     } finally {
       this.cardsDataSource = new MatTableDataSource(this.cards);
-      //console.log("Cards: ", this.cards)
-      //this.isLoading = false;
     }
   }
-  async fetchCardsPage(pageNo: number, lockId: number) {
-    //this.isLoading = true;
-    try {
-      const response = await lastValueFrom(this.getCardsofLock(this.userID, lockId, pageNo, 100))
-      const typedResponse = response as CardResponse;
-      if (typedResponse?.list) {
-        this.cards.push(...typedResponse.list);
-        if (typedResponse.pages > pageNo) {
-          await this.fetchCardsPage(pageNo + 1, lockId);
-        }
-      } else if (typedResponse.errcode === 10003) {
-        sessionStorage.clear();
-      } else {
-        console.log("Cards not yet available");
-      }
-    } catch (error) {
-      console.error("Error while fetching cards page:", error);
-    } finally {
-      //this.isLoading = false;
-    }
-  }
-
-  getCardsofLock(userID: string, lockID: number, pageNo: number, pageSize: number): Observable<CardResponse> {
-    let body = { userID, lockID, pageNo, pageSize };
-    let url = this.URL.concat('/v0/card/getListLock');
-    return this.http.post<CardResponse>(url, body);
+  getCardsofLock(userID: string, lockID: number): Observable<CardResponse> {
+    let body = { userID, lockID };
+    return this.http.post<CardResponse>(this.URL + '/v0/card/getListLock', body);
   }
   addCard(userID: string, lockID: number, cardNumber: string, cardName: string, startDate: string, endDate: string): Observable<operationResponse> {
     let body = { userID, lockID, cardNumber, cardName, startDate, endDate };

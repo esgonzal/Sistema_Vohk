@@ -250,7 +250,7 @@ export class MultipleEkeyComponent implements OnInit {
         // Permanent eKey email
         const response = await lastValueFrom(this.ekeyService.generateEmail(this.ekeyService.userID, Alias, eKey.account, '0', '0', eKey.email)) as sendEkeyResponse;
         if (response.emailContent) {
-          //console.log(response)
+          console.log(response)
           this.popupService.toEmail = response.toEmail;
           this.popupService.emailMessage = response.emailContent;
           let sendEmailResponse = await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, response.emailContent));
@@ -367,15 +367,15 @@ export class MultipleEkeyComponent implements OnInit {
 
       // Asegurarse de que la fila tenga suficientes datos
       if (row.length >= 4) {
-        const department = row[0]; // B: Departamento
-        const ownerName = row[1]; // C: Nombre Propietario
-        const phoneNumber = row[2]; // D: N° Telefono
-        const email = row[3]; // E: Correo
+        const department = row[1]; // B: Departamento
+        const ownerName = row[2]; // C: Nombre Propietario
+        const phoneNumber = row[3]; // D: N° Telefono
+        const email = row[4]; // E: Correo
 
         // Crear el objeto de eKey según el formato requerido
         const formattedPhoneNumber = String(phoneNumber).replace(/\s+/g, '');
         const eKey = {
-          account: `+56${formattedPhoneNumber}`, // Cuenta de Destino
+          account: `${formattedPhoneNumber}`, // Cuenta de Destino
           name: `${ownerName} - ${department}`, // Nombre de Ekey
           type: '1', // Tipo: 1 (Permanente)
           email: email // Correo

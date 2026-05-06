@@ -21,15 +21,16 @@ import { PassageMode } from '../../Interfaces/PassageMode';
 import { LockData, LockDetails } from '../../Interfaces/Lock';
 import { DarkModeService } from '../../services/dark-mode.service';
 
+import { MatPaginator } from '@angular/material/paginator';
+import { ViewChild, AfterViewInit } from '@angular/core';
+
 @Component({
   selector: 'app-lock',
   templateUrl: './lockv2.component.html',
   styleUrls: ['./lockv2.component.css'],
   encapsulation: ViewEncapsulation.None,
 })
-export class Lockv2Component implements OnInit {
-
-
+export class Lockv2Component implements OnInit, AfterViewInit {
   faBatteryFull = faBatteryFull
   faWifi = faWifi
   faGear = faGear
@@ -67,6 +68,7 @@ export class Lockv2Component implements OnInit {
   groups: Group[] = []
   selectedTabIndex = 0;
   recordsDataSource: MatTableDataSource<Record>;
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
   displayedColumnsEkey: string[] = ['Nombre', 'Destinatario', 'Rol', 'Fecha', 'Periodo_validez', 'Valido', 'Botones']
   displayedColumnsPasscode: string[] = ['Nombre', 'Contrasena', 'Responsable', 'Fecha', 'Periodo_validez', 'Valido', 'Botones']
   displayedColumnsCard: string[] = ['Nombre', 'Numero_tarjeta', 'Responsable', 'Fecha', 'Periodo_validez', 'Valido', 'Botones']
@@ -135,8 +137,6 @@ export class Lockv2Component implements OnInit {
     { bit: 69, feature: "Support Zhiantec face module" },
     { bit: 70, feature: "Support palm vein" },
   ];
-  recordCurrentPage: number = 1;
-  recordTotalPages: number;
   recordStartDate: Date;
   startDate: number;
   recordEndDate: Date;
@@ -176,6 +176,11 @@ export class Lockv2Component implements OnInit {
     //console.log(gatewayResponse)
     //this.gatewayService.gateways = gatewayResponse.list;
     this.pageLoaded = true;
+  }
+  ngAfterViewInit() {
+    if (this.recordsDataSource) {
+      this.recordsDataSource.paginator = this.paginator;
+    }
   }
   async getAllLocks() {
     this.isLoading = true;
@@ -287,65 +292,45 @@ export class Lockv2Component implements OnInit {
     }
   }
   async fetchRecords() {
+    this.isLoading = true;
     this.records = [];
-    this.isLoading = true;
     try {
-      await this.fetchRecordsPage(1);
-    } catch (error) {
-      console.error("Error while fetching records:", error);
-    } finally {
-      this.recordsDataSource = new MatTableDataSource(this.records);
-      //console.log(this.records)
-      this.isLoading = false;
-    }
-  }
-  async fetchRecordsPage(pageNo: number) {
-    this.isLoading = true;
-    try {
-      if (this.recordStartDate instanceof Date) {
-        this.startDate = this.recordStartDate.getTime(); // Convert to timestamp
-      }
-      if (this.recordEndDate instanceof Date) {
-        this.endDate = this.recordEndDate.getTime(); // Convert to timestamp
-      }
-      const response = await lastValueFrom(this.recordService.getRecords(this.userID, this.lockId, pageNo, 20, this.startDate, this.endDate, this.selectedType))
+      // Convert dates if needed
+      const startDate = this.recordStartDate instanceof Date ? this.recordStartDate.getTime() : undefined;
+      const endDate = this.recordEndDate instanceof Date ? this.recordEndDate.getTime() : undefined;
+      const response = await lastValueFrom(
+        this.recordService.getRecords(this.userID, this.lockId, startDate, endDate, this.selectedType)
+      );
       const typedResponse = response as RecordResponse;
       if (typedResponse?.list) {
-        this.records = [];
-        this.records.push(...typedResponse.list);
-        this.recordCurrentPage = pageNo;
-        this.recordTotalPages = typedResponse.pages;
+        this.records = typedResponse.list;
         this.recordsDataSource = new MatTableDataSource(this.records);
-        /*if (typedResponse.pages > pageNo) {
-          await this.fetchRecordsPage(pageNo + 1);
-        }*/
-      } else if (typedResponse.errcode === 10003) {
+        this.recordsDataSource.paginator = this.paginator;
+      } else if (typedResponse?.errcode === 10003) {
         sessionStorage.clear();
       } else {
         console.log("Records not yet available");
       }
     } catch (error) {
-      console.error("Error while fetching records page:", error);
+      console.error("Error while fetching records:", error);
     } finally {
       this.isLoading = false;
     }
   }
-  async fetchAllRecords(pageNo: number) {
+  async fetchAllRecords() {
     this.isLoading = true;
+    this.allRecords = [];
     try {
-      const response = await lastValueFrom(this.recordService.getRecords(this.userID, this.lockId, pageNo, 100)) as RecordResponse
+      const response = await lastValueFrom(this.recordService.getRecords(this.userID, this.lockId)) as RecordResponse;
       if (response?.list) {
-        this.allRecords.push(...response.list);
-        if (response.pages > pageNo) {
-          await this.fetchAllRecords(pageNo + 1);
-        }
+        this.allRecords = response.list;
       } else if (response.errcode === 10003) {
         sessionStorage.clear();
       } else {
         console.log("Records not yet available");
       }
     } catch (error) {
-      console.error("Error while fetching records page:", error);
+      console.error("Error while fetching all records:", error);
     } finally {
       this.isLoading = false;
     }
@@ -384,6 +369,7 @@ export class Lockv2Component implements OnInit {
       case 'ekeys':
         this.textoBusqueda = '';
         await this.ekeyService.fetchEkeys(this.lockId);
+        console.log(this.ekeyService.ekeys);
         this.isLoading = false;
         break;
       case 'passcodes':
@@ -394,6 +380,7 @@ export class Lockv2Component implements OnInit {
       case 'cards':
         this.textoBusqueda = '';
         await this.cardService.fetchCards(this.lockId);
+        console.log(this.cardService.cards)
         this.isLoading = false;
         break;
       case 'fingerprints':
@@ -404,7 +391,6 @@ export class Lockv2Component implements OnInit {
         break;
       case 'records':
         this.textoBusqueda = '';
-        this.recordCurrentPage = 1;
         await this.fetchRecords();
         this.isLoading = false;
         break;
@@ -772,7 +758,7 @@ export class Lockv2Component implements OnInit {
 
   async openExcelNameWindow() {
     this.allRecords = [];
-    await this.fetchAllRecords(1);
+    await this.fetchAllRecords();
     this.popupService.excelRecords = true;
     this.popupService.records = this.allRecords;
   }
@@ -793,18 +779,6 @@ export class Lockv2Component implements OnInit {
   onSelected(value: string): void {
     this.selectedType = value;
     this.fetchRecords();
-  }
-  fetchNextPage() {
-    const nextPage = this.recordCurrentPage + 1;
-    if (nextPage <= this.recordTotalPages) {
-      this.fetchRecordsPage(nextPage);
-    }
-  }
-  fetchPreviousPage() {
-    const previousPage = this.recordCurrentPage - 1;
-    if (previousPage >= 1) {
-      this.fetchRecordsPage(previousPage);
-    }
   }
 
 }

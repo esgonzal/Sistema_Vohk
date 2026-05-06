@@ -14,6 +14,7 @@ import { faHome } from '@fortawesome/free-solid-svg-icons'
 import { Ekey } from 'src/app/Interfaces/Elements';
 import * as XLSX from 'xlsx';
 import { PasscodeServiceService } from 'src/app/services/passcode-service.service';
+import { TwilioVoiceService } from 'src/app/services/twilio-voice.service';
 
 @Component({
   selector: 'app-comunidadesv2',
@@ -41,7 +42,8 @@ export class Comunidadesv2Component implements OnInit {
     private lockService: LockServiceService,
     private router: Router,
     public popupService: PopUpService,
-    public DarkModeService: DarkModeService) {
+    public DarkModeService: DarkModeService,
+    public twilioVoice: TwilioVoiceService) {
     this.updateCols();
   }
   async ngOnInit(): Promise<void> {
@@ -68,6 +70,7 @@ export class Comunidadesv2Component implements OnInit {
       if (grupoInicial) {
         await this.chooseGroup(grupoInicial);
         this.popupService.locksWithoutGroup = grupoInicial.locks;
+        console.log(grupoInicial)
         this.isLoading = false;
         return;
       }
@@ -110,7 +113,7 @@ export class Comunidadesv2Component implements OnInit {
     if (this.groups[targetGroupIndex].locks.length === 0) {
       while (true) {
         let response = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.userID, pageNo, pageSize, clickedGroup.groupId)) as LockListResponse;
-        //console.log(clickedGroup.groupName, ": ", response.list)
+        console.log(clickedGroup.groupName, ": ", response.list)
         if (response.list && response.list.length > 0) {
           lockCount += response.list.length;
           this.groups[targetGroupIndex].locks.push(...response.list);
@@ -204,7 +207,7 @@ export class Comunidadesv2Component implements OnInit {
     let lockNames: string[] = group.locks.map(lock => lock.lockAlias); // Columnas con nombres de cerraduras
     for (let i = 0; i < group.lockCount; i++) {
       let lockActual = group.locks[i];
-      const response = await lastValueFrom(this.ekeyService.getEkeysofLock(this.userID, lockActual.lockId, 1, 200)) as EkeyResponse;
+      const response = await lastValueFrom(this.ekeyService.getEkeysofLock(this.userID, lockActual.lockId)) as EkeyResponse;
       let ekeys: Ekey[] = response.list;
       for (let ekey of ekeys) {
         if (!ekey.username) continue; // Evitar problemas con cuentas vacías

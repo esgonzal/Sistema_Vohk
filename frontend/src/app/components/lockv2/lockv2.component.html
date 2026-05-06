@@ -175,7 +175,8 @@
                                 </div>
                             </div>
                         </mat-tab>
-                        <mat-tab label="Códigos" *ngIf="lockService.checkFeature(featureValue, 0)" [attr.data-tab]="'passcodes'">
+                        <mat-tab label="Códigos" *ngIf="lockService.checkFeature(featureValue, 0)"
+                            [attr.data-tab]="'passcodes'">
                             <div class="contenido">
                                 <ng-template mat-tab-label>
                                     <label
@@ -264,7 +265,8 @@
                                 </div>
                             </div>
                         </mat-tab>
-                        <mat-tab label="Tarjetas" *ngIf="lockService.checkFeature(featureValue, 1)" [attr.data-tab]="'cards'">
+                        <mat-tab label="Tarjetas" *ngIf="lockService.checkFeature(featureValue, 1)"
+                            [attr.data-tab]="'cards'">
                             <div class="contenido">
                                 <ng-template mat-tab-label>
                                     <label
@@ -349,7 +351,8 @@
                                 </div>
                             </div>
                         </mat-tab>
-                        <mat-tab label="Huellas" *ngIf="lockService.checkFeature(featureValue, 2)" [attr.data-tab]="'fingerprints'">
+                        <mat-tab label="Huellas" *ngIf="lockService.checkFeature(featureValue, 2)"
+                            [attr.data-tab]="'fingerprints'">
                             <div class="contenido">
                                 <ng-template mat-tab-label>
                                     <label
@@ -422,6 +425,9 @@
                                 </div>
                             </div>
                         </mat-tab>
+                        <mat-tab label="Cara" *ngIf="lockService.checkFeature(featureValue, 69)">
+                            Caras
+                        </mat-tab>
                         <mat-tab label="Registros" [attr.data-tab]="'records'">
                             <div class="contenido">
                                 <ng-template mat-tab-label>
@@ -462,8 +468,10 @@
                                     <table mat-table [dataSource]="recordsDataSource" class="table">
                                         <!---->
                                         <ng-container matColumnDef="Operador">
-                                            <th mat-header-cell *matHeaderCellDef class="table-cell header" style="font-weight: bolder;">Operador</th>
-                                            <td mat-cell *matCellDef="let record" class="table-cell">{{ mostrarOperador(record) }}</td>
+                                            <th mat-header-cell *matHeaderCellDef class="table-cell header"
+                                                style="font-weight: bolder;">Operador</th>
+                                            <td mat-cell *matCellDef="let record" class="table-cell">{{
+                                                mostrarOperador(record) }}</td>
                                         </ng-container>
                                         <!---->
                                         <ng-container matColumnDef="Metodo_Apertura">
@@ -495,12 +503,8 @@
                                         <tr mat-header-row *matHeaderRowDef="displayedColumnsRecord"></tr>
                                         <tr mat-row *matRowDef="let row; columns: displayedColumnsRecord"></tr>
                                     </table>
-                                    <button (click)="fetchPreviousPage()" [disabled]="recordCurrentPage === 1">
-                                        < 
-                                    </button> {{recordCurrentPage}}
-                                    <button (click)="fetchNextPage()" [disabled]="recordCurrentPage === recordTotalPages">
-                                        >
-                                    </button>
+                                    <mat-paginator [pageSize]="25" [pageSizeOptions]="[25, 50, 100]">
+                                    </mat-paginator>
                                 </div>
                             </div>
                         </mat-tab>
@@ -516,9 +520,12 @@
 <app-access-modal *ngIf="this.popupService.delete || this.popupService.cambiarNombre || this.popupService.cambiarPeriodo || this.popupService.editarPasscode ||
                     this.popupService.autorizar || this.popupService.desautorizar || this.popupService.changeRemoteEnable || this.popupService.congelar || 
                     this.popupService.descongelar || this.popupService.cardSuccess || this.popupService.ekeySuccess || this.popupService.ekeySuccess2 || 
-                    this.popupService.passcodeSuccess || this.popupService.invitation" style="z-index: 10;"></app-access-modal>
+                    this.popupService.passcodeSuccess || this.popupService.invitation"
+    style="z-index: 10;"></app-access-modal>
 
-<app-functions-modal *ngIf="this.popupService.needGateway || this.popupService.esencial || this.popupService.excelRecords" style="z-index: 10;"></app-functions-modal>
+<app-functions-modal
+    *ngIf="this.popupService.needGateway || this.popupService.esencial || this.popupService.excelRecords"
+    style="z-index: 10;"></app-functions-modal>
 
 <app-ekey *ngIf="this.popupService.createEkey" style="z-index: 10;"></app-ekey>
 <app-passcode *ngIf="this.popupService.createPasscode" style="z-index: 10;"></app-passcode>

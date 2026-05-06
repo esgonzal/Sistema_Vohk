@@ -11,7 +11,7 @@ import { MatTableDataSource } from '@angular/material/table';
 export class FingerprintServiceService {
 
   URL = 'https://api.vohk.cl';
-  //URL = 'http://localhost:8080';
+  //URL = 'http://localhost:8081';
   userID = sessionStorage.getItem('user') ?? ''
   lockID: number = Number(sessionStorage.getItem('lockID') ?? '')
   fingerprints: Fingerprint[] = [];
@@ -21,43 +21,27 @@ export class FingerprintServiceService {
 
   async fetchFingerprints(lockId: number) {
     this.fingerprints = [];
-    //this.isLoading = true;
     try {
-      await this.fetchFingerprintsPage(1, lockId);
+      const response = await lastValueFrom(
+        this.getFingerprintsofLock(this.userID, lockId)
+      );
+      const typedResponse = response as FingerprintResponse;
+      if (typedResponse?.list) {
+        this.fingerprints = typedResponse.list;
+      } else if (typedResponse.errcode === 10003) {
+        sessionStorage.clear();
+      } else {
+        console.log("Fingerprints not available");
+      }
     } catch (error) {
       console.error("Error while fetching fingerprints:", error);
     } finally {
       this.fingerprintsDataSource = new MatTableDataSource(this.fingerprints);
-      //console.log("Fingerprints: ", this.fingerprints)
-      //this.isLoading = false;
     }
   }
-  async fetchFingerprintsPage(pageNo: number, lockId: number) {
-    //this.isLoading = true;
-    try {
-      const response = await lastValueFrom(this.getFingerprintsofLock(this.userID, lockId, pageNo, 100))
-      const typedResponse = response as FingerprintResponse;
-      if (typedResponse?.list) {
-        this.fingerprints.push(...typedResponse.list);
-        if (typedResponse.pages > pageNo) {
-          await this.fetchFingerprintsPage(pageNo + 1, lockId);
-        }
-      } else if (typedResponse.errcode === 10003) {
-        sessionStorage.clear();
-      } else {
-        console.log("Fingerprints not yet available");
-      }
-    } catch (error) {
-      console.error("Error while fetching fingerprints page:", error);
-    } finally {
-      //this.isLoading = false;
-    }
-  }
-
-  getFingerprintsofLock(userID: string, lockID: number, pageNo: number, pageSize: number): Observable<FingerprintResponse> {
-    let body = { userID, lockID, pageNo, pageSize };
-    let url = this.URL.concat('/v0/fingerprint/getListLock');
-    return this.http.post<FingerprintResponse>(url, body);
+  getFingerprintsofLock(userID: string, lockID: number): Observable<FingerprintResponse> {
+    let body = { userID, lockID };
+    return this.http.post<FingerprintResponse>(this.URL + '/v0/fingerprint/getListLock', body);
   }
   deleteFingerprint(userID: string, lockID: number, fingerprintID: number): Observable<operationResponse> {
     let body = { userID, lockID, fingerprintID };

@@ -10,7 +10,7 @@ import { operationResponse } from '../Interfaces/API_responses';
 export class PassageModeService {
 
   URL = 'https://api.vohk.cl';
-  //URL = 'http://localhost:8080';
+  //URL = 'http://localhost:8081';
   userID: string;
   lockID: number;
   passageModeConfig: PassageMode;

@@ -11,7 +11,7 @@ import { operationResponse, GroupResponse, addGroupResponse } from '../Interface
 export class GroupService {
 
   URL = 'https://api.vohk.cl';
-  //URL = 'http://localhost:8080';
+  //URL = 'http://localhost:8081';
   DEFAULT_GROUP: Group = { groupId: 0, groupName: 'Todos', lockCount: 0, locks: [] };
 
   public selectedGroupSubject = new BehaviorSubject<Group>(this.DEFAULT_GROUP);

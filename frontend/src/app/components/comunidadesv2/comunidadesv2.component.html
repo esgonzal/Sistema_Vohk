@@ -10,7 +10,8 @@
         <div class="create-group-button">
             <button class="menuButton" style="width:200px;" (click)="crearGrupo()">Crear Comunidad</button>
         </div>
-        <div class="groupList" *ngFor="let group of groupsFiltrados" (click)="chooseGroup(group)" [class.selected]="group === chosenGroup">
+        <div class="groupList" *ngFor="let group of groupsFiltrados" (click)="chooseGroup(group)"
+            [class.selected]="group === chosenGroup">
             <div class="icono">
                 <fa-icon [icon]="faHome"></fa-icon>
             </div>
@@ -31,19 +32,36 @@
         -->
     </div>
     <div class="resto" *ngIf="chosenGroup">
+        <!-- En el template -->
+        <div *ngIf="(twilioVoice.estado$ | async) === 'entrante'">
+            <p>Llamada desde: {{ twilioVoice.origen$ | async }}</p>
+            <button (click)="twilioVoice.contestar()">Contestar</button>
+            <button (click)="twilioVoice.rechazar()">Rechazar</button>
+        </div>
+        <div *ngIf="(twilioVoice.estado$ | async) === 'activo'">
+            <p>En llamada — {{ twilioVoice.origen$ | async }}</p>
+            <button (click)="twilioVoice.colgar()">Colgar</button>
+        </div>
+        <div *ngIf="(twilioVoice.estado$ | async) === 'inactivo'">
+            <p>Esperando llamadas...</p>
+        </div>
         <div class="top">
             <div class="groupName">
                 {{chosenGroup.groupName}}
             </div>
             <div class="groupButtons" *ngIf="chosenGroup.groupId !== -1" style="display: flex;">
-                <button class="menuButton" style="margin-right: 5px;" (click)="invitaciones(chosenGroup)">Invitaciones</button>
+                <button class="menuButton" style="margin-right: 5px;"
+                    (click)="invitaciones(chosenGroup)">Invitaciones</button>
                 <div *ngIf="userID==='soporte@vohk.cl'">
-                    <button class="menuButton" style="margin-right: 5px;" (click)="descargarExcel(chosenGroup)">Descargar eKeys</button>
+                    <button class="menuButton" style="margin-right: 5px;"
+                        (click)="descargarExcel(chosenGroup)">Descargar eKeys</button>
                 </div>
                 <button [matMenuTriggerFor]="editarMenu" class="menuButton" style="margin-right: 5px;">Editar</button>
                 <mat-menu #editarMenu="matMenu">
-                    <button mat-menu-item (click)="cambiarNombre(chosenGroup.groupId)"><span>Editar Nombre</span></button>
-                    <button mat-menu-item style="color: red;" (click)="eliminar(chosenGroup.groupId)"><span>Eliminar Comunidad</span></button>
+                    <button mat-menu-item (click)="cambiarNombre(chosenGroup.groupId)"><span>Editar
+                            Nombre</span></button>
+                    <button mat-menu-item style="color: red;" (click)="eliminar(chosenGroup.groupId)"><span>Eliminar
+                            Comunidad</span></button>
                 </mat-menu>
                 <button [matMenuTriggerFor]="adminMenu" class="menuButton">Administrar Cerraduras</button>
                 <mat-menu #adminMenu="matMenu">
@@ -60,7 +78,9 @@
                             <mat-card class="valid_lock" (click)="onLockButtonClick(lock)">
                                 <img class="custom-image" src="../../../assets/images/door.jpg" alt="Image Description">
                                 <mat-card-header>
-                                    <div mat-card-title style="white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">{{lock.lockAlias}}</div>
+                                    <div mat-card-title
+                                        style="white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">
+                                        {{lock.lockAlias}}</div>
                                     <div mat-card-subtitle>{{ lock.hasGateway === 1 ? 'Online' : 'Offline' }}</div>
                                 </mat-card-header>
                             </mat-card>
@@ -84,12 +104,12 @@
         </div>
     </div>
 </div>
-<app-pop-up *ngIf="this.popupService.newGroup || this.popupService.addLockGROUP || this.popupService.removeLockGROUP" style="z-index: 1001;
+<app-pop-up *ngIf="this.popupService.newGroup || this.popupService.addLockGROUP || this.popupService.removeLockGROUP"
+    style="z-index: 1001;
                     "></app-pop-up>
 
-<app-access-modal 
-    *ngIf="this.popupService.delete || this.popupService.cambiarNombre || this.popupService.invitation || 
-    this.popupService.selectLocksForPasscode || this.popupService.emailSentInvitation" 
+<app-access-modal *ngIf="this.popupService.delete || this.popupService.cambiarNombre || this.popupService.invitation || 
+    this.popupService.selectLocksForPasscode || this.popupService.emailSentInvitation"
     style="z-index: 1001;"></app-access-modal>
 
 <app-functions-modal *ngIf="this.popupService.invalidLock" style="z-index: 1001;"></app-functions-modal>

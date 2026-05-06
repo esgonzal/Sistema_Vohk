@@ -13,7 +13,7 @@ import { MatTableDataSource } from '@angular/material/table';
 export class EkeyServiceService {
 
   URL = 'https://api.vohk.cl';
-  //URL = 'http://localhost:8080';
+  //URL = 'http://localhost:8081';
   userID = sessionStorage.getItem('user') ?? ''
   lockID: number;
   username = sessionStorage.getItem('user') ?? ''
@@ -30,49 +30,33 @@ export class EkeyServiceService {
 
   async fetchEkeys(lockId: number) {
     this.ekeys = [];
-    //this.isLoading = true;
     try {
-      await this.fetchEkeysPage(1, lockId);
-    } catch (error) {
-      console.error("Error while fetching ekeys:", error);
-    } finally {
-      //this.isLoading = false;
-      this.ekeysDataSource = new MatTableDataSource(this.ekeys);
-      //console.log("eKeys: ", this.ekeys)
-    }
-  }
-  async fetchEkeysPage(pageNo: number, lockId: number) {
-    //this.isLoading = true;
-    try {
-      const response = await lastValueFrom(this.getEkeysofLock(this.userID, lockId, pageNo, 100))
+      const response = await lastValueFrom(
+        this.getEkeysofLock(this.userID, lockId)
+      );
       const typedResponse = response as EkeyResponse;
-      //console.log(typedResponse)
       if (typedResponse?.list) {
-        this.ekeys.push(...typedResponse.list);
-        if (typedResponse.pages > pageNo) {
-          await this.fetchEkeysPage(pageNo + 1, lockId);
-        }
+        this.ekeys = typedResponse.list;
       } else if (typedResponse.errcode === 10003) {
         sessionStorage.clear();
       } else {
-        console.log("Ekeys not yet available");
+        console.log("Ekeys not available");
       }
     } catch (error) {
-      console.error("Error while fetching ekeys page:", error);
+      console.error("Error while fetching ekeys:", error);
     } finally {
-      //this.isLoading = false;
+      this.ekeysDataSource = new MatTableDataSource(this.ekeys);
     }
   }
-
   getEkeysofAccount(userID: string, pageNo: number, pageSize: number, groupID?: number): Observable<LockListResponse> {
     let body = { userID, pageNo, pageSize, groupID };
     let url = this.URL.concat('/v0/ekey/list');
     return this.http.post<LockListResponse>(url, body);
   }
-  getEkeysofLock(userID: string, lockID: number, pageNo: number, pageSize: number): Observable<EkeyResponse> {
-    let body = { userID, lockID, pageNo, pageSize };
-    let url = this.URL.concat('/v0/ekey/getListLock');
-    return this.http.post<EkeyResponse>(url, body);
+  getEkeysofLock(userID: string, lockID: number): Observable<EkeyResponse> {
+    let body = { userID, lockID };
+    console.log(body)
+    return this.http.post<EkeyResponse>(this.URL + '/v0/ekey/getListLock', body);
   }
   sendEkey(userID: string, lockID: number, lockAlias: string, recieverName: string, keyName: string,
     startDate: string, endDate: string, keyRight: number, remoteEnable: number, email: string,
@@ -83,14 +67,14 @@ export class EkeyServiceService {
     return this.http.post<sendEkeyResponse>(url, body);
   }
   sendEkey2(
-    userID: string, 
-    selectedLocks: { id: number; alias: string }[], 
-    recieverName: string, 
+    userID: string,
+    selectedLocks: { id: number; alias: string }[],
+    recieverName: string,
     keyName: string,
-    startDate: string, 
-    endDate: string, 
-    keyRight: number, 
-    remoteEnable: number, 
+    startDate: string,
+    endDate: string,
+    keyRight: number,
+    remoteEnable: number,
     email: string) {
     let body = { userID, selectedLocks, recieverName, keyName, startDate, endDate, keyRight, remoteEnable, email };
     let url = this.URL.concat('/v0/ekey/send2');
@@ -132,11 +116,13 @@ export class EkeyServiceService {
     return this.http.post<operationResponse>(url, body);
   }
   generateEmail(userID: string, lockAlias: string, recieverName: string, startDate: string, endDate: string, email?: string): Observable<sendEkeyResponse> {
+    console.log("generar email");
     let body = { userID, lockAlias, recieverName, startDate, endDate, email }
     let url = this.URL.concat('/v0/ekey/generateEmail');
     return this.http.post<sendEkeyResponse>(url, body);
   }
   sendEmail(toEmail: string, emailContent: string): Observable<sendEkeyResponse> {
+    console.log("enviar email");
     let body = { toEmail, emailContent }
     let url = this.URL.concat('/mail/sendEmail');
     return this.http.post<sendEkeyResponse>(url, body);

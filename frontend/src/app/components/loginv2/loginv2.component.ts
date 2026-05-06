@@ -43,7 +43,6 @@ export class Loginv2Component {
     }
   }
   async login(data: User) {
-    //console.log(data)
     this.isLoading = true;
     let response;
     if (this.validarInputs(data)) {
@@ -59,6 +58,8 @@ export class Loginv2Component {
         this.loginError = "Nombre de usuario y/o contraseña inválidos.\nSi está ingresando su numero de celular recuerde añadir '+56'";
         this.isLoading = false;
       } 
+    } else {
+      this.isLoading = false;
     }
   }
   togglePasswordVisibility() {

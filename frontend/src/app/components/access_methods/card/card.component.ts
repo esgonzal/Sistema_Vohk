@@ -106,11 +106,11 @@ export class CardComponent {
     this.isLoading = true;
     try {
       if (this.selectedType === '1') {
-        /*
+        
         if (this.cardService.cardNumber === undefined || this.cardService.cardNumber === '') {
           this.popupService.cardReader = true;
         }
-          */
+          
          console.log(this.cardNumber);
         if (this.cardNumber !== undefined) {
           let addCardResponse = await lastValueFrom(this.cardService.addCard(this.cardService.userID, this.cardService.lockID, this.cardNumber, this.cardName, "0", "0")) as addCardResponse;

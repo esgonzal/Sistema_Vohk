@@ -12,7 +12,7 @@ import { LockData } from '../Interfaces/Lock';
 export class PasscodeServiceService {
 
   URL = 'https://api.vohk.cl';
-  //URL = 'http://localhost:8080';
+  //URL = 'http://localhost:8081';
   username: string;
   lockAlias: string;
   endDateUser: string;
@@ -31,48 +31,32 @@ export class PasscodeServiceService {
 
   async fetchPasscodes(lockId: number) {
     this.passcodes = [];
-    //this.isLoading = true;
     try {
-      await this.fetchPasscodesPage(1, lockId);
-    } catch (error) {
-      console.error("Error while fetching passcodes:", error);
-    } finally {
-      //this.updatePasscodeUsage()
-      this.passcodesDataSource = new MatTableDataSource(this.passcodes);
-      //this.isLoading = false;
-      //console.log("Passcodes: ", this.passcodes)
-    }
-  }
-  async fetchPasscodesPage(pageNo: number, lockId: number) {
-    //this.isLoading = true;
-    try {
-      const response = await lastValueFrom(this.getPasscodesofLock(this.userID, lockId, pageNo, 100))
+      const response = await lastValueFrom(
+        this.getPasscodesofLock(this.userID, lockId)
+      );
       const typedResponse = response as PasscodeResponse;
       if (typedResponse?.list) {
-        this.passcodes.push(...typedResponse.list);
-        if (typedResponse.pages > pageNo) {
-          await this.fetchPasscodesPage(pageNo + 1, lockId);
-        }
+        this.passcodes = typedResponse.list;
       } else if (typedResponse.errcode === 10003) {
         sessionStorage.clear();
       } else {
-        console.log("Passcodes not yet available");
+        console.log("Passcodes not available");
       }
     } catch (error) {
-      console.error("Error while fetching passcodes page:", error);
+      console.error("Error while fetching passcodes:", error);
     } finally {
-      //this.isLoading = false;
+      this.passcodesDataSource = new MatTableDataSource(this.passcodes);
     }
   }
-  multiplePasscodes(userID: string, passcodes: {name: string, tipo: number, code: string}[]): Observable<MultiplePasscodeResponse[]> {
-    let body = {userID, passcodes, selectedLocks: this.selectedLocks}
+  multiplePasscodes(userID: string, passcodes: { name: string, tipo: number, code: string }[]): Observable<MultiplePasscodeResponse[]> {
+    let body = { userID, passcodes, selectedLocks: this.selectedLocks }
     let url = this.URL.concat('/v0/passcode/multiplePasscodes');
     return this.http.post<MultiplePasscodeResponse[]>(url, body);
   }
-  getPasscodesofLock(userID: string, lockID: number, pageNo: number, pageSize: number): Observable<PasscodeResponse> {
-    let body = { userID, lockID, pageNo, pageSize };
-    let url = this.URL.concat('/v0/passcode/getListLock');
-    return this.http.post<PasscodeResponse>(url, body);
+  getPasscodesofLock(userID: string, lockID: number): Observable<PasscodeResponse> {
+    let body = { userID, lockID };
+    return this.http.post<PasscodeResponse>(this.URL + '/v0/passcode/getListLock', body);
   }
   generatePasscode(userID: string, lockID: number, type: string, startDate: string, name?: string, endDate?: string): Observable<createPasscodeResponse> {
     let body = { userID, lockID, type, startDate, name, endDate };
@@ -190,5 +174,5 @@ export class PasscodeServiceService {
     return this.http.post<InvitationResponse>(url, body);
   }
 
-  
+
 }
