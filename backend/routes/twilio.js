@@ -23,9 +23,7 @@ router.post('/incoming', (req, res) => {
     console.log(`📞 Llamada entrante desde: ${origen}`);
 
     // Conectar al cliente web registrado
-    dial.client({
-        identity: '8001'
-    });
+    dial.client('8001');
 
     res.type('text/xml');
     res.send(twiml.toString());
