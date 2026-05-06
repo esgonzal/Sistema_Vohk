@@ -24,7 +24,7 @@ router.post('/incoming', (req, res) => {
 
     // Conectar al cliente web registrado
     dial.client({
-        identity: 'operador-vohk'
+        identity: '8001'
     });
 
     res.type('text/xml');
@@ -48,7 +48,7 @@ router.get('/token', (req, res) => {
     }
 
     const token = new AccessToken(accountSid, apiKey, apiSecret, {
-        identity: 'operador-vohk',
+        identity: '8001',
         ttl: 3600 // token válido por 1 hora
     });
 
@@ -61,7 +61,7 @@ router.get('/token', (req, res) => {
 
     res.json({
         token: token.toJwt(),
-        identity: 'operador-vohk'
+        identity: '8001'
     });
 });
 
