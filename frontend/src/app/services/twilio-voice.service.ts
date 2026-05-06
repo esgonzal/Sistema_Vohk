@@ -16,6 +16,11 @@ export class TwilioVoiceService {
 
   // ─── Inicializar el Device (llamar al cargar la app) ───────────
   async inicializar(): Promise<void> {
+    if (this.device) {
+      console.log("Twilio ya ha inicializado, omitiendo ...")
+      return;
+    }
+
     try {
       // 1. Obtener token del backend
       const res = await fetch('https://api.vohk.cl/twilio/token');
