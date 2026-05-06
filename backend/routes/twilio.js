@@ -35,10 +35,10 @@ router.post('/incoming', (req, res) => {
 // El frontend llama aquí para obtener el token de acceso
 // Necesario para que el navegador pueda recibir llamadas
 router.get('/token', (req, res) => {
-    const accountSid = process.env.TWILIO_ACCOUNT_SID;
-    const apiKey = process.env.TWILIO_API_KEY;
-    const apiSecret = process.env.TWILIO_API_SECRET;
-    const twimlAppSid = process.env.TWILIO_TWIML_APP_SID;
+    const accountSid = TWILIO_ACCOUNT_SID;
+    const apiKey = TWILIO_API_KEY;
+    const apiSecret = TWILIO_API_SECRET;
+    const twimlAppSid = TWILIO_TWIML_APP_SID;
 
     // Validar que las variables estén configuradas
     if (!accountSid || !apiKey || !apiSecret || !twimlAppSid) {
