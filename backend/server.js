@@ -9,7 +9,7 @@ const { Server } = require('socket.io');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-const allowedOrigins = ['http://localhost:4200', 'https://app.vohk.cl'];
+const allowedOrigins = ['http://localhost:4200', 'https://app.vohk.cl', 'https://preview--vohk-secure-ops.base44.app', 'https://vohk-secure-ops.base44.app'];
 
 app.use(cors({
   origin: function (origin, callback) {
