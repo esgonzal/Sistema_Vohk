@@ -114,7 +114,7 @@ const multipleCards = async ({ accessToken, lockID, cards }) => {
                 const now = Date.now();
                 if (card.tipo === 1) {
                     const response = await axios.post(
-                        `${TTLOCK_BASE_URL}/identityCard/add`,
+                        `${TTLOCK_BASE_URL}/identityCard/addForReversedCardNumber`,
                         new URLSearchParams({ clientId: TTLOCK_CLIENT_ID, accessToken: accessToken, lockId: lockID, cardNumber: card.number, cardName: card.name, startDate: now, endDate: 0, addType: '2', date: now }),
                         { headers: buildHeaders(accessToken) }
                     )
