@@ -9,17 +9,14 @@ const { Server } = require('socket.io');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-const allowedOrigins = ['http://localhost:4200', 'https://app.vohk.cl', 'https://preview--vohk-secure-ops.base44.app', 'https://vohk-secure-ops.base44.app'];
+const allowedOrigins = ['http://localhost:4200', 'https://app.vohk.cl'];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like curl, Postman)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error(`CORS not allowed for this origin: ${origin}`));
-    }
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    if (/\.base44\.app$/.test(new URL(origin).hostname)) return callback(null, true);
+    callback(new Error(`CORS not allowed for this origin: ${origin}`));
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -119,15 +116,15 @@ const httpPort = 8080;
 const httpServer = http.createServer(app);
 
 const io = new Server(httpServer, {
-    cors: {
-        origin: allowedOrigins, // reuse your existing config
-        methods: ['GET', 'POST'],
-        credentials: true
-    }
+  cors: {
+    origin: allowedOrigins, // reuse your existing config
+    methods: ['GET', 'POST'],
+    credentials: true
+  }
 });
 // make it accessible inside routes
 app.set('io', io);
 
 httpServer.listen(httpPort, () => {
-    console.log(`HTTP Server is running on port ${httpPort}`);
+  console.log(`HTTP Server is running on port ${httpPort}`);
 });
