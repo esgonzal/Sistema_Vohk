@@ -86,5 +86,22 @@ const changePeriod = async (req, res) => {
         return res.status(error.status || 500).json({ errcode: error.errcode || 'UNKNOWN', errmsg: error.message || 'Error changing a card period' });
     }
 }
+const multipleCards = async (req, res) => {
+    const { userID, lockID, cards } = req.body;
+    if (!userID || !lockID || !cards) {
+        return res.status(400).json({ errmsg: 'Missing required fields' });
+    }
+    const accessToken = getAccessToken(userID);
+    if (!accessToken) {
+        return res.status(401).json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
+    }
+    try {
+        const data = await cardService.multipleCards({ accessToken, lockID, cards});
+        return res.json(data);
+    } catch (error) {
+        console.error('add multipleCards error:', error);
+        return res.status(error.status || 500).json({ errcode: error.errcode || 'UNKNOWN', errmsg: error.message || 'Error adding multiple cards' });
+    }
+}
 
-module.exports = { getLockCardList, add, rename, deleteCard, changePeriod };
+module.exports = { getLockCardList, add, rename, deleteCard, changePeriod, multipleCards };
