@@ -29,7 +29,7 @@ router.post('/incoming', (req, res) => {
     else {
         console.log(`📞 Llamada saliente hacia: sip:vp-01-vohk@201.186.166.84:5060`);
         const dial = twiml.dial({ callerId: '+16186212365' });
-        dial.sip('sip:vp-01-vohk@201.186.166.84:5060');
+        dial.sip('sip:vp-01-vohk@vohk-porteria.sip.us1.twilio.com');
     }
     res.type('text/xml');
     res.send(twiml.toString());
