@@ -30,8 +30,7 @@ router.post('/incoming', (req, res) => {
         const sipUri = `sip:vp-01-vohk@201.186.166.84:15060`;
         console.log(`📞 Llamada saliente hacia: ${sipUri}`);
         const dial = twiml.dial({ callerId: '+16186212365' });
-        //dial.sip('sip:vp-01-vohk@201.186.166.84:15060');
-        dial.sip('sip:201.186.166.84:5060');
+        dial.sip('sip:vp-01-vohk@201.186.166.84:15060');
     }
     res.type('text/xml');
     res.send(twiml.toString());
