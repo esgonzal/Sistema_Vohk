@@ -17,17 +17,24 @@ const TWILIO_TWIML_APP_SID = 'AP0384ba4ebbac7acffb89db57c7f841d4';
 router.post('/incoming', (req, res) => {
     const twiml = new twilio.twiml.VoiceResponse();
     const dial = twiml.dial();
-
-    // Identificar qué videoportero llamó (para mostrarlo en la UI)
-    const origen = req.body.From || 'Desconocido';
-    console.log(`📞 Llamada entrante desde: ${origen}`);
-
-    // Conectar al cliente web registrado
-    dial.client('8001');
-
+    const destino = req.body.To;
+    if (destino && destino.startsWith('sip:')) {
+        // Llamada saliente: navegador → videoportero
+        console.log(`📞 Llamada saliente hacia: ${ destino }`);
+        dial.sip(destino);
+    } else {
+        // Llamada entrante: videoportero → navegador
+        const origen = req.body.From || 'Desconocido';
+        console.log(`📞 Llamada entrante desde: ${ origen }`);
+        dial.client('8001');
+    }
     res.type('text/xml');
     res.send(twiml.toString());
 });
+/*
+router.post('/outgoing', (req, res) => {
+});
+*/
 
 // ─── GET /twilio/token ──────────────────────────────────────────
 // El frontend llama aquí para obtener el token de acceso
