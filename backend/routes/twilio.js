@@ -29,15 +29,27 @@ router.post('/incoming', (req, res) => {
     else {
         console.log(`📞 Llamada saliente hacia: sip:vp-01-vohk@201.186.166.84:5060`);
         const dial = twiml.dial({ callerId: '+16186212365' });
-        dial.sip('sip:vp-01-vohk@vohk-porteria.sip.us1.twilio.com');
+        dial.sip('sip:vp-01-vohk@vohk-porteria.sip.us1.twilio.com;transport=tcp');
     }
     res.type('text/xml');
     res.send(twiml.toString());
 });
-/*
-router.post('/outgoing', (req, res) => {
+router.get('/testcall', async (req, res) => {
+    const client = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
+
+    try {
+        const call = await client.calls.create({
+            from: '+16186212365',
+            to: 'sip:vp-01-vohk@vohk-porteria.sip.us1.twilio.com',
+            url: 'https://demo.twilio.com/docs/voice.xml'
+        });
+
+        res.json(call);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json(err);
+    }
 });
-*/
 
 // ─── GET /twilio/token ──────────────────────────────────────────
 // El frontend llama aquí para obtener el token de acceso
