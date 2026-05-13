@@ -16,7 +16,9 @@ const TWILIO_TWIML_APP_SID = 'AP0384ba4ebbac7acffb89db57c7f841d4';
 // Conecta la llamada al operador web registrado como 'operador-vohk'
 router.post('/incoming', (req, res) => {
     const twiml = new twilio.twiml.VoiceResponse();
-    const dial = twiml.dial();
+    const dial = twiml.dial({
+        callerId: '8001'
+    });
     const destino = req.body.To || '';
     const origen = req.body.From || '';
     console.log(req.body);
