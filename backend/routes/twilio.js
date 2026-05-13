@@ -27,10 +27,9 @@ router.post('/incoming', (req, res) => {
     }
     // Llamada saliente desde el cliente web → enrutar al videoportero SIP
     else {
-        const sipUri = `sip:vp-01-vohk@201.186.166.84:15060`;
-        console.log(`📞 Llamada saliente hacia: ${sipUri}`);
+        console.log(`📞 Llamada saliente hacia: sip:vp-01-vohk@201.186.166.84:5060`);
         const dial = twiml.dial({ callerId: '+16186212365' });
-        dial.sip('sip:vp-01-vohk@201.186.166.84:15060');
+        dial.sip('sip:vp-01-vohk@201.186.166.84:5060');
     }
     res.type('text/xml');
     res.send(twiml.toString());
