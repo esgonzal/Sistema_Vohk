@@ -20,7 +20,6 @@ router.post('/incoming', (req, res) => {
     const destino = req.body.To || '';
     const origen = req.body.From || '';
     console.log(req.body);
-
     // Llamada entrante desde el videoportero SIP → enrutar al cliente web
     if (origen.startsWith('sip:')) {
         console.log(`📞 Llamada entrante desde: ${origen}`);
@@ -28,11 +27,10 @@ router.post('/incoming', (req, res) => {
     }
     // Llamada saliente desde el cliente web → enrutar al videoportero SIP
     else {
-        const sipUri = `sip:${destino}@TU_DOMINIO_SIP_REAL_DEL_VIDEOPORTERO`;
+        const sipUri = `sip:vp-01-vohk@vohk-porteria.sip.us1.twilio.com`;
         console.log(`📞 Llamada saliente hacia: ${sipUri}`);
         dial.sip(sipUri);
     }
-
     res.type('text/xml');
     res.send(twiml.toString());
 });
