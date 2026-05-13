@@ -29,7 +29,8 @@ router.post('/incoming', (req, res) => {
     else {
         const sipUri = `sip:vp-01-vohk@vohk-porteria.sip.us1.twilio.com`;
         console.log(`📞 Llamada saliente hacia: ${sipUri}`);
-        dial.sip(sipUri);
+        //dial.sip(sipUri);
+        dial.client(destino);
     }
     res.type('text/xml');
     res.send(twiml.toString());
