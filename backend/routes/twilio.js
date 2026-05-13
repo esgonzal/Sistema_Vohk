@@ -17,17 +17,22 @@ const TWILIO_TWIML_APP_SID = 'AP0384ba4ebbac7acffb89db57c7f841d4';
 router.post('/incoming', (req, res) => {
     const twiml = new twilio.twiml.VoiceResponse();
     const dial = twiml.dial();
-    const destino = req.body.To;
-    if (destino && destino.startsWith('sip:')) {
-        // Llamada saliente: navegador → videoportero
-        console.log(`📞 Llamada saliente hacia: ${ destino }`);
-        dial.sip(destino);
-    } else {
-        // Llamada entrante: videoportero → navegador
-        const origen = req.body.From || 'Desconocido';
-        console.log(`📞 Llamada entrante desde: ${ origen }`);
+    const destino = req.body.To || '';
+    const origen = req.body.From || '';
+    console.log(req.body);
+
+    // Llamada entrante desde el videoportero SIP → enrutar al cliente web
+    if (origen.startsWith('sip:')) {
+        console.log(`📞 Llamada entrante desde: ${origen}`);
         dial.client('8001');
     }
+    // Llamada saliente desde el cliente web → enrutar al videoportero SIP
+    else {
+        const sipUri = `sip:${destino}@TU_DOMINIO_SIP_REAL_DEL_VIDEOPORTERO`;
+        console.log(`📞 Llamada saliente hacia: ${sipUri}`);
+        dial.sip(sipUri);
+    }
+
     res.type('text/xml');
     res.send(twiml.toString());
 });
