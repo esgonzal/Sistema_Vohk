@@ -16,21 +16,23 @@ const TWILIO_TWIML_APP_SID = 'AP0384ba4ebbac7acffb89db57c7f841d4';
 // Conecta la llamada al operador web registrado como 'operador-vohk'
 router.post('/incoming', (req, res) => {
     const twiml = new twilio.twiml.VoiceResponse();
-    const dial = twiml.dial({
-        callerId: '8001'
-    });
+
     const destino = req.body.To || '';
     const origen = req.body.From || '';
     console.log(req.body);
     // Llamada entrante desde el videoportero SIP → enrutar al cliente web
     if (origen.startsWith('sip:')) {
         console.log(`📞 Llamada entrante desde: ${origen}`);
+        const dial = twiml.dial();
         dial.client('8001');
     }
     // Llamada saliente desde el cliente web → enrutar al videoportero SIP
     else {
         const sipUri = `sip:vp-01-vohk@vohk-porteria.sip.us1.twilio.com`;
         console.log(`📞 Llamada saliente hacia: ${sipUri}`);
+        const dial = twiml.dial({
+            callerId: '8001'
+        });
         dial.sip(sipUri);
     }
     res.type('text/xml');
