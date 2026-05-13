@@ -27,7 +27,7 @@ router.post('/incoming', (req, res) => {
     }
     // Llamada saliente desde el cliente web → enrutar al videoportero SIP
     else {
-        const sipUri = `sip:vp-01-vohk@vohk-porteria.sip.us1.twilio.com`;
+        const sipUri = `sip:vp-01-vohk@201.186.166.84:15060`;
         console.log(`📞 Llamada saliente hacia: ${sipUri}`);
         dial.sip(sipUri);
     }
