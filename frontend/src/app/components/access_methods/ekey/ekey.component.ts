@@ -176,7 +176,7 @@ export class EkeyComponent implements OnInit {
       if (this.validarFechaInicio(datos.startDate, datos.startHour, datos.endDate, datos.endHour, datos.ekeyType)) {
         if (this.validaFechaUsuario(datos.endDate, datos.endHour, datos.ekeyType)) {
           await this.crearEkey(datos);
-          //await this.generarEmail(datos);
+          await this.generarEmail(datos);
         }
       }
     }

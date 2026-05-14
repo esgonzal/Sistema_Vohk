@@ -149,7 +149,7 @@ export class MultipleEkeyComponent implements OnInit {
     if (this.error === '') {
       for (const eKey of eKeys) {
         if (await this.crearEkey2(eKey)) {
-          //await this.generarEmail2(eKey);
+          await this.generarEmail2(eKey);
         }
         
       }
