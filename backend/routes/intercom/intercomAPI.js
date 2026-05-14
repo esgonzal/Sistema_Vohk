@@ -1,17 +1,34 @@
 const express = require('express');
 const router = express.Router();
 
-const INTERCOM = {
-    ip: '201.186.166.84',
-    port: '8015',
-    user: 'admin',
-    pass: 'vohk2024',
-    doorId: 1,
+const DEVICES = {
+    main: {
+        ip: '201.186.166.84',
+        port: '8015',
+        user: 'admin',
+        pass: 'vohk2024',
+        doorId: 1,
+    },
+    secondary: {
+        ip: '201.186.166.84',
+        port: '8014',
+        user: 'admin',
+        pass: 'vohk2024',
+        doorId: 1,
+    },
 };
 
-router.post('/open-door', async (req, res) => {
+router.post('/open-door/:device', async (req, res) => {
     try {
+        const deviceName = req.params.device;
+        const INTERCOM = DEVICES[deviceName];
+        if (!INTERCOM) {
 
+            return res.status(404).json({
+                ok: false,
+                error: 'Device not found',
+            });
+        }
         const DigestFetch = (await import('digest-fetch')).default;
         const client = new DigestFetch(
             INTERCOM.user,
@@ -32,7 +49,7 @@ router.post('/open-door', async (req, res) => {
             body: xml,
         });
         const text = await response.text();
-        console.log('[INTERCOM] Response:', text);
+        //console.log('[INTERCOM] Response:', text);
         if (response.ok) {
             return res.json({
                 ok: true,
