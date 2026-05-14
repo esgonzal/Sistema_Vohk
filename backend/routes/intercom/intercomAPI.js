@@ -12,6 +12,8 @@ const INTERCOM = {
 
 router.post('/open-door', async (req, res) => {
     try {
+
+        const DigestFetch = (await import('digest-fetch')).default;
         const client = new DigestFetch(
             INTERCOM.user,
             INTERCOM.pass
