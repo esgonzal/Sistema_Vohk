@@ -110,6 +110,8 @@ const mondayTest = require('../backend/routes/automation/monday_test.js');
 app.use('/monday', mondayTest);
 const twilioRoutes = require('./routes/twilio');
 app.use('/twilio', twilioRoutes);
+const intercomRouter = require('./routes/intercom/intercomAPI.js');
+app.use('/intercom', intercomRouter);
 
 // HTTP Configuration
 const httpPort = 8080;
