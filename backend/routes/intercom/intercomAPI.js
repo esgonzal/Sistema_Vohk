@@ -1,5 +1,4 @@
 const express = require('express');
-const DigestFetch = require('digest-fetch');
 const router = express.Router();
 
 const INTERCOM = {
