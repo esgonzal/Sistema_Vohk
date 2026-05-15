@@ -125,7 +125,7 @@ router.post('/sendEmail', async (req, res) => {
 });
 router.post('/multiplePasscodes', async (req, res) => {
     const { userID, passcodes, selectedLocks } = req.body;
-    console.log(req.body);
+    console.log("el body:", req.body);
     if (
         !userID ||
         !selectedLocks || !Array.isArray(selectedLocks) || selectedLocks.length === 0 ||
