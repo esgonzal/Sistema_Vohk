@@ -18,7 +18,6 @@ const getLockFingerprintList = async (req, res) => {
         return res.status(error.status || 500).json({ errcode: error.errcode || 'UNKNOWN', errmsg: error.message || 'Error fetching lock fingerprints' });
     }
 };
-
 const renameFingerprint = async (req, res) => {
     const { userID, lockID, fingerprintID, newName } = req.body || {};
     if (!userID || !lockID || !fingerprintID || !newName) {
@@ -36,7 +35,6 @@ const renameFingerprint = async (req, res) => {
         return res.status(error.status || 500).json({ errcode: error.errcode || 'UNKNOWN', errmsg: error.message || 'Error renaming fingerprint' });
     }
 };
-
 const deleteFingerprint = async (req, res) => {
     const { userID, lockID, fingerprintID } = req.body || {};
     if (!userID || !lockID || !fingerprintID) {
@@ -47,7 +45,7 @@ const deleteFingerprint = async (req, res) => {
         return res.status(401).json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
     }
     try {
-        const data = await fingerprintService.deleteFingerprint(accessToken, lockID, fingerprintID);
+        const data = await fingerprintService.deleteFingerprint({accessToken, lockID, fingerprintID});
         return res.json(data);
     } catch (error) {
         console.error('deleteFingerprint error:', error);
@@ -64,7 +62,7 @@ const changeFingerprintPeriod = async (req, res) => {
         return res.status(401).json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
     }
     try {
-        const data = await fingerprintService.changeFingerprintPeriod(accessToken, lockID, fingerprintID, newStartDate, newEndDate);
+        const data = await fingerprintService.changeFingerprintPeriod({accessToken, lockID, fingerprintID, newStartDate, newEndDate});
         return res.json(data);
     } catch (error) {
         console.error('changeFingerprintPeriod error:', error);

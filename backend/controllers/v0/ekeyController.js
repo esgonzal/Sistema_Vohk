@@ -120,7 +120,7 @@ const freeze = async (req, res) => {
         return res.status(401).json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
     }
     try {
-        const data = await ekeyService.freezeEkey(accessToken, keyID);
+        const data = await ekeyService.freezeEkey({accessToken, keyID});
         return res.json(data);
     } catch (error) {
         console.error('freezeEkey error:', error);
@@ -138,7 +138,7 @@ const unfreeze = async (req, res) => {
         return res.status(401).json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
     }
     try {
-        const data = await ekeyService.unfreezeEkey(accessToken, keyID);
+        const data = await ekeyService.unfreezeEkey({accessToken, keyID});
         return res.json(data);
     } catch (error) {
         console.error('unfreezeEkey error:', error);
@@ -156,7 +156,7 @@ const auth = async (req, res) => {
         return res.status(401).json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
     }
     try {
-        const data = await ekeyService.authorizeEkey(accessToken, lockID, keyID);
+        const data = await ekeyService.authorizeEkey({accessToken, lockID, keyID});
         return res.json(data);
     } catch (error) {
         console.error('authorizeEkey error:', error);
@@ -174,7 +174,7 @@ const unauth = async (req, res) => {
         return res.status(401).json({ errcode: 10003, errmsg: 'No se encontró accessToken' });
     }
     try {
-        const data = await ekeyService.unauthorizeEkey(accessToken, lockID, keyID);
+        const data = await ekeyService.unauthorizeEkey({accessToken, lockID, keyID});
         return res.json(data);
     } catch (error) {
         console.error('unauthorizeEkey error:', error);
