@@ -15,6 +15,7 @@ const TWILIO_TWIML_APP_SID = 'AP0384ba4ebbac7acffb89db57c7f841d4';
 // Twilio llama aquí cuando el videoportero llama al SIP Domain
 // Conecta la llamada al operador web registrado como 'operador-vohk'
 router.post('/incoming', (req, res) => {
+    console.log("incoming endpoint")
     const twiml = new twilio.twiml.VoiceResponse();
     const origen = req.body.From || '';
     //const dial = twiml.dial();
@@ -35,6 +36,7 @@ router.post('/incoming', (req, res) => {
     res.send(twiml.toString());
 });
 router.get('/testcall', async (req, res) => {
+    console.log("testcall endpoint")
     const client = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
 
     try {
@@ -55,6 +57,7 @@ router.get('/testcall', async (req, res) => {
 // El frontend llama aquí para obtener el token de acceso
 // Necesario para que el navegador pueda recibir llamadas
 router.get('/token', (req, res) => {
+    console.log("token endpoint")
     const accountSid = TWILIO_ACCOUNT_SID;
     const apiKey = TWILIO_API_KEY;
     const apiSecret = TWILIO_API_SECRET;
