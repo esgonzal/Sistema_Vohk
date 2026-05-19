@@ -11,9 +11,12 @@ const TWILIO_API_KEY = 'SK11f6b290e65f792ccb606ba5bb750475';
 const TWILIO_API_SECRET = 'Mq4m2iTGhfIKvFsBrIOmFrSjp035t9dH';
 const TWILIO_TWIML_APP_SID = 'AP0384ba4ebbac7acffb89db57c7f841d4';
 
-// ─── POST /twilio/incoming ──────────────────────────────────────
-// Twilio llama aquí cuando el videoportero llama al SIP Domain
-// Conecta la llamada al operador web registrado como 'operador-vohk'
+const users = {
+    'guard': { password: '1234', identity: '8001', },
+    'resident101': { password: '1234', identity: '8101', },
+    'resident102': { password: '1234', identity: '8102', },
+};
+
 router.post('/incoming', (req, res) => {
     console.log("incoming endpoint")
     const twiml = new twilio.twiml.VoiceResponse();
@@ -42,22 +45,16 @@ router.post('/incoming', (req, res) => {
     res.type('text/xml');
     res.send(twiml.toString());
 });
-router.get('/testcall', async (req, res) => {
-    console.log("testcall endpoint")
-    const client = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
-
-    try {
-        const call = await client.calls.create({
-            from: '+16186212365',
-            to: 'sip:vp-01-vohk@vohk-porteria.sip.us1.twilio.com',
-            url: 'https://demo.twilio.com/docs/voice.xml'
-        });
-
-        res.json(call);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json(err);
-    }
+router.post('/login', (req, res) => {
+    console.log('login endpoint');
+    const { username, password } = req.body;
+    console.log('username:', username);
+    if (!username || !password) { return res.status(400).json({ error: 'Missing username or password' }); }
+    const user = users[username];
+    if (!user) { return res.status(401).json({ error: 'User not found' }); }
+    if (user.password !== password) { return res.status(401).json({ error: 'Invalid password' }); }
+    console.log(`✅ Login success: ${username}`);
+    res.json({ success: true, username: username, identity: user.identity, });
 });
 router.get('/token', (req, res) => {
     console.log("token endpoint")
