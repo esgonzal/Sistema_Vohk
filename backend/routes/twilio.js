@@ -18,17 +18,24 @@ router.post('/incoming', (req, res) => {
     console.log("incoming endpoint")
     const twiml = new twilio.twiml.VoiceResponse();
     const origen = req.body.From || '';
-    //const dial = twiml.dial();
+    const destino = req.body.To || '';
     console.log(req.body);
-    // Llamada entrante desde el videoportero SIP → enrutar al cliente web
+    // Incoming call FROM intercom SIP
     if (origen.startsWith('sip:')) {
         console.log(`📞 Llamada entrante desde: ${origen}`);
+        // Extract apartment identity from:
+        // sip:8101@vohk-porteria.sip.us1.twilio.com:5060
+        const match = destino.match(/sip:(\d+)@/);
+        const apartmentIdentity = match
+            ? match[1]
+            : '8001';
+        console.log(`➡️ Enrutando llamada a cliente: ${apartmentIdentity}`);
         const dial = twiml.dial();
-        dial.client('8001');
+        dial.client(apartmentIdentity);
     }
-    // Llamada saliente desde el cliente web → enrutar al videoportero SIP
+    // Outgoing call FROM app TO intercom
     else {
-        console.log(`📞 Llamada saliente hacia: sip:vp-01-vohk@201.186.166.84:5060`);
+        console.log(`📞 Llamada saliente hacia videoportero`);
         const dial = twiml.dial({ callerId: '+16186212365' });
         dial.sip('sip:vp-01-vohk@vohk-porteria.sip.us1.twilio.com;transport=tcp');
     }
@@ -52,42 +59,30 @@ router.get('/testcall', async (req, res) => {
         res.status(500).json(err);
     }
 });
-
-// ─── GET /twilio/token ──────────────────────────────────────────
-// El frontend llama aquí para obtener el token de acceso
-// Necesario para que el navegador pueda recibir llamadas
 router.get('/token', (req, res) => {
     console.log("token endpoint")
     const accountSid = TWILIO_ACCOUNT_SID;
     const apiKey = TWILIO_API_KEY;
     const apiSecret = TWILIO_API_SECRET;
     const twimlAppSid = TWILIO_TWIML_APP_SID;
-    const fcmToken = req.query.fcmToken; 
-    console.log("El token fcm: ", fcmToken);
+    const fcmToken = req.query.fcmToken;
+    const identity = req.query.identity || '8001';
+    console.log("FCM token:", fcmToken);
+    console.log("Identity:", identity);
     // Validar que las variables estén configuradas
     if (!accountSid || !apiKey || !apiSecret || !twimlAppSid) {
         return res.status(500).json({
             error: 'Variables de entorno de Twilio no configuradas'
         });
     }
-
-    const token = new AccessToken(accountSid, apiKey, apiSecret, {
-        identity: '8101',
-        ttl: 3600 // token válido por 1 hora
-    });
-
+    const token = new AccessToken(accountSid, apiKey, apiSecret, { identity: identity, ttl: 3600 });
     const voiceGrant = new VoiceGrant({
         incomingAllow: true,               // puede recibir llamadas
         outgoingApplicationSid: twimlAppSid,
-        pushCredentialSid: 'CRe04e9804aebdc00ea2a2bf7203b5069c', 
+        pushCredentialSid: 'CRe04e9804aebdc00ea2a2bf7203b5069c',
     });
-
     token.addGrant(voiceGrant);
-
-    res.json({
-        token: token.toJwt(),
-        identity: '8001'
-    });
+    res.json({ token: token.toJwt(), identity: identity });
 });
 
 module.exports = router;
