@@ -60,7 +60,7 @@ router.get('/token', (req, res) => {
     const apiSecret = TWILIO_API_SECRET;
     const twimlAppSid = TWILIO_TWIML_APP_SID;
     const fcmToken = req.query.fcmToken; 
-
+    console.log("El token fcm: ", fcmToken);
     // Validar que las variables estén configuradas
     if (!accountSid || !apiKey || !apiSecret || !twimlAppSid) {
         return res.status(500).json({
