@@ -59,6 +59,7 @@ router.get('/token', (req, res) => {
     const apiKey = TWILIO_API_KEY;
     const apiSecret = TWILIO_API_SECRET;
     const twimlAppSid = TWILIO_TWIML_APP_SID;
+    const fcmToken = req.query.fcmToken; 
 
     // Validar que las variables estén configuradas
     if (!accountSid || !apiKey || !apiSecret || !twimlAppSid) {
@@ -74,7 +75,8 @@ router.get('/token', (req, res) => {
 
     const voiceGrant = new VoiceGrant({
         incomingAllow: true,               // puede recibir llamadas
-        outgoingApplicationSid: twimlAppSid
+        outgoingApplicationSid: twimlAppSid,
+        pushCredentialSid: 'CR53f8c1718d1bfbdab80ba461e37c47da', 
     });
 
     token.addGrant(voiceGrant);
