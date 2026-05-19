@@ -79,7 +79,7 @@ router.get('/token', (req, res) => {
     const voiceGrant = new VoiceGrant({
         incomingAllow: true,               // puede recibir llamadas
         outgoingApplicationSid: twimlAppSid,
-        pushCredentialSid: 'CR53f8c1718d1bfbdab80ba461e37c47da', 
+        pushCredentialSid: 'CRe04e9804aebdc00ea2a2bf7203b5069c', 
     });
 
     token.addGrant(voiceGrant);
