@@ -1,13 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const twilio = require('twilio');
+const admin = require('firebase-admin');
 const fs = require('fs');
+
 
 const AccessToken = twilio.jwt.AccessToken;
 const VoiceGrant = AccessToken.VoiceGrant;
 
 const path = require('path');
 const USERS_FILE = path.join(__dirname, '../data/vohk_users.json');
+const serviceAccount = require('../firebase/firebase-service-account.json');
+
+if (!admin.apps.length) { admin.initializeApp({ credential: admin.credential.cert(serviceAccount) }) }
 
 // ─────────────────────────────────────────────
 // HELPERS
@@ -48,19 +53,16 @@ router.post('/incoming', (req, res) => {
     const twiml = new twilio.twiml.VoiceResponse();
     const origen = req.body.From || '';
     const destino = req.body.To || '';
-    //console.log(req.body);
     if (origen.startsWith('sip:')) {
         console.log(`📞 Llamada entrante desde: ${origen}`);
         const match = destino.match(/sip:(\d+)@/);
         const apartmentIdentity = match
             ? match[1]
             : '8001';
-        //console.log(`➡️ Enrutando llamada a cliente: ${apartmentIdentity}`);
         const dial = twiml.dial();
         dial.client(apartmentIdentity);
     }
     else {
-        //console.log(`📞 Llamada saliente hacia videoportero`);
         const dial = twiml.dial({ callerId: '+16186212365' });
         dial.sip('sip:vp-01-vohk@vohk-porteria.sip.us1.twilio.com;transport=tcp');
     }
@@ -100,10 +102,7 @@ router.get('/token', (req, res) => {
     const twimlAppSid = TWILIO_TWIML_APP_SID;
     const fcmToken = req.query.fcmToken;
     const identity = req.query.identity;
-    // Validar que las variables estén configuradas
-    if (!accountSid || !apiKey || !apiSecret || !twimlAppSid) {
-        return res.status(500).json({ error: 'Variables de entorno de Twilio no configuradas' });
-    }
+    if (!accountSid || !apiKey || !apiSecret || !twimlAppSid) { return res.status(500).json({ error: 'Variables de entorno de Twilio no configuradas' }); }
     const token = new AccessToken(accountSid, apiKey, apiSecret, { identity: identity, ttl: 3600 });
     const voiceGrant = new VoiceGrant({ incomingAllow: true, outgoingApplicationSid: twimlAppSid, pushCredentialSid: 'CRe04e9804aebdc00ea2a2bf7203b5069c', });
     token.addGrant(voiceGrant);
