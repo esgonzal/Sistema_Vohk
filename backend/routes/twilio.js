@@ -54,11 +54,32 @@ router.post('/incoming', (req, res) => {
     const origen = req.body.From || '';
     const destino = req.body.To || '';
     if (origen.startsWith('sip:')) {
-        console.log(`📞 Llamada entrante desde: ${origen}`);
         const match = destino.match(/sip:(\d+)@/);
         const apartmentIdentity = match
             ? match[1]
             : '8001';
+
+        const users = loadUsers();
+        const resident = Object.values(users).find(
+            u => u.identity === apartmentIdentity
+        );
+        if (resident && resident.fcmToken) {
+            console.log(`📲 Sending FCM push to ${apartmentIdentity}`);
+            try {
+                await admin.messaging().send({
+                    token: resident.fcmToken,
+                    data: {
+                        type: 'incoming_call',
+                        identity: apartmentIdentity,
+                    },
+                });
+                console.log('✅ FCM push sent');
+            } catch (err) {
+                console.error('❌ Error sending FCM:', err);
+            }
+        } else {
+            console.log('⚠️ Resident or FCM token not found');
+        }
         const dial = twiml.dial();
         dial.client(apartmentIdentity);
     }
@@ -95,7 +116,6 @@ router.post('/register-fcm', (req, res) => {
     res.json({ success: true });
 });
 router.get('/token', (req, res) => {
-    console.log("token endpoint")
     const accountSid = TWILIO_ACCOUNT_SID;
     const apiKey = TWILIO_API_KEY;
     const apiSecret = TWILIO_API_SECRET;
