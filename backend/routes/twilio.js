@@ -49,7 +49,7 @@ const TWILIO_TWIML_APP_SID = 'AP0384ba4ebbac7acffb89db57c7f841d4';
 // ─────────────────────────────────────────────
 // ENDPOINTS
 // ─────────────────────────────────────────────
-router.post('/incoming', (req, res) => {
+router.post('/incoming', async (req, res) => {
     const twiml = new twilio.twiml.VoiceResponse();
     const origen = req.body.From || '';
     const destino = req.body.To || '';
