@@ -127,8 +127,8 @@ export class MultiplePasscodeComponent implements OnInit {
 
       // Make sure row has at least 2 values (name + code)
       if (row.length >= 2) {
-        const name = row[0];  // Column A
-        const code = row[1];  // Column B
+        const name = row[1];  // Column A
+        const code = row[2];  // Column B
 
         // Create passcode object
         const passcode = {
@@ -167,7 +167,7 @@ export class MultiplePasscodeComponent implements OnInit {
       this.isLoading = true;
       let response = await lastValueFrom(this.passcodeService.multiplePasscodes(this.passcodeService.userID, this.passcodes)) as MultiplePasscodeResponse[]
       this.popupService.multiplePasscodeResults = response;
-      //console.log(this.popupService.multiplePasscodeResults)
+      console.log(this.popupService.multiplePasscodeResults)
       this.isLoading = false;
       this.popupService.multiplePasscodesResult = true;
     }

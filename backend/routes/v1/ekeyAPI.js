@@ -50,8 +50,8 @@ router.post('/send', async(req, res) => {
         res.status(500).json({ errmsg: 'Error with API' });
     }
 })
-router.get('/list', async(req, res) => {
-    let { clientId, accessToken, lockAlias, groupId, pageNo, pageSize, date } = req.query;
+router.post('/list', async(req, res) => {
+    let { clientId, accessToken, lockAlias, groupId, pageNo, pageSize, date } = req.body;
     console.log("list Request: ", req.query);
     // Verificar si faltan parámetros obligatorios
     if (!clientId || !accessToken || !pageNo || !pageSize || !date) {

@@ -11,8 +11,8 @@ import { LockData } from '../Interfaces/Lock';
 })
 export class PasscodeServiceService {
 
-  URL = 'https://api.vohk.cl';
-  //URL = 'http://localhost:8081';
+  //URL = 'https://api.vohk.cl';
+  URL = 'http://localhost:8081';
   username: string;
   lockAlias: string;
   endDateUser: string;
@@ -61,6 +61,7 @@ export class PasscodeServiceService {
   generatePasscode(userID: string, lockID: number, type: string, startDate: string, name?: string, endDate?: string): Observable<createPasscodeResponse> {
     let body = { userID, lockID, type, startDate, name, endDate };
     let url = this.URL.concat('/v0/passcode/get');
+    console.log(body)
     return this.http.post<createPasscodeResponse>(url, body);
   }
   generateCustomPasscode(userID: string, lockID: number, keyboardPwd: string, keyboardPwdType: string, keyboardPwdName?: string, startDate?: string, endDate?: string): Observable<createPasscodeResponse> {

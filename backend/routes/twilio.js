@@ -55,10 +55,11 @@ router.post('/incoming', async (req, res) => {
     const destino = req.body.To || '';
     if (origen.startsWith('sip:')) {
         const match = destino.match(/sip:(\d+)@/);
-        const apartmentIdentity = match
-            ? match[1]
-            : '8001';
-
+        if (!match) {
+            console.log('❌ Could not extract apartment identity');
+            return res.status(400).send('Invalid SIP destination');
+        }
+        const apartmentIdentity = match[1];
         const users = loadUsers();
         const resident = Object.values(users).find(
             u => u.identity === apartmentIdentity

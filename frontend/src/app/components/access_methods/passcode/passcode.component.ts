@@ -146,7 +146,7 @@ export class PasscodeComponent implements OnInit {
           }
           else {
             //PERMANENT PASSCODE
-            response = await lastValueFrom(this.passcodeService.generatePasscode(this.passcodeService.userID, this.passcodeService.lockID, datos.passcodeType, moment().valueOf().toString(), datos.name)) as createPasscodeResponse
+            response = await lastValueFrom(this.passcodeService.generatePasscode(this.passcodeService.userID, this.passcodeService.lockID, datos.passcodeType, moment().valueOf().toString(), datos.name, "0")) as createPasscodeResponse
           }
         }
       }
