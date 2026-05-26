@@ -4,7 +4,6 @@ const twilio = require('twilio');
 const admin = require('firebase-admin');
 const fs = require('fs');
 
-
 const AccessToken = twilio.jwt.AccessToken;
 const VoiceGrant = AccessToken.VoiceGrant;
 
@@ -88,6 +87,21 @@ router.post('/incoming', async (req, res) => {
         const dial = twiml.dial({ callerId: '+16186212365' });
         dial.sip('sip:vp-01-vohk@vohk-porteria.sip.us1.twilio.com;transport=tcp');
     }
+    res.type('text/xml');
+    res.send(twiml.toString());
+});
+router.post('/outgoing', async (req, res) => {
+    const twiml = new twilio.twiml.VoiceResponse();
+    const identity = req.body.identity; // e.g. "intercom_main"
+    let sipAddress = null;
+    if (identity === 'intercom_main') {
+        sipAddress = 'sip:vp-01-vohk@vohk-porteria.sip.us1.twilio.com;transport=tcp';
+    }
+    if (!sipAddress) {
+        return res.status(400).send('Unknown destination');
+    }
+    const dial = twiml.dial();
+    dial.sip(sipAddress);
     res.type('text/xml');
     res.send(twiml.toString());
 });
