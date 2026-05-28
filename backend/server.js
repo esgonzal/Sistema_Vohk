@@ -75,10 +75,12 @@ app.post('/api/alert', (req, res) => {
 //Monday Test
 const mondayTest = require('../backend/routes/automation/monday_test.js');
 app.use('/monday', mondayTest);
-const twilioRoutes = require('./routes/twilio');
+const twilioRoutes = require('./routes/vohk_app/twilio.js');
 app.use('/twilio', twilioRoutes);
-const intercomRouter = require('./routes/intercom/intercomAPI.js');
-app.use('/intercom', intercomRouter);
+const intercomRouter = require('./routes/vohk_app/intercomAPI.js');
+app.use('/app/intercom', intercomRouter);
+const eventsRouter = require('./routes/vohk_app/events.js');
+app.use('/app/events', eventsRouter);
 
 // HTTP Configuration
 const httpPort = 8080;
