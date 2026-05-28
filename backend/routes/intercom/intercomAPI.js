@@ -1,46 +1,48 @@
 const express = require('express');
 const router = express.Router();
+const fs = require('fs');
+const path = require('path');
 
-const DEVICES = {
-    main: {
-        name: 'Entrada Principal',
-        ip: '201.186.166.84',
-        port: '8015',
-        sip: 'sip:vp-01-vohk@vohk-porteria.sip.us1.twilio.com;transport=tcp',
-        snapshot: 'https://api.vohk.cl/snapshots/cam5.jpg',
-        streamUrl: 'https://api.vohk.cl/cam5',
-        user: 'admin',
-        pass: 'vohk2024',
-        doorId: 1,
-    },
-    secondary: {
-        name: 'Entrada Secundaria',
-        ip: '201.186.166.84',
-        port: '8014',
-        sip: 'sip:vp-02-vohk@vohk-porteria.sip.us1.twilio.com;transport=tcp', //Doesnt exist yet, only vp-01 is registered in twilio
-        snapshot: 'https://api.vohk.cl/snapshots/cam4.jpg',
-        streamUrl: 'https://api.vohk.cl/cam4',
-        user: 'admin',
-        pass: 'vohk2024',
-        doorId: 1,
-    },
-};
+const DEVICES_FILE = path.join(__dirname, '../../data/devices.json');
+
+function loadDevices() {
+    return JSON.parse(
+        fs.readFileSync(DEVICES_FILE, 'utf8')
+    );
+}
 
 router.get('/intercoms', (req, res) => {
-    const list = Object.entries(DEVICES).map(([id, d]) => ({
-        id,
-        name: d.name,
-        snapshot: d.snapshot,
-        url: d.streamUrl
-    }));
+    const devices = loadDevices();
+    const list = Object.entries(devices)
+        .filter(([_, d]) => d.type === 'intercom')
+        .map(([id, d]) => ({
+            id,
+            name: d.name,
+            snapshot: d.snapshot,
+            url: d.streamUrl
+        }));
+
+    res.json(list);
+});
+router.get('/cameras', (req, res) => {
+    const devices = loadDevices();
+    const list = Object.entries(devices)
+        .filter(([_, d]) => d.type === 'camera')
+        .map(([id, d]) => ({
+            id,
+            name: d.name,
+            snapshot: d.snapshot,
+            url: d.streamUrl
+        }));
+
     res.json(list);
 });
 router.post('/open-door/:device', async (req, res) => {
     try {
         const deviceName = req.params.device;
-        const INTERCOM = DEVICES[deviceName];
+        const devices = loadDevices();
+        const INTERCOM = devices[deviceName];
         if (!INTERCOM) {
-
             return res.status(404).json({
                 ok: false,
                 error: 'Device not found',
@@ -58,15 +60,12 @@ router.post('/open-door/:device', async (req, res) => {
                 <RemoteControlDoor>
                     <cmd>open</cmd>
                 </RemoteControlDoor>`;
-
-        console.log('[INTERCOM] Opening door...');
         const response = await client.fetch(url, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/xml', },
             body: xml,
         });
         const text = await response.text();
-        //console.log('[INTERCOM] Response:', text);
         if (response.ok) {
             return res.json({
                 ok: true,

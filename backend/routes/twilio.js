@@ -9,6 +9,7 @@ const AccessToken = twilio.jwt.AccessToken;
 const VoiceGrant = AccessToken.VoiceGrant;
 
 const USERS_FILE = path.join(__dirname, '../data/vohk_users.json');
+const DEVICES_FILE = path.join(__dirname, '../data/devices.json');
 const serviceAccount = require('../firebase/firebase-service-account.json');
 
 if (!admin.apps.length) { admin.initializeApp({ credential: admin.credential.cert(serviceAccount) }) }
@@ -21,6 +22,11 @@ function loadUsers() {
         console.error('❌ Error loading users file:', err);
         return {};
     }
+}
+function loadDevices() {
+    return JSON.parse(
+        fs.readFileSync(DEVICES_FILE, 'utf8')
+    );
 }
 function saveUsers(users) {
     try {
@@ -38,30 +44,6 @@ const TWILIO_AUTH_TOKEN = '9485c1566561a77ed656ed2232b2aa31';
 const TWILIO_API_KEY = 'SK11f6b290e65f792ccb606ba5bb750475';
 const TWILIO_API_SECRET = 'Mq4m2iTGhfIKvFsBrIOmFrSjp035t9dH';
 const TWILIO_TWIML_APP_SID = 'AP0384ba4ebbac7acffb89db57c7f841d4';
-const DEVICES = {
-    main: {
-        name: 'Entrada Principal',
-        ip: '201.186.166.84',
-        port: '8015',
-        sip: 'sip:vp-01-vohk@vohk-porteria.sip.us1.twilio.com;transport=tcp',
-        snapshot: 'https://api.vohk.cl/snapshots/cam5.jpg',
-        streamUrl: 'https://api.vohk.cl/cam5',
-        user: 'admin',
-        pass: 'vohk2024',
-        doorId: 1,
-    },
-    secondary: {
-        name: 'Entrada Secundaria',
-        ip: '201.186.166.84',
-        port: '8014',
-        sip: 'sip:vp-02-vohk@vohk-porteria.sip.us1.twilio.com;transport=tcp', //Doesnt exist yet, only vp-01 is registered in twilio
-        snapshot: 'https://api.vohk.cl/snapshots/cam4.jpg',
-        streamUrl: 'https://api.vohk.cl/cam4',
-        user: 'admin',
-        pass: 'vohk2024',
-        doorId: 1,
-    },
-};
 
 router.post('/incoming', async (req, res) => {
     const twiml = new twilio.twiml.VoiceResponse();
@@ -69,11 +51,12 @@ router.post('/incoming', async (req, res) => {
     const destino = req.body.To || '';
     if (origen.startsWith('sip:')) {
         const match = destino.match(/sip:(\d+)@/);
-        if (!match) {return res.status(400).send('Invalid SIP destination');}
+        if (!match) { return res.status(400).send('Invalid SIP destination'); }
         const apartmentIdentity = match[1];
         const users = loadUsers();
         const resident = Object.values(users).find(u => u.identity === apartmentIdentity);
-        const streamUrl = DEVICES.main.streamUrl; 
+        const devices = loadDevices();
+        const streamUrl = devices.intercom_1.streamUrl; // or devices.intercom_2.streamUrl depending on the intercom
         if (resident && resident.fcmToken) {
             console.log(`📲 Sending FCM push to ${apartmentIdentity}`);
             try {
@@ -82,7 +65,7 @@ router.post('/incoming', async (req, res) => {
                     data: {
                         type: 'incoming_call',
                         identity: apartmentIdentity,
-                        streamUrl: streamUrl, 
+                        streamUrl: streamUrl,
                     },
                 });
                 console.log('✅ FCM push sent');
