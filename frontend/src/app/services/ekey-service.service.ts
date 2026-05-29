@@ -12,8 +12,8 @@ import { MatTableDataSource } from '@angular/material/table';
 })
 export class EkeyServiceService {
 
-  //URL = 'https://api.vohk.cl';
-  URL = 'http://localhost:8081';
+  URL = 'https://api.vohk.cl';
+  //URL = 'http://localhost:8080';
   userID = sessionStorage.getItem('user') ?? ''
   lockID: number;
   username = sessionStorage.getItem('user') ?? ''
@@ -119,6 +119,11 @@ export class EkeyServiceService {
     console.log("generar email");
     let body = { userID, lockAlias, recieverName, startDate, endDate, email }
     let url = this.URL.concat('/v0/ekey/generateEmail');
+    return this.http.post<sendEkeyResponse>(url, body);
+  }
+  generateEmail2(userID: string, lockAlias: string, recieverName: string, code: string, email: string): Observable<sendEkeyResponse> {
+    let body = { userID, lockAlias, recieverName, code, email };
+    let url = this.URL.concat('/v0/ekey/generateEmail2');
     return this.http.post<sendEkeyResponse>(url, body);
   }
   sendEmail(toEmail: string, emailContent: string): Observable<sendEkeyResponse> {

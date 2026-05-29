@@ -13,7 +13,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 export class LockServiceService {
 
   URL = 'https://api.vohk.cl';
-  //URL = 'http://localhost:8081';
+  //URL = 'http://localhost:8080';
   userID: string;
   lockID: number;
   adminLocks: LockData[];

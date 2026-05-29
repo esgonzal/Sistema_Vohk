@@ -32,21 +32,6 @@
         -->
     </div>
     <div class="resto" *ngIf="chosenGroup">
-        <!-- En el template -->
-        <div *ngIf="userID==='soporte@vohk.cl'">
-            <div *ngIf="(twilioVoice.estado$ | async) === 'entrante'">
-                <p>Llamada desde: {{ twilioVoice.origen$ | async }}</p>
-                <button (click)="twilioVoice.contestar()">Contestar</button>
-                <button (click)="twilioVoice.rechazar()">Rechazar</button>
-            </div>
-            <div *ngIf="(twilioVoice.estado$ | async) === 'activo'">
-                <p>En llamada — {{ twilioVoice.origen$ | async }}</p>
-                <button (click)="twilioVoice.colgar()">Colgar</button>
-            </div>
-            <div *ngIf="(twilioVoice.estado$ | async) === 'inactivo'">
-                <p>Esperando llamadas...</p>
-            </div>
-        </div>
         <div class="top">
             <div class="groupName">
                 {{chosenGroup.groupName}}

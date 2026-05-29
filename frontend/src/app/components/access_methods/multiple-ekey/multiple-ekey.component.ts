@@ -142,7 +142,7 @@ export class MultipleEkeyComponent implements OnInit {
         break;
       } else if (!this.isEndDateValid(eKey)) {
         this.error = 'La fecha de finalización debe ser posterior a la fecha de inicio';
-      } else if ((this.userService.isValidPhone(eKey.account).isValid) && (!eKey.email) ) {
+      } else if ((this.userService.isValidPhone(eKey.account).isValid) && (!eKey.email)) {
         this.error = 'Ingrese un correo electrónico para recibir una notificación'
       }
     }
@@ -150,11 +150,10 @@ export class MultipleEkeyComponent implements OnInit {
       for (const eKey of eKeys) {
         if (await this.crearEkey2(eKey)) {
           await this.generarEmail2(eKey);
+          //await this.generarEmail3(eKey);
         }
-        
       }
       this.popupService.ekeySuccess2 = true;
-      //this.router.navigate(["users", this.ekeyService.username, "lock", this.ekeyService.lockID]);
     }
   }
   async crearEkey2(eKey: { account: string; name: string; type: string; startDatepicker: string; startTimepicker: string, endDatepicker: string, endTimepicker: string, email: string }) {
@@ -288,6 +287,31 @@ export class MultipleEkeyComponent implements OnInit {
 
 
   }
+  async generarEmail3(eKey: { account: string; name: string; type: string; startDatepicker: string; startTimepicker: string; endDatepicker: string; endTimepicker: string; email: string, code: string }) {
+    if (this.ekeyService.selectedLocks.length === 1) {
+      const Alias = this.ekeyService.selectedLocks[0].alias;
+      if (eKey.type === '1') {
+        const response = await lastValueFrom(this.ekeyService.generateEmail2(this.ekeyService.userID, Alias, eKey.account, eKey.code, eKey.email)) as sendEkeyResponse;
+        if (response.emailContent) {
+          this.popupService.toEmail = response.toEmail;
+          this.popupService.emailMessage = response.emailContent;
+          await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, response.emailContent));
+        }
+      }
+    } else {
+      const Alias = this.ekeyService.selectedLocks
+        .map(lock => `<li>${lock.alias}</li>`)
+        .join('');
+      if (eKey.type === '1') {
+        const response = await lastValueFrom(this.ekeyService.generateEmail2(this.ekeyService.userID, Alias, eKey.account, eKey.code, eKey.email)) as sendEkeyResponse;
+        if (response.emailContent) {
+          this.popupService.toEmail = response.toEmail;
+          this.popupService.emailMessage = response.emailContent;
+          await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, response.emailContent));
+        }
+      }
+    }
+  }
   openLockSelector() {
     this.popupService.selectLocksForEkey = true;
   }
@@ -321,7 +345,7 @@ export class MultipleEkeyComponent implements OnInit {
     const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
     const headerCells = ["B2", "C2", "D2", "E2"]; // Celdas del encabezado
     headerCells.forEach(cell => {
-        worksheet[cell].s = headerStyle; // Aplicar estilo a cada celda del encabezado
+      worksheet[cell].s = headerStyle; // Aplicar estilo a cada celda del encabezado
     });
     // Agregar la hoja al libro de trabajo
     XLSX.utils.book_append_sheet(workbook, worksheet, "Plantilla");
@@ -343,35 +367,28 @@ export class MultipleEkeyComponent implements OnInit {
     if (target.files && target.files.length) {
       const file = target.files[0];
       const reader = new FileReader();
-
       reader.onload = (e: any) => {
         const data = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data, { type: 'array' });
         const worksheet = workbook.Sheets[workbook.SheetNames[0]];
         const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }); // Obtener los datos como una matriz
-
         // Procesar los datos desde la fila 3
         this.processExcelData(jsonData);
       };
-
       reader.readAsArrayBuffer(file);
     }
   }
   private processExcelData(data: any[]) {
-
     // Comenzar desde la fila 3 (índice 2)
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
       console.log(row)
-
-
       // Asegurarse de que la fila tenga suficientes datos
       if (row.length >= 4) {
         const department = row[1]; // B: Departamento
         const ownerName = row[2]; // C: Nombre Propietario
         const phoneNumber = row[3]; // D: N° Telefono
         const email = row[4]; // E: Correo
-
         // Crear el objeto de eKey según el formato requerido
         const formattedPhoneNumber = String(phoneNumber).replace(/\s+/g, '');
         const eKey = {
@@ -380,17 +397,42 @@ export class MultipleEkeyComponent implements OnInit {
           type: '1', // Tipo: 1 (Permanente)
           email: email // Correo
         };
-
         // Agregar el objeto de eKey al array
         this.eKeys.push(eKey);
       }
     }
-
     console.log(this.eKeys); // Ver los eKeys en la consola
   }
-
-
-
-
-
+  private processExcelData2(data: any[]) {
+    this.eKeys = [];
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      if (!row || row.length < 6) {
+        continue;
+      }
+      const unidad = row[0];              // A = UNIDAD
+      const codigo = row[1];              // B = CÓDIGO
+      const correo = row[2];              // C = CORREO
+      const nombre = row[4];              // E = NOMBRE EN EKEY
+      const telefono = row[5];            // F = TELÉFONO EN EKEY
+      // FORMATEAR TELÉFONO
+      const formattedPhone = String(telefono || '')
+        .replace(/\s+/g, '')
+        .replace(/-/g, '');
+      // SI HAY TELÉFONO -> usar teléfono
+      // SI NO -> usar correo
+      const account = formattedPhone && formattedPhone !== '—'
+        ? formattedPhone
+        : correo;
+      const eKey = {
+        account: account,
+        name: `${nombre} - ${unidad}`,
+        type: '1',
+        email: correo,
+        code: String(codigo)
+      };
+      this.eKeys.push(eKey);
+    }
+    console.log(this.eKeys);
+  }
 }

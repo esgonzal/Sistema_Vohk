@@ -14,7 +14,6 @@ import { faHome } from '@fortawesome/free-solid-svg-icons'
 import { Ekey } from 'src/app/Interfaces/Elements';
 import * as XLSX from 'xlsx';
 import { PasscodeServiceService } from 'src/app/services/passcode-service.service';
-import { TwilioVoiceService } from 'src/app/services/twilio-voice.service';
 
 @Component({
   selector: 'app-comunidadesv2',
@@ -42,8 +41,7 @@ export class Comunidadesv2Component implements OnInit {
     private lockService: LockServiceService,
     private router: Router,
     public popupService: PopUpService,
-    public DarkModeService: DarkModeService,
-    public twilioVoice: TwilioVoiceService) {
+    public DarkModeService: DarkModeService) {
     this.updateCols();
   }
   async ngOnInit(): Promise<void> {
