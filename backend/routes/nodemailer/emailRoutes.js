@@ -13,8 +13,19 @@ const transporter = nodemailer.createTransport({
         pass: PASS
     },
 });
+async function renderTemplate(templateName, variables) {
+    const templatePath = path.join(__dirname, 'templates', templateName);
+    let content = await fs.readFile(templatePath, 'utf8');
+    Object.keys(variables).forEach(key => {
+        content = content.replace(
+            new RegExp(`{{${key}}}`, 'g'),
+            variables[key]
+        );
+    });
+    return content;
+}
 //EKEYS
-router.post('/ekeyPermanent', async(req, res) => {
+router.post('/ekeyPermanent', async (req, res) => {
     const { to, from, lock_alias } = req.body;
     const templatePath = path.join(__dirname, 'templates', 'eKeyPermanent.html');
     const templateContent = await fs.readFile(templatePath, 'utf8');
@@ -24,7 +35,7 @@ router.post('/ekeyPermanent', async(req, res) => {
         .replace(/{{lock_alias}}/g, lock_alias);
     res.status(200).send({ emailContent });
 });
-router.post('/ekeyPermanentNewUser', async(req, res) => {
+router.post('/ekeyPermanentNewUser', async (req, res) => {
     const { to, from, lock_alias, password } = req.body;
     const templatePath = path.join(__dirname, 'templates', 'eKeyPermanentNewUser.html');
     const templateContent = await fs.readFile(templatePath, 'utf8');
@@ -35,7 +46,37 @@ router.post('/ekeyPermanentNewUser', async(req, res) => {
         .replace(/{{password}}/g, password)
     res.status(200).send({ emailContent });
 });
-router.post('/ekeyPeriodic', async(req, res) => {
+router.post('/eKeyPermanentWithCode', async (req, res) => {
+    try {
+        const { to, from, lock_alias, code } = req.body;
+        const emailContent = await renderTemplate(
+            'eKeyPermanentWithCode.html',
+            { to, from, lock_alias, code }
+        );
+        res.status(200).send({ emailContent });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({
+            errmsg: 'Error generating email template'
+        });
+    }
+});
+router.post('/eKeyPermanentWithCodeNewUser', async (req, res) => {
+    try {
+        const { to, from, lock_alias, password, code } = req.body;
+        const emailContent = await renderTemplate(
+            'eKeyPermanentWithCodeNewUser.html',
+            { to, from, lock_alias, password, code }
+        );
+        res.status(200).send({ emailContent });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({
+            errmsg: 'Error generating email template'
+        });
+    }
+});
+router.post('/ekeyPeriodic', async (req, res) => {
     const { to, from, lock_alias, start, end } = req.body;
     const templatePath = path.join(__dirname, 'templates', 'eKeyPeriodic.html');
     const templateContent = await fs.readFile(templatePath, 'utf8');
@@ -47,7 +88,7 @@ router.post('/ekeyPeriodic', async(req, res) => {
         .replace(/{{end}}/g, end)
     res.status(200).send({ emailContent });
 });
-router.post('/ekeyPeriodicNewUser', async(req, res) => {
+router.post('/ekeyPeriodicNewUser', async (req, res) => {
     const { to, from, lock_alias, password, start, end } = req.body;
     const templatePath = path.join(__dirname, 'templates', 'eKeyPeriodicNewUser.html');
     const templateContent = await fs.readFile(templatePath, 'utf8');
@@ -60,7 +101,7 @@ router.post('/ekeyPeriodicNewUser', async(req, res) => {
         .replace(/{{end}}/g, end)
     res.status(200).send({ emailContent });
 });
-router.post('/sendEmail', async(req, res) => {
+router.post('/sendEmail', async (req, res) => {
     const { toEmail, emailContent } = req.body;
     const mailOptions = {
         from: USER,
@@ -85,7 +126,7 @@ router.post('/sendEmail', async(req, res) => {
         res.status(500).send({ errmsg: 'Error sending email' });
     }
 });
-router.post('/sharePasscode', async(req, res) => {
+router.post('/sharePasscode', async (req, res) => {
     const { email, code, lock_alias, start, end } = req.body;
     const templatePath = path.join(__dirname, 'templates', 'sharePasscode.html');
     const templateContent = await fs.readFile(templatePath, 'utf8');

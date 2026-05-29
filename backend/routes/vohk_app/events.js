@@ -2,16 +2,12 @@ const express = require('express');
 const fs = require("fs");
 const path = require("path");
 const router = express.Router();
-
 const EVENTS_FILE = path.join(__dirname, '../../data/events.json');
 
-// GET all events
 router.get("/", (req, res) => {
     const data = fs.readFileSync(EVENTS_FILE, "utf8");
     res.json(JSON.parse(data));
 });
-
-// POST new event
 router.post("/", (req, res) => {
     const event = req.body;
     const data = fs.readFileSync(EVENTS_FILE, "utf8");

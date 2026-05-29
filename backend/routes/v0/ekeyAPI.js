@@ -7,7 +7,7 @@ const { accessTokenStorage } = require('./accessTokenStorage');
 const TTLOCK_CLIENT_ID = 'c4114592f7954ca3b751c44d81ef2c7d';
 const TTLOCK_CLIENT_SECRET = '33b556bdb803763f2e647fc7a357dedf';
 const URL = 'https://api.vohk.cl';
-//const URL = 'http://localhost:8081';
+//const URL = 'http://localhost:8080';
 const TTLOCK_BASE_URL = 'https://euapi.ttlock.com/v3';
 const { getAccessTokenOrFail, buildHeaders } = require('../../utils/ttlock');
 const ekeyController = require('../../controllers/v0/ekeyController');
@@ -140,6 +140,44 @@ router.post('/generateEmail', async (req, res) => {
                 let body = { toEmail: email, to: recieverName, from: userID, lock_alias: lockAlias, start: startDate_string, end: endDate_string };
                 emailResponse = await axios.post(URL.concat('/mail/eKeyPeriodic'), body)
             }
+        }
+        res.json({ emailContent: emailResponse.data.emailContent, toEmail: toEmail });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ errmsg: 'Error with sending email' });
+    }
+});
+router.post('/generateEmail2', async (req, res) => {
+    let { userID, lockAlias, recieverName, email, code } = req.body;
+    try {
+        let emailResponse;
+        let toEmail;
+        const isEmail = isValidEmail(recieverName);
+        const phone_pass = getLastSixDigits(recieverName);
+        const isNewAccount = await checkIfNewAccount(recieverName);
+        if (isEmail && isNewAccount) {
+            // EMAIL NUEVO
+            toEmail = recieverName;
+            let body = { toEmail: recieverName, to: recieverName, from: userID, lock_alias: lockAlias, password: "il.com", code: code };
+            emailResponse = await axios.post(URL.concat('/mail/eKeyPermanentWithCodeNewUser'), body);
+        }
+        else if (!isEmail && isNewAccount) {
+            // TELEFONO NUEVO
+            toEmail = email;
+            let body = { toEmail: email, to: recieverName, from: userID, lock_alias: lockAlias, password: phone_pass, code: code };
+            emailResponse = await axios.post(URL.concat('/mail/eKeyPermanentWithCodeNewUser'), body);
+        }
+        else if (isEmail && !isNewAccount) {
+            // EMAIL ANTIGUO
+            toEmail = recieverName;
+            let body = { toEmail: recieverName, to: recieverName, from: userID, lock_alias: lockAlias, code: code };
+            emailResponse = await axios.post(URL.concat('/mail/eKeyPermanentWithCode'), body);
+        }
+        else {
+            // TELEFONO ANTIGUO
+            toEmail = email;
+            let body = { toEmail: email, to: recieverName, from: userID, lock_alias: lockAlias, code: code };
+            emailResponse = await axios.post(URL.concat('/mail/eKeyPermanentWithCode'), body);
         }
         res.json({ emailContent: emailResponse.data.emailContent, toEmail: toEmail });
     } catch (error) {

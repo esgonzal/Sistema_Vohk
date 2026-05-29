@@ -3,8 +3,6 @@ const http = require('http');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const app = express();
-const { Server } = require('socket.io');
-
 // Middleware
 
 app.use(bodyParser.json());
@@ -42,59 +40,18 @@ const checkAndLogoutExpiredSessions = () => {
 const logoutIntervalId = setInterval(checkAndLogoutExpiredSessions, logoutInterval);
 const v0Routes = require('./routes/v0');
 app.use('/v0', v0Routes);
-// API v1
-const UserRouter = require('../backend/routes/v1/userAPI');
-app.use('/v1/user', UserRouter);
-const LockRouter = require('../backend/routes/v1/lockAPI');
-app.use('/v1/lock', LockRouter);
-const EkeyRouter = require('../backend/routes/v1/ekeyAPI');
-app.use('/v1/ekey', EkeyRouter);
-const PasscodeRouter = require('../backend/routes/v1/passcodeAPI');
-app.use('/v1/passcode', PasscodeRouter);
-const FingerprintRouter = require('../backend/routes/v1/fingerprintAPI');
-app.use('/v1/fingerprint', FingerprintRouter);
-const GroupRouter = require('../backend/routes/v1/groupAPI');
-app.use('/v1/group', GroupRouter);
-//Email
+const v1Routes = require('./routes/v1');
+app.use('/v1', v1Routes);
 const emailRouter = require('../backend/routes/nodemailer/emailRoutes.js');
 app.use('/mail', emailRouter);
-//Camera Test
-const cameraTest = require('../backend/routes/camera/camera.js');
-app.use('/camera', cameraTest);
-app.post('/api/alert', (req, res) => {
-  console.log('🚨  ALERT RECEIVED:', req.body);
-  const io = req.app.get('io');
-  if (io) {
-    io.emit('intruder-alert', req.body);
-  }
-
-  res.status(200).json({
-    message: 'Alert received'
-  });
-});
-//Monday Test
 const mondayTest = require('../backend/routes/automation/monday_test.js');
 app.use('/monday', mondayTest);
-const twilioRoutes = require('./routes/vohk_app/twilio.js');
-app.use('/twilio', twilioRoutes);
-const intercomRouter = require('./routes/vohk_app/intercomAPI.js');
-app.use('/app/intercom', intercomRouter);
-const eventsRouter = require('./routes/vohk_app/events.js');
-app.use('/app/events', eventsRouter);
+const appRouter = require('./routes/vohk_app');
+app.use('/app', appRouter);
 
 // HTTP Configuration
 const httpPort = 8080;
 const httpServer = http.createServer(app);
-
-const io = new Server(httpServer, {
-  cors: {
-    origin: allowedOrigins, // reuse your existing config
-    methods: ['GET', 'POST'],
-    credentials: true
-  }
-});
-// make it accessible inside routes
-app.set('io', io);
 
 httpServer.listen(httpPort, () => {
   console.log(`HTTP Server is running on port ${httpPort}`);

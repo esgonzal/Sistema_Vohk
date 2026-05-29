@@ -4,13 +4,16 @@ const twilio = require('twilio');
 const admin = require('firebase-admin');
 const fs = require('fs');
 const path = require('path');
-
 const AccessToken = twilio.jwt.AccessToken;
 const VoiceGrant = AccessToken.VoiceGrant;
-
 const USERS_FILE = path.join(__dirname, '../data/vohk_users.json');
 const DEVICES_FILE = path.join(__dirname, '../data/devices.json');
 const serviceAccount = require('../../firebase/firebase-service-account.json');
+const TWILIO_ACCOUNT_SID = 'AC86e880f4e6093cf6ced05ad83b7164ea';
+const TWILIO_AUTH_TOKEN = '9485c1566561a77ed656ed2232b2aa31';
+const TWILIO_API_KEY = 'SK11f6b290e65f792ccb606ba5bb750475';
+const TWILIO_API_SECRET = 'Mq4m2iTGhfIKvFsBrIOmFrSjp035t9dH';
+const TWILIO_TWIML_APP_SID = 'AP0384ba4ebbac7acffb89db57c7f841d4';
 
 if (!admin.apps.length) { admin.initializeApp({ credential: admin.credential.cert(serviceAccount) }) }
 
@@ -38,13 +41,6 @@ function saveUsers(users) {
         console.error('❌ Error saving users file:', err);
     }
 }
-
-const TWILIO_ACCOUNT_SID = 'AC86e880f4e6093cf6ced05ad83b7164ea';
-const TWILIO_AUTH_TOKEN = '9485c1566561a77ed656ed2232b2aa31';
-const TWILIO_API_KEY = 'SK11f6b290e65f792ccb606ba5bb750475';
-const TWILIO_API_SECRET = 'Mq4m2iTGhfIKvFsBrIOmFrSjp035t9dH';
-const TWILIO_TWIML_APP_SID = 'AP0384ba4ebbac7acffb89db57c7f841d4';
-
 router.post('/incoming', async (req, res) => {
     const twiml = new twilio.twiml.VoiceResponse();
     const origen = req.body.From || '';

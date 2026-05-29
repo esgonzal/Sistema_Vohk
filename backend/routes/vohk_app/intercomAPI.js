@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
-
 const DEVICES_FILE = path.join(__dirname, '../../data/devices.json');
 
 function loadDevices() {
@@ -10,7 +9,6 @@ function loadDevices() {
         fs.readFileSync(DEVICES_FILE, 'utf8')
     );
 }
-
 router.get('/intercoms', (req, res) => {
     const devices = loadDevices();
     const list = Object.entries(devices)
