@@ -52,7 +52,6 @@ router.post('/incoming', async (req, res) => {
         const users = loadUsers();
         const resident = Object.values(users).find(u => u.identity === apartmentIdentity);
         const devices = loadDevices();
-        const streamUrl = devices.intercom_1.streamUrl; // or devices.intercom_2.streamUrl depending on the intercom
         if (resident && resident.fcmToken) {
             console.log(`📲 Sending FCM push to ${apartmentIdentity}`);
             try {
@@ -61,7 +60,7 @@ router.post('/incoming', async (req, res) => {
                     data: {
                         type: 'incoming_call',
                         identity: apartmentIdentity,
-                        streamUrl: streamUrl,
+                        intercom: JSON.stringify(devices.intercom_1),
                     },
                 });
                 console.log('✅ FCM push sent');
