@@ -153,6 +153,80 @@ router.get('/:device/users', async (req, res) => {
         });
     }
 });
+router.put('/:device/users/:employeeNo', async (req, res) => {
+    try {
+        const { intercom, client } =
+            await getIntercomClient(req.params.device);
+        const { name, roomNumber, floorNumber = 1, } = req.body;
+        const body = {
+            UserInfo: {
+                employeeNo: req.params.employeeNo,
+                name,
+                userType: 'normal',
+                Valid: {
+                    enable: true,
+                    beginTime: '2000-01-01T00:00:00',
+                    endTime: '2037-12-31T23:59:59',
+                    timeType: 'local',
+                },
+                floorNumbers: [floorNumber],
+                callNumbers: [`1-1-1-${roomNumber}`],
+                roomNumber,
+                floorNumber,
+            },
+        };
+        const response = await client.fetch(
+            `http://${intercom.ip}:${intercom.port}/ISAPI/AccessControl/UserInfo/Modify?format=json`,
+            {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(body),
+            }
+        );
+        const text = await response.text();
+        res.status(response.status).send(text);
+    } catch (error) {
+        console.error('[INTERCOM UPDATE USER]', error);
+        res.status(500).json({
+            ok: false,
+            error: error.message,
+        });
+    }
+});
+router.delete('/:device/users/:employeeNo', async (req, res) => {
+    try {
+        const { intercom, client } = await getIntercomClient(req.params.device);
+        const body = {
+            UserInfoDelCond: {
+                EmployeeNoList: [
+                    {
+                        employeeNo: req.params.employeeNo,
+                    },
+                ],
+            },
+        };
+        const response = await client.fetch(
+            `http://${intercom.ip}:${intercom.port}/ISAPI/AccessControl/UserInfoDetail/Delete?format=json`,
+            {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(body),
+            }
+        );
+        const text = await response.text();
+        res.status(response.status).send(text);
+    } catch (error) {
+        console.error('[INTERCOM DELETE USER]', error);
+        res.status(500).json({
+            ok: false,
+            error: error.message,
+        });
+    }
+});
 router.post('/:device/users/test', async (req, res) => {
     try {
         const { intercom, client } =
