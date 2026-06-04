@@ -80,5 +80,63 @@ router.post('/open-door/:device', async (req, res) => {
         });
     }
 });
+router.get('/:device/capabilities', async (req, res) => {
+    try {
+        const { intercom, client } = await getIntercomClient(req.params.device);
+        const response = await client.fetch(`http://${intercom.ip}:${intercom.port}/ISAPI/AccessControl/capabilities`);
+        const text = await response.text();
+        res.status(response.status).send(text);
+    } catch (error) {
+        console.error('[INTERCOM CAPABILITIES]', error);
+        res.status(500).json({
+            ok: false,
+            error: error.message
+        });
+    }
+});
+router.get('/:device/user-capabilities', async (req, res) => {
+    try {
+        const { intercom, client } = await getIntercomClient(req.params.device);
+        const response = await client.fetch(`http://${intercom.ip}:${intercom.port}/ISAPI/AccessControl/UserInfo/capabilities?format=json`);
+        const text = await response.text();
+        res.status(response.status).send(text);
+    } catch (error) {
+        console.error('[INTERCOM USER CAPABILITIES]', error);
+        res.status(500).json({
+            ok: false,
+            error: error.message
+        });
+    }
+});
+router.get('/:device/users/count', async (req, res) => {
+    try {
+        const { intercom, client } = await getIntercomClient(req.params.device);
+        const response = await client.fetch(`http://${intercom.ip}:${intercom.port}/ISAPI/AccessControl/UserInfo/Count?format=json`);
+        const text = await response.text();
+        res.status(response.status).send(text);
+    } catch (error) {
+        console.error('[INTERCOM USERS COUNT]', error);
+        res.status(500).json({
+            ok: false,
+            error: error.message
+        });
+    }
+});
+
+async function getIntercomClient(deviceName) {
+    const devices = loadDevices();
+    const intercom = devices[deviceName];
+    if (!intercom) {
+        throw new Error(`Device not found: ${deviceName}`);
+    }
+    const DigestFetch = (await import('digest-fetch')).default;
+    return {
+        intercom,
+        client: new DigestFetch(
+            intercom.user,
+            intercom.pass
+        )
+    };
+}
 
 module.exports = router;
