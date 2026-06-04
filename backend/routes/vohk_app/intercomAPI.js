@@ -221,6 +221,7 @@ router.delete('/:device/users/:employeeNo', async (req, res) => {
         res.status(response.status).send(text);
     } catch (error) {
         console.error('[INTERCOM DELETE USER]', error);
+
         res.status(500).json({
             ok: false,
             error: error.message,
