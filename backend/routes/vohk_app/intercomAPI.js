@@ -222,8 +222,6 @@ router.delete('/:device/users/:employeeNo', async (req, res) => {
             }
         );
         const text = await response.text();
-        console.log('STATUS:', response.status);
-        console.log('RESPONSE:', text);
         res.status(response.status).send(text);
     } catch (error) {
         console.error('[INTERCOM DELETE USER]', error);
@@ -233,6 +231,49 @@ router.delete('/:device/users/:employeeNo', async (req, res) => {
         });
     }
 });
+router.get('/:device/faces/capabilities', async (req, res) => {
+    try {
+        const { intercom, client } = await getIntercomClient(req.params.device);
+        const response = await client.fetch(
+            `http://${intercom.ip}:${intercom.port}/ISAPI/Intelligent/FDLib/capabilities?format=json`
+        );
+        const text = await response.text();
+        res.status(response.status).send(text);
+    } catch (error) {
+        res.status(500).json({
+            error: error.message
+        });
+    }
+});
+router.get('/:device/faces/libraries', async (req, res) => {
+    try {
+        const { intercom, client } = await getIntercomClient(req.params.device);
+        const response = await client.fetch(
+            `http://${intercom.ip}:${intercom.port}/ISAPI/Intelligent/FDLib?format=json`
+        );
+        const text = await response.text();
+        res.status(response.status).send(text);
+    } catch (error) {
+        res.status(500).json({
+            error: error.message
+        });
+    }
+});
+router.get('/:device/faces/count', async (req, res) => {
+    try {
+        const { intercom, client } = await getIntercomClient(req.params.device);
+        const response = await client.fetch(
+            `http://${intercom.ip}:${intercom.port}/ISAPI/Intelligent/FDLib/Count?format=json`
+        );
+        const text = await response.text();
+        res.status(response.status).send(text);
+    } catch (error) {
+        res.status(500).json({
+            error: error.message
+        });
+    }
+});
+
 router.post('/:device/users/test', async (req, res) => {
     try {
         const { intercom, client } =
