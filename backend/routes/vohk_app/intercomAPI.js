@@ -122,6 +122,37 @@ router.get('/:device/users/count', async (req, res) => {
         });
     }
 });
+router.get('/:device/users', async (req, res) => {
+    try {
+        const { intercom, client } =
+            await getIntercomClient(req.params.device);
+        const body = {
+            UserInfoSearchCond: {
+                searchID: "1",
+                searchResultPosition: 0,
+                maxResults: 30
+            }
+        };
+        const response = await client.fetch(
+            `http://${intercom.ip}:${intercom.port}/ISAPI/AccessControl/UserInfo/Search?format=json`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
+            }
+        );
+        const text = await response.text();
+        res.status(response.status).send(text);
+    } catch (error) {
+        console.error('[INTERCOM USERS]', error);
+        res.status(500).json({
+            ok: false,
+            error: error.message
+        });
+    }
+});
 
 async function getIntercomClient(deviceName) {
     const devices = loadDevices();
