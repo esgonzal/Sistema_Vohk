@@ -3,6 +3,7 @@ const router = express.Router();
 const fs = require('fs');
 const path = require('path');
 const DEVICES_FILE = path.join(__dirname, '../../data/devices.json');
+const FormData = require('form-data');
 
 function loadDevices() {
     return JSON.parse(
@@ -270,6 +271,50 @@ router.get('/:device/faces/count', async (req, res) => {
     } catch (error) {
         res.status(500).json({
             error: error.message
+        });
+    }
+});
+router.post('/:device/users/:employeeNo/face-test', async (req, res) => {
+    try {
+        const { intercom, client } = await getIntercomClient(req.params.device);
+        const form = new FormData();
+        const metadata = {
+            faceLibType: 'blackFD',
+            FDID: '1',
+            FPID: req.params.employeeNo,
+            name: `User ${req.params.employeeNo}`,
+        };
+        form.append(
+            'faceURL',
+            JSON.stringify(metadata),
+            {
+                contentType: 'application/json',
+            }
+        );
+        form.append(
+            'img',
+            fs.createReadStream('../../test/face.jpg'),
+            {
+                filename: 'facePic.jpg',
+                contentType: 'image/jpeg',
+            }
+        );
+        const response = await client.fetch(
+            `http://${intercom.ip}:${intercom.port}/ISAPI/Intelligent/FDLib/FaceDataRecord?format=json`,
+            {
+                method: 'POST',
+                headers: form.getHeaders(),
+                body: form,
+            }
+        );
+        const text = await response.text();
+        console.log(text);
+        res.status(response.status).send(text);
+    } catch (error) {
+        console.error('[FACE TEST]', error);
+        res.status(500).json({
+            ok: false,
+            error: error.message,
         });
     }
 });
