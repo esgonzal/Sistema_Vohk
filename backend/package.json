@@ -23,6 +23,7 @@
         "md5": "^2.3.0",
         "moment": "^2.29.4",
         "moment-timezone": "^0.5.44",
+        "multer": "^2.1.1",
         "node-media-server": "^2.6.2",
         "node-rtsp-stream": "^0.0.9",
         "nodemailer": "^6.9.7",

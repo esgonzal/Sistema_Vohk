@@ -4,6 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const DEVICES_FILE = path.join(__dirname, '../../data/devices.json');
 const FormData = require('form-data');
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage() });
 
 function loadDevices() {
     return JSON.parse(
@@ -274,48 +276,92 @@ router.get('/:device/faces/count', async (req, res) => {
         });
     }
 });
-router.post('/:device/users/:employeeNo/face-test', async (req, res) => {
+router.post('/:device/users/:employeeNo/face', upload.single('photo'), async (req, res) => {
     try {
+        if (!req.file) return res.status(400).json({ ok: false, error: 'No image uploaded. Use field name "photo".' });
         const { intercom, client } = await getIntercomClient(req.params.device);
-        const form = new FormData();
         const metadata = {
             faceLibType: 'blackFD',
             FDID: '1',
             FPID: req.params.employeeNo,
-            name: `User ${req.params.employeeNo}`,
+            name: req.body.name || `User ${req.params.employeeNo}`,
         };
-        form.append(
-            'faceURL',
-            JSON.stringify(metadata),
-            {
-                contentType: 'application/json',
-            }
-        );
-        form.append(
-            'img',
-            fs.createReadStream('../../test/face.jpg'),
-            {
-                filename: 'facePic.jpg',
-                contentType: 'image/jpeg',
-            }
-        );
+        const { body, boundary } = buildFaceMultipart(metadata, req.file.buffer, req.file.mimetype);
         const response = await client.fetch(
             `http://${intercom.ip}:${intercom.port}/ISAPI/Intelligent/FDLib/FaceDataRecord?format=json`,
             {
                 method: 'POST',
-                headers: form.getHeaders(),
-                body: form,
+                headers: {
+                    'Content-Type': `multipart/form-data; boundary=${boundary}`,
+                    'Content-Length': body.length,
+                },
+                body,
             }
         );
-        const text = await response.text();
-        console.log(text);
-        res.status(response.status).send(text);
+        const data = await response.json();
+        if (data.statusCode !== 1) return res.status(400).json({ ok: false, error: data.errorMsg, detail: data });
+        console.log(data);
+        res.json({ ok: true, FPID: data.FPID });
     } catch (error) {
-        console.error('[FACE TEST]', error);
-        res.status(500).json({
-            ok: false,
-            error: error.message,
+        console.error('[FACE ADD]', error);
+        res.status(500).json({ ok: false, error: error.message });
+    }
+});
+router.put('/:device/users/:employeeNo/face', upload.single('photo'), async (req, res) => {
+    try {
+        if (!req.file) return res.status(400).json({ ok: false, error: 'No image uploaded. Use field name "photo".' });
+        const { intercom, client } = await getIntercomClient(req.params.device);
+        const metadata = {
+            faceLibType: 'blackFD',
+            FDID: '1',
+            FPID: req.params.employeeNo,
+            name: req.body.name || `User ${req.params.employeeNo}`,
+        };
+        const { body, boundary } = buildFaceMultipart(metadata, req.file.buffer, req.file.mimetype);
+        const response = await client.fetch(
+            `http://${intercom.ip}:${intercom.port}/ISAPI/Intelligent/FDLib/FDModify?format=json`,
+            {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': `multipart/form-data; boundary=${boundary}`,
+                    'Content-Length': body.length,
+                },
+                body,
+            }
+        );
+        const data = await response.json();
+        if (data.statusCode !== 1) return res.status(400).json({ ok: false, error: data.errorMsg, detail: data });
+        res.json({ ok: true });
+    } catch (error) {
+        console.error('[FACE EDIT]', error);
+        res.status(500).json({ ok: false, error: error.message });
+    }
+});
+router.delete('/:device/users/:employeeNo/face', async (req, res) => {
+    try {
+        const { intercom, client } = await getIntercomClient(req.params.device);
+        const payload = JSON.stringify({
+            FPID: [
+                { value: req.params.employeeNo }
+            ]
         });
+        const response = await client.fetch(
+            `http://${intercom.ip}:${intercom.port}/ISAPI/Intelligent/FDLib/FDSearch/Delete?format=json&FDID=1&faceLibType=blackFD`,
+            {
+                method: 'PUT',   // spec uses PUT, not DELETE
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(payload),
+                },
+                body: payload,
+            }
+        );
+        const data = await response.json();
+        if (data.statusCode !== 1) return res.status(400).json({ ok: false, error: data.errorMsg, detail: data });
+        res.json({ ok: true });
+    } catch (error) {
+        console.error('[FACE DELETE]', error);
+        res.status(500).json({ ok: false, error: error.message });
     }
 });
 
@@ -374,6 +420,34 @@ async function getIntercomClient(deviceName) {
             intercom.pass
         )
     };
+}
+function buildFaceMultipart(metadata, imageBuffer, imageType = 'image/jpeg') {
+    const boundary = '----HikvisionBoundary' + Date.now();
+    const CRLF = '\r\n';
+    const json = JSON.stringify(metadata);
+    const jsonPart = [
+        `--${boundary}`,
+        `Content-Disposition: form-data; name="faceURL"`,
+        `Content-Type: application/json`,
+        `Content-Length: ${Buffer.byteLength(json)}`,
+        '',
+        json,
+    ].join(CRLF);
+    const imgHeader = [
+        `--${boundary}`,
+        `Content-Disposition: form-data; name="img"; filename="facePic.jpg"`,
+        `Content-Type: ${imageType}`,
+        `Content-Length: ${imageBuffer.length}`,
+        '',
+        '',
+    ].join(CRLF);
+    const body = Buffer.concat([
+        Buffer.from(jsonPart + CRLF),
+        Buffer.from(imgHeader),
+        imageBuffer,
+        Buffer.from(`${CRLF}--${boundary}--${CRLF}`),
+    ]);
+    return { body, boundary };
 }
 
 module.exports = router;
