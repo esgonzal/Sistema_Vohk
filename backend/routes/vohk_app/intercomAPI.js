@@ -207,8 +207,12 @@ router.delete('/:device/users/:employeeNo', async (req, res) => {
                 ],
             },
         };
+        console.log(
+            'DELETE BODY:',
+            JSON.stringify(body, null, 2)
+        );
         const response = await client.fetch(
-            `http://${intercom.ip}:${intercom.port}/ISAPI/AccessControl/UserInfoDetail/Delete?format=json`,
+            `http://${intercom.ip}:${intercom.port}/ISAPI/AccessControl/UserInfo/Delete?format=json`,
             {
                 method: 'PUT',
                 headers: {
@@ -218,10 +222,11 @@ router.delete('/:device/users/:employeeNo', async (req, res) => {
             }
         );
         const text = await response.text();
+        console.log('STATUS:', response.status);
+        console.log('RESPONSE:', text);
         res.status(response.status).send(text);
     } catch (error) {
         console.error('[INTERCOM DELETE USER]', error);
-
         res.status(500).json({
             ok: false,
             error: error.message,
