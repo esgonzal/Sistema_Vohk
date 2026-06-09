@@ -224,10 +224,6 @@ router.delete('/:device/users/:employeeNo', async (req, res) => {
                 ],
             },
         };
-        console.log(
-            'DELETE BODY:',
-            JSON.stringify(body, null, 2)
-        );
         const response = await client.fetch(
             `http://${intercom.ip}:${intercom.port}/ISAPI/AccessControl/UserInfo/Delete?format=json`,
             {
@@ -409,132 +405,51 @@ router.get('/invitations/:id', (req, res) => {
 });
 router.post('/invitations/:id/register', upload.single('photo'), async (req, res) => {
     try {
-        console.log('\n========================');
-        console.log('[INVITATION REGISTER]');
-        console.log('Invitation ID:', req.params.id);
-        console.log('Time:', new Date().toISOString());
         const invitations = loadInvitations();
-        console.log('Invitations loaded:', invitations.length);
-        const invitation = invitations.find(
-            x => x.id === req.params.id
-        );
+        const invitation = invitations.find(x => x.id === req.params.id);
         if (!invitation) {
-            console.log('Invitation not found');
             return res.status(404).json({
                 ok: false,
                 error: 'Invitation not found'
             });
         }
-        console.log('Invitation found');
-        console.log('Status:', invitation.status);
         if (invitation.status !== 'pending') {
-            console.log('Invitation already used');
             return res.status(400).json({
                 ok: false,
                 error: 'Invitation already used'
             });
         }
-
-        console.log('Body received:', req.body);
-
         if (req.file) {
-            console.log('Photo received');
-            console.log('Filename:', req.file.originalname);
-            console.log('MimeType:', req.file.mimetype);
-            console.log('Size:', req.file.size);
             const sharp = require('sharp');
-
             const info = await sharp(req.file.buffer).metadata();
-
-            console.log('IMAGE METADATA:', info);
-        } else {
-            console.log('No photo uploaded');
         }
-
         invitation.visitor = {
             name: req.body.name,
             email: req.body.email,
             phone: req.body.phone,
             vehiclePlate: req.body.vehiclePlate
         };
-
-        console.log('Creating visitor in intercom...');
-
-        const visitorResult =
-            await createVisitorInIntercom(
-                'intercom_1',
-                {
-                    name: req.body.name,
-                    beginTime: invitation.beginTime,
-                    endTime: invitation.endTime
-                }
-            );
-
-        console.log('Visitor result:', visitorResult);
-
-        if (
-            !visitorResult ||
-            !visitorResult.employeeNo ||
-            !visitorResult.dynamicCode
-        ) {
-
-            console.log('Invalid visitor result');
-
+        const visitorResult = await createVisitorInIntercom('intercom_1', { name: req.body.name, beginTime: invitation.beginTime, endTime: invitation.endTime });
+        if (!visitorResult || !visitorResult.employeeNo || !visitorResult.dynamicCode) {
             return res.status(500).json({
                 ok: false,
                 error: 'Visitor created but response was incomplete'
             });
         }
-
         if (req.file) {
-
-            console.log(
-                'Creating face for employee:',
-                visitorResult.employeeNo
-            );
-
-            const faceResult =
-                await createFaceInIntercom(
-                    'intercom_1',
-                    visitorResult.employeeNo,
-                    req.file,
-                    req.body.name
-                );
-
-            console.log('Face result:', faceResult);
+            const faceResult = await createFaceInIntercom('intercom_1', visitorResult.employeeNo, req.file, req.body.name);
         }
-
-        invitation.employeeNo =
-            visitorResult.employeeNo;
-
-        invitation.dynamicCode =
-            visitorResult.dynamicCode;
-
-        invitation.status =
-            'registered';
-
-        console.log('Saving invitation...');
-
+        invitation.employeeNo = visitorResult.employeeNo;
+        invitation.dynamicCode = visitorResult.dynamicCode;
+        invitation.status = 'registered';
         saveInvitations(invitations);
-
-        console.log('Invitation saved');
-
-        console.log('Returning success');
-        console.log('========================\n');
-
         return res.json({
             ok: true,
             employeeNo: visitorResult.employeeNo,
             dynamicCode: visitorResult.dynamicCode
         });
-
     } catch (error) {
-
-        console.error(
-            '[INVITATION REGISTER ERROR]',
-            error
-        );
-
+        console.error('[INVITATION REGISTER ERROR]', error);
         return res.status(500).json({
             ok: false,
             error: error.message
@@ -599,10 +514,6 @@ async function getIntercomClient(deviceName) {
     };
 }
 function buildFaceMultipart(metadata, imageBuffer, imageType = 'image/jpeg') {
-    console.log('BUILD MULTIPART');
-    console.log('metadata:', metadata);
-    console.log('imageType:', imageType);
-    console.log('imageBuffer length:', imageBuffer.length);
     const boundary = '----HikvisionBoundary' + Date.now();
     const CRLF = '\r\n';
     const json = JSON.stringify(metadata);
@@ -628,8 +539,6 @@ function buildFaceMultipart(metadata, imageBuffer, imageType = 'image/jpeg') {
         imageBuffer,
         Buffer.from(`${CRLF}--${boundary}--${CRLF}`),
     ]);
-    console.log('JSON SENT TO HIKVISION:');
-    console.log(json);
     return { body, boundary };
 }
 async function createVisitorInIntercom(device, visitorData) {
@@ -671,36 +580,39 @@ async function createVisitorInIntercom(device, visitorData) {
 async function createFaceInIntercom(device, employeeNo, file, name) {
     const { intercom, client } = await getIntercomClient(device);
     const metadata = { faceLibType: 'blackFD', FDID: '1', FPID: employeeNo, name };
-    console.log('FACE METADATA:', metadata);
-    console.log('FILE INFO:', {
-        originalname: file.originalname,
-        mimetype: file.mimetype,
-        size: file.size
-    });
-    const sharp = require('sharp');
-
+    const meta = await sharp(file.buffer).metadata();
+    console.log('INPUT IMAGE:', meta);
+    if (!meta.width || !meta.height) {
+        throw new Error('Invalid image');
+    }
     const processedBuffer = await sharp(file.buffer)
-        .resize(800, 800, {
-            fit: 'inside'
-        })
-        .jpeg({
-            quality: 80
-        })
+        .rotate()
+        .resize(600, 600, { fit: 'inside', withoutEnlargement: true })
+        .jpeg({ quality: 75, mozjpeg: true })
         .toBuffer();
-    const { body, boundary } = buildFaceMultipart(metadata, processedBuffer, 'image/jpeg');
-    console.log('Processed image size:', processedBuffer.length);
-    const response = await client.fetch(`http://${intercom.ip}:${intercom.port}/ISAPI/Intelligent/FDLib/FaceDataRecord?format=json`,
+    const { body, boundary } = buildFaceMultipart(
+        metadata,
+        processedBuffer,
+        'image/jpeg'
+    );
+    const response = await client.fetch(
+        `http://${intercom.ip}:${intercom.port}/ISAPI/Intelligent/FDLib/FaceDataRecord?format=json`,
         {
             method: 'POST',
-            headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}`, 'Content-Length': body.length },
+            headers: {
+                'Content-Type': `multipart/form-data; boundary=${boundary}`,
+                'Content-Length': body.length
+            },
             body
         }
     );
-    console.log('FACE STATUS:', response.status);
     const text = await response.text();
-    console.log('FACE RAW RESPONSE:', text);
     const data = JSON.parse(text);
-    if (data.statusCode !== 1) { throw new Error(data.errorMsg || 'Face enrollment failed'); }
+    console.log('HIKVISION RESPONSE:', data);
+    if (data.statusCode !== 1) {
+        throw new Error(data.errorMsg || 'Face enrollment failed');
+    }
     return data;
 }
+
 module.exports = router;
