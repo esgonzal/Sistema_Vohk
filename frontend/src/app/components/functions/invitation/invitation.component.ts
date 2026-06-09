@@ -30,7 +30,6 @@ export class InvitationComponent implements OnInit {
 
   ngOnInit(): void {
     this.invitationId = this.route.snapshot.paramMap.get('id') || '';
-    console.log('Invitation ID:', this.invitationId);
     this.loadInvitation();
   }
 
@@ -38,7 +37,6 @@ export class InvitationComponent implements OnInit {
     this.isLoading = true;
     this.http.get(`https://api.vohk.cl/app/intercom/invitations/${this.invitationId}`).subscribe({
       next: (response: any) => {
-        console.log(response);
         this.invitation = response;
         this.isLoading = false;
       },
@@ -65,21 +63,17 @@ export class InvitationComponent implements OnInit {
       formData
     ).subscribe({
       next: response => {
-        console.log(response);
         this.dynamicCode = response.dynamicCode;
         this.registrationCompleted = true;
         this.isLoading = false;
       },
       error: error => {
-
         console.error(error);
-
         this.errorMessage =
           error?.error?.message ||
           error?.error?.error ||
           error?.message ||
           JSON.stringify(error);
-
         this.isLoading = false;
       }
     });
@@ -91,7 +85,6 @@ export class InvitationComponent implements OnInit {
       return;
     }
     this.selectedPhoto = file;
-    console.log('Photo selected:', file.name);
   }
 
 }

@@ -398,11 +398,51 @@ router.post('/invitations', async (req, res) => {
         res.status(500).json({ ok: false, error: error.message });
     }
 });
+router.get('/invitations', (req, res) => {
+    const { residentEmployeeNo } = req.query;
+    const invitations = loadInvitations();
+    const filtered = residentEmployeeNo ? invitations.filter(i => i.residentEmployeeNo === residentEmployeeNo) : invitations;
+    res.json(filtered);
+});
 router.get('/invitations/:id', (req, res) => {
     const invitations = loadInvitations();
     const invitation = invitations.find(i => i.id === req.params.id);
     if (!invitation) { return res.status(404).json({ ok: false }); }
     res.json(invitation);
+});
+router.delete('/invitations/:id', async (req, res) => {
+    try {
+        const invitations = loadInvitations();
+        const index = invitations.findIndex(i => i.id === req.params.id);
+        if (index === -1) return res.status(404).json({ ok: false, error: 'Not found' });
+        const invitation = invitations[index];
+        if (invitation.employeeNo) {
+            try {
+                const { intercom, client } = await getIntercomClient('intercom_1');
+                const payload = JSON.stringify({
+                    UserInfoDelCond: {
+                        EmployeeNoList: [{ employeeNo: invitation.employeeNo }]
+                    }
+                });
+                await client.fetch(
+                    `http://${intercom.ip}:${intercom.port}/ISAPI/AccessControl/UserInfo/Delete?format=json`,
+                    {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: payload
+                    }
+                );
+            } catch (e) {
+                console.error('[DELETE VISITOR FROM INTERCOM]', e.message);
+                // Don't fail the whole request if intercom delete fails
+            }
+        }
+        invitations.splice(index, 1);
+        saveInvitations(invitations);
+        res.json({ ok: true });
+    } catch (error) {
+        res.status(500).json({ ok: false, error: error.message });
+    }
 });
 router.post('/invitations/:id/register', upload.single('photo'), async (req, res) => {
     try {
