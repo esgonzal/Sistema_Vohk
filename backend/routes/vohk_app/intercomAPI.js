@@ -677,7 +677,18 @@ async function createFaceInIntercom(device, employeeNo, file, name) {
         mimetype: file.mimetype,
         size: file.size
     });
-    const { body, boundary } = buildFaceMultipart(metadata, file.buffer, file.mimetype);
+    const sharp = require('sharp');
+
+    const processedBuffer = await sharp(file.buffer)
+        .resize(800, 800, {
+            fit: 'inside'
+        })
+        .jpeg({
+            quality: 80
+        })
+        .toBuffer();
+    const { body, boundary } = buildFaceMultipart(metadata, processedBuffer, 'image/jpeg');
+    console.log('Processed image size:', processedBuffer.length);
     const response = await client.fetch(`http://${intercom.ip}:${intercom.port}/ISAPI/Intelligent/FDLib/FaceDataRecord?format=json`,
         {
             method: 'POST',
