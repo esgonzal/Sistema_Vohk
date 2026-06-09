@@ -2,13 +2,14 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
-const DEVICES_FILE = path.join(__dirname, '../../data/devices.json');
-const INVITATIONS_FILE = path.join(__dirname, '../../data/invitations.json');
+const sharp = require('sharp');
 const FormData = require('form-data');
 const multer = require('multer');
-const upload = multer({ storage: multer.memoryStorage() });
 const { v4: uuid } = require('uuid');
+const DEVICES_FILE = path.join(__dirname, '../../data/devices.json');
+const INVITATIONS_FILE = path.join(__dirname, '../../data/invitations.json');
 const FRONTEND_URL = "https://app.vohk.cl";
+const upload = multer({ storage: multer.memoryStorage() });
 
 function loadDevices() {
     return JSON.parse(
