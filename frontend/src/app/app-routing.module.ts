@@ -7,7 +7,7 @@ import { EkeyComponent } from './components/access_methods/ekey/ekey.component';
 import { PasscodeComponent } from './components/access_methods/passcode/passcode.component';
 import { CardComponent } from './components/access_methods/card/card.component';
 import { MultipleEkeyComponent } from './components/access_methods/multiple-ekey/multiple-ekey.component';
-import { CameraComponent } from './components/camera/camera.component';
+import { InvitationComponent } from './components/functions/invitation/invitation.component';
 import { MultiplePasscodeComponent } from './components/access_methods/multiple-passcode/multiple-passcode/multiple-passcode.component';
 import { MultipleCardsComponent } from './components/access_methods/multiple-cards/multiple-cards.component';
 
@@ -21,7 +21,7 @@ const routes: Routes = [
   { path: 'users/:username/lock/:id/ekey/multiple', component: MultipleEkeyComponent },
   { path: 'users/:username/lock/:id/passcode/multiple', component: MultiplePasscodeComponent },
   { path: 'users/:username/lock/:id/card/multiple', component: MultipleCardsComponent },
-  { path: 'test/camera', component: CameraComponent }
+  { path: 'invite/:id', component: InvitationComponent },
 ];
 
 @NgModule({

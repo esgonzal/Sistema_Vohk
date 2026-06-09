@@ -3,13 +3,27 @@ const router = express.Router();
 const fs = require('fs');
 const path = require('path');
 const DEVICES_FILE = path.join(__dirname, '../../data/devices.json');
+const INVITATIONS_FILE = path.join(__dirname, '../../data/invitations.json');
 const FormData = require('form-data');
 const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage() });
+const { v4: uuid } = require('uuid');
+const FRONTEND_URL = "https://app.vohk.cl";
 
 function loadDevices() {
     return JSON.parse(
         fs.readFileSync(DEVICES_FILE, 'utf8')
+    );
+}
+function loadInvitations() {
+    return JSON.parse(
+        fs.readFileSync(INVITATIONS_FILE, 'utf8')
+    );
+}
+function saveInvitations(invitations) {
+    fs.writeFileSync(
+        INVITATIONS_FILE,
+        JSON.stringify(invitations, null, 2)
     );
 }
 router.get('/intercoms', (req, res) => {
@@ -364,7 +378,160 @@ router.delete('/:device/users/:employeeNo/face', async (req, res) => {
         res.status(500).json({ ok: false, error: error.message });
     }
 });
+router.post('/invitations', async (req, res) => {
+    try {
+        const invitations = loadInvitations();
+        const invitation = {
+            id: uuid(),
+            residentEmployeeNo: req.body.residentEmployeeNo,
+            beginTime: req.body.beginTime,
+            endTime: req.body.endTime,
+            status: 'pending',
+            createdAt: new Date().toISOString()
+        };
+        invitations.push(invitation);
+        saveInvitations(invitations);
+        res.json({
+            ok: true,
+            invitation,
+            url:
+                `${FRONTEND_URL}/invite/${invitation.id}`
+        });
+    } catch (error) {
+        res.status(500).json({ ok: false, error: error.message });
+    }
+});
+router.get('/invitations/:id', (req, res) => {
+    const invitations = loadInvitations();
+    const invitation = invitations.find(i => i.id === req.params.id);
+    if (!invitation) { return res.status(404).json({ ok: false }); }
+    res.json(invitation);
+});
+router.post('/invitations/:id/register', upload.single('photo'), async (req, res) => {
+    try {
+        const invitations = loadInvitations();
+        const invitation = invitations.find(x => x.id === req.params.id);
+        if (!invitation) {
+            return res.status(404).json({
+                ok: false,
+                error: 'Invitation not found'
+            });
+        }
+        if (invitation.status !== 'pending') {
+            return res.status(400).json({
+                ok: false,
+                error: 'Invitation already used'
+            });
+        }
+        invitation.visitor = {
+            name: req.body.name,
+            email: req.body.email,
+            phone: req.body.phone,
+            vehiclePlate: req.body.vehiclePlate
+        };
+        const visitorResult = await createVisitorInIntercom('intercom_1', { name: req.body.name, beginTime: invitation.beginTime, endTime: invitation.endTime });
+        if (!visitorResult || !visitorResult.employeeNo || !visitorResult.dynamicCode) {
+            return res.status(500).json({ ok: false, error: 'Visitor created but response was incomplete' });
+        }
+        if (req.file) {
+            console.log('Photo received:', req.file.originalname);
+            await createFaceInIntercom('intercom_1', visitorResult.employeeNo, req.file, req.body.name);
+        }
+        invitation.employeeNo = visitorResult.employeeNo;
+        invitation.dynamicCode = visitorResult.dynamicCode;
+        invitation.status = 'registered';
+        saveInvitations(invitations);
+        return res.json({
+            ok: true,
+            employeeNo: visitorResult.employeeNo,
+            dynamicCode: visitorResult.dynamicCode
+        });
+    } catch (error) {
+        console.error('[INVITATION REGISTER]', error);
+        return res.status(500).json({
+            ok: false,
+            error: error.message
+        });
+    }
+});
 
+
+router.post('/:device/users/:employeeNo/qr', async (req, res) => {
+    try {
+        const { intercom, client } = await getIntercomClient(req.params.device);
+        const payload = JSON.stringify({
+            "QRCodeInfo": {
+                "employeeNo": "9999",
+                "valid": 43200,
+                "times": 100
+            }
+        });
+        console.log(payload);
+        const response = await client.fetch(
+            `http://${intercom.ip}:${intercom.port}/ISAPI/AccessControl/QRCodeInfo?format=json`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(payload),
+                },
+                body: payload,
+            }
+        );
+        const text = await response.text();
+        console.log('STATUS:', response.status);
+        console.log('RESPONSE:', text);
+        res.status(response.status).send(text);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            ok: false,
+            error: error.message,
+        });
+    }
+});
+router.post('/:device/visitors/qr', async (req, res) => {
+    try {
+        const { intercom, client } = await getIntercomClient(req.params.device);
+        const dynamicCode = String(Math.floor(100000 + Math.random() * 900000));
+        const employeeNo = '9999';
+        const payload = JSON.stringify({
+            UserInfo: {
+                employeeNo,
+                name: req.body.name || 'visitor',
+                userType: 'visitor',
+                Valid: {
+                    enable: true,
+                    beginTime: req.body.beginTime || '2026-01-01T00:00:00',
+                    endTime: req.body.endTime || '2026-12-31T23:59:59',
+                    timeType: 'local',
+                },
+                dynamicCode,
+                floorNumber: req.body.floorNumber || 1,
+                roomNumber: req.body.roomNumber || 1,
+                doorRight: '1',
+                userVerifyMode: 'cardOrPw',
+            }
+        });
+        const response = await client.fetch(
+            `http://${intercom.ip}:${intercom.port}/ISAPI/AccessControl/UserInfo/Record?format=json`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(payload),
+                },
+                body: payload,
+            }
+        );
+        const data = await response.json();
+        if (data.statusCode !== 1) return res.status(400).json({ ok: false, error: data.errorMsg, detail: data });
+        res.json({ ok: true, employeeNo, dynamicCode });
+    } catch (error) {
+        console.error('[VISITOR QR]', error);
+        res.status(500).json({ ok: false, error: error.message });
+    }
+});
 router.post('/:device/users/test', async (req, res) => {
     try {
         const { intercom, client } =
@@ -449,5 +616,55 @@ function buildFaceMultipart(metadata, imageBuffer, imageType = 'image/jpeg') {
     ]);
     return { body, boundary };
 }
-
+async function createVisitorInIntercom(device, visitorData) {
+    const { intercom, client } = await getIntercomClient(device);
+    const dynamicCode = String(Math.floor(100000 + Math.random() * 900000));
+    const employeeNo = String(Date.now());
+    const payload = JSON.stringify({
+        UserInfo: {
+            employeeNo,
+            name: visitorData.name,
+            userType: 'visitor',
+            Valid: {
+                enable: true,
+                beginTime: visitorData.beginTime,
+                endTime: visitorData.endTime,
+                timeType: 'local'
+            },
+            dynamicCode,
+            floorNumber: 1,
+            roomNumber: 1,
+            doorRight: '1',
+            userVerifyMode: 'cardOrPw'
+        }
+    });
+    const response = await client.fetch(
+        `http://${intercom.ip}:${intercom.port}/ISAPI/AccessControl/UserInfo/Record?format=json`,
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: payload
+        }
+    );
+    const data = await response.json();
+    if (data.statusCode !== 1) { throw new Error(data.errorMsg || 'Intercom error'); }
+    return { employeeNo, dynamicCode };
+}
+async function createFaceInIntercom(device, employeeNo, file, name) {
+    const { intercom, client } = await getIntercomClient(device);
+    const metadata = { faceLibType: 'blackFD', FDID: '1', FPID: employeeNo, name };
+    const { body, boundary } = buildFaceMultipart(metadata, file.buffer, file.mimetype);
+    const response = await client.fetch(`http://${intercom.ip}:${intercom.port}/ISAPI/Intelligent/FDLib/FaceDataRecord?format=json`,
+        {
+            method: 'POST',
+            headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}`, 'Content-Length': body.length },
+            body
+        }
+    );
+    const data = await response.json();
+    if (data.statusCode !== 1) { throw new Error(data.errorMsg || 'Face enrollment failed'); }
+    return data;
+}
 module.exports = router;

@@ -1,11 +1,20 @@
-<div *ngIf="returnLogged()">
+<!-- Invitaciones -->
+<div *ngIf="isInvitationPage()">
+    <router-outlet></router-outlet>
+</div>
+
+<!-- Usuario logueado -->
+<div *ngIf="!isInvitationPage() && returnLogged()">
     <div class="navBar">
         <app-navbar></app-navbar>
     </div>
+
     <div class="contenido">
         <router-outlet></router-outlet>
     </div>
 </div>
-<div *ngIf="!returnLogged()">
+
+<!-- Login -->
+<div *ngIf="!isInvitationPage() && !returnLogged()">
     <app-loginv2></app-loginv2>
 </div>

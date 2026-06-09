@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-root',
@@ -6,12 +7,14 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'vohk';
 
-  constructor() { }
+  constructor(private router: Router) { }
+
+  isInvitationPage() {
+    return this.router.url.startsWith('/invite');
+  }
 
   returnLogged() {
     return sessionStorage.getItem('logged') ?? '';
   }
-
 }

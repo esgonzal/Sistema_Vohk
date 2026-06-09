@@ -1,0 +1,19 @@
+[
+  {
+    "id": "0e198dee-aec3-4d5b-b002-e181750b9459",
+    "residentEmployeeNo": "1",
+    "beginTime": "2026-06-09T08:00:00",
+    "endTime": "2026-06-11T20:00:00",
+    "status": "registered",
+    "createdAt": "2026-06-09T19:16:10.472Z",
+    "visitor": {
+      "name": "Esteban",
+      "email": "email",
+      "phone": "telefono",
+      "vehiclePlate": "patente"
+    },
+    "employeeNo": "1781032695627",
+    "dynamicCode": "496944"
+  }
+  
+]

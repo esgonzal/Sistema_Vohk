@@ -30,10 +30,12 @@
         "pdfkit": "^0.17.2",
         "pg": "^8.11.3",
         "pg-promise": "^11.5.4",
+        "qrcode": "^1.5.4",
         "rc522": "^0.2.0",
         "ref-napi": "^3.0.3",
         "socket.io": "^4.8.3",
         "twilio": "^6.0.2",
+        "uuid": "^14.0.0",
         "ws": "^8.16.0"
     },
     "devDependencies": {
