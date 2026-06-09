@@ -409,20 +409,15 @@ router.get('/invitations/:id', (req, res) => {
 });
 router.post('/invitations/:id/register', upload.single('photo'), async (req, res) => {
     try {
-
         console.log('\n========================');
         console.log('[INVITATION REGISTER]');
         console.log('Invitation ID:', req.params.id);
         console.log('Time:', new Date().toISOString());
-
         const invitations = loadInvitations();
-
         console.log('Invitations loaded:', invitations.length);
-
         const invitation = invitations.find(
             x => x.id === req.params.id
         );
-
         if (!invitation) {
             console.log('Invitation not found');
             return res.status(404).json({
@@ -430,10 +425,8 @@ router.post('/invitations/:id/register', upload.single('photo'), async (req, res
                 error: 'Invitation not found'
             });
         }
-
         console.log('Invitation found');
         console.log('Status:', invitation.status);
-
         if (invitation.status !== 'pending') {
             console.log('Invitation already used');
             return res.status(400).json({
@@ -544,82 +537,6 @@ router.post('/invitations/:id/register', upload.single('photo'), async (req, res
     }
 });
 
-router.post('/:device/users/:employeeNo/qr', async (req, res) => {
-    try {
-        const { intercom, client } = await getIntercomClient(req.params.device);
-        const payload = JSON.stringify({
-            "QRCodeInfo": {
-                "employeeNo": "9999",
-                "valid": 43200,
-                "times": 100
-            }
-        });
-        console.log(payload);
-        const response = await client.fetch(
-            `http://${intercom.ip}:${intercom.port}/ISAPI/AccessControl/QRCodeInfo?format=json`,
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Content-Length': Buffer.byteLength(payload),
-                },
-                body: payload,
-            }
-        );
-        const text = await response.text();
-        console.log('STATUS:', response.status);
-        console.log('RESPONSE:', text);
-        res.status(response.status).send(text);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            ok: false,
-            error: error.message,
-        });
-    }
-});
-router.post('/:device/visitors/qr', async (req, res) => {
-    try {
-        const { intercom, client } = await getIntercomClient(req.params.device);
-        const dynamicCode = String(Math.floor(100000 + Math.random() * 900000));
-        const employeeNo = '9999';
-        const payload = JSON.stringify({
-            UserInfo: {
-                employeeNo,
-                name: req.body.name || 'visitor',
-                userType: 'visitor',
-                Valid: {
-                    enable: true,
-                    beginTime: req.body.beginTime || '2026-01-01T00:00:00',
-                    endTime: req.body.endTime || '2026-12-31T23:59:59',
-                    timeType: 'local',
-                },
-                dynamicCode,
-                floorNumber: req.body.floorNumber || 1,
-                roomNumber: req.body.roomNumber || 1,
-                doorRight: '1',
-                userVerifyMode: 'cardOrPw',
-            }
-        });
-        const response = await client.fetch(
-            `http://${intercom.ip}:${intercom.port}/ISAPI/AccessControl/UserInfo/Record?format=json`,
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Content-Length': Buffer.byteLength(payload),
-                },
-                body: payload,
-            }
-        );
-        const data = await response.json();
-        if (data.statusCode !== 1) return res.status(400).json({ ok: false, error: data.errorMsg, detail: data });
-        res.json({ ok: true, employeeNo, dynamicCode });
-    } catch (error) {
-        console.error('[VISITOR QR]', error);
-        res.status(500).json({ ok: false, error: error.message });
-    }
-});
 router.post('/:device/users/test', async (req, res) => {
     try {
         const { intercom, client } =
@@ -677,6 +594,10 @@ async function getIntercomClient(deviceName) {
     };
 }
 function buildFaceMultipart(metadata, imageBuffer, imageType = 'image/jpeg') {
+    console.log('BUILD MULTIPART');
+    console.log('metadata:', metadata);
+    console.log('imageType:', imageType);
+    console.log('imageBuffer length:', imageBuffer.length);
     const boundary = '----HikvisionBoundary' + Date.now();
     const CRLF = '\r\n';
     const json = JSON.stringify(metadata);
@@ -702,6 +623,8 @@ function buildFaceMultipart(metadata, imageBuffer, imageType = 'image/jpeg') {
         imageBuffer,
         Buffer.from(`${CRLF}--${boundary}--${CRLF}`),
     ]);
+    console.log('JSON SENT TO HIKVISION:');
+    console.log(json);
     return { body, boundary };
 }
 async function createVisitorInIntercom(device, visitorData) {
@@ -743,6 +666,12 @@ async function createVisitorInIntercom(device, visitorData) {
 async function createFaceInIntercom(device, employeeNo, file, name) {
     const { intercom, client } = await getIntercomClient(device);
     const metadata = { faceLibType: 'blackFD', FDID: '1', FPID: employeeNo, name };
+    console.log('FACE METADATA:', metadata);
+    console.log('FILE INFO:', {
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+        size: file.size
+    });
     const { body, boundary } = buildFaceMultipart(metadata, file.buffer, file.mimetype);
     const response = await client.fetch(`http://${intercom.ip}:${intercom.port}/ISAPI/Intelligent/FDLib/FaceDataRecord?format=json`,
         {
@@ -752,11 +681,8 @@ async function createFaceInIntercom(device, employeeNo, file, name) {
         }
     );
     console.log('FACE STATUS:', response.status);
-
     const text = await response.text();
-
     console.log('FACE RAW RESPONSE:', text);
-
     const data = JSON.parse(text);
     if (data.statusCode !== 1) { throw new Error(data.errorMsg || 'Face enrollment failed'); }
     return data;
