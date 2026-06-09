@@ -442,6 +442,11 @@ router.post('/invitations/:id/register', upload.single('photo'), async (req, res
             console.log('Filename:', req.file.originalname);
             console.log('MimeType:', req.file.mimetype);
             console.log('Size:', req.file.size);
+            const sharp = require('sharp');
+
+            const info = await sharp(req.file.buffer).metadata();
+
+            console.log('IMAGE METADATA:', info);
         } else {
             console.log('No photo uploaded');
         }
