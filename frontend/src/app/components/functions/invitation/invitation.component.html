@@ -40,3 +40,8 @@
 <div *ngIf="invitation?.status === 'registered'">
     <h2>Esta invitación ya fue utilizada</h2>
 </div>
+<div *ngIf="errorMessage">
+    <h3>Error</h3>
+
+    <pre>{{ errorMessage }}</pre>
+</div>

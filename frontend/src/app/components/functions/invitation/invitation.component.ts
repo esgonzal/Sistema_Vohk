@@ -21,6 +21,7 @@ export class InvitationComponent implements OnInit {
     vehiclePlate: ''
   };
   selectedPhoto: File | null = null;
+  errorMessage = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -49,6 +50,7 @@ export class InvitationComponent implements OnInit {
   }
 
   submitInvitation() {
+    this.errorMessage = '';
     this.isLoading = true;
     const formData = new FormData();
     formData.append('name', this.visitor.name);
@@ -69,7 +71,15 @@ export class InvitationComponent implements OnInit {
         this.isLoading = false;
       },
       error: error => {
+
         console.error(error);
+
+        this.errorMessage =
+          error?.error?.message ||
+          error?.error?.error ||
+          error?.message ||
+          JSON.stringify(error);
+
         this.isLoading = false;
       }
     });
