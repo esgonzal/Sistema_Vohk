@@ -409,52 +409,140 @@ router.get('/invitations/:id', (req, res) => {
 });
 router.post('/invitations/:id/register', upload.single('photo'), async (req, res) => {
     try {
+
+        console.log('\n========================');
+        console.log('[INVITATION REGISTER]');
+        console.log('Invitation ID:', req.params.id);
+        console.log('Time:', new Date().toISOString());
+
         const invitations = loadInvitations();
-        const invitation = invitations.find(x => x.id === req.params.id);
+
+        console.log('Invitations loaded:', invitations.length);
+
+        const invitation = invitations.find(
+            x => x.id === req.params.id
+        );
+
         if (!invitation) {
+            console.log('Invitation not found');
             return res.status(404).json({
                 ok: false,
                 error: 'Invitation not found'
             });
         }
+
+        console.log('Invitation found');
+        console.log('Status:', invitation.status);
+
         if (invitation.status !== 'pending') {
+            console.log('Invitation already used');
             return res.status(400).json({
                 ok: false,
                 error: 'Invitation already used'
             });
         }
+
+        console.log('Body received:', req.body);
+
+        if (req.file) {
+            console.log('Photo received');
+            console.log('Filename:', req.file.originalname);
+            console.log('MimeType:', req.file.mimetype);
+            console.log('Size:', req.file.size);
+        } else {
+            console.log('No photo uploaded');
+        }
+
         invitation.visitor = {
             name: req.body.name,
             email: req.body.email,
             phone: req.body.phone,
             vehiclePlate: req.body.vehiclePlate
         };
-        const visitorResult = await createVisitorInIntercom('intercom_1', { name: req.body.name, beginTime: invitation.beginTime, endTime: invitation.endTime });
-        if (!visitorResult || !visitorResult.employeeNo || !visitorResult.dynamicCode) {
-            return res.status(500).json({ ok: false, error: 'Visitor created but response was incomplete' });
+
+        console.log('Creating visitor in intercom...');
+
+        const visitorResult =
+            await createVisitorInIntercom(
+                'intercom_1',
+                {
+                    name: req.body.name,
+                    beginTime: invitation.beginTime,
+                    endTime: invitation.endTime
+                }
+            );
+
+        console.log('Visitor result:', visitorResult);
+
+        if (
+            !visitorResult ||
+            !visitorResult.employeeNo ||
+            !visitorResult.dynamicCode
+        ) {
+
+            console.log('Invalid visitor result');
+
+            return res.status(500).json({
+                ok: false,
+                error: 'Visitor created but response was incomplete'
+            });
         }
+
         if (req.file) {
-            console.log('Photo received:', req.file.originalname);
-            await createFaceInIntercom('intercom_1', visitorResult.employeeNo, req.file, req.body.name);
+
+            console.log(
+                'Creating face for employee:',
+                visitorResult.employeeNo
+            );
+
+            const faceResult =
+                await createFaceInIntercom(
+                    'intercom_1',
+                    visitorResult.employeeNo,
+                    req.file,
+                    req.body.name
+                );
+
+            console.log('Face result:', faceResult);
         }
-        invitation.employeeNo = visitorResult.employeeNo;
-        invitation.dynamicCode = visitorResult.dynamicCode;
-        invitation.status = 'registered';
+
+        invitation.employeeNo =
+            visitorResult.employeeNo;
+
+        invitation.dynamicCode =
+            visitorResult.dynamicCode;
+
+        invitation.status =
+            'registered';
+
+        console.log('Saving invitation...');
+
         saveInvitations(invitations);
+
+        console.log('Invitation saved');
+
+        console.log('Returning success');
+        console.log('========================\n');
+
         return res.json({
             ok: true,
             employeeNo: visitorResult.employeeNo,
             dynamicCode: visitorResult.dynamicCode
         });
+
     } catch (error) {
-        console.error('[INVITATION REGISTER]', error);
+
+        console.error(
+            '[INVITATION REGISTER ERROR]',
+            error
+        );
+
         return res.status(500).json({
             ok: false,
             error: error.message
         });
     }
 });
-
 
 router.post('/:device/users/:employeeNo/qr', async (req, res) => {
     try {
