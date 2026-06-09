@@ -751,7 +751,13 @@ async function createFaceInIntercom(device, employeeNo, file, name) {
             body
         }
     );
-    const data = await response.json();
+    console.log('FACE STATUS:', response.status);
+
+    const text = await response.text();
+
+    console.log('FACE RAW RESPONSE:', text);
+
+    const data = JSON.parse(text);
     if (data.statusCode !== 1) { throw new Error(data.errorMsg || 'Face enrollment failed'); }
     return data;
 }
