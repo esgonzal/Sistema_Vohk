@@ -598,8 +598,6 @@ async function createVisitorInIntercom(device, visitorData) {
                 timeType: 'local'
             },
             dynamicCode,
-            floorNumber: 1,
-            roomNumber: 1,
             doorRight: '1',
             userVerifyMode: 'cardOrPw'
         }
