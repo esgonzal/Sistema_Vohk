@@ -97,9 +97,11 @@ router.post('/outgoing', async (req, res) => {
 });
 router.post('/login', (req, res) => {
     const { username, password } = req.body;
+    console.log(req.body);
     if (!username || !password) { return res.status(400).json({ error: 'Missing username or password' }); }
     const users = loadUsers();
     const user = users[username];
+    console.log(user);
     if (!user) { return res.status(401).json({ error: 'User not found' }); }
     if (user.password !== password) { return res.status(401).json({ error: 'Invalid password' }); }
     res.json({ success: true, username: username, identity: user.identity, });

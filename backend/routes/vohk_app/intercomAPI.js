@@ -498,47 +498,6 @@ router.post('/invitations/:id/register', upload.single('photo'), async (req, res
     }
 });
 
-router.post('/:device/users/test', async (req, res) => {
-    try {
-        const { intercom, client } =
-            await getIntercomClient(req.params.device);
-        const body = {
-            UserInfo: {
-                employeeNo: "9999",
-                name: "API_TEST",
-                userType: "normal",
-                Valid: {
-                    enable: true,
-                    beginTime: "2000-01-01T00:00:00",
-                    endTime: "2037-12-31T23:59:59",
-                    timeType: "local"
-                },
-                floorNumbers: [1],
-                callNumbers: ["1-1-1-999"],
-                roomNumber: 999,
-                floorNumber: 1
-            }
-        };
-        const response = await client.fetch(
-            `http://${intercom.ip}:${intercom.port}/ISAPI/AccessControl/UserInfo/Record?format=json`,
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(body)
-            }
-        );
-        const text = await response.text();
-        res.status(response.status).send(text);
-    } catch (error) {
-        res.status(500).json({
-            ok: false,
-            error: error.message
-        });
-    }
-});
-
 async function getIntercomClient(deviceName) {
     const devices = loadDevices();
     const intercom = devices[deviceName];
