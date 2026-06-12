@@ -3,6 +3,7 @@ const http = require('http');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const app = express();
+const pool = require('../backend/database/db.js');
 // Middleware
 
 app.use(bodyParser.json());
@@ -48,6 +49,8 @@ const mondayTest = require('../backend/routes/automation/monday_test.js');
 app.use('/monday', mondayTest);
 const appRouter = require('./routes/vohk_app');
 app.use('/app', appRouter);
+const dbTestRouter = require('./routes/dbTest');
+app.use('/db', dbTestRouter);;
 
 // HTTP Configuration
 const httpPort = 8080;

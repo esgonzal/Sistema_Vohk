@@ -6,24 +6,22 @@ const sharp = require('sharp');
 const multer = require('multer');
 const { v4: uuid } = require('uuid');
 
-const DEVICES_FILE = path.join(__dirname, '../../data/devices.json');
-const INVITATIONS_FILE = path.join(__dirname, '../../data/invitations.json');
 const FRONTEND_URL = "https://app.vohk.cl";
 const upload = multer({ storage: multer.memoryStorage() });
+
+const deviceRepository = require('../../repositories/deviceRepository');
+const invitationRepository = require('../../repositories/invitationRepository');
+const visitorRepository = require('../../repositories/visitorRepository');
 
 function loadDevices() { return JSON.parse(fs.readFileSync(DEVICES_FILE, 'utf8')); }
 function loadInvitations() { return JSON.parse(fs.readFileSync(INVITATIONS_FILE, 'utf8')); }
 function saveInvitations(invitations) { fs.writeFileSync(INVITATIONS_FILE, JSON.stringify(invitations, null, 2)); }
 function formatCardForHikvision(cardNumber) { return cardNumber.padStart(10, '0'); }
-async function getIntercomClient(deviceName) {
-    const devices = loadDevices();
-    const intercom = devices[deviceName];
-    if (!intercom) { throw new Error(`Device not found: ${deviceName}`); }
+async function getIntercomClient(deviceId) {
+    const intercom = await deviceRepository.findIntercomByDeviceId(deviceId);
+    if (!intercom) { throw new Error(`Device not found: ${deviceId}`); }
     const DigestFetch = (await import('digest-fetch')).default;
-    return {
-        intercom,
-        client: new DigestFetch(intercom.user, intercom.pass)
-    };
+    return { intercom, client: new DigestFetch(intercom.username, intercom.password_encrypted) };
 }
 function buildFaceMultipart(metadata, imageBuffer, imageType = 'image/jpeg') {
     const boundary = '----HikvisionBoundary' + Date.now();
@@ -62,19 +60,21 @@ async function createVisitorInIntercom(device, visitorData) {
             employeeNo,
             name: visitorData.name,
             userType: 'visitor',
-            Valid: { enable: true, beginTime: visitorData.beginTime, endTime: visitorData.endTime, timeType: 'local' },
+            Valid: { enable: true, beginTime: formatHikvisionTime(visitorData.beginTime), endTime: formatHikvisionTime(visitorData.endTime), timeType: 'local' },
             dynamicCode,
             doorRight: '1',
             userVerifyMode: 'cardOrPw'
         }
     });
-    const response = await client.fetch(`http://${intercom.ip}:${intercom.port}/ISAPI/AccessControl/UserInfo/Record?format=json`,
+    const response = await client.fetch(`http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/UserInfo/Record?format=json`,
         {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: payload
         }
     );
+    console.log("PAYLOAD: ", payload);
+    console.log("RESPONSE: ", response);
     const data = await response.json();
     if (data.statusCode !== 1) { throw new Error(data.errorMsg || 'Intercom error'); }
     return { employeeNo, dynamicCode };
@@ -87,7 +87,7 @@ async function createFaceInIntercom(device, employeeNo, file, name) {
     if (!meta.width || !meta.height) { throw new Error('Invalid image'); }
     const processedBuffer = await sharp(file.buffer).rotate().resize(600, 600, { fit: 'inside', withoutEnlargement: true }).jpeg({ quality: 75, mozjpeg: true }).toBuffer();
     const { body, boundary } = buildFaceMultipart(metadata, processedBuffer, 'image/jpeg');
-    const response = await client.fetch(`http://${intercom.ip}:${intercom.port}/ISAPI/Intelligent/FDLib/FaceDataRecord?format=json`,
+    const response = await client.fetch(`http://${intercom.ip_address}:${intercom.port}/ISAPI/Intelligent/FDLib/FaceDataRecord?format=json`,
         {
             method: 'POST',
             headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}`, 'Content-Length': body.length },
@@ -100,35 +100,63 @@ async function createFaceInIntercom(device, employeeNo, file, name) {
     if (data.statusCode !== 1) { throw new Error(data.errorMsg || 'Face enrollment failed'); }
     return data;
 }
-// List all intercoms
-router.get('/intercoms', (req, res) => {
-    const devices = loadDevices();
-    res.json(
-        Object.entries(devices)
-            .filter(([_, d]) => d.type === 'intercom')
-            .map(([id, d]) => ({ id, name: d.name, snapshot: d.snapshot, url: d.streamUrl }))
+function formatHikvisionTime(date) {
+    const d = new Date(date);
+    const pad = (n) => String(n).padStart(2, '0');
+    return (
+        d.getFullYear() + '-' +
+        pad(d.getMonth() + 1) + '-' +
+        pad(d.getDate()) + 'T' +
+        pad(d.getHours()) + ':' +
+        pad(d.getMinutes()) + ':' +
+        pad(d.getSeconds())
     );
+}
+// List all intercoms
+router.get('/intercoms', async (req, res) => {
+    try {
+        const intercoms = await deviceRepository.findIntercoms();
+        console.log(intercoms)
+        res.json(
+            intercoms.map(device => ({
+                id: device.device_id,
+                name: device.name,
+                snapshot: device.snapshot_url,
+                url: device.stream_url
+            }))
+        );
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
 });
 // List all cameras
-router.get('/cameras', (req, res) => {
-    const devices = loadDevices();
-    res.json(
-        Object.entries(devices)
-            .filter(([_, d]) => d.type === 'camera')
-            .map(([id, d]) => ({ id, name: d.name, snapshot: d.snapshot, url: d.streamUrl }))
-    );
+router.get('/cameras', async (req, res) => {
+    try {
+        const cameras = await deviceRepository.findCameras();
+        res.json(
+            cameras.map(device => ({
+                id: device.device_id,
+                name: device.name,
+                snapshot: device.snapshot_url,
+                url: device.stream_url
+            }))
+        );
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
 });
 // Open the door of an intercom remotely
-router.post('/open-door/:device', async (req, res) => {
+router.post('/open-door/:deviceId', async (req, res) => {
     try {
-        const deviceName = req.params.device;
-        const devices = loadDevices();
-        const INTERCOM = devices[deviceName];
-        if (!INTERCOM) { return res.status(404).json({ ok: false, error: 'Device not found', }); }
+        const deviceId = req.params.deviceId;
+        const intercom = await deviceRepository.findIntercomByDeviceId(deviceId);
+        if (!intercom) { return res.status(404).json({ ok: false, error: 'Device not found', }); }
         const DigestFetch = (await import('digest-fetch')).default;
-        const client = new DigestFetch(INTERCOM.user, INTERCOM.pass);
-        const path = `/ISAPI/AccessControl/RemoteControl/door/${INTERCOM.doorId}`;
-        const url = `http://${INTERCOM.ip}:${INTERCOM.port}${path}`;
+        const client = new DigestFetch(intercom.username, intercom.password_encrypted);
+        const path = `/ISAPI/AccessControl/RemoteControl/door/${intercom.door_id}`;
+        const url = `http://${intercom.ip_address}:${intercom.port}${path}`;
         const xml =
             `<?xml version="1.0" encoding="UTF-8"?>
                 <RemoteControlDoor>
@@ -136,6 +164,7 @@ router.post('/open-door/:device', async (req, res) => {
                 </RemoteControlDoor>`;
         const response = await client.fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/xml', }, body: xml, });
         const text = await response.text();
+        console.log('Opening door', intercom.name, intercom.ip_address);
         if (response.ok) { return res.json({ ok: true, message: 'Door opened', }); }
         return res.status(500).json({ ok: false, error: text, });
     } catch (error) {
@@ -144,11 +173,11 @@ router.post('/open-door/:device', async (req, res) => {
 });
 //  RESIDENTS
 // List all residents of the intercom
-router.get('/:device/users', async (req, res) => {
+router.get('/:deviceId/users', async (req, res) => {
     try {
-        const { intercom, client } = await getIntercomClient(req.params.device);
+        const { intercom, client } = await getIntercomClient(req.params.deviceId);
         const response = await client.fetch(
-            `http://${intercom.ip}:${intercom.port}/ISAPI/AccessControl/UserInfo/Search?format=json`,
+            `http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/UserInfo/Search?format=json`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -161,9 +190,9 @@ router.get('/:device/users', async (req, res) => {
     }
 });
 // Create a new resident for the intercom
-router.post('/:device/users', async (req, res) => {
+router.post('/:deviceId/users', async (req, res) => {
     try {
-        const { intercom, client } = await getIntercomClient(req.params.device);
+        const { intercom, client } = await getIntercomClient(req.params.deviceId);
         const { employeeNo, name, roomNumber, floorNumber = 1 } = req.body;
         const payload = {
             UserInfo: {
@@ -178,7 +207,7 @@ router.post('/:device/users', async (req, res) => {
             }
         };
         const response = await client.fetch(
-            `http://${intercom.ip}:${intercom.port}/ISAPI/AccessControl/UserInfo/Record?format=json`,
+            `http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/UserInfo/Record?format=json`,
             { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
         );
         const data = await response.json();
@@ -189,9 +218,9 @@ router.post('/:device/users', async (req, res) => {
     }
 });
 // Edit a resident from the intercom
-router.put('/:device/users/:employeeNo', async (req, res) => {
+router.put('/:deviceId/users/:employeeNo', async (req, res) => {
     try {
-        const { intercom, client } = await getIntercomClient(req.params.device);
+        const { intercom, client } = await getIntercomClient(req.params.deviceId);
         const { name, roomNumber, floorNumber = 1, } = req.body;
         const payload = {
             UserInfo: {
@@ -206,7 +235,7 @@ router.put('/:device/users/:employeeNo', async (req, res) => {
             }
         };
         const response = await client.fetch(
-            `http://${intercom.ip}:${intercom.port}/ISAPI/AccessControl/UserInfo/Modify?format=json`,
+            `http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/UserInfo/Modify?format=json`,
             { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
         );
         const data = await response.json();
@@ -217,12 +246,12 @@ router.put('/:device/users/:employeeNo', async (req, res) => {
     }
 });
 // Delete a resident from the intercom
-router.delete('/:device/users/:employeeNo', async (req, res) => {
+router.delete('/:deviceId/users/:employeeNo', async (req, res) => {
     try {
-        const { intercom, client } = await getIntercomClient(req.params.device);
+        const { intercom, client } = await getIntercomClient(req.params.deviceId);
         const payload = { UserInfoDelCond: { EmployeeNoList: [{ employeeNo: req.params.employeeNo }] } };
         const response = await client.fetch(
-            `http://${intercom.ip}:${intercom.port}/ISAPI/AccessControl/UserInfo/Delete?format=json`,
+            `http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/UserInfo/Delete?format=json`,
             { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
         );
         const data = await response.json();
@@ -234,10 +263,10 @@ router.delete('/:device/users/:employeeNo', async (req, res) => {
 });
 //  FACE ID
 // Enroll a face photo
-router.post('/:device/users/:employeeNo/face', upload.single('photo'), async (req, res) => {
+router.post('/:deviceId/users/:employeeNo/face', upload.single('photo'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ ok: false, error: 'No image uploaded. Use field name "photo".' });
-        const { intercom, client } = await getIntercomClient(req.params.device);
+        const { intercom, client } = await getIntercomClient(req.params.deviceId);
         const processedBuffer = await processImageForIntercom(req.file);
         const metadata = {
             faceLibType: 'blackFD', FDID: '1',
@@ -246,7 +275,7 @@ router.post('/:device/users/:employeeNo/face', upload.single('photo'), async (re
         };
         const { body, boundary } = buildFaceMultipart(metadata, processedBuffer, 'image/jpeg');
         const response = await client.fetch(
-            `http://${intercom.ip}:${intercom.port}/ISAPI/Intelligent/FDLib/FaceDataRecord?format=json`,
+            `http://${intercom.ip_address}:${intercom.port}/ISAPI/Intelligent/FDLib/FaceDataRecord?format=json`,
             { method: 'POST', headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}`, 'Content-Length': body.length }, body }
         );
         const data = await response.json();
@@ -257,10 +286,10 @@ router.post('/:device/users/:employeeNo/face', upload.single('photo'), async (re
     }
 });
 // Edit a face photo
-router.put('/:device/users/:employeeNo/face', upload.single('photo'), async (req, res) => {
+router.put('/:deviceId/users/:employeeNo/face', upload.single('photo'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ ok: false, error: 'No image uploaded. Use field name "photo".' });
-        const { intercom, client } = await getIntercomClient(req.params.device);
+        const { intercom, client } = await getIntercomClient(req.params.deviceId);
         const processedBuffer = await processImageForIntercom(req.file);
         const metadata = {
             faceLibType: 'blackFD', FDID: '1',
@@ -269,7 +298,7 @@ router.put('/:device/users/:employeeNo/face', upload.single('photo'), async (req
         };
         const { body, boundary } = buildFaceMultipart(metadata, processedBuffer, 'image/jpeg');
         const response = await client.fetch(
-            `http://${intercom.ip}:${intercom.port}/ISAPI/Intelligent/FDLib/FDModify?format=json`,
+            `http://${intercom.ip_address}:${intercom.port}/ISAPI/Intelligent/FDLib/FDModify?format=json`,
             { method: 'PUT', headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}`, 'Content-Length': body.length }, body }
         );
         const data = await response.json();
@@ -280,12 +309,12 @@ router.put('/:device/users/:employeeNo/face', upload.single('photo'), async (req
     }
 });
 // Delete a face photo
-router.delete('/:device/users/:employeeNo/face', async (req, res) => {
+router.delete('/:deviceId/users/:employeeNo/face', async (req, res) => {
     try {
-        const { intercom, client } = await getIntercomClient(req.params.device);
+        const { intercom, client } = await getIntercomClient(req.params.deviceId);
         const payload = JSON.stringify({ FPID: [{ value: req.params.employeeNo }] });
         const response = await client.fetch(
-            `http://${intercom.ip}:${intercom.port}/ISAPI/Intelligent/FDLib/FDSearch/Delete?format=json&FDID=1&faceLibType=blackFD`,
+            `http://${intercom.ip_address}:${intercom.port}/ISAPI/Intelligent/FDLib/FDSearch/Delete?format=json&FDID=1&faceLibType=blackFD`,
             { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) }, body: payload }
         );
         const data = await response.json();
@@ -297,12 +326,12 @@ router.delete('/:device/users/:employeeNo/face', async (req, res) => {
 });
 //  CARD
 // List all cards of the intercom
-router.get('/:device/cards', async (req, res) => {
+router.get('/:deviceId/cards', async (req, res) => {
     try {
-        const { intercom, client } = await getIntercomClient(req.params.device);
+        const { intercom, client } = await getIntercomClient(req.params.deviceId);
         const payload = { CardInfoSearchCond: { searchID: '1', searchResultPosition: 0, maxResults: 30 } };
         const response = await client.fetch(
-            `http://${intercom.ip}:${intercom.port}/ISAPI/AccessControl/CardInfo/Search?format=json`,
+            `http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/CardInfo/Search?format=json`,
             { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
         );
         res.status(response.status).send(await response.text());
@@ -311,13 +340,13 @@ router.get('/:device/cards', async (req, res) => {
     }
 });
 // Assign a card to a resident
-router.post('/:device/cards', async (req, res) => {
+router.post('/:deviceId/cards', async (req, res) => {
     try {
         const { employeeNo, cardNo } = req.body;
-        const { intercom, client } = await getIntercomClient(req.params.device);
+        const { intercom, client } = await getIntercomClient(req.params.deviceId);
         const payload = { CardInfo: { employeeNo, cardNo: formatCardNo(cardNo), cardType: 'normalCard' } };
         const response = await client.fetch(
-            `http://${intercom.ip}:${intercom.port}/ISAPI/AccessControl/CardInfo/Record?format=json`,
+            `http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/CardInfo/Record?format=json`,
             { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
         );
         const data = await response.json();
@@ -328,13 +357,13 @@ router.post('/:device/cards', async (req, res) => {
     }
 });
 // Edit a card of a resident
-router.put('/:device/cards', async (req, res) => {
+router.put('/:deviceId/cards', async (req, res) => {
     try {
         const { employeeNo, cardNo } = req.body;
-        const { intercom, client } = await getIntercomClient(req.params.device);
+        const { intercom, client } = await getIntercomClient(req.params.deviceId);
         const payload = { CardInfo: { employeeNo, cardNo: formatCardNo(cardNo), cardType: 'normalCard' } };
         const response = await client.fetch(
-            `http://${intercom.ip}:${intercom.port}/ISAPI/AccessControl/CardInfo/Modify?format=json`,
+            `http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/CardInfo/Modify?format=json`,
             { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
         );
         const data = await response.json();
@@ -345,12 +374,12 @@ router.put('/:device/cards', async (req, res) => {
     }
 });
 // Delete a card of a resident
-router.delete('/:device/cards/:cardNo', async (req, res) => {
+router.delete('/:deviceId/cards/:cardNo', async (req, res) => {
     try {
-        const { intercom, client } = await getIntercomClient(req.params.device);
+        const { intercom, client } = await getIntercomClient(req.params.deviceId);
         const payload = { CardInfoDelCond: { CardNoList: [{ cardNo: formatCardNo(req.params.cardNo) }] } };
         const response = await client.fetch(
-            `http://${intercom.ip}:${intercom.port}/ISAPI/AccessControl/CardInfo/Delete?format=json`,
+            `http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/CardInfo/Delete?format=json`,
             { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
         );
         const data = await response.json();
@@ -362,62 +391,69 @@ router.delete('/:device/cards/:cardNo', async (req, res) => {
 });
 //  INVITATIONS
 // List all invitations
-router.get('/invitations', (req, res) => {
-    const invitations = loadInvitations();
-    const { residentEmployeeNo } = req.query;
-    res.json(residentEmployeeNo
-        ? invitations.filter(i => i.residentEmployeeNo === residentEmployeeNo)
-        : invitations
-    );
+router.get('/invitations', async (req, res) => {
+    try {
+        const invitations = await invitationRepository.findAll();
+        console.log("En all invitations", invitations)
+        res.json(invitations);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 // Get a specific invitation
-router.get('/invitations/:id', (req, res) => {
-    const invitation = loadInvitations().find(i => i.id === req.params.id);
-    if (!invitation) return res.status(404).json({ ok: false, error: 'Not found' });
-    res.json(invitation);
+router.get('/invitations/:id', async (req, res) => {
+    try {
+        const invitation = await invitationRepository.findById(req.params.id);
+        console.log("En una invitation", invitation)
+        if (!invitation) { return res.status(404).json({ ok: false, error: 'Not found' }); }
+        res.json(invitation);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 // Create a new invitation, its empty until the visitor registers with it
-router.post('/invitations', (req, res) => {
+router.post('/invitations', async (req, res) => {
     try {
-        const invitations = loadInvitations();
-        const invitation = {
-            id: uuid(),
-            residentEmployeeNo: req.body.residentEmployeeNo,
-            beginTime: req.body.beginTime,
-            endTime: req.body.endTime,
-            status: 'pending',
-            createdAt: new Date().toISOString(),
-        };
-        invitations.push(invitation);
-        saveInvitations(invitations);
-        res.json({ ok: true, invitation, url: `${FRONTEND_URL}/invite/${invitation.id}` });
-    } catch (error) {
-        res.status(500).json({ ok: false, error: error.message });
+        const { unitId, createdByUserId, validFrom, validUntil, type, deviceIds } = req.body;
+        console.log("En nueva invitacion", req.body)
+        const invitation = await invitationRepository.create({ unitId, createdByUserId, validFrom, validUntil, type });
+        if (Array.isArray(deviceIds) && deviceIds.length > 0) {
+            await Promise.all(
+                deviceIds.map(deviceId =>
+                    invitationRepository.assignDevice(invitation.invitation_id, deviceId)
+                )
+            );
+        }
+        res.json({ ok: true, invitation, url: `${FRONTEND_URL}/invite/${invitation.invitation_id}` });
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({ ok: false, error: err.message });
     }
 });
 // Register the invitation with the visitor data, creating the visitor in the intercom and enrolling their face if a photo was sent
 router.post('/invitations/:id/register', upload.single('photo'), async (req, res) => {
     try {
-        const invitations = loadInvitations();
-        const invitation = invitations.find(x => x.id === req.params.id);
-        if (!invitation) return res.status(404).json({ ok: false, error: 'Invitation not found' });
-        if (invitation.status !== 'pending') return res.status(400).json({ ok: false, error: 'Invitation already used' });
-        invitation.visitor = {
+        const invitation = await invitationRepository.findById(req.params.id);
+        console.log("En registrar invitation", invitation)
+        if (!invitation) { return res.status(404).json({ ok: false, error: 'Invitation not found' }); }
+        if (invitation.status !== 'pending') { return res.status(400).json({ ok: false, error: 'Invitation already used' }); }
+        // Resolve the intercom for this invitation via invitation_device
+        const intercomDevice = await invitationRepository.findFirstIntercom(invitation.invitation_id);
+        if (!intercomDevice) { return res.status(400).json({ ok: false, error: 'No intercom linked to this invitation' }); }
+        // Create visitor in Hikvision
+        const visitorResult = await createVisitorInIntercom(intercomDevice.device_id, {
             name: req.body.name,
-            email: req.body.email,
-            phone: req.body.phone,
-            vehiclePlate: req.body.vehiclePlate,
-        };
-        const visitorResult = await createVisitorInIntercom('intercom_1', {
-            name: req.body.name,
-            beginTime: invitation.beginTime,
-            endTime: invitation.endTime,
+            beginTime: invitation.valid_from,
+            endTime: invitation.valid_until,
         });
-        if (req.file) { await createFaceInIntercom('intercom_1', visitorResult.employeeNo, req.file, req.body.name); }
-        invitation.employeeNo = visitorResult.employeeNo;
-        invitation.dynamicCode = visitorResult.dynamicCode;
-        invitation.status = 'registered';
-        saveInvitations(invitations);
+        // Optionally enroll face
+        if (req.file) {
+            await createFaceInIntercom(intercomDevice.device_id, visitorResult.employeeNo, req.file, req.body.name);
+        }
+        // Persist visitor row
+        const visitor = await visitorRepository.createVisitor(req.body.name, req.body.email, req.body.phone, req.body.vehiclePlate);
+        // Update invitation with visitor + Hikvision data
+        await invitationRepository.registerVisitor(invitation.invitation_id, visitor.visitor_id, visitorResult.employeeNo, visitorResult.dynamicCode);
         return res.json({ ok: true, dynamicCode: visitorResult.dynamicCode });
     } catch (error) {
         console.error('[INVITATION REGISTER ERROR]', error);
@@ -427,24 +463,26 @@ router.post('/invitations/:id/register', upload.single('photo'), async (req, res
 // Delete an invitation, also deletes the visitor from the intercom if it was already registered
 router.delete('/invitations/:id', async (req, res) => {
     try {
-        const invitations = loadInvitations();
-        const index = invitations.findIndex(i => i.id === req.params.id);
-        if (index === -1) return res.status(404).json({ ok: false, error: 'Not found' });
-        const invitation = invitations[index];
-        if (invitation.employeeNo) {
+        const invitation = await invitationRepository.findById(req.params.id);
+        if (!invitation) { return res.status(404).json({ ok: false, error: 'Not found' }); }
+        if (invitation.hikvision_employee_no) {
             try {
-                const { intercom, client } = await getIntercomClient('intercom_1');
-                const payload = JSON.stringify({ UserInfoDelCond: { EmployeeNoList: [{ employeeNo: invitation.employeeNo }] } });
-                await client.fetch(
-                    `http://${intercom.ip}:${intercom.port}/ISAPI/AccessControl/UserInfo/Delete?format=json`,
-                    { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: payload }
-                );
-            } catch (e) {
-                console.error('[DELETE VISITOR FROM INTERCOM]', e.message);
-            }
+                const intercomDevice = await invitationRepository.findFirstIntercom(invitation.invitation_id);
+                if (intercomDevice) {
+                    const { intercom, client } = await getIntercomClient(intercomDevice.device_id);
+                    const payload = JSON.stringify({ UserInfoDelCond: { EmployeeNoList: [{ employeeNo: invitation.hikvision_employee_no }] } });
+                    await client.fetch(
+                        `http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/UserInfo/Delete?format=json`,
+                        { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: payload }
+                    );
+                }
+            } catch (e) { console.error('[DELETE VISITOR FROM INTERCOM]', e.message); }
         }
-        invitations.splice(index, 1);
-        saveInvitations(invitations);
+        await invitationRepository.deleteInvitation(invitation.invitation_id);
+        const visitorId = invitation.visitor_id;
+        if (visitorId) {
+            await visitorRepository.deleteVisitor(visitorId);
+        }
         res.json({ ok: true });
     } catch (error) {
         res.status(500).json({ ok: false, error: error.message });
