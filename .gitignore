@@ -1,1 +1,6 @@
 backend/node_modules/
+backend/.env
+backend/firebase
+backend/data
+package-lock.json
+package.json
