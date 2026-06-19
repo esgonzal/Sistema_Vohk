@@ -1,6 +1,27 @@
+# =========================
+# Backend
+# =========================
+
+# Dependencies
 backend/node_modules/
+
+# Environment variables
 backend/.env
-backend/firebase
-backend/data
-package-lock.json
-package.json
+backend/.env.*
+
+# Firebase credentials
+backend/firebase/
+
+# Local runtime data
+backend/data/
+
+# =========================
+# Frontend
+# =========================
+
+# Angular dependencies
+frontend/node_modules/
+
+# Build outputs
+frontend/dist/
+frontend/.angular/
