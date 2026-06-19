@@ -1,0 +1,56 @@
+<div class="page">
+
+    <div class="header">
+
+        <div>
+            <button (click)="goBack()">
+                ← Back
+            </button>
+            <h1>Unidades</h1>
+        </div>
+        <button class="primary-btn" (click)="openCreateUnit()">
+            Nueva Unidad
+        </button>
+    </div>
+
+    <div *ngIf="units.length === 0" class="empty-state">
+
+        No units found.
+
+    </div>
+
+    <div class="cards-grid" *ngIf="units.length > 0">
+
+        <div class="card" *ngFor="let unit of units">
+
+            <h2>{{ unit.name }}</h2>
+            <p>
+                Room Number:
+                {{unit.room_no}}
+            </p>
+            <p>
+                Floor:
+                {{ unit.floor }}
+            </p>
+
+            <div class="actions">
+
+                <button (click)="manage(unit)">
+                    Manage
+                </button>
+
+                <button (click)="editUnit(unit)">
+                    Editar
+                </button>
+
+                <button class="danger-btn" (click)="deleteUnit(unit)">
+                    Eliminar
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

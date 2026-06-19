@@ -35,7 +35,7 @@ export class InvitationComponent implements OnInit {
 
   loadInvitation() {
     this.isLoading = true;
-    this.http.get(`http://localhost:8080/app/intercom/invitations/${this.invitationId}`).subscribe({
+    this.http.get(`https://api.vohk.cl/app/device/invitations/${this.invitationId}`).subscribe({
       next: (response: any) => {
         this.invitation = response;
         this.isLoading = false;
@@ -59,7 +59,7 @@ export class InvitationComponent implements OnInit {
       formData.append('photo', this.selectedPhoto);
     }
     this.http.post<any>(
-      `http://localhost:8080/app/intercom/invitations/${this.invitationId}/register`,
+      `https://api.vohk.cl/app/device/invitations/${this.invitationId}/register`,
       formData
     ).subscribe({
       next: response => {

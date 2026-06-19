@@ -1,0 +1,105 @@
+<div class="page">
+    <div class="header">
+        <button (click)="goBack()">
+            ← Back
+        </button>
+        <h1>Dashboard Condominio</h1>
+    </div>
+    <div *ngIf="loading">
+        Cargando...
+    </div>
+    <!-- BUILDINGS -->
+    <section>
+        <div style="display: flex;justify-content: space-between;">
+            <h1>Edificios</h1>
+            <button class="primary-btn" (click)="openCreateBuilding()">
+                Nuevo Edificio
+            </button>
+        </div>
+        <div *ngIf="buildings.length === 0" class="empty-state">
+            No buildings found.
+        </div>
+        <div class="cards-grid" *ngIf="buildings.length > 0">
+            <div class="building-card" *ngFor="let building of buildings">
+                <h3>{{ building.name }}</h3>
+                <p>
+                    Pisos: {{ building.floor_count }}
+                </p>
+                <div class="actions">
+                    <button (click)="manage(building)">
+                        Manage
+                    </button>
+                    <button (click)="editBuilding(building)">
+                        Editar
+                    </button>
+                    <button class="danger-btn" (click)="deleteBuilding(building)">
+                        Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- DEVICES -->
+
+    <section>
+        <div style="display: flex;justify-content: space-between;">
+            <h1>Dispositivos</h1>
+
+            <button class="primary-btn" (click)="openCreateDevice()">
+                Nuevo Dispositivo
+            </button>
+        </div>
+
+
+        <div class="devices-grid">
+
+            <div class="device-card" *ngFor="let device of devices">
+
+                <img [src]="device.snapshot_url" alt="snapshot" class="snapshot" (click)="openLiveView(device)">
+
+                <div class="device-info">
+
+                    <h3>
+                        {{ device.name }}
+                    </h3>
+
+                    <p>
+                        Zona:
+                        {{ device.zone_name }}
+                    </p>
+
+
+                    <p>
+                        Tipo:
+                        {{ device.type }}
+                    </p>
+
+                    <p>
+                        <a class="device-link"
+                            [href]="'http://' + device.ip_address + ':' + device.port + '/doc/index.html'"
+                            target="_blank">
+                            ⚙️ Abrir Configuración
+                        </a>
+                    </p>
+
+                </div>
+
+                <div class="actions">
+
+                    <button (click)="editDevice(device)">
+                        Editar
+                    </button>
+
+                    <button class="danger-btn" (click)="deleteDevice(device)">
+                        Eliminar
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</div>

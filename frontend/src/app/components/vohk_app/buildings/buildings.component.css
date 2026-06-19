@@ -1,0 +1,60 @@
+.page {
+  padding: 2rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.primary-btn {
+  padding: 0.75rem 1.25rem;
+  cursor: pointer;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+}
+
+.card h2 {
+  margin-top: 0;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.actions button {
+  cursor: pointer;
+  flex: 1;
+}
+
+.empty-state {
+  padding: 2rem;
+  text-align: center;
+  color: #777;
+}
+
+.danger-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+}
+
+.danger-btn:hover {
+  opacity: 0.9;
+}

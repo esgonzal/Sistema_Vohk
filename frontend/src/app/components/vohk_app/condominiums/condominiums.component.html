@@ -1,0 +1,38 @@
+<div class="page">
+
+    <div class="header">
+        <h1>Condominios</h1>
+
+        <button class="primary-btn" (click)="openCreateCondominium()">
+            Nuevo Condominio
+        </button>
+    </div>
+
+    <div class="condominiums-grid">
+
+        <div class="condominium-card" *ngFor="let condo of condominiums">
+
+            <h2>{{ condo.name }}</h2>
+
+            <p>Dirección: {{ condo.address }}</p>
+
+            <p>Ciudad: {{ condo.city }}</p>
+
+            <div class="actions">
+                <button (click)="manage(condo)">
+                    Administrar
+                </button>
+                <button (click)="editCondominium(condo)">
+                    Editar
+                </button>
+
+                <button class="danger-btn" (click)="deleteCondominium(condo)">
+                    Eliminar
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
