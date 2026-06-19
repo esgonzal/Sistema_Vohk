@@ -1,5 +1,16 @@
 const pool = require('../database/db');
 
+async function findById(userId) {
+    const result = await pool.query(
+        `
+        SELECT *
+        FROM app_user
+        WHERE user_id = $1
+        `,
+        [userId]
+    );
+    return result.rows[0];
+}
 async function findByUsername(username) {
     const result = await pool.query(
         `
@@ -35,7 +46,7 @@ async function updateFcmToken(identity, fcmToken) {
         [fcmToken, identity]
     );
 }
-async function fetchPrimaryUnit (user_id) {
+async function fetchPrimaryUnit(user_id) {
     const result = await pool.query(
         `
         SELECT unit_id
@@ -47,5 +58,105 @@ async function fetchPrimaryUnit (user_id) {
     );
     return result.rows[0] ?? null;
 }
+async function createResident(username, passwordHash, identity, email, legalName) {
+    const result = await pool.query(
+        `
+        INSERT INTO app_user (
+            username,
+            password_hash,
+            identity,
+            email,
+            legal_name,
+            role
+        )
+        VALUES (
+            $1,
+            $2,
+            $3,
+            $4,
+            $5,
+            'resident'
+        )
+        RETURNING *
+        `,
+        [username, passwordHash, identity, email, legalName]
+    );
+    return result.rows[0];
+}
+async function updateResident(userId, email, legalName, identity, active) {
+    const result = await pool.query(
+        `
+        UPDATE app_user
+        SET
+            email = $2,
+            legal_name = $3,
+            identity = $4,
+            active = $5
+        WHERE user_id = $1
+          AND role = 'resident'
+        RETURNING *
+        `,
+        [userId, email, legalName, identity, active]
+    );
+    return result.rows[0];
+}
+async function assignResidentToUnit(userId, unitId, isPrimary = false) {
+    const result = await pool.query(
+        `
+        INSERT INTO resident_unit (
+            user_id,
+            unit_id,
+            is_primary
+        )
+        VALUES ($1, $2, $3)
+        RETURNING *
+        `,
+        [userId, unitId, isPrimary]
+    );
+    return result.rows[0];
+}
+async function deleteResident(userId) {
+    const result = await pool.query(
+        `
+        DELETE FROM app_user
+        WHERE user_id = $1
+        RETURNING *
+        `,
+        [userId]
+    );
+    return result.rows[0];
+}
+async function findUsersByUnit(unitId) {
+    const result = await pool.query(
+        `
+        SELECT
+            u.user_id,
+            u.username,
+            u.identity,
+            u.email,
+            u.legal_name,
+            u.role,
+            u.active,
+            ru.is_primary
 
-module.exports = { findByUsername, findByIdentity, updateFcmToken, fetchPrimaryUnit  };
+        FROM resident_unit ru
+
+        JOIN app_user u
+            ON u.user_id = ru.user_id
+
+        WHERE ru.unit_id = $1
+
+        ORDER BY
+            ru.is_primary DESC,
+            u.legal_name
+        `,
+        [unitId]
+    );
+    return result.rows;
+}
+
+
+module.exports = {
+    findById, findByUsername, findByIdentity, updateFcmToken, fetchPrimaryUnit, createResident, updateResident, assignResidentToUnit, deleteResident,
+    findUsersByUnit
+};
