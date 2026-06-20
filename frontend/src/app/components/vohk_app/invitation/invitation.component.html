@@ -1,47 +1,73 @@
-<div *ngIf="registrationCompleted && !isLoading">
-    <h2>Acceso creado correctamente</h2>
-    <p>
-        Su código de acceso es:
-    </p>
-    <h1>#{{ dynamicCode }}</h1>
-    <p>
-        Utilice este código en el intercomunicador para ingresar.
-    </p>
-</div>
-<div *ngIf="invitation?.status === 'pending' && !registrationCompleted">
-    <app-loader [loader]="isLoading"></app-loader>
-    <h2>Registro de visita</h2>
-    <form (ngSubmit)="submitInvitation()">
-        <div>
-            <label>Nombre</label>
-            <input [(ngModel)]="visitor.name" name="name" required>
+<div class="vr-page">
+    <!-- Estado: éxito -->
+    <div *ngIf="registrationCompleted && !isLoading" class="vr-success">
+        <div class="vr-check-ring">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12" />
+            </svg>
         </div>
-        <div>
-            <label>Email</label>
-            <input [(ngModel)]="visitor.email" name="email">
+        <h2>Acceso creado correctamente</h2>
+        <p>Utilice este código en el intercomunicador para ingresar al edificio.</p>
+        <div class="vr-code-box">
+            <span class="vr-code-label">Código de acceso</span>
+            <span class="vr-code-value">{{ dynamicCode }}</span>
+            <span class="vr-code-hint">Válido para esta visita</span>
         </div>
-        <div>
-            <label>Teléfono</label>
-            <input [(ngModel)]="visitor.phone" name="phone">
-        </div>
-        <div>
-            <label>Patente</label>
-            <input [(ngModel)]="visitor.vehiclePlate" name="vehiclePlate">
-        </div>
-        <div>
-            <label>Fotografía</label>
-            <input type="file" accept="image/*" (change)="onPhotoSelected($event)">
-        </div>
-        <button type="submit">
-            Registrar visita
-        </button>
-    </form>
-</div>
-<div *ngIf="invitation?.status === 'registered'">
-    <h2>Esta invitación ya fue utilizada</h2>
-</div>
-<div *ngIf="errorMessage">
-    <h3>Error</h3>
+    </div>
 
-    <pre>{{ errorMessage }}</pre>
+    <!-- Estado: formulario -->
+    <div *ngIf="invitation?.status === 'pending' && !registrationCompleted" class="vr-card">
+        <app-loader [loader]="isLoading"></app-loader>
+        <div class="vr-card-header">
+            <h2>Registro de visita</h2>
+            <p>Complete sus datos para obtener acceso al edificio.</p>
+        </div>
+        <form (ngSubmit)="submitInvitation()">
+            <div class="vr-field">
+                <label>Nombre</label>
+                <div class="vr-input-wrap">
+                    <input [(ngModel)]="visitor.name" name="name" placeholder="Su nombre completo" required>
+                </div>
+            </div>
+            <div class="vr-field">
+                <label>Email</label>
+                <div class="vr-input-wrap">
+                    <input [(ngModel)]="visitor.email" name="email" placeholder="correo@ejemplo.com">
+                </div>
+            </div>
+            <div class="vr-field">
+                <label>Teléfono</label>
+                <div class="vr-input-wrap">
+                    <input [(ngModel)]="visitor.phone" name="phone" placeholder="+56 9 0000 0000">
+                </div>
+            </div>
+            <div class="vr-field">
+                <label>Patente</label>
+                <div class="vr-input-wrap">
+                    <input [(ngModel)]="visitor.vehiclePlate" name="vehiclePlate" placeholder="XXXX 00">
+                </div>
+            </div>
+            <div class="vr-field vr-field--last">
+                <label>Fotografía</label>
+                <label class="vr-file-area" for="photo-input">
+                    <span class="vr-file-icon">📷</span>
+                    <span>Tomar foto o seleccionar imagen</span>
+                    <span class="vr-file-hint">JPG, PNG · max 10 MB</span>
+                    <input id="photo-input" type="file" accept="image/*" (change)="onPhotoSelected($event)" hidden>
+                </label>
+            </div>
+            <button type="submit" class="vr-submit">Registrar visita</button>
+        </form>
+    </div>
+
+    <!-- Estado: ya usada -->
+    <div *ngIf="invitation?.status === 'registered'" class="vr-used">
+        <h2>Esta invitación ya fue utilizada</h2>
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="errorMessage" class="vr-error">
+        <h3>Error</h3>
+        <pre>{{ errorMessage }}</pre>
+    </div>
 </div>
