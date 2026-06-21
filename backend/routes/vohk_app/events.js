@@ -4,7 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const router = express.Router();
 
-const pool = require("../../database/db"); // adjust if needed
+const pool = require("../../database/db");
 
 const DETECTION_DIR = "/var/www/detections";
 
@@ -26,7 +26,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 /**
- * POST /detections
+ * POST /events
  */
 router.post("/", upload.single("snapshot"), async (req, res) => {
     try {
@@ -70,7 +70,7 @@ router.post("/", upload.single("snapshot"), async (req, res) => {
 });
 
 /**
- * GET /detections
+ * GET /events
  */
 router.get("/", async (req, res) => {
     try {
