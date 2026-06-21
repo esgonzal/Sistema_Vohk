@@ -4,7 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const router = express.Router();
 
-const pool = require("../../db"); // adjust if needed
+const pool = require("../../database/db"); // adjust if needed
 
 const DETECTION_DIR = "/var/www/detections";
 
