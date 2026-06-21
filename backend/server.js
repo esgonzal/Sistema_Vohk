@@ -52,6 +52,10 @@ app.use('/app', appRouter);
 const dbTestRouter = require('./routes/dbTest');
 app.use('/db', dbTestRouter);;
 
+app.use("/debug.jpg", (req, res) => {
+  res.sendFile("/opt/vohk_ai/debug_center.jpg");
+});
+
 // HTTP Configuration
 const httpPort = 8080;
 const httpServer = http.createServer(app);
