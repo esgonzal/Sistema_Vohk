@@ -243,6 +243,7 @@ async function findDevicesByCondominium(condominiumId, zoneId = null) {
     return result.rows;
 }
 
+
 module.exports = {
     findIntercoms, findCameras, findIntercomBySipAddress, findIntercomByDeviceId, findDeviceById,
     createDevice, updateDevice, updateIntercom, deleteDevice,

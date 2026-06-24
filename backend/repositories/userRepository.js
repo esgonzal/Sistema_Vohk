@@ -23,27 +23,37 @@ async function findByUsername(username) {
 
     return result.rows[0];
 }
-async function findByIdentity(identity) {
+async function findByRut(rut) {
     const result = await pool.query(
         `
         SELECT *
         FROM app_user
-        WHERE identity = $1
+        WHERE rut = $1
         `,
-        [identity]
+        [rut]
+    );
+    return result.rows[0];
+}
+async function findByIdentity(sip_identity) {
+    const result = await pool.query(
+        `
+        SELECT *
+        FROM app_user
+        WHERE sip_identity = $1
+        `,
+        [sip_identity]
     );
 
     return result.rows[0];
 }
-async function updateFcmToken(identity, fcmToken) {
-    console.log('Updating FCM', identity, fcmToken);
+async function updateFcmToken(sip_identity, fcmToken) {
     await pool.query(
         `
         UPDATE app_user
         SET fcm_token = $1
-        WHERE identity = $2
+        WHERE sip_identity = $2
         `,
-        [fcmToken, identity]
+        [fcmToken, sip_identity]
     );
 }
 async function fetchPrimaryUnit(user_id) {
@@ -58,13 +68,14 @@ async function fetchPrimaryUnit(user_id) {
     );
     return result.rows[0] ?? null;
 }
-async function createResident(username, passwordHash, identity, email, legalName) {
+async function createResident(username, passwordHash, rut, sipIdentity, email, legalName) {
     const result = await pool.query(
         `
         INSERT INTO app_user (
             username,
             password_hash,
-            identity,
+            rut,
+            sip_identity,
             email,
             legal_name,
             role
@@ -75,28 +86,29 @@ async function createResident(username, passwordHash, identity, email, legalName
             $3,
             $4,
             $5,
+            $6,
             'resident'
         )
         RETURNING *
         `,
-        [username, passwordHash, identity, email, legalName]
+        [username, passwordHash, rut, sipIdentity, email, legalName]
     );
     return result.rows[0];
 }
-async function updateResident(userId, email, legalName, identity, active) {
+async function updateResident(userId, email, legalName, sip_identity, active) {
     const result = await pool.query(
         `
         UPDATE app_user
         SET
             email = $2,
             legal_name = $3,
-            identity = $4,
+            sip_identity = $4,
             active = $5
         WHERE user_id = $1
           AND role = 'resident'
         RETURNING *
         `,
-        [userId, email, legalName, identity, active]
+        [userId, email, legalName, sip_identity, active]
     );
     return result.rows[0];
 }
@@ -109,6 +121,7 @@ async function assignResidentToUnit(userId, unitId, isPrimary = false) {
             is_primary
         )
         VALUES ($1, $2, $3)
+        ON CONFLICT (user_id, unit_id) DO NOTHING
         RETURNING *
         `,
         [userId, unitId, isPrimary]
@@ -132,7 +145,8 @@ async function findUsersByUnit(unitId) {
         SELECT
             u.user_id,
             u.username,
-            u.identity,
+            u.rut,
+            u.sip_identity,
             u.email,
             u.legal_name,
             u.role,
@@ -157,6 +171,6 @@ async function findUsersByUnit(unitId) {
 
 
 module.exports = {
-    findById, findByUsername, findByIdentity, updateFcmToken, fetchPrimaryUnit, createResident, updateResident, assignResidentToUnit, deleteResident,
-    findUsersByUnit
+    findById, findByUsername, findByRut, findByIdentity, updateFcmToken, fetchPrimaryUnit, createResident, updateResident, assignResidentToUnit,
+    deleteResident, findUsersByUnit
 };
