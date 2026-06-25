@@ -19,7 +19,8 @@ async function findUnitsByUser(userId) {
             u.room_no,
             u.floor,
             b.name AS building_name,
-            c.name AS condominium_name
+            c.name AS condominium_name,
+            c.condominium_id
         FROM resident_unit ru
         JOIN unit u ON u.unit_id = ru.unit_id
         JOIN building b ON b.building_id = u.building_id
@@ -99,5 +100,18 @@ async function unassignAllFromUser(userId) {
     );
     return result.rows;
 }
+async function updateResidentUnit(userId, unitId, isPrimary) {
+    const result = await pool.query(
+        `
+        UPDATE resident_unit
+        SET is_primary = $3
+        WHERE user_id = $1
+          AND unit_id = $2
+        RETURNING *
+        `,
+        [userId, unitId, isPrimary]
+    );
+    return result.rows[0];
+}
 
-module.exports = { findByUserAndUnit, findUnitsByUser, findUsersByUnit, assignResident, setPrimary, unassignResident, unassignAllFromUnit, unassignAllFromUser, };
+module.exports = { findByUserAndUnit, findUnitsByUser, findUsersByUnit, assignResident, setPrimary, unassignResident, unassignAllFromUnit, unassignAllFromUser, updateResidentUnit };

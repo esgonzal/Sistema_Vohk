@@ -5,6 +5,7 @@ const FRONTEND_URL = "https://app.vohk.cl";
 const deviceRepository = require('../../repositories/deviceRepository');
 const invitationRepository = require('../../repositories/invitationRepository');
 const visitorRepository = require('../../repositories/visitorRepository');
+const intercomUserRepository = require('../../repositories/intercomUserRepository');
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function formatCardForHikvision(cardNumber) {
@@ -222,6 +223,68 @@ async function deleteFace(deviceId, employeeNo) {
     );
     return response.json();
 }
+// ── PINs ──────────────────────────────────────────────────────────────────────
+async function listIntercomPins(deviceId) {
+    const { intercom, client } = await getIntercomClient(deviceId);
+    const response = await client.fetch(
+        `http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/UserInfo/Search?format=json`,
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ UserInfoSearchCond: { searchID: '1', searchResultPosition: 0, maxResults: 30 } }),
+        },
+    );
+    const data = await response.json();
+    // Filter to only users that actually have a dynamicCode set
+    const users = data.UserInfoSearch?.UserInfo ?? [];
+    const withPin = users
+        .filter(u => u.dynamicCode && u.dynamicCode !== '')
+        .map(u => ({ employeeNo: u.employeeNo, name: u.name, dynamicCode: u.dynamicCode }));
+    return { ok: true, data: withPin };
+}
+async function getIntercomPin(deviceId, employeeNo) {
+    const { intercom, client } = await getIntercomClient(deviceId);
+    const response = await client.fetch(
+        `http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/UserInfo/Search?format=json`,
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                UserInfoSearchCond: {
+                    searchID: '1', searchResultPosition: 0, maxResults: 1,
+                    EmployeeNoList: [{ employeeNo }],
+                },
+            }),
+        },
+    );
+    const data = await response.json();
+    const user = data.UserInfoSearch?.UserInfo?.[0];
+    if (!user) { return { ok: false, error: 'User not found' }; }
+    return { ok: true, data: { employeeNo: user.employeeNo, name: user.name, dynamicCode: user.dynamicCode ?? null } };
+}
+async function setIntercomPin(deviceId, employeeNo, dynamicCode) {
+    const { intercom, client } = await getIntercomClient(deviceId);
+    const payload = { UserInfo: { employeeNo, dynamicCode } };
+    const response = await client.fetch(
+        `http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/UserInfo/Modify?format=json`,
+        { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) },
+    );
+    const data = await response.json();
+    if (data.statusCode !== 1) { return data; }
+    // Keep DB in sync — find the intercom_user record by employeeNo, then update it
+    const intercomUser = await intercomUserRepository.findIntercomUserByEmployeeNo(employeeNo);
+    if (intercomUser) {
+        await intercomUserRepository.updateIntercomUser(intercomUser.intercom_user_id, { employeeNo, dynamicCode });
+    }
+    return data;
+}
+async function updateIntercomPin(deviceId, employeeNo, dynamicCode) {
+    return setIntercomPin(deviceId, employeeNo, dynamicCode);
+}
+async function deleteIntercomPin(deviceId, employeeNo) {
+    // ISAPI has no dedicated delete — clearing the field is the correct approach
+    return setIntercomPin(deviceId, employeeNo, '');
+}
 // ── Cards ─────────────────────────────────────────────────────────────────────
 async function listCards(deviceId) {
     const { intercom, client } = await getIntercomClient(deviceId);
@@ -351,6 +414,8 @@ module.exports = {
     listIntercomUsers, createIntercomUser, updateIntercomUser, deleteIntercomUser,
     // Face enrollment
     enrollFace, updateFace, deleteFace,
+    // PINs 
+    listIntercomPins, getIntercomPin, setIntercomPin, updateIntercomPin, deleteIntercomPin,
     // Cards
     listCards, assignCard, updateCard, deleteCard,
     // Invitations

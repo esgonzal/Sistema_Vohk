@@ -48,7 +48,7 @@ async function findIntercomUserByEmployeeNo(employeeNo) {
         `,
         [employeeNo]
     );
-    return result.rows;
+    return result.rows[0];
 }
 // Create an intercom_user for the intercom
 async function createIntercomUser(userId, intercomId, employeeNo, dynamic_code) {
@@ -119,6 +119,17 @@ async function deleteIntercomUsersByIntercomId(intercomId) {
     );
     return result.rows;
 }
+async function deleteIntercomUserByUserAndIntercom(userId, intercomId) {
+    const result = await pool.query(
+        `
+        DELETE FROM intercom_user
+        WHERE user_id = $1 AND intercom_id = $2
+        RETURNING *
+        `,
+        [userId, intercomId]
+    );
+    return result.rows[0];
+}
 
 module.exports = {
     // Find rows
@@ -128,5 +139,5 @@ module.exports = {
     // Update
     updateIntercomUser,
     // Delete
-    deleteIntercomUser, deleteIntercomUsersByUserId, deleteIntercomUsersByIntercomId
+    deleteIntercomUser, deleteIntercomUsersByUserId, deleteIntercomUsersByIntercomId, deleteIntercomUserByUserAndIntercom
 };

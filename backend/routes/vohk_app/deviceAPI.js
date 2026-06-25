@@ -161,6 +161,53 @@ router.delete('/:deviceId/users/:employeeNo/face', async (req, res) => {
         res.status(500).json({ ok: false, error: error.message });
     }
 });
+// ── PIN codes ─────────────────────────────────────────────────────────────────
+router.get('/:deviceId/pins', async (req, res) => {
+    try {
+        const result = await deviceService.listIntercomPins(req.params.deviceId);
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ ok: false, error: error.message });
+    }
+});
+router.get('/:deviceId/pins/:employeeNo', async (req, res) => {
+    try {
+        const result = await deviceService.getIntercomPin(req.params.deviceId, req.params.employeeNo);
+        if (!result.ok) { return res.status(404).json(result); }
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ ok: false, error: error.message });
+    }
+});
+router.post('/:deviceId/pins', async (req, res) => {
+    try {
+        const { employeeNo, dynamicCode } = req.body;
+        const data = await deviceService.setIntercomPin(req.params.deviceId, employeeNo, dynamicCode);
+        if (data.statusCode !== 1) { return res.status(400).json({ ok: false, error: data.errorMsg, detail: data }); }
+        res.json({ ok: true });
+    } catch (error) {
+        res.status(500).json({ ok: false, error: error.message });
+    }
+});
+router.put('/:deviceId/pins/:employeeNo', async (req, res) => {
+    try {
+        const { dynamicCode } = req.body;
+        const data = await deviceService.updateIntercomPin(req.params.deviceId, req.params.employeeNo, dynamicCode);
+        if (data.statusCode !== 1) { return res.status(400).json({ ok: false, error: data.errorMsg, detail: data }); }
+        res.json({ ok: true });
+    } catch (error) {
+        res.status(500).json({ ok: false, error: error.message });
+    }
+});
+router.delete('/:deviceId/pins/:employeeNo', async (req, res) => {
+    try {
+        const data = await deviceService.deleteIntercomPin(req.params.deviceId, req.params.employeeNo);
+        if (data.statusCode !== 1) { return res.status(400).json({ ok: false, error: data.errorMsg, detail: data }); }
+        res.json({ ok: true });
+    } catch (error) {
+        res.status(500).json({ ok: false, error: error.message });
+    }
+});
 // ── Cards ─────────────────────────────────────────────────────────────────────
 router.get('/:deviceId/cards', async (req, res) => {
     try {

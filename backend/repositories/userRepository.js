@@ -95,20 +95,18 @@ async function createResident(username, passwordHash, rut, sipIdentity, email, l
     );
     return result.rows[0];
 }
-async function updateResident(userId, email, legalName, sip_identity, active) {
+async function updateResident(userId, email, legalName) {
     const result = await pool.query(
         `
         UPDATE app_user
         SET
             email = $2,
-            legal_name = $3,
-            sip_identity = $4,
-            active = $5
+            legal_name = $3
         WHERE user_id = $1
           AND role = 'resident'
         RETURNING *
         `,
-        [userId, email, legalName, sip_identity, active]
+        [userId, email, legalName]
     );
     return result.rows[0];
 }

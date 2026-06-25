@@ -8,6 +8,8 @@ const unitRepository = require('../../repositories/unitRepository');
 const userRepository = require('../../repositories/userRepository');
 const deviceRepository = require('../../repositories/deviceRepository');
 const intercomUserRepository = require('../../repositories/intercomUserRepository');
+const residentUnitRepository = require('../../repositories/residentUnitRepository');
+const intercomRepository = require('../../repositories/intercomRepository');
 const deviceService = require('./deviceService');
 
 async function listCondominiums() { return condominiumRepository.findCondominiums(); }
@@ -38,7 +40,7 @@ async function createResident(unitId, { legalName, rut, email, isPrimary }) {
     const username = email;
     //const temporaryPassword = crypto.randomBytes(4).toString('hex');
     const temporaryPassword = crypto.randomInt(100000, 999999).toString()
-    console.log("temp Pass: ", temporaryPassword);
+    console.log("temp Pass for: ", temporaryPassword, " for user ",username);
     const passwordHash = await bcrypt.hash(temporaryPassword, 10);
     let resident = await userRepository.findByRut(rut);
     if (!resident) {
@@ -56,7 +58,7 @@ async function createResident(unitId, { legalName, rut, email, isPrimary }) {
                 dynamicCode: dynamicCode,
                 name: legalName,
                 roomNumber: unit.room_no,
-                floorNumber: unit.floor ?? 1                
+                floorNumber: unit.floor ?? 1
             });
             if (!result.ok) {
                 if (result.error === 'employeeNoAlreadyExist') {
@@ -76,8 +78,39 @@ async function createResident(unitId, { legalName, rut, email, isPrimary }) {
     }
     return resident;
 }
-async function updateResident(userId, { email, legalName, identity, active }) { return userRepository.updateResident(userId, email, legalName, identity, active); }
-async function deleteResident(userId) { return userRepository.deleteResident(userId); }
+async function updateResident(userId, { unitId, legalName, email, isPrimary }) {
+    await userRepository.updateResident(userId, email, legalName);
+    await residentUnitRepository.updateResidentUnit(userId, unitId, isPrimary);
+    return userRepository.findById(userId);
+}
+async function deleteResident(userId, unitId) {
+    const residentUnit = await residentUnitRepository.findByUserAndUnit(userId, unitId);
+    if (!residentUnit) return null;
+    const condominiumId = await condominiumRepository.getCondominiumByUnitId(unitId);
+    await residentUnitRepository.unassignResident(userId, unitId);
+    const remainingUnits = await residentUnitRepository.findUnitsByUser(userId);
+    const stillInSameCondo = remainingUnits.some(u => u.condominium_id === condominiumId);
+    if (stillInSameCondo) {
+        return { ok: true, removedFromUnitOnly: true };
+    }
+    const intercomUserRows = await intercomUserRepository.findIntercomUsersByUserId(userId);
+    for (const row of intercomUserRows) {
+        const intercom = await intercomRepository.findIntercomById(row.intercom_id);
+        if (!intercom) {
+            console.error("Intercom not found:", row.intercom_id);
+            continue;
+        }
+        const deviceId = intercom.device_id;
+        const employeeNo = row.employee_no;
+        const response = await deviceService.deleteIntercomUser(deviceId, employeeNo);
+        if (!response || response.statusCode !== 1) {
+            console.error("Intercom delete failed:", response);
+            continue;
+        }
+        await intercomUserRepository.deleteIntercomUserByUserAndIntercom(userId, row.intercom_id);
+    }
+    return { ok: true, removedFromCondo: true };
+}
 async function assignResidentToUnit(userId, unitId, isPrimary) { return userRepository.assignResidentToUnit(userId, unitId, isPrimary); }
 
 module.exports = {

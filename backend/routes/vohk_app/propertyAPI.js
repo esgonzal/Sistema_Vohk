@@ -183,9 +183,9 @@ router.put('/residents/:userId', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-router.delete('/residents/:userId', async (req, res) => {
+router.delete('/residents/:userId/units/:unitId', async (req, res) => {
     try {
-        const result = await propertyService.deleteResident(req.params.userId);
+        const result = await propertyService.deleteResident(req.params.userId, req.params.unitId);
         if (!result) { return res.status(404).json({ error: 'Resident not found' }); }
         res.json({ success: true });
     } catch (err) {
