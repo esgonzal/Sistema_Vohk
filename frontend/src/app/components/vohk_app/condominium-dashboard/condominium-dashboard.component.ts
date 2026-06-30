@@ -12,6 +12,7 @@ export class CondominiumDashboardComponent implements OnInit {
 
   condominiumId!: string;
   buildings: any[] = [];
+  zones: any[] = [];
   devices: any[] = [];
   loading = true;
 
@@ -34,7 +35,16 @@ export class CondominiumDashboardComponent implements OnInit {
         },
         error: err => console.error(err)
       });
-    this.propertyService.getDevicesByCondominium(this.condominiumId)
+    this.propertyService.getZones(this.condominiumId)
+      .subscribe({
+        next: data => {
+          this.zones = data;
+          console.log(this.zones)
+          this.loading = false
+        },
+        error: err => console.error(err)
+      })
+    this.propertyService.getDevices(this.condominiumId)
       .subscribe({
         next: data => {
           this.devices = data;
@@ -245,6 +255,7 @@ export class CondominiumDashboardComponent implements OnInit {
       });
   }
   async openLiveView(device: any) {
+    console.log(device)
     await Swal.fire({
       title: device.name,
       width: '90%',
@@ -299,15 +310,19 @@ export class CondominiumDashboardComponent implements OnInit {
     if (!result.isConfirmed) {
       return;
     }
-    this.propertyService.deleteBuilding(building.building_id)
-      .subscribe(() => {
+    this.propertyService.deleteBuilding(building.building_id).subscribe({
+      next: () => {
         this.loadData();
-        Swal.fire(
-          'Eliminado',
-          'Torre eliminada correctamente',
-          'success'
-        );
-      });
+        Swal.fire('Eliminado', 'Torre eliminada correctamente', 'success');
+      },
+      error: (err) => {
+        if (err.status === 409) {
+          Swal.fire('No se puede eliminar', err.error.error, 'warning');
+          return;
+        }
+        Swal.fire('Error', 'Ocurrió un error inesperado.', 'error');
+      }
+    });
   }
   async editBuilding(building: any) {
     const { value } = await Swal.fire({
@@ -330,6 +345,78 @@ export class CondominiumDashboardComponent implements OnInit {
       .subscribe(() => {
         this.loadData();
       });
+  }
+  async openCreateZone() {
+    const result = await Swal.fire({
+      title: 'Nueva Zona',
+      html: `
+        <input id="name" class="swal2-input" placeholder="Nombre">
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Guardar',
+      preConfirm: () => ({
+        name: (document.getElementById('name') as HTMLInputElement).value,
+      })
+    });
+    if (!result.isConfirmed) {
+      return;
+    }
+    this.propertyService.createZone(this.condominiumId, result.value.name)
+      .subscribe(() => {
+        this.loadData();
+        Swal.fire(
+          'Creado',
+          'Zona creada correctamente',
+          'success'
+        );
+      });
+  }
+  async editZone(zone: any) {
+    console.log(zone)
+    const { value } = await Swal.fire({
+      title: 'Editar zona',
+      html: `
+          <input id="name" class="swal2-input" value="${zone.name}" placeholder="Nombre">
+        `,
+      focusConfirm: false,
+      showCancelButton: true,
+      preConfirm: () => {
+        return {
+          name: (document.getElementById('name') as HTMLInputElement).value,
+        };
+      }
+    });
+    if (!value) return;
+    this.propertyService.updateZone(zone.zone_id, value)
+      .subscribe(() => {
+
+        this.loadData();
+      });
+  }
+  async deleteZone(zone: any) {
+    const result = await Swal.fire({
+      title: 'Eliminar Zona?',
+      text: zone.name,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Eliminar'
+    });
+    if (!result.isConfirmed) {
+      return;
+    }
+    this.propertyService.deleteZone(zone.zone_id).subscribe({
+      next: () => {
+        this.loadData();
+        Swal.fire('Eliminado', 'Zona eliminada correctamente', 'success');
+      },
+      error: (err) => {
+        if (err.status === 409) {
+          Swal.fire('No se puede eliminar', err.error.error, 'warning');
+          return;
+        }
+        Swal.fire('Error', 'Ocurrió un error inesperado.', 'error');
+      }
+    });
   }
   manage(building: any) {
     this.router.navigate(['/buildings', building.building_id, 'units']);

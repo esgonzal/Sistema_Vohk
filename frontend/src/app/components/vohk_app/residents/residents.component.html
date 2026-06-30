@@ -32,18 +32,12 @@
             </p>
 
             <p>
-                Identity:
-                {{ resident.identity }}
+                Rut:
+                {{ resident.rut }}
             </p>
 
             <p>
-                Role:
-                {{ resident.role }}
-            </p>
-
-            <p>
-                Primary Resident:
-                {{ resident.is_primary ? 'Yes' : 'No' }}
+                {{ resident.is_primary ? 'Residente Primario' : 'Residente' }}
             </p>
 
             <div class="actions">

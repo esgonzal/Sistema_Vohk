@@ -50,12 +50,13 @@ export class CondominiumsComponent implements OnInit {
       return;
     }
     const data = result.value;
-    this.propertyService.createCondominium('d81facc4-b6d2-4b6d-b821-edcd305e512d', data.name, data.address, data.city)
+    this.propertyService.createCondominium('f6ff40e7-9df7-4b9f-b031-2d09644deaa8', data.name, data.address, data.city)
       .subscribe(() => {
         this.loadCondominiums();
       });
   }
   async deleteCondominium(condo: any) {
+    console.log("delete")
     const result = await Swal.fire({
       title: 'Eliminar Condominio?',
       text: condo.name,
@@ -66,15 +67,19 @@ export class CondominiumsComponent implements OnInit {
     if (!result.isConfirmed) {
       return;
     }
-    this.propertyService.deleteCondominium(condo.condominium_id)
-      .subscribe(() => {
+    this.propertyService.deleteCondominium(condo.condominium_id).subscribe({
+      next: () => {
         this.loadCondominiums();
-        Swal.fire(
-          'Eliminado',
-          'Condominio eliminada correctamente',
-          'success'
-        );
-      });
+        Swal.fire('Eliminado', 'Condominio eliminada correctamente', 'success');
+      },
+      error: (err) => {
+        if (err.status === 409) {
+          Swal.fire('No se puede eliminar', err.error.error, 'warning');
+          return;
+        }
+        Swal.fire('Error', 'Ocurrió un error inesperado.', 'error');
+      }
+    });
   }
   async editCondominium(condo: any) {
     const { value } = await Swal.fire({
@@ -101,7 +106,7 @@ export class CondominiumsComponent implements OnInit {
       });
   }
   manage(condo: any) {
-    console.log("se quiere ir a otra ruta: /condominiums",condo.condominium_id)
+    console.log("se quiere ir a otra ruta: /condominiums", condo.condominium_id)
     this.router.navigate(['/condominiums', condo.condominium_id]);
   }
 }

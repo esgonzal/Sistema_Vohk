@@ -114,5 +114,19 @@ async function findBuildingsAndUnitsByCondominium(condominiumId) {
     );
     return result.rows;
 }
+async function countResidentsByUnit(unitId) {
+    const result = await pool.query(
+        `
+        SELECT COUNT(*)::int AS count
+        FROM resident_unit
+        WHERE unit_id = $1
+        `,
+        [unitId]
+    );
+    return result.rows[0].count;
+}
 
-module.exports = { findUnitById, findUnitsByBuilding, findUnitHierarchy, findUnitsByUser, createUnit, updateUnit, deleteUnit, findBuildingsAndUnitsByCondominium };
+module.exports = {
+    findUnitById, findUnitsByBuilding, findUnitHierarchy, findUnitsByUser, createUnit, updateUnit, deleteUnit, findBuildingsAndUnitsByCondominium,
+    countResidentsByUnit
+};

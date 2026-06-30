@@ -44,5 +44,16 @@ async function deleteBuilding(buildingId) {
     );
     return result.rows[0];
 }
+async function countUnitsByBuilding(buildingId) {
+    const result = await pool.query(
+        `
+        SELECT COUNT(*)::int AS count
+        FROM unit
+        WHERE building_id = $1
+        `,
+        [buildingId]
+    );
+    return result.rows[0].count;
+}
 
-module.exports = { findBuildingById, findBuildingsByCondominium, createBuilding, updateBuilding, deleteBuilding, };
+module.exports = { findBuildingById, findBuildingsByCondominium, createBuilding, updateBuilding, deleteBuilding, countUnitsByBuilding };

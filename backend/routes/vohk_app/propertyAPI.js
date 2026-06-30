@@ -37,7 +37,7 @@ router.delete('/condominiums/:id', async (req, res) => {
         res.json({ success: true, deleted });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: err.message });
+        res.status(err.status || 500).json({ error: err.message });
     }
 });
 
@@ -75,7 +75,7 @@ router.delete('/zones/:id', async (req, res) => {
         res.json({ success: true, deleted: zone });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: err.message });
+        res.status(err.status || 500).json({ error: err.message });
     }
 });
 
@@ -112,8 +112,7 @@ router.delete('/buildings/:id', async (req, res) => {
         if (!building) { return res.status(404).json({ error: 'Building not found' }); }
         res.json({ success: true, deleted: building });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: err.message });
+        res.status(err.status || 500).json({ error: err.message });
     }
 });
 
@@ -151,8 +150,7 @@ router.delete('/units/:id', async (req, res) => {
         if (!unit) { return res.status(404).json({ error: 'Unit not found' }); }
         res.json({ success: true, deleted: unit });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: err.message });
+        res.status(err.status || 500).json({ error: err.message });
     }
 });
 

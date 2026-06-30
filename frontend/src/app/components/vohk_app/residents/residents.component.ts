@@ -36,11 +36,9 @@ export class ResidentsComponent implements OnInit {
     const result = await Swal.fire({
       title: 'Nuevo Residente',
       html: `
-      <input id="username" class="swal2-input" placeholder="Usuario">
-      <input id="password" class="swal2-input" placeholder="Contraseña">
-      <input id="identity" class="swal2-input" placeholder="identity(SIP)">
-      <input id="email" class="swal2-input" placeholder="Email">
       <input id="legalName" class="swal2-input" placeholder="Nombre Completo">
+      <input id="rut" class="swal2-input" placeholder="Rut">
+      <input id="email" class="swal2-input" placeholder="Email">
       <label style="display:block;margin-top:10px;">
         <input id="isPrimary" type="checkbox">
         Residente principal
@@ -49,18 +47,16 @@ export class ResidentsComponent implements OnInit {
       showCancelButton: true,
       confirmButtonText: 'Guardar',
       preConfirm: () => ({
-        username: (document.getElementById('username') as HTMLInputElement).value,
-        password: (document.getElementById('password') as HTMLInputElement).value,
-        identity: (document.getElementById('identity') as HTMLInputElement).value,
-        email: (document.getElementById('email') as HTMLInputElement).value,
         legalName: (document.getElementById('legalName') as HTMLInputElement).value,
+        rut: (document.getElementById('rut') as HTMLInputElement).value,
+        email: (document.getElementById('email') as HTMLInputElement).value,
         isPrimary: (document.getElementById('isPrimary') as HTMLInputElement).checked
       })
     });
     if (!result.isConfirmed) {
       return;
     }
-    this.propertyService.createResident(this.unitId, result.value.username, result.value.password, result.value.identity, result.value.email, result.value.legalName, result.value.isPrimary)
+    this.propertyService.createResident(this.unitId, result.value.legalName, result.value.rut, result.value.email, result.value.isPrimary)
       .subscribe({
         next: () => {
           Swal.fire(
@@ -91,7 +87,8 @@ export class ResidentsComponent implements OnInit {
     if (!result.isConfirmed) {
       return;
     }
-    this.propertyService.deleteResident(resident.user_id)
+    console.log("Se quiere remover un usuario: ",resident.name," de la unidad: ",this.unitId)
+    this.propertyService.deleteResident(resident.user_id, this.unitId)
       .subscribe(() => {
         this.loadResidents(this.unitId);
         Swal.fire(
@@ -105,29 +102,25 @@ export class ResidentsComponent implements OnInit {
     const { value } = await Swal.fire({
       title: 'Editar residente',
       html: `
-      <input id="username" class="swal2-input" value="${resident.username}" placeholder="Usuario">
-      <input id="identity" class="swal2-input" value="${resident.identity}" placeholder="Identidad">
-      <input id="email" class="swal2-input" value="${resident.email}" placeholder="Email">
       <input id="legalName" class="swal2-input" value="${resident.legal_name}" placeholder="Nombre Completo">
-      <select id="active" class="swal2-input">
-        <option value="true" ${resident.active ? 'selected' : ''}>Activo</option>
-        <option value="false" ${!resident.active ? 'selected' : ''}>Inactivo</option>
-      </select>
+      <input id="email" class="swal2-input" value="${resident.email ?? ''}" placeholder="Email">
+      <label style="display:block;margin-top:10px;">
+        <input id="isPrimary" type="checkbox" ${resident.is_primary ? 'checked' : ''}>
+        Residente principal
+      </label>
     `,
       showCancelButton: true,
       confirmButtonText: 'Guardar',
       preConfirm: () => {
         return {
-          username: (document.getElementById('username') as HTMLInputElement).value,
-          identity: (document.getElementById('identity') as HTMLInputElement).value,
+          legalName: (document.getElementById('legalName') as HTMLInputElement).value,
           email: (document.getElementById('email') as HTMLInputElement).value,
-          legalName: (document.getElementById('name') as HTMLInputElement).value,
-          active: (document.getElementById('active') as HTMLSelectElement).value === 'true'
+          isPrimary: (document.getElementById('isPrimary') as HTMLInputElement).checked
         };
       }
     });
     if (!value) return;
-    this.propertyService.updateResidente(resident.user_id, value)
+    this.propertyService.updateResident(resident.user_id, this.unitId, value)
       .subscribe(() => {
         this.loadResidents(this.unitId);
       });

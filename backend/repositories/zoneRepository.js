@@ -44,5 +44,16 @@ async function deleteZone(zoneId) {
     );
     return result.rows[0];
 }
+async function countDevicesByZone(zoneId) {
+    const result = await pool.query(
+        `
+        SELECT COUNT(*)::int AS count
+        FROM device
+        WHERE zone_id = $1
+        `,
+        [zoneId]
+    );
+    return result.rows[0].count;
+}
 
-module.exports = { findZonesByCondominium, findZoneById, createZone, updateZone, deleteZone, };
+module.exports = { findZonesByCondominium, findZoneById, createZone, updateZone, deleteZone, countDevicesByZone };

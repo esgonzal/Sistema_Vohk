@@ -73,15 +73,19 @@ export class UnitsComponent implements OnInit {
     if (!result.isConfirmed) {
       return;
     }
-    this.propertyService.deleteUnit(unit.unit_id)
-      .subscribe(() => {
+    this.propertyService.deleteUnit(unit.unit_id).subscribe({
+      next: () => {
         this.loadUnits(this.buildingId);
-        Swal.fire(
-          'Eliminado',
-          'Unidad eliminada correctamente',
-          'success'
-        );
-      });
+        Swal.fire('Eliminado', 'Unidad eliminada correctamente', 'success');
+      },
+      error: (err) => {
+        if (err.status === 409) {
+          Swal.fire('No se puede eliminar', err.error.error, 'warning');
+          return;
+        }
+        Swal.fire('Error', 'Ocurrió un error inesperado.', 'error');
+      }
+    });
   }
   async editUnit(unit: any) {
     const { value } = await Swal.fire({

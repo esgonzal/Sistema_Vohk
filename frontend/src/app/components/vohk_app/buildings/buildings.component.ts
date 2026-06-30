@@ -71,16 +71,21 @@ export class BuildingsComponent implements OnInit {
     if (!result.isConfirmed) {
       return;
     }
-    this.propertyService.deleteBuilding(building.building_id)
-      .subscribe(() => {
+    this.propertyService.deleteBuilding(building.building_id).subscribe({
+      next: () => {
         this.loadBuildings(this.condominiumId);
-        Swal.fire(
-          'Eliminado',
-          'Torre eliminada correctamente',
-          'success'
-        );
-      });
+        Swal.fire('Eliminado', 'Torre eliminada correctamente', 'success');
+      },
+      error: (err) => {
+        if (err.status === 409) {
+          Swal.fire('No se puede eliminar', err.error.error, 'warning');
+          return;
+        }
+        Swal.fire('Error', 'Ocurrió un error inesperado.', 'error');
+      }
+    });
   }
+
   async editBuilding(building: any) {
     const { value } = await Swal.fire({
       title: 'Editar torre',
