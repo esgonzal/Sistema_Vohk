@@ -1,6 +1,5 @@
 const twilio = require('twilio');
 const bcrypt = require('bcrypt');
-const admin = require('firebase-admin');
 const jwt = require('jsonwebtoken');
 const userRepository = require('../../repositories/userRepository');
 const AccessToken = twilio.jwt.AccessToken;
@@ -29,7 +28,7 @@ async function login(username, password) {
     return {
         success: true,
         token,
-        user: { userId: user.user_id, tenantId: tenant.tenant_id, username: user.username, role: user.role, identity: user.sip_identity },
+        user: session
     }
 }
 
@@ -49,11 +48,12 @@ function generateTwilioToken(identity) {
     return token.toJwt();
 }
 
-async function registerFcmToken(identity, fcmToken) {
-    const user = await userRepository.findByIdentity(identity);
-    console.log("USER IN AUTHSERVICE: ", user)
-    if (!user) { return { error: 'User identity not found', status: 404 }; }
-    await userRepository.updateFcmToken(identity, fcmToken);
+async function registerFcmToken(userId, fcmToken) {
+    const user = await userRepository.findById(userId);
+    if (!user) {
+        return { error: 'User not found', status: 404 };
+    }
+    await userRepository.updateFcmToken(userId, fcmToken);
     return { success: true };
 }
 
