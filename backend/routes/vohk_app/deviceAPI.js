@@ -5,6 +5,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 const authenticate = require('../../middleware/authMiddleware');
 router.use(authenticate);
 const deviceService = require('../../services/vohk_app/deviceService');
+const propertyService = require('../../services/vohk_app/propertyService');
 
 // ── Device listing ────────────────────────────────────────────────────────────
 router.get('/intercoms', async (req, res) => {
@@ -31,6 +32,20 @@ router.get('/location', async (req, res) => {
         const { condominiumId, zoneId } = req.query;
         const { tenantId } = req.user;
         const devices = await deviceService.getDevicesByCondominium(condominiumId, tenantId, zoneId || null);
+        res.json(devices);
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ error: err.message });
+    }
+});
+router.get('/location-mobile', async (req, res) => {
+    try {
+        const { userId, tenantId  } = req.user;
+        const condominium = await propertyService.findFirstByAdminUserId(userId);
+        if (!condominium) {
+            return res.status(404).json({ error: 'No condominium found for admin' });
+        }
+        const devices = await deviceService.getDevicesByCondominium(condominium.condominiumId, tenantId, null);
         res.json(devices);
     } catch (err) {
         console.log(err);

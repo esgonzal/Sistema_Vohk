@@ -90,7 +90,20 @@ async function countBuildingsByCondominium(condominiumId, tenantId) {
     );
     return result.rows[0].count;
 }
+async function findByAdminUserId(userId) {
+    const result = await pool.query(
+        `
+        SELECT *
+        FROM condominium
+        WHERE admin_user_id = $1
+        ORDER BY created_at ASC
+        `,
+        [userId]
+    );
+    return result.rows;
+}
 
 module.exports = {
-    findCondominiumById, findCondominiums, findCondominiumsByTenant, createCondominium, updateCondominium, deleteCondominium, getCondominiumByUnitId, countBuildingsByCondominium
+    findCondominiumById, findCondominiums, findCondominiumsByTenant, findByAdminUserId,
+    createCondominium, updateCondominium, deleteCondominium, getCondominiumByUnitId, countBuildingsByCondominium
 };

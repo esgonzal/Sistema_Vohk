@@ -39,6 +39,14 @@ async function deleteCondominium(condominiumId, tenantId) {
     }
     return condominiumRepository.deleteCondominium(condominiumId, tenantId);
 }
+async function findFirstByAdminUserId(userId) {
+    const condominiums = await condominiumRepository.findByAdminUserId(userId);
+    if (!condominiums || condominiums.length === 0) {
+        return null;
+    }
+    return condominiums[0];
+}
+
 
 async function listZones(condominiumId, tenantId) {
     return zoneRepository.findZonesByCondominium(condominiumId, tenantId);
@@ -188,7 +196,7 @@ async function assignResidentToUnit(userId, unitId, isPrimary, tenantId) {
 
 module.exports = {
     // Condominiums
-    listCondominiums, createCondominium, updateCondominium, deleteCondominium,
+    listCondominiums, createCondominium, updateCondominium, deleteCondominium, findFirstByAdminUserId,
     // Zones
     listZones, createZone, updateZone, deleteZone,
     // Buildings
