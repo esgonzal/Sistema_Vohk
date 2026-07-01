@@ -24,12 +24,12 @@ async function login(username, password) {
     if (!tenant) {
         return { error: 'User is not assigned to any tenant.', status: 403 };
     }
-    const session = { userId: user.user_id, tenantId: tenant.tenant_id, username: user.username, role: user.role };
+    const session = { userId: user.user_id, tenantId: tenant.tenant_id, username: user.username, role: user.role, identity: user.sip_identity };
     const token = generateJwt(session);
     return {
         success: true,
         token,
-        user: { userId: user.user_id, tenantId: tenant.tenant_id, username: user.username, role: user.role }
+        user: { userId: user.user_id, tenantId: tenant.tenant_id, username: user.username, role: user.role, identity: user.sip_identity },
     }
 }
 
