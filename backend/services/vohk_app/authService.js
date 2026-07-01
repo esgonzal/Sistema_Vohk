@@ -64,6 +64,7 @@ function generateJwt(session) {
             tenantId: session.tenantId,
             username: session.username,
             role: session.role,
+            identity: session.identity
         },
         process.env.JWT_SECRET,
         {
