@@ -5,8 +5,8 @@ import { HttpClient } from '@angular/common/http';
   providedIn: 'root'
 })
 export class PropertyService {
-  //URL = 'https://api.vohk.cl';
-  URL = 'http://localhost:8080';
+  URL = 'https://api.vohk.cl';
+  //URL = 'http://localhost:8080';
 
   constructor(private http: HttpClient) { }
 
@@ -29,8 +29,8 @@ export class PropertyService {
     return this.http.get<any[]>(`${this.URL}/app/admin/units/${UnitId}/residents`);
   }
 
-  createCondominium(tenantId: string, name: string, address: string, city: string) {
-    return this.http.post(`${this.URL}/app/admin/condominiums`, { tenantId, name, address, city });
+  createCondominium(name: string, address: string, city: string) {
+    return this.http.post(`${this.URL}/app/admin/condominiums`, { name, address, city });
   }
   createZone(condominiumId: string, name: string) {
     return this.http.post(`${this.URL}/app/admin/zones`, { condominiumId, name });

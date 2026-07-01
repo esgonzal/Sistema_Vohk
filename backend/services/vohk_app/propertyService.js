@@ -12,7 +12,9 @@ const residentUnitRepository = require('../../repositories/residentUnitRepositor
 const intercomRepository = require('../../repositories/intercomRepository');
 const deviceService = require('./deviceService');
 
-async function listCondominiums() { return condominiumRepository.findCondominiums(); }
+async function listCondominiums(tenantId) {
+    return condominiumRepository.findCondominiums(tenantId);
+}
 async function createCondominium(tenantId, name, address, city) {
     const condominium = await condominiumRepository.createCondominium(tenantId, name, address, city);
     if (!condominium) {
@@ -25,72 +27,98 @@ async function createCondominium(tenantId, name, address, city) {
     }
     return condominium;
 }
-async function updateCondominium(condominiumId, name, address, city) { return condominiumRepository.updateCondominium(condominiumId, name, address, city); }
-async function deleteCondominium(condominiumId) {
-    const buildingCount = await condominiumRepository.countBuildingsByCondominium(condominiumId);
+async function updateCondominium(condominiumId, tenantId, name, address, city) {
+    return condominiumRepository.updateCondominium(condominiumId, tenantId, name, address, city);
+}
+async function deleteCondominium(condominiumId, tenantId) {
+    const buildingCount = await condominiumRepository.countBuildingsByCondominium(condominiumId, tenantId);
     if (buildingCount > 0) {
         const error = new Error(`No se puede eliminar el condominio. Hay ${buildingCount} torre(s) fijada(s).`)
         error.status = 409;
         throw error;
     }
-    return condominiumRepository.deleteCondominium(condominiumId);
+    return condominiumRepository.deleteCondominium(condominiumId, tenantId);
 }
 
-async function listZones(condominiumId) { return zoneRepository.findZonesByCondominium(condominiumId); }
-async function createZone(condominiumId, name) { return zoneRepository.createZone(condominiumId, name); }
-async function updateZone(zoneId, name) { return zoneRepository.updateZone(zoneId, name); }
-async function deleteZone(zoneId) {
-    const deviceCount = await zoneRepository.countDevicesByZone(zoneId);
+async function listZones(condominiumId, tenantId) {
+    return zoneRepository.findZonesByCondominium(condominiumId, tenantId);
+}
+async function createZone(condominiumId, tenantId, name) {
+    return zoneRepository.createZone(condominiumId, tenantId, name);
+}
+async function updateZone(zoneId, tenantId, name) {
+    return zoneRepository.updateZone(zoneId, tenantId, name);
+}
+async function deleteZone(zoneId, tenantId) {
+    const deviceCount = await zoneRepository.countDevicesByZone(zoneId, tenantId);
     if (deviceCount > 0) {
         const error = new Error(`No se puede eliminar la zona. Hay ${deviceCount} dispositivo(s) fijado(s).`)
         error.status = 409;
         throw error;
     }
-    return zoneRepository.deleteZone(zoneId);
-
+    return zoneRepository.deleteZone(zoneId, tenantId);
 }
 
-async function listBuildings(condominiumId) { return buildingRepository.findBuildingsByCondominium(condominiumId); }
-async function createBuilding(condominiumId, name, floorCount) { return buildingRepository.createBuilding(condominiumId, name, floorCount); }
-async function updateBuilding(buildingId, name, floorCount) { return buildingRepository.updateBuilding(buildingId, name, floorCount); }
-async function deleteBuilding(buildingId) {
-    const unitCount = await buildingRepository.countUnitsByBuilding(buildingId);
+async function listBuildings(condominiumId, tenantId) {
+    return buildingRepository.findBuildingsByCondominium(condominiumId, tenantId);
+}
+async function createBuilding(condominiumId, tenantId, name, floorCount) {
+    return buildingRepository.createBuilding(condominiumId, tenantId, name, floorCount);
+}
+async function updateBuilding(buildingId, tenantId, name, floorCount) {
+    return buildingRepository.updateBuilding(buildingId, tenantId, name, floorCount);
+}
+async function deleteBuilding(buildingId, tenantId) {
+    const unitCount = await buildingRepository.countUnitsByBuilding(buildingId, tenantId);
     if (unitCount > 0) {
-        const error = new Error(`No se puede eliminar la torre. Hay ${unitCount} unidad(es) fijadas.`)
+        const error = new Error(
+            `No se puede eliminar la torre. Hay ${unitCount} unidad(es) fijadas.`
+        );
         error.status = 409;
         throw error;
     }
-    return buildingRepository.deleteBuilding(buildingId);
+    return buildingRepository.deleteBuilding(buildingId, tenantId);
 }
 
-async function listUnits(buildingId) { return unitRepository.findUnitsByBuilding(buildingId); }
-async function createUnit(buildingId, name, roomNo, floor) { return unitRepository.createUnit(buildingId, name, roomNo, floor); }
-async function updateUnit(unitId, name, roomNo, floor) { return unitRepository.updateUnit(unitId, name, roomNo, floor); }
-async function deleteUnit(unitId) {
-    const residentCount = await unitRepository.countResidentsByUnit(unitId);
+async function listUnits(buildingId, tenantId) {
+    return unitRepository.findUnitsByBuilding(buildingId, tenantId);
+}
+async function createUnit(buildingId, tenantId, name, roomNo, floor) {
+    return unitRepository.createUnit(buildingId, tenantId, name, roomNo, floor);
+}
+async function updateUnit(unitId, tenantId, name, roomNo, floor) {
+    return unitRepository.updateUnit(unitId, tenantId, name, roomNo, floor);
+}
+async function deleteUnit(unitId, tenantId) {
+    const residentCount = await unitRepository.countResidentsByUnit(unitId, tenantId);
     if (residentCount > 0) {
-        const error = new Error(`No se puede eliminar la unidad. Hay ${residentCount} residente(s) asignado.`);
+        const error = new Error(
+            `No se puede eliminar la unidad. Hay ${residentCount} residente(s) asignado(s).`
+        );
         error.status = 409;
         throw error;
     }
-    return unitRepository.deleteUnit(unitId);
+    return unitRepository.deleteUnit(unitId, tenantId);
 }
 
-async function listResidents(unitId) { return userRepository.findUsersByUnit(unitId); }
-async function createResident(unitId, { legalName, rut, email, isPrimary }) {
-    const unit = await unitRepository.findUnitById(unitId);
+async function listResidents(unitId, tenantId) {
+    return userRepository.findUsersByUnit(unitId, tenantId);
+}
+async function createResident(unitId, tenantId, { legalName, rut, email, isPrimary }) {
+    const unit = await unitRepository.findUnitByIdAndTenant(unitId, tenantId);
     if (!unit) { throw new Error(`Unit not found: ${unitId}`); }
-    const sipIdentity = rut.replace(/\D/g, '');;
+    const normalizedRut = rut.trim().replace(/[.-]/g, '').toUpperCase();
+    const sipIdentity = normalizedRut.slice(0, -1);
     const username = email;
-    //const temporaryPassword = crypto.randomBytes(4).toString('hex');
-    const temporaryPassword = crypto.randomInt(100000, 999999).toString()
-    console.log("temp Pass for: ", temporaryPassword, " for user ", username);
-    const passwordHash = await bcrypt.hash(temporaryPassword, 10);
     let resident = await userRepository.findByRut(rut);
     if (!resident) {
+        //const temporaryPassword = crypto.randomBytes(4).toString('hex');
+        const temporaryPassword = crypto.randomInt(100000, 999999).toString()
+        console.log("temp Pass for: ", temporaryPassword, " for user ", username);
+        const passwordHash = await bcrypt.hash(temporaryPassword, 10);
         resident = await userRepository.createResident(username, passwordHash, rut, sipIdentity, email, legalName);
     }
-    const alreadyInIntercom = await userRepository.assignResidentToUnit(resident.user_id, unitId, isPrimary ?? false);
+    const alreadyInIntercom = await userRepository.assignResidentToUnit(resident.user_id, unitId, isPrimary ?? false, tenantId);
     const condominiumId = await condominiumRepository.getCondominiumByUnitId(unitId);
     const devices = await deviceRepository.findDevicesByCondominium(condominiumId);
     const intercoms = devices.filter(d => d.type === 'intercom');
@@ -121,16 +149,16 @@ async function createResident(unitId, { legalName, rut, email, isPrimary }) {
     }
     return resident;
 }
-async function updateResident(userId, { unitId, legalName, email, isPrimary }) {
-    await userRepository.updateResident(userId, email, legalName);
-    await residentUnitRepository.updateResidentUnit(userId, unitId, isPrimary);
+async function updateResident(userId, tenantId, { unitId, legalName, email, isPrimary }) {
+    await userRepository.updateResident(userId, email, legalName, tenantId);
+    await residentUnitRepository.updateResidentUnit(userId, unitId, isPrimary, tenantId);
     return userRepository.findById(userId);
 }
-async function deleteResident(userId, unitId) {
-    const residentUnit = await residentUnitRepository.findByUserAndUnit(userId, unitId);
+async function deleteResident(userId, tenantId, unitId) {
+    const residentUnit = await residentUnitRepository.findByUserAndUnit(userId, unitId, tenantId);
     if (!residentUnit) return null;
     const condominiumId = await condominiumRepository.getCondominiumByUnitId(unitId);
-    await residentUnitRepository.unassignResident(userId, unitId);
+    await residentUnitRepository.unassignResident(userId, unitId, tenantId);
     const remainingUnits = await residentUnitRepository.findUnitsByUser(userId);
     const stillInSameCondo = remainingUnits.some(u => u.condominium_id === condominiumId);
     if (stillInSameCondo) {
@@ -154,7 +182,9 @@ async function deleteResident(userId, unitId) {
     }
     return { ok: true, removedFromCondo: true };
 }
-async function assignResidentToUnit(userId, unitId, isPrimary) { return userRepository.assignResidentToUnit(userId, unitId, isPrimary); }
+async function assignResidentToUnit(userId, unitId, isPrimary, tenantId) {
+    return userRepository.assignResidentToUnit(userId, unitId, isPrimary, tenantId);
+}
 
 module.exports = {
     // Condominiums

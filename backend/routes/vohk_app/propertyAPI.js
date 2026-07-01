@@ -1,10 +1,14 @@
 const express = require('express');
 const router = express.Router();
+const authenticate = require('../../middleware/authMiddleware');
 const propertyService = require('../../services/vohk_app/propertyService');
+router.use(authenticate);
 
+// CONDOMINIOS
 router.get('/condominiums', async (req, res) => {
     try {
-        res.json(await propertyService.listCondominiums());
+        const { tenantId } = req.user;
+        res.json(await propertyService.listCondominiums(tenantId));
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });
@@ -12,8 +16,13 @@ router.get('/condominiums', async (req, res) => {
 });
 router.post('/condominiums', async (req, res) => {
     try {
-        const { tenantId, name, address, city } = req.body;
-        res.status(201).json(await propertyService.createCondominium(tenantId, name, address, city));
+        const { tenantId } = req.user;
+        const { name, address, city } = req.body;
+        const entity = await propertyService.createCondominium(tenantId, name, address, city);
+        if (!entity) {
+            return res.status(404).json({ error: 'Condominium not found' });
+        }
+        res.status(201).json(entity);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });
@@ -21,10 +30,13 @@ router.post('/condominiums', async (req, res) => {
 });
 router.put('/condominiums/:id', async (req, res) => {
     try {
+        const { tenantId } = req.user;
         const { name, address, city } = req.body;
-        const updated = await propertyService.updateCondominium(req.params.id, name, address, city);
-        if (!updated) { return res.status(404).json({ error: 'Condominium not found' }); }
-        res.json(updated);
+        const entity = await propertyService.updateCondominium(req.params.id, tenantId, name, address, city);
+        if (!entity) {
+            return res.status(404).json({ error: 'Condominium not found' });
+        }
+        res.json(entity);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });
@@ -32,18 +44,22 @@ router.put('/condominiums/:id', async (req, res) => {
 });
 router.delete('/condominiums/:id', async (req, res) => {
     try {
-        const deleted = await propertyService.deleteCondominium(req.params.id);
-        if (!deleted) { return res.status(404).json({ error: 'Condominium not found' }); }
-        res.json({ success: true, deleted });
+        const { tenantId } = req.user;
+        const entity = await propertyService.deleteCondominium(req.params.id, tenantId);
+        if (!entity) {
+            return res.status(404).json({ error: 'Condominium not found' });
+        }
+        res.json({ success: true, deleted: entity });
     } catch (err) {
         console.error(err);
         res.status(err.status || 500).json({ error: err.message });
     }
 });
-
+// ZONAS
 router.get('/condominiums/:id/zones', async (req, res) => {
     try {
-        res.json(await propertyService.listZones(req.params.id));
+        const { tenantId } = req.user;
+        res.json(await propertyService.listZones(req.params.id, tenantId));
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });
@@ -51,8 +67,13 @@ router.get('/condominiums/:id/zones', async (req, res) => {
 });
 router.post('/zones', async (req, res) => {
     try {
+        const { tenantId } = req.user;
         const { condominiumId, name } = req.body;
-        res.status(201).json(await propertyService.createZone(condominiumId, name));
+        const entity = await propertyService.createZone(condominiumId, tenantId, name)
+        if (!entity) {
+            return res.status(404).json({ error: 'Zone not found' });
+        }
+        res.status(201).json(entity);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });
@@ -60,9 +81,13 @@ router.post('/zones', async (req, res) => {
 });
 router.put('/zones/:id', async (req, res) => {
     try {
-        const zone = await propertyService.updateZone(req.params.id, req.body.name);
-        if (!zone) { return res.status(404).json({ error: 'Zone not found' }); }
-        res.json(zone);
+        const { tenantId } = req.user;
+        const { zoneId, name } = req.body;
+        const entity = await propertyService.updateZone(zoneId, tenantId, name);
+        if (!entity) {
+            return res.status(404).json({ error: 'Zone not found' });
+        }
+        res.json(entity);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });
@@ -70,18 +95,22 @@ router.put('/zones/:id', async (req, res) => {
 });
 router.delete('/zones/:id', async (req, res) => {
     try {
-        const zone = await propertyService.deleteZone(req.params.id);
-        if (!zone) { return res.status(404).json({ error: 'Zone not found' }); }
-        res.json({ success: true, deleted: zone });
+        const { tenantId } = req.user;
+        const entity = await propertyService.deleteZone(req.params.id, tenantId);
+        if (!entity) {
+            return res.status(404).json({ error: 'Zone not found' });
+        }
+        res.json({ success: true, deleted: entity });
     } catch (err) {
         console.error(err);
         res.status(err.status || 500).json({ error: err.message });
     }
 });
-
+// TORRES
 router.get('/condominiums/:id/buildings', async (req, res) => {
     try {
-        res.json(await propertyService.listBuildings(req.params.id));
+        const { tenantId } = req.user;
+        res.json(await propertyService.listBuildings(req.params.id, tenantId));
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });
@@ -89,8 +118,13 @@ router.get('/condominiums/:id/buildings', async (req, res) => {
 });
 router.post('/buildings', async (req, res) => {
     try {
+        const { tenantId } = req.user;
         const { condominiumId, name, floorCount } = req.body;
-        res.status(201).json(await propertyService.createBuilding(condominiumId, name, floorCount));
+        const entity = await propertyService.createBuilding(condominiumId, tenantId, name, floorCount);
+        if (!entity) {
+            return res.status(404).json({ error: 'Building not found' });
+        }
+        res.status(201).json(entity);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });
@@ -98,9 +132,12 @@ router.post('/buildings', async (req, res) => {
 });
 router.put('/buildings/:id', async (req, res) => {
     try {
-        const building = await propertyService.updateBuilding(req.params.id, req.body.name, req.body.floorCount);
-        if (!building) { return res.status(404).json({ error: 'Building not found' }); }
-        res.json(building);
+        const { tenantId } = req.user;
+        const entity = await propertyService.updateBuilding(req.params.id, tenantId, req.body.name, req.body.floorCount);
+        if (!entity) {
+            return res.status(404).json({ error: 'Building not found' });
+        }
+        res.json(entity);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });
@@ -108,17 +145,22 @@ router.put('/buildings/:id', async (req, res) => {
 });
 router.delete('/buildings/:id', async (req, res) => {
     try {
-        const building = await propertyService.deleteBuilding(req.params.id);
-        if (!building) { return res.status(404).json({ error: 'Building not found' }); }
-        res.json({ success: true, deleted: building });
+        const { tenantId } = req.user;
+        const entity = await propertyService.deleteBuilding(req.params.id, tenantId);
+        if (!entity) {
+            return res.status(404).json({ error: 'Building not found' });
+        }
+        res.json({ success: true, deleted: entity });
     } catch (err) {
+        console.error(err);
         res.status(err.status || 500).json({ error: err.message });
     }
 });
-
+// UNIDADES
 router.get('/buildings/:id/units', async (req, res) => {
     try {
-        res.json(await propertyService.listUnits(req.params.id));
+        const { tenantId } = req.user;
+        res.json(await propertyService.listUnits(req.params.id, tenantId));
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });
@@ -126,8 +168,13 @@ router.get('/buildings/:id/units', async (req, res) => {
 });
 router.post('/units', async (req, res) => {
     try {
+        const { tenantId } = req.user;
         const { buildingId, name, roomNo, floor } = req.body;
-        res.status(201).json(await propertyService.createUnit(buildingId, name, roomNo, floor));
+        const entity = await propertyService.createUnit(buildingId, tenantId, name, roomNo, floor);
+        if (!entity) {
+            return res.status(404).json({ error: 'Unit not found' });
+        }
+        res.status(201).json(entity);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });
@@ -135,10 +182,13 @@ router.post('/units', async (req, res) => {
 });
 router.put('/units/:id', async (req, res) => {
     try {
+        const { tenantId } = req.user;
         const { name, roomNo, floor } = req.body;
-        const unit = await propertyService.updateUnit(req.params.id, name, roomNo, floor);
-        if (!unit) { return res.status(404).json({ error: 'Unit not found' }); }
-        res.json(unit);
+        const entity = await propertyService.updateUnit(req.params.id, tenantId, name, roomNo, floor);
+        if (!entity) {
+            return res.status(404).json({ error: 'Unit not found' });
+        }
+        res.json(entity);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });
@@ -146,17 +196,21 @@ router.put('/units/:id', async (req, res) => {
 });
 router.delete('/units/:id', async (req, res) => {
     try {
-        const unit = await propertyService.deleteUnit(req.params.id);
-        if (!unit) { return res.status(404).json({ error: 'Unit not found' }); }
-        res.json({ success: true, deleted: unit });
+        const { tenantId } = req.user;
+        const entity = await propertyService.deleteUnit(req.params.id, tenantId);
+        if (!entity) {
+            return res.status(404).json({ error: 'Unit not found' });
+        }
+        res.json({ success: true, deleted: entity });
     } catch (err) {
         res.status(err.status || 500).json({ error: err.message });
     }
 });
-
+// RESIDENTES
 router.get('/units/:id/residents', async (req, res) => {
     try {
-        res.json(await propertyService.listResidents(req.params.id));
+        const { tenantId } = req.user;
+        res.json(await propertyService.listResidents(req.params.id, tenantId));
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });
@@ -164,7 +218,8 @@ router.get('/units/:id/residents', async (req, res) => {
 });
 router.post('/units/:unitId/residents', async (req, res) => {
     try {
-        const resident = await propertyService.createResident(req.params.unitId, req.body);
+        const { tenantId } = req.user;
+        const resident = await propertyService.createResident(req.params.unitId, tenantId, req.body);
         res.status(201).json(resident);
     } catch (err) {
         console.error(err);
@@ -173,7 +228,8 @@ router.post('/units/:unitId/residents', async (req, res) => {
 });
 router.put('/residents/:userId', async (req, res) => {
     try {
-        const updated = await propertyService.updateResident(req.params.userId, req.body);
+        const { tenantId } = req.user;
+        const updated = await propertyService.updateResident(req.params.userId, tenantId, req.body);
         if (!updated) { return res.status(404).json({ error: 'Resident not found' }); }
         res.json(updated);
     } catch (err) {
@@ -183,7 +239,8 @@ router.put('/residents/:userId', async (req, res) => {
 });
 router.delete('/residents/:userId/units/:unitId', async (req, res) => {
     try {
-        const result = await propertyService.deleteResident(req.params.userId, req.params.unitId);
+        const { tenantId } = req.user;
+        const result = await propertyService.deleteResident(req.params.userId, tenantId, req.params.unitId);
         if (!result) { return res.status(404).json({ error: 'Resident not found' }); }
         res.json({ success: true });
     } catch (err) {
@@ -193,8 +250,9 @@ router.delete('/residents/:userId/units/:unitId', async (req, res) => {
 });
 router.post('/residents/assign', async (req, res) => {
     try {
+        const { tenantId } = req.user;
         const { userId, unitId, isPrimary } = req.body;
-        res.status(201).json(await propertyService.assignResidentToUnit(userId, unitId, isPrimary));
+        res.status(201).json(await propertyService.assignResidentToUnit(userId, unitId, isPrimary, tenantId));
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });

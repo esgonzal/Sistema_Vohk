@@ -65,11 +65,16 @@ async function createIntercom(deviceId, sipAddress, username, passwordEncrypted,
     );
     return result.rows[0];
 }
+// Update intercom-specific fields
 async function updateIntercom(deviceId, sipAddress, username, passwordEncrypted, doorId) {
     const result = await pool.query(
         `
         UPDATE intercom
-        SET sip_address = $2, username = $3, password_encrypted = $4, door_id = $5
+        SET
+            sip_address = $2,
+            username = $3,
+            password_encrypted = $4,
+            door_id = $5
         WHERE device_id = $1
         RETURNING *
         `,

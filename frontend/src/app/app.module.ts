@@ -61,6 +61,11 @@ import { BuildingsComponent } from './components/vohk_app/buildings/buildings.co
 import { UnitsComponent } from './components/vohk_app/units/units.component';
 import { ResidentsComponent } from './components/vohk_app/residents/residents.component';
 import { CondominiumDashboardComponent } from './components/vohk_app/condominium-dashboard/condominium-dashboard.component';
+import { LoginComponent } from './components/vohk_app/login/login.component';
+import { TTLockComponent } from './layouts/ttlock/ttlock.component';
+import { AdminComponent } from './layouts/admin/admin.component';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { AuthInterceptor } from './services/vohk_app/auth.interceptor';
 
 
 export const CUSTOM_DATE_FORMATS = {
@@ -103,6 +108,9 @@ export const CUSTOM_DATE_FORMATS = {
     UnitsComponent,
     ResidentsComponent,
     CondominiumDashboardComponent,
+    LoginComponent,
+    TTLockComponent,
+    AdminComponent,
   ],
   imports: [
     BrowserModule,
@@ -132,11 +140,12 @@ export const CUSTOM_DATE_FORMATS = {
     RouterModule.forRoot([])
   ],
   providers: [
-    DatePipe, 
+    DatePipe,
     GroupService,
     { provide: MAT_DATE_LOCALE, useValue: 'es-ES' }, // Configuración regional
     { provide: MAT_DATE_FORMATS, useValue: CUSTOM_DATE_FORMATS }, // Formato DD/MM/YYYY
-    ],
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

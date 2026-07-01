@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage() });
-
+const authenticate = require('../../middleware/authMiddleware');
+router.use(authenticate);
 const deviceService = require('../../services/vohk_app/deviceService');
 
 // ── Device listing ────────────────────────────────────────────────────────────
@@ -28,9 +29,11 @@ router.get('/cameras', async (req, res) => {
 router.get('/location', async (req, res) => {
     try {
         const { condominiumId, zoneId } = req.query;
-        const devices = await deviceService.getDevicesByCondominium(condominiumId, zoneId || null);
+        const { tenantId } = req.user;
+        const devices = await deviceService.getDevicesByCondominium(condominiumId, tenantId, zoneId || null);
         res.json(devices);
     } catch (err) {
+        console.log(err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -45,10 +48,11 @@ router.get('/zone/:zoneId', async (req, res) => {
 router.post('/', async (req, res) => {
     try {
         const { deviceData, intercomData } = req.body;
-        console.log("BODY: ", req.body);
-        const created = await deviceService.createDevice(deviceData, intercomData);
+        const { tenantId } = req.user;
+        const created = await deviceService.createDevice(deviceData, intercomData, tenantId);
         res.status(201).json(created);
     } catch (err) {
+        console.log(err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -56,7 +60,8 @@ router.put('/:deviceId', async (req, res) => {
     try {
         const { deviceId } = req.params;
         const { deviceData, intercomData } = req.body;
-        const updated = await deviceService.updateDevice(deviceId, deviceData, intercomData);
+        const { tenantId } = req.user;
+        const updated = await deviceService.updateDevice(deviceId, tenantId, deviceData, intercomData);
         if (!updated) { return res.status(404).json({ error: 'Device not found' }); }
         res.json(updated);
     } catch (err) {
@@ -66,8 +71,11 @@ router.put('/:deviceId', async (req, res) => {
 });
 router.delete('/:deviceId', async (req, res) => {
     try {
-        const deleted = await deviceService.deleteDevice(req.params.deviceId);
-        if (!deleted) { return res.status(404).json({ error: 'Device not found' }); }
+        const { tenantId } = req.user;
+        const deleted = await deviceService.deleteDevice(req.params.deviceId, tenantId);
+        if (!deleted) { 
+            return res.status(404).json({ error: 'Device not found' }); 
+        }
         res.json({ success: true });
     } catch (err) {
         console.error(err);

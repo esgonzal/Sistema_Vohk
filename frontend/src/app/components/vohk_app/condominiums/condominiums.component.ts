@@ -23,7 +23,7 @@ export class CondominiumsComponent implements OnInit {
     this.propertyService.getCondominiums().subscribe({
       next: data => {
         this.condominiums = data;
-        console.log(this.condominiums)
+        console.log(this.condominiums);
       },
       error: err => {
         console.error(err);
@@ -50,13 +50,12 @@ export class CondominiumsComponent implements OnInit {
       return;
     }
     const data = result.value;
-    this.propertyService.createCondominium('f6ff40e7-9df7-4b9f-b031-2d09644deaa8', data.name, data.address, data.city)
+    this.propertyService.createCondominium(data.name, data.address, data.city)
       .subscribe(() => {
         this.loadCondominiums();
       });
   }
   async deleteCondominium(condo: any) {
-    console.log("delete")
     const result = await Swal.fire({
       title: 'Eliminar Condominio?',
       text: condo.name,
@@ -106,7 +105,6 @@ export class CondominiumsComponent implements OnInit {
       });
   }
   manage(condo: any) {
-    console.log("se quiere ir a otra ruta: /condominiums", condo.condominium_id)
-    this.router.navigate(['/condominiums', condo.condominium_id]);
+    this.router.navigate(['admin/condominiums', condo.condominium_id]);
   }
 }

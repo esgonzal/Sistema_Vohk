@@ -26,7 +26,6 @@ export class BuildingsComponent implements OnInit {
     this.propertyService.getBuildings(condominiumId!).subscribe({
       next: data => {
         this.buildings = data;
-        console.log(this.buildings)
       },
       error: err => {
         console.error(err);
@@ -109,7 +108,7 @@ export class BuildingsComponent implements OnInit {
       });
   }
   manage(building: any) {
-    this.router.navigate(['/buildings', building.building_id, 'units']);
+    this.router.navigate(['admin/buildings', building.building_id, 'units']);
   }
   goBack() {
     window.history.back();

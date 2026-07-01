@@ -26,7 +26,6 @@ export class UnitsComponent implements OnInit {
     this.propertyService.getUnits(buildingId).subscribe({
       next: data => {
         this.units = data;
-        console.log(this.units)
       },
       error: err => {
         console.error(err);
@@ -112,7 +111,7 @@ export class UnitsComponent implements OnInit {
       });
   }
   manage(unit: any) {
-    this.router.navigate(['/units', unit.unit_id, 'residents']);
+    this.router.navigate(['admin/units', unit.unit_id, 'residents']);
   }
   goBack() {
     window.history.back();

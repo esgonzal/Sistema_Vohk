@@ -1,6 +1,5 @@
 <div class="page">
     <div class="header">
-        <button (click)="goBack()">← Back</button>
         <h1>Dashboard Condominio</h1>
     </div>
     <div *ngIf="loading">Cargando...</div>
@@ -56,7 +55,7 @@
                 <div class="device-info">
                     <h3>{{ device.name }}</h3>
                     <p>Zona:{{ device.zone_name }}</p>
-                    <p>Tipo:{{ device.type }}</p>
+                    <p>{{ device.type }}</p>
                     <p><a class="device-link"
                             [href]="'http://' + device.ip_address + ':' + device.port + '/doc/index.html'"
                             target="_blank">⚙️ Abrir Configuración</a></p>

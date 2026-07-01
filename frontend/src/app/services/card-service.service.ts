@@ -11,7 +11,7 @@ import { MatTableDataSource } from '@angular/material/table';
 export class CardServiceService {
 
   URL = 'https://api.vohk.cl';
-  //URL = 'http://localhost:8081';
+  //URL = 'http://localhost:8080';
   userID = sessionStorage.getItem('user') ?? ''
   lockID: number = Number(sessionStorage.getItem('lockID') ?? '')
   lockAlias: string;

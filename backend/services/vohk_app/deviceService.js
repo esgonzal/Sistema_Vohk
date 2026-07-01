@@ -1,11 +1,12 @@
 const sharp = require('sharp');
 const { v4: uuid } = require('uuid');
-
 const FRONTEND_URL = "https://app.vohk.cl";
 const deviceRepository = require('../../repositories/deviceRepository');
 const invitationRepository = require('../../repositories/invitationRepository');
 const visitorRepository = require('../../repositories/visitorRepository');
 const intercomUserRepository = require('../../repositories/intercomUserRepository');
+const zoneRepository = require('../../repositories/zoneRepository');
+const intercomRepository = require('../../repositories/intercomRepository');
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function formatCardForHikvision(cardNumber) {
@@ -86,24 +87,45 @@ async function listCameras() {
     }));
 }
 // ── Device management ─────────────────────────────────────────────────────────
-async function getDevicesByCondominium(condominiumId, zoneId = null) {
-    return deviceRepository.findDevicesByCondominium(condominiumId, zoneId);
+async function getDevicesByCondominium(condominiumId, tenantId, zoneId = null) {
+    return deviceRepository.findDevicesByCondominium(condominiumId, tenantId, zoneId);
 }
 async function getDevicesByZone(zoneId) {
     return deviceRepository.findDevicesByZone(zoneId);
 }
-async function createDevice(deviceData, intercomData) {
-    return deviceRepository.createDevice(deviceData, intercomData);
+async function createDevice(deviceData, intercomData, tenantId) {
+    const zone = await zoneRepository.findZoneByIdAndTenant(deviceData.zoneId, tenantId);
+    if (!zone) {
+        throw new Error('Zone not found');
+    }
+    const device = await deviceRepository.createDevice(deviceData.zoneId, deviceData.type, deviceData.name, deviceData.ipAddress, deviceData.port, deviceData.snapshotUrl, deviceData.streamUrl, deviceData.active ?? true);
+    if (intercomData) {
+        await intercomRepository.createIntercom(device.device_id, intercomData.sipAddress, intercomData.username, intercomData.passwordEncrypted, intercomData.doorId
+        );
+    }
+    return device;
 }
-async function updateDevice(deviceId, deviceData, intercomData) {
-    const updatedDevice = await deviceRepository.updateDevice(deviceId, deviceData.name, deviceData.ipAddress, deviceData.port, deviceData.snapshotUrl, deviceData.streamUrl, deviceData.active,);
+async function updateDevice(deviceId, tenantId, deviceData, intercomData) {
+    const device = await deviceRepository.findDeviceByIdAndTenant(deviceId, tenantId);
+    if (!device) {
+        throw new Error('Device not found');
+    }
+    const zone = await zoneRepository.findZoneByIdAndTenant(deviceData.zoneId, tenantId);
+    if (!zone) {
+        throw new Error('Zone not found');
+    }
+    const updatedDevice = await deviceRepository.updateDevice(deviceId, deviceData.zoneId, deviceData.name, deviceData.ipAddress, deviceData.port, deviceData.snapshotUrl, deviceData.streamUrl, deviceData.active);
     if (!updatedDevice) { return null; }
     if (updatedDevice.type === 'intercom' && intercomData) {
-        await deviceRepository.updateIntercom(deviceId, intercomData.sipAddress, intercomData.username, intercomData.passwordEncrypted, intercomData.doorId,);
+        await intercomRepository.updateIntercom(deviceId, intercomData.sipAddress, intercomData.username, intercomData.passwordEncrypted, intercomData.doorId,);
     }
     return updatedDevice;
 }
-async function deleteDevice(deviceId) {
+async function deleteDevice(deviceId, tenantId) {
+    const device = await deviceRepository.findDeviceByIdAndTenant(deviceId, tenantId);
+    if (!device) {
+        return null;
+    }
     return deviceRepository.deleteDevice(deviceId);
 }
 async function moveDeviceToZone(deviceId, zoneId) {

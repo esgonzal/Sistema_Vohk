@@ -274,9 +274,4 @@ export class Comunidadesv2Component implements OnInit {
       this.cols = numColumns;
     }
   }
-
-
-  toDemo(){
-    this.router.navigate(['condominiums'])
-  }
 }

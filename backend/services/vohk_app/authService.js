@@ -1,5 +1,7 @@
 const twilio = require('twilio');
+const bcrypt = require('bcrypt');
 const admin = require('firebase-admin');
+const jwt = require('jsonwebtoken');
 const userRepository = require('../../repositories/userRepository');
 const AccessToken = twilio.jwt.AccessToken;
 const VoiceGrant = AccessToken.VoiceGrant;
@@ -11,17 +13,24 @@ const TWILIO_PUSH_CRED_SID = process.env.TWILIO_PUSH_CRED_SID;
 
 async function login(username, password) {
     const user = await userRepository.findByUsername(username);
-    if (!user) { return { error: 'User not found', status: 401 }; }
-    if (user.password_hash !== password) { return { error: 'Invalid password', status: 401 }; }
-    const primaryUnit = await userRepository.fetchPrimaryUnit(user.user_id);
+    if (!user) {
+        return { error: 'User not found', status: 401 };
+    }
+    const passwordMatches = await bcrypt.compare(password, user.password_hash);
+    if (!passwordMatches) {
+        return { error: 'Invalid password', status: 401 };
+    }
+    const tenant = await userRepository.findTenantIdByUserId(user.user_id);
+    if (!tenant) {
+        return { error: 'User is not assigned to any tenant.', status: 403 };
+    }
+    const session = { userId: user.user_id, tenantId: tenant.tenant_id, username: user.username, role: user.role };
+    const token = generateJwt(session);
     return {
         success: true,
-        username: user.username,
-        identity: user.identity,
-        role: user.role,
-        userId: user.user_id,
-        primaryUnitId: primaryUnit?.unit_id ?? null,
-    };
+        token,
+        user: { userId: user.user_id, tenantId: tenant.tenant_id, username: user.username, role: user.role }
+    }
 }
 
 function generateTwilioToken(identity) {
@@ -42,9 +51,25 @@ function generateTwilioToken(identity) {
 
 async function registerFcmToken(identity, fcmToken) {
     const user = await userRepository.findByIdentity(identity);
+    console.log("USER IN AUTHSERVICE: ", user)
     if (!user) { return { error: 'User identity not found', status: 404 }; }
     await userRepository.updateFcmToken(identity, fcmToken);
     return { success: true };
+}
+
+function generateJwt(session) {
+    return jwt.sign(
+        {
+            userId: session.userId,
+            tenantId: session.tenantId,
+            username: session.username,
+            role: session.role,
+        },
+        process.env.JWT_SECRET,
+        {
+            expiresIn: process.env.JWT_EXPIRES_IN || '7d'
+        }
+    );
 }
 
 module.exports = { login, generateTwilioToken, registerFcmToken };

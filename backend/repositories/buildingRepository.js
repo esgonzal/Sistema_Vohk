@@ -7,51 +7,78 @@ async function findBuildingById(buildingId) {
     );
     return result.rows[0];
 }
-async function findBuildingsByCondominium(condominiumId) {
+async function findBuildingsByCondominium(condominiumId, tenantId) {
     const result = await pool.query(
-        `SELECT * FROM building WHERE condominium_id = $1 ORDER BY name`,
-        [condominiumId]
+        `
+        SELECT b.*
+        FROM building b
+        INNER JOIN condominium c
+            ON c.condominium_id = b.condominium_id
+        WHERE b.condominium_id = $1
+          AND c.tenant_id = $2
+        ORDER BY b.name
+        `,
+        [condominiumId, tenantId]
     );
     return result.rows;
 }
-async function createBuilding(condominiumId, name, floorCount) {
+async function createBuilding(condominiumId, tenantId, name, floorCount) {
     const result = await pool.query(
         `
         INSERT INTO building (condominium_id, name, floor_count)
-        VALUES ($1, $2, $3)
-        RETURNING *
+        SELECT c.condominium_id, $3, $4
+        FROM condominium c
+        WHERE c.condominium_id = $1
+          AND c.tenant_id = $2
+        RETURNING *;
         `,
-        [condominiumId, name, floorCount]
+        [condominiumId, tenantId, name, floorCount]
     );
     return result.rows[0];
 }
-async function updateBuilding(buildingId, name, floorCount) {
+async function updateBuilding(buildingId, tenantId, name, floorCount) {
     const result = await pool.query(
         `
-        UPDATE building
-        SET name = $2, floor_count = $3
-        WHERE building_id = $1
-        RETURNING *
+        UPDATE building b
+        SET name = $3,
+            floor_count = $4
+        FROM condominium c
+        WHERE b.building_id = $1
+          AND b.condominium_id = c.condominium_id
+          AND c.tenant_id = $2
+        RETURNING b.*;
         `,
-        [buildingId, name, floorCount]
+        [buildingId, tenantId, name, floorCount]
     );
     return result.rows[0];
 }
-async function deleteBuilding(buildingId) {
+async function deleteBuilding(buildingId, tenantId) {
     const result = await pool.query(
-        `DELETE FROM building WHERE building_id = $1 RETURNING *`,
-        [buildingId]
+        `
+        DELETE FROM building b
+        USING condominium c
+        WHERE b.building_id = $1
+          AND b.condominium_id = c.condominium_id
+          AND c.tenant_id = $2
+        RETURNING b.*;
+        `,
+        [buildingId, tenantId]
     );
     return result.rows[0];
 }
-async function countUnitsByBuilding(buildingId) {
+async function countUnitsByBuilding(buildingId, tenantId) {
     const result = await pool.query(
         `
         SELECT COUNT(*)::int AS count
-        FROM unit
-        WHERE building_id = $1
+        FROM unit u
+        JOIN building b
+            ON b.building_id = u.building_id
+        JOIN condominium c
+            ON c.condominium_id = b.condominium_id
+        WHERE u.building_id = $1
+        AND c.tenant_id = $2
         `,
-        [buildingId]
+        [buildingId, tenantId]
     );
     return result.rows[0].count;
 }

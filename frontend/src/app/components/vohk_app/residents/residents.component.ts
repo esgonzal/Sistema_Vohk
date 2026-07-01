@@ -25,7 +25,6 @@ export class ResidentsComponent implements OnInit {
     this.propertyService.getResidents(unitId).subscribe({
       next: data => {
         this.residents = data;
-        console.log(this.residents)
       },
       error: err => {
         console.error(err);
@@ -87,7 +86,6 @@ export class ResidentsComponent implements OnInit {
     if (!result.isConfirmed) {
       return;
     }
-    console.log("Se quiere remover un usuario: ",resident.name," de la unidad: ",this.unitId)
     this.propertyService.deleteResident(resident.user_id, this.unitId)
       .subscribe(() => {
         this.loadResidents(this.unitId);

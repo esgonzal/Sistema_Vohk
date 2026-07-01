@@ -1,12 +1,21 @@
 const pool = require('../database/db');
 
-async function findByUserAndUnit(userId, unitId) {
+async function findByUserAndUnit(userId, unitId, tenantId) {
     const result = await pool.query(
         `
-        SELECT * FROM resident_unit
-        WHERE user_id = $1 AND unit_id = $2
+        SELECT ru.*
+        FROM resident_unit ru
+        JOIN unit u
+            ON u.unit_id = ru.unit_id
+        JOIN building b
+            ON b.building_id = u.building_id
+        JOIN condominium c
+            ON c.condominium_id = b.condominium_id
+        WHERE ru.user_id = $1
+          AND ru.unit_id = $2
+          AND c.tenant_id = $3
         `,
-        [userId, unitId]
+        [userId, unitId, tenantId]
     );
     return result.rows[0];
 }
@@ -75,14 +84,22 @@ async function setPrimary(userId, unitId) {
     );
     return result.rows[0];
 }
-async function unassignResident(userId, unitId) {
+async function unassignResident(userId, unitId, tenantId) {
     const result = await pool.query(
         `
-        DELETE FROM resident_unit
-        WHERE user_id = $1 AND unit_id = $2
-        RETURNING *
+        DELETE FROM resident_unit ru
+        USING unit u,
+              building b,
+              condominium c
+        WHERE ru.user_id = $1
+          AND ru.unit_id = $2
+          AND u.unit_id = ru.unit_id
+          AND b.building_id = u.building_id
+          AND c.condominium_id = b.condominium_id
+          AND c.tenant_id = $3
+        RETURNING ru.*
         `,
-        [userId, unitId]
+        [userId, unitId, tenantId]
     );
     return result.rows[0];
 }
@@ -100,16 +117,23 @@ async function unassignAllFromUser(userId) {
     );
     return result.rows;
 }
-async function updateResidentUnit(userId, unitId, isPrimary) {
+async function updateResidentUnit(userId, unitId, isPrimary, tenantId) {
     const result = await pool.query(
         `
-        UPDATE resident_unit
+        UPDATE resident_unit ru
         SET is_primary = $3
-        WHERE user_id = $1
-          AND unit_id = $2
-        RETURNING *
+        FROM unit un
+        JOIN building b
+            ON b.building_id = un.building_id
+        JOIN condominium c
+            ON c.condominium_id = b.condominium_id
+        WHERE ru.user_id = $1
+        AND ru.unit_id = $2
+        AND un.unit_id = ru.unit_id
+        AND c.tenant_id = $4
+        RETURNING ru.*;
         `,
-        [userId, unitId, isPrimary]
+        [userId, unitId, isPrimary, tenantId]
     );
     return result.rows[0];
 }

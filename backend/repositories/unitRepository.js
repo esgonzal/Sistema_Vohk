@@ -7,14 +7,36 @@ async function findUnitById(unitId) {
     );
     return result.rows[0];
 }
-async function findUnitsByBuilding(buildingId) {
+async function findUnitByIdAndTenant(unitId, tenantId) {
     const result = await pool.query(
         `
-        SELECT * FROM unit
-        WHERE building_id = $1
-        ORDER BY floor, room_no
+        SELECT u.*
+        FROM unit u
+        JOIN building b
+            ON b.building_id = u.building_id
+        JOIN condominium c
+            ON c.condominium_id = b.condominium_id
+        WHERE u.unit_id = $1
+          AND c.tenant_id = $2
         `,
-        [buildingId]
+        [unitId, tenantId]
+    );
+    return result.rows[0];
+}
+async function findUnitsByBuilding(buildingId, tenantId) {
+    const result = await pool.query(
+        `
+        SELECT u.*
+        FROM unit u
+        JOIN building b
+            ON b.building_id = u.building_id
+        JOIN condominium c
+            ON c.condominium_id = b.condominium_id
+        WHERE u.building_id = $1
+          AND c.tenant_id = $2
+        ORDER BY u.floor, u.room_no
+        `,
+        [buildingId, tenantId]
     );
     return result.rows;
 }
@@ -62,33 +84,53 @@ async function findUnitsByUser(userId) {
     );
     return result.rows;
 }
-async function createUnit(buildingId, name, roomNo, floor) {
+async function createUnit(buildingId, tenantId, name, roomNo, floor) {
     const result = await pool.query(
         `
         INSERT INTO unit (building_id, name, room_no, floor)
-        VALUES ($1, $2, $3, $4)
+        SELECT building_id, $3, $4, $5
+        FROM building b
+        JOIN condominium c
+            ON c.condominium_id = b.condominium_id
+        WHERE b.building_id = $1
+          AND c.tenant_id = $2
         RETURNING *
         `,
-        [buildingId, name, roomNo, floor]
+        [buildingId, tenantId, name, roomNo, floor]
     );
     return result.rows[0];
 }
-async function updateUnit(unitId, name, roomNo, floor) {
+async function updateUnit(unitId, tenantId, name, roomNo, floor) {
     const result = await pool.query(
         `
-        UPDATE unit
-        SET name = $2, room_no = $3, floor = $4
-        WHERE unit_id = $1
-        RETURNING *
+        UPDATE unit u
+        SET
+            name = $3,
+            room_no = $4,
+            floor = $5
+        FROM building b, condominium c
+        WHERE u.unit_id = $1
+          AND b.building_id = u.building_id
+          AND c.condominium_id = b.condominium_id
+          AND c.tenant_id = $2
+        RETURNING u.*
         `,
-        [unitId, name, roomNo, floor]
+        [unitId, tenantId, name, roomNo, floor]
     );
     return result.rows[0];
 }
-async function deleteUnit(unitId) {
+async function deleteUnit(unitId, tenantId) {
     const result = await pool.query(
-        `DELETE FROM unit WHERE unit_id = $1 RETURNING *`,
-        [unitId]
+        `
+        DELETE FROM unit u
+        USING building b, condominium c
+        WHERE u.unit_id = $1
+          AND b.building_id = u.building_id
+          AND c.condominium_id = b.condominium_id
+          AND c.tenant_id = $2
+        RETURNING u.*
+        `,
+        [unitId, tenantId]
     );
     return result.rows[0];
 }
@@ -114,19 +156,26 @@ async function findBuildingsAndUnitsByCondominium(condominiumId) {
     );
     return result.rows;
 }
-async function countResidentsByUnit(unitId) {
+async function countResidentsByUnit(unitId, tenantId) {
     const result = await pool.query(
         `
         SELECT COUNT(*)::int AS count
-        FROM resident_unit
-        WHERE unit_id = $1
+        FROM resident_unit ru
+        JOIN unit u
+            ON u.unit_id = ru.unit_id
+        JOIN building b
+            ON b.building_id = u.building_id
+        JOIN condominium c
+            ON c.condominium_id = b.condominium_id
+        WHERE ru.unit_id = $1
+          AND c.tenant_id = $2
         `,
-        [unitId]
+        [unitId, tenantId]
     );
     return result.rows[0].count;
 }
 
 module.exports = {
-    findUnitById, findUnitsByBuilding, findUnitHierarchy, findUnitsByUser, createUnit, updateUnit, deleteUnit, findBuildingsAndUnitsByCondominium,
+    findUnitById, findUnitByIdAndTenant, findUnitsByBuilding, findUnitHierarchy, findUnitsByUser, createUnit, updateUnit, deleteUnit, findBuildingsAndUnitsByCondominium,
     countResidentsByUnit
 };

@@ -1,9 +1,16 @@
 const pool = require('../database/db');
 
-async function findZonesByCondominium(condominiumId) {
+async function findZonesByCondominium(condominiumId, tenantId) {
     const result = await pool.query(
-        `SELECT * FROM zone WHERE condominium_id = $1 ORDER BY name`,
-        [condominiumId]
+        `SELECT z.*
+        FROM zone z
+        INNER JOIN condominium c
+            ON c.condominium_id = z.condominium_id
+        WHERE z.condominium_id = $1
+        AND c.tenant_id = $2
+        ORDER BY z.name
+        `,
+        [condominiumId, tenantId]
     );
     return result.rows;
 }
@@ -14,46 +21,78 @@ async function findZoneById(zoneId) {
     );
     return result.rows[0];
 }
-async function createZone(condominiumId, name) {
+async function findZoneByIdAndTenant(zoneId, tenantId) {
+    const result = await pool.query(
+        `
+        SELECT z.*
+        FROM zone z
+        JOIN condominium c
+            ON c.condominium_id = z.condominium_id
+        WHERE z.zone_id = $1
+          AND c.tenant_id = $2
+        `,
+        [zoneId, tenantId]
+    );
+    return result.rows[0];
+}
+async function createZone(condominiumId, tenantId, name) {
     const result = await pool.query(
         `
         INSERT INTO zone (condominium_id, name)
-        VALUES ($1, $2)
-        RETURNING *
+        SELECT condominium_id, $3
+        FROM condominium
+        WHERE condominium_id = $1
+          AND tenant_id = $2
+        RETURNING *;
         `,
-        [condominiumId, name]
+        [condominiumId, tenantId, name]
     );
     return result.rows[0];
 }
-async function updateZone(zoneId, name) {
+async function updateZone(zoneId, tenantId, name) {
     const result = await pool.query(
         `
-        UPDATE zone
-        SET name = $2
-        WHERE zone_id = $1
-        RETURNING *
+        UPDATE zone z
+        SET name = $3
+        FROM condominium c
+        WHERE z.zone_id = $1
+          AND z.condominium_id = c.condominium_id
+          AND c.tenant_id = $2
+        RETURNING z.*;
         `,
-        [zoneId, name]
+        [zoneId, tenantId, name]
     );
     return result.rows[0];
 }
-async function deleteZone(zoneId) {
+async function deleteZone(zoneId, tenantId) {
     const result = await pool.query(
-        `DELETE FROM zone WHERE zone_id = $1 RETURNING *`,
-        [zoneId]
+        `
+        DELETE FROM zone z
+        USING condominium c
+        WHERE z.zone_id = $1
+          AND z.condominium_id = c.condominium_id
+          AND c.tenant_id = $2
+        RETURNING z.*;
+        `,
+        [zoneId, tenantId]
     );
     return result.rows[0];
 }
-async function countDevicesByZone(zoneId) {
+async function countDevicesByZone(zoneId, tenantId) {
     const result = await pool.query(
         `
         SELECT COUNT(*)::int AS count
-        FROM device
-        WHERE zone_id = $1
+        FROM device d
+        JOIN zone z
+            ON z.zone_id = d.zone_id
+        JOIN condominium c
+            ON c.condominium_id = z.condominium_id
+        WHERE d.zone_id = $1
+        AND c.tenant_id = $2
         `,
-        [zoneId]
+        [zoneId, tenantId]
     );
     return result.rows[0].count;
 }
 
-module.exports = { findZonesByCondominium, findZoneById, createZone, updateZone, deleteZone, countDevicesByZone };
+module.exports = { findZonesByCondominium, findZoneById, findZoneByIdAndTenant, createZone, updateZone, deleteZone, countDevicesByZone };

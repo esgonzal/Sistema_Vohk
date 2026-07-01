@@ -4,11 +4,6 @@
         <div class="subtitle">
             Mis Comunidades
         </div>
-        <div *ngIf="userID==='soporte@vohk.cl'">
-            <button (click)="toDemo()">
-                DEMO
-            </button>
-        </div>
         <div class="searchBar">
             <input type="text" placeholder="Busqueda" [(ngModel)]="searchText" (input)="searchGroups()" />
         </div>

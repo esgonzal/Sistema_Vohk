@@ -16,7 +16,6 @@ export class CondominiumDashboardComponent implements OnInit {
   devices: any[] = [];
   loading = true;
 
-
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -39,7 +38,7 @@ export class CondominiumDashboardComponent implements OnInit {
       .subscribe({
         next: data => {
           this.zones = data;
-          console.log(this.zones)
+          console.log("Zones loaded:", this.zones);
           this.loading = false
         },
         error: err => console.error(err)
@@ -48,7 +47,7 @@ export class CondominiumDashboardComponent implements OnInit {
       .subscribe({
         next: data => {
           this.devices = data;
-          console.log(this.devices)
+          console.log("Devices loaded:", this.devices);
           this.loading = false;
         },
         error: err => {
@@ -58,8 +57,8 @@ export class CondominiumDashboardComponent implements OnInit {
       });
   }
   async openCreateDevice() {
-    const buildingOptions = this.buildings
-      .map(b => `<option value="${b.building_id}">${b.name}</option>`)
+    const zoneOptions = this.zones
+      .map(z => `<option value="${z.zone_id}">${z.name}</option>`)
       .join('');
     const result = await Swal.fire({
       title: 'Nuevo Dispositivo',
@@ -79,10 +78,9 @@ export class CondominiumDashboardComponent implements OnInit {
       <input id="snapshot" class="swal2-input">
       <label>Stream URL</label>
       <input id="stream" class="swal2-input">
-      <label>Building (opcional)</label>
-      <select id="building" class="swal2-input">
-        <option value="">Sin edificio</option>
-        ${buildingOptions}
+      <label>Zona</label>
+      <select id="zone" class="swal2-input">
+        ${zoneOptions}
       </select>
       <div id="intercom-fields" style="display:none">
         <hr>
@@ -107,7 +105,7 @@ export class CondominiumDashboardComponent implements OnInit {
         return {
           deviceData: {
             condominiumId: this.condominiumId,
-            buildingId: (document.getElementById('building') as HTMLSelectElement).value || null,
+            zoneId: (document.getElementById('zone') as HTMLSelectElement).value || null,
             type,
             name: (document.getElementById('name') as HTMLInputElement).value,
             ipAddress: (document.getElementById('ip') as HTMLInputElement).value,
@@ -151,25 +149,16 @@ export class CondominiumDashboardComponent implements OnInit {
   }
   async editDevice(device: any) {
     const isIntercom = device.type === 'intercom';
-    const buildingOptions = this.buildings
-      .map(b => `
-    <option
-      value="${b.building_id}"
-      ${device.building_id === b.building_id ? 'selected' : ''}
-    >
-      ${b.name}
-    </option>
-  `)
-      .join('');
+    const zoneOptions = this.zones
+      .map(z => ` <option value="${z.zone_id}" ${device.zone_id === z.zone_id ? 'selected' : ''}> ${z.name} </option> `).join('');
     const { value } = await Swal.fire({
       title: 'Editar dispositivo',
       html: `
       <label>Nombre</label>
       <input id="name" class="swal2-input" value="${device.name}">
-      <label>Edificio</label>
-      <select id="buildingId" class="swal2-input">
-        <option value="">Sin edificio</option>
-        ${buildingOptions}
+      <label>Zona</label>
+      <select id="zoneId" class="swal2-input">
+        ${zoneOptions}
       </select>
       <label>IP</label>
       <input id="ip" class="swal2-input" value="${device.ip_address}">
@@ -207,7 +196,7 @@ export class CondominiumDashboardComponent implements OnInit {
       preConfirm: () => ({
         deviceData: {
           name: (document.getElementById('name') as HTMLInputElement).value,
-          buildingId: (document.getElementById('buildingId') as HTMLSelectElement).value || null,
+          zoneId: (document.getElementById('zoneId') as HTMLSelectElement).value,
           ipAddress: (document.getElementById('ip') as HTMLInputElement).value,
           port: Number((document.getElementById('port') as HTMLInputElement).value),
           snapshotUrl: (document.getElementById('snapshot') as HTMLInputElement).value,
@@ -255,7 +244,6 @@ export class CondominiumDashboardComponent implements OnInit {
       });
   }
   async openLiveView(device: any) {
-    console.log(device)
     await Swal.fire({
       title: device.name,
       width: '90%',
@@ -372,7 +360,6 @@ export class CondominiumDashboardComponent implements OnInit {
       });
   }
   async editZone(zone: any) {
-    console.log(zone)
     const { value } = await Swal.fire({
       title: 'Editar zona',
       html: `
@@ -419,10 +406,7 @@ export class CondominiumDashboardComponent implements OnInit {
     });
   }
   manage(building: any) {
-    this.router.navigate(['/buildings', building.building_id, 'units']);
-  }
-  goBack() {
-    this.router.navigate(['/condominiums']);
+    this.router.navigate(['admin/buildings', building.building_id, 'units']);
   }
 
 }

@@ -7,8 +7,16 @@ async function findCondominiumById(condominiumId) {
     );
     return result.rows[0];
 }
-async function findCondominiums() {
-    const result = await pool.query(`SELECT * FROM condominium ORDER BY name`);
+async function findCondominiums(tenantId) {
+    const result = await pool.query(
+        `
+        SELECT *
+        FROM condominium
+        WHERE tenant_id = $1
+        ORDER BY name
+        `,
+        [tenantId]
+    );
     return result.rows;
 }
 async function findCondominiumsByTenant(tenantId) {
@@ -29,22 +37,30 @@ async function createCondominium(tenantId, name, address, city) {
     );
     return result.rows[0];
 }
-async function updateCondominium(condominiumId, name, address, city) {
+async function updateCondominium(condominiumId, tenantId, name, address, city) {
     const result = await pool.query(
         `
         UPDATE condominium
-        SET name = $2, address = $3, city = $4
+        SET name = $3,
+            address = $4,
+            city = $5
         WHERE condominium_id = $1
-        RETURNING *
+          AND tenant_id = $2
+        RETURNING *;
         `,
-        [condominiumId, name, address, city]
+        [condominiumId, tenantId, name, address, city]
     );
     return result.rows[0];
 }
-async function deleteCondominium(condominiumId) {
+async function deleteCondominium(condominiumId, tenantId) {
     const result = await pool.query(
-        `DELETE FROM condominium WHERE condominium_id = $1 RETURNING *`,
-        [condominiumId]
+        `
+        DELETE FROM condominium
+        WHERE condominium_id = $1
+          AND tenant_id = $2
+        RETURNING *;
+        `,
+        [condominiumId, tenantId]
     );
     return result.rows[0];
 }
@@ -60,14 +76,17 @@ async function getCondominiumByUnitId(unitId) {
     );
     return result.rows[0]?.condominium_id;
 }
-async function countBuildingsByCondominium(condominiumId) {
+async function countBuildingsByCondominium(condominiumId, tenantId) {
     const result = await pool.query(
         `
         SELECT COUNT(*)::int AS count
-        FROM building
-        WHERE condominium_id = $1
+        FROM building b
+        JOIN condominium c
+            ON c.condominium_id = b.condominium_id
+        WHERE b.condominium_id = $1
+        AND c.tenant_id = $2
         `,
-        [condominiumId]
+        [condominiumId, tenantId]
     );
     return result.rows[0].count;
 }
