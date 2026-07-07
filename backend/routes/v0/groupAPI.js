@@ -108,6 +108,7 @@ router.get('/fetchAll', async (req, res) => {
         return res.status(401).json({ errmsg: 'Missing access token' });
     }
     try {
+        console.log(accessToken)
         const data = await groupService.fetchAll(accessToken);
         return res.json(data);
     } catch (error) {

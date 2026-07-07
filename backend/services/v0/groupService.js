@@ -77,6 +77,7 @@ async function fetchAll(accessToken) {
             `${TTLOCK_BASE_URL}/group/list`,
             { params: { clientId: TTLOCK_CLIENT_ID, accessToken, date: Date.now() } }
         );
+        console.log(groupResponse.data)
         const groups = groupResponse.data.list || [];
         groups.push({ groupId: -1, groupName: 'Sin Asociar' });
         const groupsWithLocks = await Promise.all(
