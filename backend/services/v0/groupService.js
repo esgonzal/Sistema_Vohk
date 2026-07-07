@@ -72,6 +72,7 @@ async function rename(accessToken, groupID, newName) {
     }
 }
 async function fetchAll(accessToken) {
+    console.log("accesstoken en groupService: ", accessToken)
     try {
         const groupResponse = await axios.get(
             `${TTLOCK_BASE_URL}/group/list`,

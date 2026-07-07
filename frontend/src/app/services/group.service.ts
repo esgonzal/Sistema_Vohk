@@ -55,6 +55,7 @@ export class GroupService {
     return this.http.post<operationResponse>(url, body, { headers: this.getHeaders(accessToken) });
   }
   fetchAll(accessToken: string): Observable<GroupResponse> {
+    console.log(accessToken)
     const url = this.URL.concat('/v0/group/fetchAll');
     return this.http.get<GroupResponse>(url, { headers: this.getHeaders(accessToken) });
   }

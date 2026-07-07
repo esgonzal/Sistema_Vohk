@@ -103,12 +103,13 @@ router.post('/rename', async (req, res) => {
     }
 });
 router.get('/fetchAll', async (req, res) => {
+    console.log(req)
     const accessToken = req.headers.authorization?.replace('Bearer ', '');
+    console.log(accessToken)
     if (!accessToken) {
         return res.status(401).json({ errmsg: 'Missing access token' });
     }
     try {
-        console.log(accessToken)
         const data = await groupService.fetchAll(accessToken);
         return res.json(data);
     } catch (error) {
