@@ -1,13 +1,19 @@
-const nodemailer = require('nodemailer');
 const fs = require('fs').promises;
 const path = require('path');
-const USER = "soporte@vohk.cl";
-const PASS = "khto bghq ckfz txla";
+const { Resend } = require('resend');
+const RESEND_KEY = process.env.RESEND_KEY;
+const resend = new Resend(RESEND_KEY);
 
+//const nodemailer = require('nodemailer');
+//const USER = "soporte@vohk.cl";
+//const PASS = "khto bghq ckfz txla";
+/*
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: { user: USER, pass: PASS }
 });
+*/
+
 function validateEmail(email) {
     return typeof email === 'string' && email.includes('@');
 }
@@ -23,7 +29,16 @@ async function sendEmail({ toEmail, subject, html }) {
     if (!validateEmail(toEmail)) {
         throw new Error('Invalid email address');
     }
-    return transporter.sendMail({ from: USER, to: toEmail, subject, html });
+    const result = await resend.emails.send({
+        from: 'Vöhk <soporte@vohk.cl>',
+        to: toEmail,
+        subject,
+        html
+    });
+    if (result.error) {
+        throw new Error(result.error.message);
+    }
+    return result;
 }
 async function sendEkeyEmail({ toEmail, receiverName, locks, startDate, endDate, isNewUser, password }) {
     const isPermanent = startDate === "0" && endDate === "0";
