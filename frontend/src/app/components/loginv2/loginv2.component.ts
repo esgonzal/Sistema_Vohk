@@ -35,6 +35,7 @@ export class Loginv2Component {
     try {
       const md5 = this.userService.getMD5(data.password);
       const response = await lastValueFrom(this.userService.getAccessToken(data.username, md5)) as GetAccessTokenResponse;
+      console.log(response)
       sessionStorage.setItem('logged', '1');
       sessionStorage.setItem('user', data.username);
       sessionStorage.setItem('accessToken', response.access_token);
