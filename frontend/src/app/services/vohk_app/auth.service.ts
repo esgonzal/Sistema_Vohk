@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { tap } from 'rxjs/operators';
-import { Observable } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 
 interface LoginResponse {
   success: boolean;
@@ -14,8 +14,8 @@ interface LoginResponse {
 })
 export class AuthService {
 
-  URL = 'https://api.vohk.cl';
-  //URL = 'http://localhost:8080';
+  //URL = 'https://api.vohk.cl';
+  URL = 'http://localhost:8080';
 
   constructor(private http: HttpClient) { }
 
@@ -30,6 +30,10 @@ export class AuthService {
         localStorage.setItem('identity', response.user.identity);
       })
     );
+  }
+
+  resetPassword(data: any): Promise<any> {
+    return firstValueFrom(this.http.post(`${this.URL}/app/auth/reset-password`, data));
   }
 
   logout(): void {

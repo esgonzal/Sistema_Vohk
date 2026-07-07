@@ -30,6 +30,7 @@ import { CondominiumDashboardComponent } from './components/vohk_app/condominium
 import { TTLockComponent } from './layouts/ttlock/ttlock.component';
 import { AdminComponent } from './layouts/admin/admin.component';
 import { LoginComponent } from './components/vohk_app/login/login.component';
+import { ResetPasswordComponent } from './components/vohk_app/reset-password/reset-password.component';
 
 const routes: Routes = [
 
@@ -59,7 +60,8 @@ const routes: Routes = [
     path: 'admin',
     component: AdminComponent,
     children: [
-      { path: 'login', component: LoginComponent }, // placeholder if needed later
+      { path: 'login', component: LoginComponent },
+      { path: 'reset-password/:token', component: ResetPasswordComponent },
       { path: 'invite/:id', component: InvitationComponent },
       { path: 'condominiums', component: CondominiumsComponent },
       { path: 'condominiums/:id', component: CondominiumDashboardComponent },

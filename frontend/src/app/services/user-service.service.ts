@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Md5 } from 'ts-md5';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, Observable } from 'rxjs';
 import { GetAccessTokenResponse, logoutResponse } from '../Interfaces/API_responses';
 import { PhoneNumberUtil } from 'google-libphonenumber';
 
@@ -24,8 +24,8 @@ export class UserServiceService {
   }
 
   getAccessToken(nombre: string, clave: string): Observable<GetAccessTokenResponse> {
-    let body = { nombre, clave };
-    let url = this.URL.concat('/v0/user/login');
+    const body = { nombre, clave };
+    const url = this.URL.concat('/v0/user/login');
     return this.http.post<GetAccessTokenResponse>(url, body);
   }
   logOut(userID: string): Observable<logoutResponse> {
@@ -61,6 +61,6 @@ export class UserServiceService {
     }
   }
   normalizePhone(phone: string): string {
-    return phone.replace(/\s+/g, ''); 
+    return phone.replace(/\s+/g, '');
   }
 }

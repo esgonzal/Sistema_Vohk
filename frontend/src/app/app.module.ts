@@ -72,6 +72,7 @@ import { RecordTableComponent } from './components/record-table/record-table.com
 import { PasscodeTableComponent } from './components/passcode-table/passcode-table.component';
 import { CardTableComponent } from './components/card-table/card-table.component';
 import { FingerprintTableComponent } from './components/fingerprint-table/fingerprint-table.component';
+import { ResetPasswordComponent } from './components/vohk_app/reset-password/reset-password.component';
 
 
 export const CUSTOM_DATE_FORMATS = {
@@ -122,6 +123,7 @@ export const CUSTOM_DATE_FORMATS = {
     PasscodeTableComponent,
     CardTableComponent,
     FingerprintTableComponent,
+    ResetPasswordComponent,
   ],
   imports: [
     BrowserModule,

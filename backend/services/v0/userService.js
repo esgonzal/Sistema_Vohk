@@ -4,12 +4,12 @@ const TTLOCK_CLIENT_SECRET = '33b556bdb803763f2e647fc7a357dedf';
 
 async function login(username, password) {
     try {
-        console.log(username,password)
+        console.log("login en userService: ",username,password)
         const response = await axios.post('https://euapi.ttlock.com/oauth2/token',
             new URLSearchParams({ clientId: TTLOCK_CLIENT_ID, clientSecret: TTLOCK_CLIENT_SECRET, username, password }),
             { headers: { 'Content-Type': 'application/x-www-form-urlencoded', }, }
         );
-        console.log(response.data)
+        console.log("response.data en userService: ",response.data)
         return response.data;
     } catch (error) {
         if (error.response) {
