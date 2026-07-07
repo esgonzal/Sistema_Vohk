@@ -4,7 +4,6 @@ const userService = require('../../services/v0/userService');
 
 router.post('/login', async (req, res) => {
     const { nombre, clave } = req.body;
-    console.log(req.body)
     if (!nombre || !clave) {
         return res.status(400).json({ errmsg: 'Missing credentials', });
     }

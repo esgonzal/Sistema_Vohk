@@ -72,13 +72,11 @@ async function rename(accessToken, groupID, newName) {
     }
 }
 async function fetchAll(accessToken) {
-    console.log("accesstoken en groupService: ", accessToken)
     try {
         const groupResponse = await axios.get(
             `${TTLOCK_BASE_URL}/group/list`,
             { params: { clientId: TTLOCK_CLIENT_ID, accessToken, date: Date.now() } }
         );
-        console.log(groupResponse.data)
         const groups = groupResponse.data.list || [];
         groups.push({ groupId: -1, groupName: 'Sin Asociar' });
         const groupsWithLocks = await Promise.all(
