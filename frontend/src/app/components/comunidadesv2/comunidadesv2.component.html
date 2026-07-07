@@ -1,48 +1,23 @@
 <div class="pagina_completa" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
     <app-loader [loader]="isLoading"></app-loader>
+    <!-- SIDEBAR -->
     <div class="sidebar-grupos">
-        <div class="subtitle">
-            Mis Comunidades
-        </div>
-        <div class="searchBar">
-            <input type="text" placeholder="Busqueda" [(ngModel)]="searchText" (input)="searchGroups()" />
-        </div>
+        <div class="subtitle">Mis Comunidades</div>
+        <div class="searchBar"><input type="text" placeholder="Busqueda" [(ngModel)]="searchText"
+                (input)="searchGroups()" /></div>
         <div class="create-group-button">
             <button class="menuButton" style="width:200px;" (click)="crearGrupo()">Crear Comunidad</button>
         </div>
         <div class="groupList" *ngFor="let group of groupsFiltrados" (click)="chooseGroup(group)"
             [class.selected]="group === chosenGroup">
-            <div class="icono">
-                <fa-icon [icon]="faHome"></fa-icon>
-            </div>
-            <div class="grupo">
-                <span>{{ group.groupName }}</span>
-            </div>
+            <div class="icono"><fa-icon [icon]="faHome"></fa-icon></div>
+            <div class="grupo"><span>{{ group.groupName }}</span></div>
         </div>
-        <!-- <div class="groupList" *ngIf="chosenGroup && locksWithoutGroup.length > 0" (click)="chooseNoGroup()" [class.selected]="chosenGroup.groupId === -1"> -->
-        <!--
-        <div class="groupList" *ngIf="chosenGroup" (click)="chooseNoGroup()" [class.selected]="chosenGroup.groupId === -1">
-            <div class="icono">
-                <fa-icon [icon]="faHome"></fa-icon>
-            </div>
-            <div class="grupo">
-                <span>Sin Asociar</span>
-            </div>
-        </div>
-        -->
     </div>
     <div class="resto" *ngIf="chosenGroup">
         <div class="top">
-            <div class="groupName">
-                {{chosenGroup.groupName}}
-            </div>
+            <div class="groupName">{{ chosenGroup.groupName }}</div>
             <div class="groupButtons" *ngIf="chosenGroup.groupId !== -1" style="display: flex;">
-                <button class="menuButton" style="margin-right: 5px;"
-                    (click)="invitaciones(chosenGroup)">Invitaciones</button>
-                <div *ngIf="userID==='soporte@vohk.cl'">
-                    <button class="menuButton" style="margin-right: 5px;"
-                        (click)="descargarExcel(chosenGroup)">Descargar eKeys</button>
-                </div>
                 <button [matMenuTriggerFor]="editarMenu" class="menuButton" style="margin-right: 5px;">Editar</button>
                 <mat-menu #editarMenu="matMenu">
                     <button mat-menu-item (click)="cambiarNombre(chosenGroup.groupId)"><span>Editar
@@ -58,45 +33,36 @@
             </div>
         </div>
         <div class="listado_cerraduras">
-            <div *ngIf="chosenGroup.lockCount > 0">
+            <div *ngIf="(chosenGroup?.locks?.length ?? 0) > 0">
                 <mat-grid-list [cols]="cols" rowHeight="350px">
                     <mat-grid-tile *ngFor="let lock of chosenGroup.locks">
-                        <div *ngIf="hasValidAccess(lock)===true">
+                        <ng-container *ngIf="hasValidAccess(lock); else invalidLock">
                             <mat-card class="valid_lock" (click)="onLockButtonClick(lock)">
                                 <img class="custom-image" src="../../../assets/images/door.jpg" alt="Image Description">
                                 <mat-card-header>
                                     <div mat-card-title
-                                        style="white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">
-                                        {{lock.lockAlias}}</div>
+                                        style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{
+                                        lock.lockAlias }}</div>
                                     <div mat-card-subtitle>{{ lock.hasGateway === 1 ? 'Online' : 'Offline' }}</div>
                                 </mat-card-header>
                             </mat-card>
-                        </div>
-                        <div *ngIf="hasValidAccess(lock)===false">
+                        </ng-container>
+                        <ng-template #invalidLock>
                             <mat-card class="valid_lock" (click)="onInvalidButtonClick()">
                                 <img class="custom-image" src="../../../assets/images/door.jpg" alt="Image Description">
                                 <mat-card-header>
-                                    <div mat-card-title>{{lock.lockAlias}}</div>
+                                    <div mat-card-title>{{ lock.lockAlias }}</div>
                                     <div mat-card-subtitle>{{ lock.hasGateway === 1 ? 'Online' : 'Offline' }}</div>
                                 </mat-card-header>
                             </mat-card>
-                        </div>
+                        </ng-template>
                     </mat-grid-tile>
                 </mat-grid-list>
             </div>
-            <div *ngIf="chosenGroup.lockCount === 0" style="margin-top: 100px;">
+            <div *ngIf="chosenGroup?.locks?.length === 0" style="margin-top: 100px;">
                 <p style="text-align:center;">Esta comunidad no tiene cerraduras.</p>
                 <p style="text-align:center;">Para agregar una cerradura, presione el botón Administrar Cerraduras.</p>
             </div>
         </div>
     </div>
 </div>
-<app-pop-up *ngIf="this.popupService.newGroup || this.popupService.addLockGROUP || this.popupService.removeLockGROUP"
-    style="z-index: 1001;
-                    "></app-pop-up>
-
-<app-access-modal *ngIf="this.popupService.delete || this.popupService.cambiarNombre || this.popupService.invitation || 
-    this.popupService.selectLocksForPasscode || this.popupService.emailSentInvitation"
-    style="z-index: 1001;"></app-access-modal>
-
-<app-functions-modal *ngIf="this.popupService.invalidLock" style="z-index: 1001;"></app-functions-modal>

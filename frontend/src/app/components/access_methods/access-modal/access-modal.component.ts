@@ -61,36 +61,12 @@ export class AccessModalComponent implements OnInit {
               this.passcodeService.fetchPasscodes(this.popupService.lockID);
             }
             break;
-          case 'la ekey':
-            response = await lastValueFrom(this.ekeyService.deleteEkey(this.popupService.userID, this.popupService.elementID, this.popupService.lockID, this.popupService.ekeyUsername)) as operationResponse;
-            if (response?.errcode === 0) {
-              this.popupService.delete = false;
-              //window.location.reload();
-              this.ekeyService.fetchEkeys(this.popupService.lockID);
-            }
-            break;
           case 'la tarjeta':
             response = await lastValueFrom(this.cardService.deleteCard(this.popupService.userID, this.popupService.lockID, this.popupService.elementID)) as operationResponse;
             if (response?.errcode === 0) {
               this.popupService.delete = false;
               //window.location.reload();
               this.cardService.fetchCards(this.popupService.lockID);
-            }
-            break;
-          case 'la huella':
-            response = await lastValueFrom(this.fingerprintService.deleteFingerprint(this.popupService.userID, this.popupService.lockID, this.popupService.elementID)) as operationResponse;
-            if (response?.errcode === 0) {
-              this.popupService.delete = false;
-              //window.location.reload();
-              this.fingerprintService.fetchFingerprints(this.popupService.lockID);
-            }
-            break;
-          case 'grupo':
-            response = await lastValueFrom(this.groupService.deleteGroup(this.popupService.userID, this.popupService.elementID.toString())) as operationResponse;
-            if (response?.errcode === 0) {
-              this.popupService.delete = false;
-              //window.location.reload();
-              //this.ekeyService.fetchEkeys(this.popupService.lockID);
             }
             break;
           default:
@@ -111,91 +87,9 @@ export class AccessModalComponent implements OnInit {
       this.isLoading = false;
     }
   }
-  async autorizar() {
-    this.isLoading = true;
-    let response = await lastValueFrom(this.ekeyService.AuthorizeEkey(this.popupService.userID, this.popupService.lockID, this.popupService.elementID)) as operationResponse;
-    if (response.errcode === 0) {
-      this.popupService.autorizar = false;
-      this.ekeyService.fetchEkeys(this.popupService.lockID);
-    }
-    this.isLoading = false;
-  }
-  async desautorizar() {
-    this.isLoading = true;
-    let response = await lastValueFrom(this.ekeyService.cancelAuthorizeEkey(this.popupService.userID, this.popupService.lockID, this.popupService.elementID)) as operationResponse;
-    if (response.errcode === 0) {
-      this.popupService.desautorizar = false;
-      this.ekeyService.fetchEkeys(this.popupService.lockID);
-    }
-    this.isLoading = false;
-  }
   remoteEnableToggleChange(event: any) {
     this.remoteEnableToggle = event.checked;
     this.cdr.detectChanges()
-  }
-  async cambiarRemoteUnlock() {
-    let remote = '2';
-    if (this.remoteEnableToggle === true) {
-      remote = '1';
-    }
-    this.isLoading = true;
-    try {
-      let response = await lastValueFrom(this.ekeyService.modifyEkey(this.popupService.userID, this.popupService.elementID, undefined, remote)) as operationResponse;
-      //console.log(response);
-      if (response.errcode === 0) {
-        this.popupService.changeRemoteEnable = false;
-        window.location.reload();
-      } else if (response.errcode === 10003) {
-        this.popupService.changeRemoteEnable = false;
-        sessionStorage.clear();
-      } else {
-        console.log(response);
-      }
-    } catch (error) {
-      console.error("Error while changing remote unlock:", error);
-    } finally {
-      this.isLoading = false;
-    }
-  }
-  async congelar() {
-    this.isLoading = true;
-    try {
-      let response = await lastValueFrom(this.ekeyService.freezeEkey(this.popupService.userID, this.popupService.elementID)) as operationResponse;
-      //console.log(response)
-      if (response.errcode === 0) {
-        this.popupService.congelar = false;
-        this.ekeyService.fetchEkeys(this.popupService.lockID);
-      } else if (response?.errcode === 10003) {
-        sessionStorage.clear();
-        this.popupService.congelar = false;
-      } else {
-        this.error = "La acción congelar no pudo ser completada, intente nuevamente mas tarde."
-      }
-    } catch (error) {
-      console.error("Error while freezing:", error);
-    } finally {
-      this.isLoading = false;
-    }
-  }
-  async descongelar() {
-    this.isLoading = true;
-    try {
-      let response = await lastValueFrom(this.ekeyService.unfreezeEkey(this.popupService.userID, this.popupService.elementID));
-      //console.log(response)
-      if (response.errcode === 0) {
-        this.popupService.descongelar = false;
-        this.ekeyService.fetchEkeys(this.popupService.lockID);
-      } else if (response?.errcode === 10003) {
-        sessionStorage.clear();
-        this.popupService.descongelar = false;
-      } else {
-        this.error = "La acción descongelar no pudo ser completada, intente nuevamente mas tarde."
-      }
-    } catch (error) {
-      console.error("Error while unfreezing:", error);
-    } finally {
-      this.isLoading = false;
-    }
   }
   async cambiarNombre() {
     this.error = '';
@@ -207,20 +101,11 @@ export class AccessModalComponent implements OnInit {
       } else {
         if (this.popupService.cambiarNombre) {
           switch (this.popupService.elementType) {
-            case 'ekey':
-              response = await lastValueFrom(this.ekeyService.modifyEkey(this.popupService.userID, this.popupService.elementID, this.name)) as operationResponse;
-              break;
             case 'passcode':
               response = await lastValueFrom(this.passcodeService.changePasscode(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, this.name)) as operationResponse;
               break;
             case 'card':
               response = await lastValueFrom(this.cardService.changeName(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, this.name)) as operationResponse;
-              break;
-            case 'fingerprint':
-              response = await lastValueFrom(this.fingerprintService.changeName(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, this.name)) as operationResponse;
-              break;
-            case 'grupo':
-              response = await lastValueFrom(this.groupService.renameGroup(this.popupService.userID, this.popupService.elementID.toString(), this.name)) as operationResponse;
               break;
             case 'lock':
               response = await lastValueFrom(this.lockService.changeName(this.popupService.userID, this.popupService.lockID, this.name)) as operationResponse;
@@ -266,17 +151,8 @@ export class AccessModalComponent implements OnInit {
         let newEndDate = moment(newEndDay).add(this.lockService.transformarHora(datos.endHour), "milliseconds").valueOf()
         if (moment(newEndDate).isAfter(moment(newStartDate))) {
           switch (this.popupService.elementType) {
-            case 'ekey':
-              response = await lastValueFrom(this.ekeyService.changePeriod(this.popupService.userID, this.popupService.elementID, newStartDate.toString(), newEndDate.toString())) as operationResponse;
-              break;
             case 'passcode':
               response = await lastValueFrom(this.passcodeService.changePasscode(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, undefined, undefined, newStartDate.toString(), newEndDate.toString())) as operationResponse;
-              break;
-            case 'card':
-              response = await lastValueFrom(this.cardService.changePeriod(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, newStartDate.toString(), newEndDate.toString())) as operationResponse;
-              break;
-            case 'fingerprint':
-              response = await lastValueFrom(this.fingerprintService.changePeriod(this.popupService.userID, this.popupService.lockID, this.popupService.elementID, newStartDate.toString(), newEndDate.toString())) as operationResponse;
               break;
             default:
               console.error('Invalid element type for deletion:', this.popupService.elementID);

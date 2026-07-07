@@ -146,30 +146,6 @@ export class PopUpComponent implements OnInit {
     if (!this.autoLockToggle) { this.customAutoLockTime = 0; }
     this.cdr.detectChanges()
   }
-  async cambiarRemoteUnlock() {
-    let remote = '2';
-    if (this.remoteEnableToggle === true) {
-      remote = '1';
-    }
-    this.isLoading = true;
-    try {
-      let response = await lastValueFrom(this.ekeyService.modifyEkey(this.popupService.userID, this.popupService.elementID, undefined, remote)) as operationResponse;
-      //console.log(response);
-      if (response.errcode === 0) {
-        this.popupService.changeRemoteEnable = false;
-        window.location.reload();
-      } else if (response.errcode === 10003) {
-        this.popupService.changeRemoteEnable = false;
-        sessionStorage.clear();
-      } else {
-        console.log(response);
-      }
-    } catch (error) {
-      console.error("Error while changing remote unlock:", error);
-    } finally {
-      this.isLoading = false;
-    }
-  }
   transformarAsegundos(value: string) {
     switch (value) {
       case "1":
@@ -213,36 +189,6 @@ export class PopUpComponent implements OnInit {
   formatearHora() {
     return moment(this.popupService.currentTime).format("DD/MM/YYYY HH:mm:ss")
   }
-  async crearGrupo() {
-    this.error = '';
-    this.isLoading = true;
-    try {
-      if (!this.name) {
-        this.error = "Por favor ingrese el nombre"
-      } else {
-        let response = await lastValueFrom(this.groupService.addGroup(this.popupService.userID, this.name)) as addGroupResponse;
-        //console.log(response)
-        if (response.groupID) {
-          this.popupService.newGroup = false;
-          window.location.reload();
-        } else if (response.errcode === -3) {
-          this.error = "El nombre ingresado es muy largo";
-        } else if (response.errcode === -1016) {
-          this.error = "Ya existe un grupo con ese mismo nombre, elija otro nombre";
-        } else if (response.errcode === 10003) {
-          sessionStorage.clear();
-          this.popupService.newGroup = false;
-        } else {
-          this.error = "No se pudo completar la acción, intente nuevamente más tarde";
-          console.log(response)
-        }
-      }
-    } catch (error) {
-      console.error("Error while creating a group:", error);
-    } finally {
-      this.isLoading = false;
-    }
-  }
   openAddLockGroup() {
     this.popupService.addLockGROUP = true;
     this.popupService.addRemoveLockGROUP = false;
@@ -284,56 +230,6 @@ export class PopUpComponent implements OnInit {
       this.gatewayService.selectedHubs.push({ id: hubId });
     }
     console.log("selectedHubs: ", this.gatewayService.selectedHubs);
-  }
-  async removeSelectedLocksFromGroup() {
-    this.isLoading = true;
-    try {
-      if (this.selectedLocks.length === 0) {
-        this.error = "No seleccionó ninguna cerradura para remover"
-      } else {
-        for (const lock of this.selectedLocks) {
-          let response = await lastValueFrom(this.groupService.setGroupofLock(this.popupService.userID, lock.id.toString(), "0")) as operationResponse;
-          if (response.errcode === 0) {
-          } else if (response?.errcode === 10003) {
-            sessionStorage.clear();
-            this.popupService.removeLockGROUP = false;
-          } else {
-            console.log(response)
-          }
-        }
-        this.popupService.removeLockGROUP = false;
-        window.location.reload();
-      }
-    } catch (error) {
-      console.error("Error while removing locks from a group:", error);
-    } finally {
-      this.isLoading = false;
-    }
-  }
-  async addSelectedLocksToGroup() {
-    this.isLoading = true;
-    try {
-      if (this.selectedLocks.length === 0) {
-        this.error = "No seleccionó ninguna cerradura para agregar"
-      } else {
-        for (const lock of this.selectedLocks) {
-          let response = await lastValueFrom(this.groupService.setGroupofLock(this.popupService.userID, lock.id.toString(), this.popupService.group.groupId.toString())) as operationResponse;
-          if (response.errcode === 0) {
-          } else if (response.errcode === 10003) {
-            sessionStorage.clear();
-            this.popupService.addLockGROUP = false;
-          } else {
-            console.log(response)
-          }
-        }
-        this.popupService.addLockGROUP = false;
-        window.location.reload();
-      }
-    } catch (error) {
-      console.error("Error while adding locks from a group:", error);
-    } finally {
-      this.isLoading = false;
-    }
   }
   isLockSelected(lockId: number): boolean {
     return this.ekeyService.selectedLocks.some(lock => lock.id === lockId);

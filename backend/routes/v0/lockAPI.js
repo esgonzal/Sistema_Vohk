@@ -4,6 +4,28 @@ const axios = require('axios');
 const TTLOCK_CLIENT_ID = 'c4114592f7954ca3b751c44d81ef2c7d';
 const TTLOCK_BASE_URL = 'https://euapi.ttlock.com/v3';
 const { getAccessTokenOrFail, buildHeaders } = require('../../utils/ttlock');
+const lockService = require('../../services/v0/lockService');
+
+router.post('/dashboard', async (req, res) => {
+    const { lockID } = req.body || {};
+    const accessToken = req.headers.authorization?.replace('Bearer ', '');
+    if (!accessToken) {
+        return res.status(401).json({ errmsg: 'Missing access token' });
+    }
+    if (!lockID) {
+        return res.status(400).json({ errmsg: 'Missing lockID' });
+    }
+    try {
+        const data = await lockService.getLockDashboard({ accessToken, lockID });
+        return res.json(data);
+    } catch (error) {
+        console.error('lock dashboard error:', error);
+        return res.status(error.status || 500).json({
+            errcode: error.errcode || 'UNKNOWN',
+            errmsg: error.message || 'Error fetching lock dashboard'
+        });
+    }
+});
 
 router.post('/list', async (req, res) => {
     const { userID, pageNo, pageSize } = req.body;

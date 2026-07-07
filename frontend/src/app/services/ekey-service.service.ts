@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { lastValueFrom, Observable } from 'rxjs';
 import { EkeyResponse, operationResponse, sendEkeyResponse, LockListResponse } from '../Interfaces/API_responses';
@@ -6,6 +6,7 @@ import { LockData } from '../Interfaces/Lock';
 import { RecipientList } from '../Interfaces/RecipientList';
 import { Ekey } from '../Interfaces/Elements';
 import { MatTableDataSource } from '@angular/material/table';
+import { SelectedLock } from '../Interfaces/SelectedLock';
 
 @Injectable({
   providedIn: 'root'
@@ -28,40 +29,31 @@ export class EkeyServiceService {
 
   constructor(private http: HttpClient) { }
 
-  async fetchEkeys(lockId: number) {
-    this.ekeys = [];
-    try {
-      const response = await lastValueFrom(
-        this.getEkeysofLock(this.userID, lockId)
-      );
-      const typedResponse = response as EkeyResponse;
-      if (typedResponse?.list) {
-        this.ekeys = typedResponse.list;
-      } else if (typedResponse.errcode === 10003) {
-        sessionStorage.clear();
-      } else {
-        console.log("Ekeys not available");
-      }
-    } catch (error) {
-      console.error("Error while fetching ekeys:", error);
-    } finally {
-      this.ekeysDataSource = new MatTableDataSource(this.ekeys);
-    }
+  private getHeaders(accessToken: string): HttpHeaders {
+    return new HttpHeaders({ Authorization: `Bearer ${accessToken}` });
   }
-  getEkeysofAccount(userID: string, pageNo: number, pageSize: number, groupID?: number): Observable<LockListResponse> {
-    let body = { userID, pageNo, pageSize, groupID };
-    let url = this.URL.concat('/v0/ekey/list');
-    return this.http.post<LockListResponse>(url, body);
+
+  getEkeysofAccount(accessToken: string, groupID: number): Observable<LockListResponse> {
+    const url = this.URL.concat('/v0/ekey/list');
+    const body = { groupID };
+    return this.http.post<LockListResponse>(url, body, { headers: this.getHeaders(accessToken) });
   }
-  getEkeysofLock(userID: string, lockID: number): Observable<EkeyResponse> {
-    let body = { userID, lockID };
-    console.log(body)
-    return this.http.post<EkeyResponse>(this.URL + '/v0/ekey/getListLock', body);
+
+  getEkeysofLock(accessToken: string, lockID: number): Observable<EkeyResponse> {
+    const url = this.URL.concat('/v0/ekey/getListLock');
+    const body = { lockID };
+    return this.http.post<EkeyResponse>(url, body, { headers: this.getHeaders(accessToken) });
   }
-  sendEkey(userID: string, lockID: number, lockAlias: string, recieverName: string, keyName: string,
+  sendMany(accessToken: string, locks: SelectedLock[], receiverName: string, keyName: string, startDate: string, endDate: string, keyRight: number, remoteEnable: number, notifyEmail: boolean, email: string) {
+    const url = this.URL.concat('/v0/ekey/sendMany');
+    const body = { locks, receiverName, keyName, startDate, endDate, keyRight, remoteEnable, notifyEmail, email };
+    return this.http.post(url, body, { headers: this.getHeaders(accessToken) });
+  }
+
+  sendEkey(userID: string, lockID: number, lockAlias: string, receiverName: string, keyName: string,
     startDate: string, endDate: string, keyRight: number, remoteEnable: number, email: string,
     keyType?: number, startDay?: string, endDay?: string, weekDays?: string): Observable<sendEkeyResponse> {
-    let body = { userID, lockID, lockAlias, recieverName, keyName, startDate, endDate, keyRight, remoteEnable, email, keyType, startDay, endDay, weekDays };
+    let body = { userID, lockID, lockAlias, receiverName, keyName, startDate, endDate, keyRight, remoteEnable, email, keyType, startDay, endDay, weekDays };
     let url = this.URL.concat('/v0/ekey/send');
     //console.log(body)
     return this.http.post<sendEkeyResponse>(url, body);
@@ -80,40 +72,40 @@ export class EkeyServiceService {
     let url = this.URL.concat('/v0/ekey/send2');
     return this.http.post(url, body);
   }
-  deleteEkey(userID: string, keyID: number, lockID: number, keyUsername: string): Observable<operationResponse> {
-    let body = { userID, keyID, lockID, keyUsername };
-    let url = this.URL.concat('/v0/ekey/delete');
-    return this.http.post<operationResponse>(url, body);
+  deleteEkey(accessToken: string, keyID: number): Observable<operationResponse> {
+    const url = this.URL.concat('/v0/ekey/delete');
+    const body = { keyID };
+    return this.http.post<operationResponse>(url, body, { headers: this.getHeaders(accessToken) });
   }
-  freezeEkey(userID: string, keyID: number): Observable<operationResponse> {
-    let body = { userID, keyID };
-    let url = this.URL.concat('/v0/ekey/freeze');
-    return this.http.post<operationResponse>(url, body);
+  freezeEkey(accessToken: string, keyID: number): Observable<operationResponse> {
+    const url = this.URL.concat('/v0/ekey/freeze');
+    const body = { keyID };
+    return this.http.post<operationResponse>(url, body, { headers: this.getHeaders(accessToken) });
   }
-  unfreezeEkey(userID: string, keyID: number): Observable<operationResponse> {
-    let body = { userID, keyID };
-    let url = this.URL.concat('/v0/ekey/unfreeze');
-    return this.http.post<operationResponse>(url, body);
+  unfreezeEkey(accessToken: string, keyID: number): Observable<operationResponse> {
+    const body = { keyID };
+    const url = this.URL.concat('/v0/ekey/unfreeze');
+    return this.http.post<operationResponse>(url, body, { headers: this.getHeaders(accessToken) });
   }
-  modifyEkey(userID: string, keyID: number, newName?: string, remoteEnable?: string): Observable<operationResponse> {
-    let body = { userID, keyID, newName, remoteEnable };
-    let url = this.URL.concat('/v0/ekey/modify');
-    return this.http.post<operationResponse>(url, body);
+  modifyEkey(accessToken: string, keyID: number, newName?: string): Observable<operationResponse> {
+    const body = { keyID, newName };
+    const url = this.URL.concat('/v0/ekey/modify');
+    return this.http.post<operationResponse>(url, body, { headers: this.getHeaders(accessToken) });
   }
-  changePeriod(userID: string, keyID: number, newStartDate: string, newEndDate: string): Observable<operationResponse> {
-    let body = { userID, keyID, newStartDate, newEndDate };
-    let url = this.URL.concat('/v0/ekey/changePeriod');
-    return this.http.post<operationResponse>(url, body);
+  changePeriod(accessToken: string, keyID: number, newStartDate: number, newEndDate: number): Observable<operationResponse> {
+    const body = { keyID, newStartDate, newEndDate };
+    const url = this.URL.concat('/v0/ekey/changePeriod');
+    return this.http.post<operationResponse>(url, body, { headers: this.getHeaders(accessToken) });
   }
-  AuthorizeEkey(userID: string, lockID: number, keyID: number): Observable<operationResponse> {
-    let body = { userID, lockID, keyID };
-    let url = this.URL.concat('/v0/ekey/authorize');
-    return this.http.post<operationResponse>(url, body);
+  AuthorizeEkey(accessToken: string, lockID: number, keyID: number): Observable<operationResponse> {
+    const url = this.URL.concat('/v0/ekey/authorize');
+    const body = { lockID, keyID };
+    return this.http.post<operationResponse>(url, body, { headers: this.getHeaders(accessToken) });
   }
-  cancelAuthorizeEkey(userID: string, lockID: number, keyID: number): Observable<operationResponse> {
-    let body = { userID, lockID, keyID };
-    let url = this.URL.concat('/v0/ekey/unauthorize');
-    return this.http.post<operationResponse>(url, body);
+  cancelAuthorizeEkey(accessToken: string, lockID: number, keyID: number): Observable<operationResponse> {
+    const url = this.URL.concat('/v0/ekey/unauthorize');
+    const body = { lockID, keyID };
+    return this.http.post<operationResponse>(url, body, { headers: this.getHeaders(accessToken) });
   }
   generateEmail(userID: string, lockAlias: string, recieverName: string, startDate: string, endDate: string, email?: string): Observable<sendEkeyResponse> {
     console.log("generar email");

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { LockListResponse, operationResponse } from '../Interfaces/API_responses';
 import { LockData, LockDetails } from '../Interfaces/Lock';
@@ -34,6 +34,16 @@ export class LockServiceService {
 
   constructor(private http: HttpClient, private sanitizer: DomSanitizer) { }
 
+  private getHeaders(accessToken: string): HttpHeaders {
+    return new HttpHeaders({ Authorization: `Bearer ${accessToken}` });
+  }
+
+  getLockDashboard(lockID: number, accessToken: string): Observable<any> {
+    const url = this.URL.concat('/v0/lock/dashboard');
+    const body = { lockID };
+    return this.http.post(url, body, { headers: this.getHeaders(accessToken) });
+  }
+
   public transformarHora(Tiempo: string) {//Esta funcion está encargada de convertir el resultado del timepicker, un string de formato ("HH:mm"), en un number que representa el tiempo en milisegundos
     let tiempoHora = Tiempo.split(":")[0]
     let tiempoMinuto = Tiempo.split(":")[1]
@@ -52,79 +62,6 @@ export class LockServiceService {
       var retorno = inicio.toString().concat(' - ').concat(final.toString());
       return retorno
     }
-  }
-  periodoValidezEkey(ekey: Ekey) {
-    if (Number(ekey.endDate) === 1) {//UNA VEZ
-      let retorno = moment(ekey.startDate).format('DD/MM/YYYY HH:mm').concat(" Una vez");
-      return retorno;
-    } else if (ekey.keyType === 4) {//SOLICITANTE
-      const dayNames = ["Sabado", "Domingo", "Lunes", "Martes", "Miercoles", "Jueves", "Viernes"];
-      let HoraInicio = moment(ekey.startDate).format('HH:mm');
-      let HoraFinal = moment(ekey.endDate).format('HH:mm');
-      let DiaInicio = moment(ekey.startDay).format('DD/MM/YYYY');
-      let DiaFinal = moment(ekey.endDay).format('DD/MM/YYYY');
-      let selectedDays = JSON.parse(ekey.weekDays);
-      let formattedSelectedDays = selectedDays.map((day: number) => dayNames[day]).join(', ');
-      let formattedResult = `${DiaInicio} - ${DiaFinal}, ${formattedSelectedDays}, ${HoraInicio} ~ ${HoraFinal}`;
-      return formattedResult
-    } else {
-      return this.periodoValidez(Number(ekey.startDate), Number(ekey.endDate))
-    }
-  }
-  periodoValidezPasscode(passcode: Passcode) {
-    var respuesta
-    if (passcode.keyboardPwdType === 1) {
-      respuesta = moment(passcode.sendDate).format("DD/MM/YYYY HH:mm").concat(' Una Vez');
-    } else if (passcode.keyboardPwdType === 2) {
-      respuesta = 'Permanente'
-    } else if (passcode.keyboardPwdType === 3) {
-      var inicio = moment(passcode.startDate).format("DD/MM/YYYY HH:mm")
-      var final = moment(passcode.endDate).format("DD/MM/YYYY HH:mm")
-      respuesta = inicio.toString().concat(' - ').concat(final.toString());
-    } else if (passcode.keyboardPwdType === 4) {
-      respuesta = moment(passcode.sendDate).format("DD/MM/YYYY HH:mm").concat(' Borrar');
-    } else if (passcode.keyboardPwdType === 5) {
-      var inicio = moment(passcode.startDate).format(" HH:mm")
-      var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = inicio.concat(" - ", final, " Fin de Semana");
-    } else if (passcode.keyboardPwdType === 6) {
-      var inicio = moment(passcode.startDate).format(" HH:mm")
-      var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = inicio.concat(" - ", final, " Diaria");
-    } else if (passcode.keyboardPwdType === 7) {
-      var inicio = moment(passcode.startDate).format(" HH:mm")
-      var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = inicio.concat(" - ", final, " Dia de Trabajo");
-    } else if (passcode.keyboardPwdType === 8) {
-      var inicio = moment(passcode.startDate).format(" HH:mm")
-      var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = inicio.concat(" - ", final, " Lunes")
-    } else if (passcode.keyboardPwdType === 9) {
-      var inicio = moment(passcode.startDate).format(" HH:mm")
-      var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = inicio.concat(" - ", final, " Martes")
-    } else if (passcode.keyboardPwdType === 10) {
-      var inicio = moment(passcode.startDate).format(" HH:mm")
-      var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = inicio.concat(" - ", final, " Miercoles")
-    } else if (passcode.keyboardPwdType === 11) {
-      var inicio = moment(passcode.startDate).format(" HH:mm")
-      var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = inicio.concat(" - ", final, " Jueves")
-    } else if (passcode.keyboardPwdType === 12) {
-      var inicio = moment(passcode.startDate).format(" HH:mm")
-      var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = inicio.concat(" - ", final, " Viernes")
-    } else if (passcode.keyboardPwdType === 13) {
-      var inicio = moment(passcode.startDate).format(" HH:mm")
-      var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = inicio.concat(" - ", final, " Sabado")
-    } else {
-      var inicio = moment(passcode.startDate).format(" HH:mm")
-      var final = moment(passcode.endDate).format(" HH:mm")
-      respuesta = inicio.concat(" - ", final, " Domingo")
-    }
-    return respuesta;
   }
   periodoValidezFingerprint(fingerprint: Fingerprint) {
     if (fingerprint.fingerprintType === 1) {
@@ -211,68 +148,6 @@ export class LockServiceService {
         return this.sanitizer.bypassSecurityTrustHtml('<span style="color: red;">Caducado</span>');
       }
       else { return this.sanitizer.bypassSecurityTrustHtml('<span style="color: green;">Valido</span>'); }
-    }
-  }
-  consultarEstadoEkey(ekey: Ekey) {
-    if (ekey.keyStatus === "110402") {//PENDING
-      return this.sanitizer.bypassSecurityTrustHtml('<span style="color: gray;">Pendiente</span>');
-    }
-    if (ekey.keyStatus === "110405") {//FREEZED
-      return this.sanitizer.bypassSecurityTrustHtml('<span style="color: blue;">Congelada</span>');
-    }
-    else {//NORMAL
-      if (!ekey.endDay) {//MIENTRAS NO SEA SOLICITANTE 
-        if (Number(ekey.endDate) === 0) {//PERMANENTE
-          return this.sanitizer.bypassSecurityTrustHtml('<span style="color: green;">Valido</span>');
-        }
-        if (Number(ekey.endDate) === 1) {//UNA VEZ
-          if (moment(ekey.startDate).add(1, "hour").isAfter(moment())) {
-            return this.sanitizer.bypassSecurityTrustHtml('<span style="color: green;">Valido</span>');
-          } else {
-            return this.sanitizer.bypassSecurityTrustHtml('<span style="color: red;">Invalido</span>');
-          }
-        }
-        else {//PERIODICA
-          return this.consultarEstado(Number(ekey.endDate))
-        }
-      }
-      else {//SOLICITANTE
-        let fecha = moment(ekey.endDay).format("YYYY-MM-DD");
-        let tiempo = moment(ekey.endDate).format("YYYY-MM-DD/HH:mm")
-        tiempo = tiempo.split("/")[1];
-        let end = fecha.concat(" ", tiempo);
-        return this.consultarEstado(moment(end).valueOf())
-      }
-    }
-  }
-  consultarEstadoPasscode(passcode: Passcode) {
-    if (passcode.keyboardPwdType === 1) {
-      let seisHoras = moment(passcode.startDate).add(6, 'hours')
-      let ahora = moment()
-      if (ahora.isAfter(seisHoras)) {
-        return 'Caducado'
-      } else {
-        return 'Valido'
-      }
-    }
-    if (passcode.keyboardPwdType === 2) {
-      return 'Valido'
-    }
-    if (passcode.keyboardPwdType === 3) {
-      let ahora = moment()
-      let inicio = moment(passcode.startDate)
-      let final = moment(passcode.endDate)
-      if (ahora.isBefore(inicio) || ahora.isAfter(final) || final.isBefore(inicio)) {
-        return 'Inactivo'
-      } else {
-        return 'Valido'
-      }
-    }
-    if (passcode.keyboardPwdType === 4) {
-      return 'Valido'
-    }
-    else {
-      return 'Valido'
     }
   }
   consultarSuccess(success: number) {

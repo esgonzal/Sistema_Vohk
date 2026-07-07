@@ -1,0 +1,104 @@
+<app-loader [loader]="isLoading"></app-loader>
+<div class="contenido">
+    <div class="button-container">
+        <input type="text" [(ngModel)]="searchText" placeholder="Buscar Ekeys..." (input)="searchEkeys()">
+        <div>
+            <button (click)="crearEkey()">Generar</button>
+            <button (click)="refresh()">Actualizar</button>
+        </div>
+    </div>
+    <table mat-table [dataSource]="dataSource" matSort class="table">
+        <ng-container matColumnDef="Nombre">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                Nombre
+            </th>
+            <td mat-cell *matCellDef="let ekey">
+                {{ ekey.keyName }}
+            </td>
+        </ng-container>
+        <ng-container matColumnDef="Destinatario">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                Cuenta destinatario
+            </th>
+            <td mat-cell *matCellDef="let ekey">
+                {{ ekey.username }}
+            </td>
+        </ng-container>
+        <ng-container matColumnDef="Rol">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                Rol
+            </th>
+            <td mat-cell *matCellDef="let ekey">
+                {{ ekey.keyRight === 0 ? 'Usuario' : 'Administrador Secundario' }}
+            </td>
+        </ng-container>
+        <ng-container matColumnDef="Fecha">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                Fecha
+            </th>
+            <td mat-cell *matCellDef="let ekey">
+                {{ formatTimestamp(ekey.date) }}
+            </td>
+        </ng-container>
+        <ng-container matColumnDef="Periodo_validez">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                Período de validez
+            </th>
+            <td mat-cell *matCellDef="let ekey">
+                {{ periodoValidezEkey(ekey) }}
+            </td>
+        </ng-container>
+        <ng-container matColumnDef="Valido">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                Estado
+            </th>
+            <td mat-cell *matCellDef="let ekey">
+                <span [style.color]="ekey.displayStatus.color">{{ ekey.displayStatus.text }}</span>
+            </td>
+        </ng-container>
+        <ng-container matColumnDef="Botones">
+            <th mat-header-cell *matHeaderCellDef>
+                Operación
+            </th>
+            <td mat-cell *matCellDef="let ekey">
+                <button class="custom-button" [matMenuTriggerFor]="editMenu">
+                    Editar
+                </button>
+                <mat-menu #editMenu="matMenu">
+                    <button mat-menu-item (click)="cambiarNombreEkey(ekey.keyId)">
+                        Editar nombre
+                    </button>
+                    <button mat-menu-item (click)="cambiarPeriodoEkey(ekey.keyId)">
+                        Editar período
+                    </button>
+                </mat-menu>
+                <button class="custom-button" [matMenuTriggerFor]="adminMenu">
+                    Admin
+                </button>
+                <mat-menu #adminMenu="matMenu">
+                    <button mat-menu-item (click)="congelar(ekey.keyId, ekey.username)">
+                        Congelar
+                    </button>
+                    <button mat-menu-item (click)="descongelar(ekey.keyId, ekey.username)">
+                        Descongelar
+                    </button>
+                    <button mat-menu-item (click)="Autorizar(ekey.keyId, ekey.username)">
+                        Autorizar
+                    </button>
+                    <button mat-menu-item (click)="Desautorizar(ekey.keyId, ekey.username)">
+                        Desautorizar
+                    </button>
+                </mat-menu>
+                <button class="custom-button-eliminar" (click)="borrarEkey(ekey.keyId)">
+                    Eliminar
+                </button>
+            </td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns">
+        </tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns">
+        </tr>
+    </table>
+    <mat-paginator [pageSize]="25" [pageSizeOptions]="[10,25,50,100]" showFirstLastButtons>
+    </mat-paginator>
+</div>

@@ -11,50 +11,29 @@ const getLockCards = async ({ accessToken, lockID }) => {
     try {
         const now = Date.now();
         let allCards = [];
-        const firstResponse = await axios.get(
-            `${TTLOCK_BASE_URL}/identityCard/list`,
-            {
-                params: { clientId: TTLOCK_CLIENT_ID, accessToken, lockId: lockID, pageNo: 1, pageSize: MAX_PAGE_SIZE, orderBy: 1, date: now },
-                headers: buildHeaders(accessToken)
-            }
-        );
+        const fetchPage = async (pageNo) => {
+            return axios.get(`${TTLOCK_BASE_URL}/identityCard/list`, {
+                params: { clientId: TTLOCK_CLIENT_ID, accessToken, lockId: lockID, pageNo, pageSize: MAX_PAGE_SIZE, orderBy: 1, date: now }
+            });
+        };
+        const firstResponse = await fetchPage(1);
         const firstData = firstResponse.data;
         if (!firstData?.list) {
-            throw {
-                status: 400,
-                errcode: firstData.errcode,
-                message: firstData.errmsg
-            };
+            throw { status: 400, errcode: firstData?.errcode, message: firstData?.errmsg };
         }
         allCards.push(...firstData.list);
-        let totalPages = firstData.pages || 1;
-        if (totalPages > MAX_PAGES) {
-            totalPages = MAX_PAGES;
-        }
+        let totalPages = Math.min(firstData.pages || 1, MAX_PAGES);
         for (let page = 2; page <= totalPages; page++) {
-            const response = await axios.get(
-                `${TTLOCK_BASE_URL}/identityCard/list`,
-                {
-                    params: { clientId: TTLOCK_CLIENT_ID, accessToken, lockId: lockID, pageNo: page, pageSize: MAX_PAGE_SIZE, orderBy: 1, date: now },
-                    headers: buildHeaders(accessToken)
-                }
-            );
+            const response = await fetchPage(page);
             const data = response.data;
-            if (data?.list) {
-                allCards.push(...data.list);
-            } else {
-                break;
-            }
+            if (!data?.list) break;
+            allCards.push(...data.list);
         }
-        return {
-            list: allCards,
-            total: allCards.length,
-            pages: totalPages
-        };
+        return { list: allCards, total: allCards.length, pages: totalPages };
     } catch (error) {
         throw { status: error.response?.status || 500, errcode: error.response?.data?.errcode, message: error.response?.data?.errmsg || error.message };
     }
-}
+};
 
 const addCard = async ({ accessToken, lockID, cardName, cardNumber, startDate, endDate }) => {
     try {

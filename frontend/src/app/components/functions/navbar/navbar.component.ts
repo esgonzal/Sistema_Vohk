@@ -57,10 +57,7 @@ export class NavbarComponent implements OnInit {
     this.popupService.transferHub = true;
   }
   async cerrarSesion() {
-    let userID = this.returnNombre();
-    await lastValueFrom(this.userService.logOut(userID)) as logoutResponse;
     sessionStorage.clear();
-    this.router.navigate(['/login']);
   }
 }
 

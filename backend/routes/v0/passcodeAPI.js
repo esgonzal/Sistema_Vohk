@@ -11,118 +11,97 @@ const USER = "soporte@vohk.cl";
 const PASS = "khto bghq ckfz txla";
 const TTLOCK_BASE_URL = 'https://euapi.ttlock.com/v3';
 const { getAccessTokenOrFail, buildHeaders } = require('../../utils/ttlock');
-const passcodeController = require('../../controllers/v0/passcodeController');
+const passcodeService = require('../../services/v0/passcodeService');
 
-router.post('/getListLock', passcodeController.getLockPasscodeList);
-router.post('/get', passcodeController.get);
-router.post('/add', passcodeController.add);
-router.post('/delete', passcodeController.deletePasscode);
-router.post('/change', passcodeController.change);
-
-router.post('/add2', async (req, res) => {
-    const { userID, selectedLocks, keyboardPwd, keyboardPwdType, keyboardPwdName, startDate, endDate, email } = req.body;
-    if (!userID || !Array.isArray(selectedLocks) || selectedLocks.length === 0) {
-        return res.status(400).json({ errmsg: 'Missing userID or selectedLocks' });
+router.post('/getListLock', async (req, res) => {
+    const { lockID } = req.body || {};
+    const accessToken = req.headers.authorization?.replace('Bearer ', '');
+    if (!accessToken) {
+        return res.status(401).json({ errmsg: 'Missing access token' });
+    }
+    if (!lockID) {
+        return res.status(400).json({ errmsg: 'Missing lockID' });
     }
     try {
-        const accessToken = getAccessTokenOrFail(userID, res);
-        if (!accessToken) return;
-        const locksResults = [];
-        for (const lock of selectedLocks) {
-            try {
-                const response = await axios.post(
-                    `${TTLOCK_BASE_URL}/keyboardPwd/add`,
-                    new URLSearchParams({
-                        clientId: TTLOCK_CLIENT_ID,
-                        accessToken,
-                        lockId: lock.id,
-                        keyboardPwd,
-                        addType: '2',
-                        keyboardPwdType,
-                        keyboardPwdName,
-                        startDate,
-                        endDate,
-                        date: Date.now()
-                    }),
-                    { headers: buildHeaders(accessToken) }
-                );
-                if (response.data?.keyboardPwdId) {
-                    locksResults.push({
-                        lockID: lock.id,
-                        lockAlias: lock.alias,
-                        passcodePwd: keyboardPwd,
-                        success: true
-                    });
-                } else {
-                    locksResults.push({
-                        lockID: lock.id,
-                        lockAlias: lock.alias,
-                        success: false,
-                        errcode: response.data.errcode,
-                        errmsg: response.data.errmsg
-                    });
-                }
-            } catch (lockError) {
-                console.error(lockError);
-                locksResults.push({
-                    lockID: lock.id,
-                    lockAlias: lock.alias,
-                    success: false,
-                    errcode: lockError.response?.data?.errcode || 'UNKNOWN',
-                    errmsg: lockError.response?.data?.errmsg || lockError.message
-                });
-            }
-        }
-        let emailResult;
-        if (email && email.includes("@")) {
-            const successfulLocks = locksResults.filter(r => r.success);
-            if (successfulLocks.length > 0) {
-                const lockAliasesString = successfulLocks.map(lock => `- ${lock.lockAlias}`).join('\n');
-                const templatePath = path.join(__dirname, '..', 'nodemailer', 'templates', 'sharePasscode.html');
-                const templateContent = await fs.readFile(templatePath, 'utf8');
-                // Replace placeholders
-                const emailContent = templateContent
-                    .replace(/{{code}}/g, keyboardPwd)
-                    .replace(/{{lock_alias}}/g, lockAliasesString)
-                    .replace(/{{start}}/g, formatDate(startDate))
-                    .replace(/{{end}}/g, formatDate(endDate));
-                try {
-                    const emailResponse = await transporter.sendMail({
-                        from: USER,
-                        to: email,
-                        subject: "Un código temporal ha sido compartido contigo",
-                        html: emailContent
-                    });
-                    emailResult = { emailContent, emailSent: true };
-                } catch (emailError) {
-                    console.error(emailError);
-                    emailResult = { emailContent, emailSent: false, emailError: emailError.toString() };
-                }
-            }
-        }
-        res.json({
-            locks: locksResults,
-            email: emailResult
+        const data = await passcodeService.getLockPasscodes({ accessToken, lockID });
+        return res.json(data);
+    } catch (error) {
+        console.error('getListLock passcodes error:', error);
+        return res.status(error.status || 500).json({
+            errcode: error.errcode || 'UNKNOWN',
+            errmsg: error.message || 'Error fetching lock passcodes'
         });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ errmsg: 'Error with My API' });
     }
 });
-router.post('/sendEmail', async (req, res) => {
-    let { name, email, motivo, code, lock_alias, start, end } = req.body;
-    console.log(req.body)
+router.post('/get', async (req, res) => {
+    const { lockID, type, startDate, name, endDate } = req.body;
+    const accessToken = req.headers.authorization?.replace('Bearer ', '');
+    if (!accessToken) {
+        return res.status(401).json({ errmsg: 'Missing access token' });
+    }
+    if (!lockID || !type || !startDate) {
+        return res.status(400).json({ errmsg: 'Missing required fields' });
+    }
     try {
-        let emailResponse;
-        let emailBody = { email: email, name: name, motivo: motivo, code: code, lock_alias: lock_alias, start: start, end: end };
-        emailResponse = await axios.post(URL.concat('/mail/sharePasscode'), emailBody);
-        console.log(emailResponse.data.emailContent);
-        res.json({ emailContent: emailResponse.data.emailContent });
+        const data = await passcodeService.getPasscode({ accessToken, lockID, type, name, startDate, endDate })
+        return res.json(data);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ errmsg: 'Error with sending email' });
+        console.error('getPasscode error:', error);
+        return res.status(error.status || 500).json({ errcode: error.errcode || 'UNKNOWN', errmsg: error.message || 'Error getting a passcode' });
     }
 });
+router.post('/add', async (req, res) => {
+    const { lockID, keyboardPwd, keyboardPwdType, keyboardPwdName, startDate, endDate } = req.body;
+    const accessToken = req.headers.authorization?.replace('Bearer ', '');
+    if (!accessToken) {
+        return res.status(401).json({ errmsg: 'Missing access token' });
+    }
+    if (!lockID || !keyboardPwd) {
+        return res.status(400).json({ errmsg: 'Missing required fields' });
+    }
+    try {
+        const data = await passcodeService.addPasscode({ accessToken, lockID, keyboardPwd, keyboardPwdType, keyboardPwdName, startDate, endDate })
+        return res.json(data);
+    } catch (error) {
+        console.error('addPasscode error:', error);
+        return res.status(error.status || 500).json({ errcode: error.errcode || 'UNKNOWN', errmsg: error.message || 'Error adding a passcode' });
+    }
+});
+router.post('/delete', async (req, res) => {
+    const { lockID, passcodeID } = req.body;
+    const accessToken = req.headers.authorization?.replace('Bearer ', '');
+    if (!accessToken) {
+        return res.status(401).json({ errmsg: 'Missing access token' });
+    }
+    if (!lockID || !passcodeID) {
+        return res.status(400).json({ errmsg: 'Missing required fields' });
+    }
+    try {
+        const data = await passcodeService.deletePasscode({ accessToken, lockID, passcodeID });
+        return res.json(data);
+    } catch (error) {
+        console.error('deletePasscode error:', error);
+        return res.status(error.status || 500).json({ errcode: error.errcode || 'UNKNOWN', errmsg: error.message || 'Error deleting a passcode' });
+    }
+});
+router.post('/change', async (req, res) => {
+    const { lockID, passcodeID, newName, newCode } = req.body;
+    const accessToken = req.headers.authorization?.replace('Bearer ', '');
+    if (!accessToken) {
+        return res.status(401).json({ errmsg: 'Missing access token' });
+    }
+    if (!lockID || !passcodeID) {
+        return res.status(400).json({ errmsg: 'Missing required fields' });
+    }
+    try {
+        const data = await passcodeService.changePasscode({ accessToken, lockID, passcodeID, newName, newCode });
+        return res.json(data);
+    } catch (error) {
+        console.error('changePasscode error:', error);
+        return res.status(error.status || 500).json({ errcode: error.errcode || 'UNKNOWN', errmsg: error.message || 'Error changing a passcode' });
+    }
+});
+
 router.post('/multiplePasscodes', async (req, res) => {
     const { userID, passcodes, selectedLocks } = req.body;
     console.log("el body:", req.body);
@@ -230,23 +209,5 @@ router.post('/multiplePasscodes', async (req, res) => {
         res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
-
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: USER,
-        pass: PASS
-    },
-});
-function formatDate(ms) {
-    const d = new Date(parseInt(ms));
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0'); // months are 0-indexed
-    const year = d.getFullYear();
-    const hours = String(d.getHours()).padStart(2, '0');
-    const minutes = String(d.getMinutes()).padStart(2, '0');
-    return `${day}/${month}/${year} ${hours}:${minutes}`;
-}
-
 
 module.exports = router;

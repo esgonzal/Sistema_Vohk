@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { RecordResponse } from '../Interfaces/API_responses';
 import { Observable } from 'rxjs';
@@ -9,12 +9,17 @@ import { Observable } from 'rxjs';
 export class RecordServiceService {
 
   URL = 'https://api.vohk.cl';
-  //URL = 'http://localhost:8081';
+  //URL = 'http://localhost:8080';
 
   constructor(private http: HttpClient) { }
 
-  getRecords(userID: string, lockID: number, startDate?: number, endDate?: number, recordType?: string): Observable<RecordResponse> {
-    const body = { userID, lockID, startDate, endDate, recordType };
-    return this.http.post<RecordResponse>(this.URL + '/v0/record/getListLock', body);
+  private getHeaders(accessToken: string): HttpHeaders {
+    return new HttpHeaders({ Authorization: `Bearer ${accessToken}` });
+  }
+
+  getRecords(accessToken: string, lockID: number, pageNo: number, pageSize: number): Observable<RecordResponse> {
+    const url = this.URL.concat('/v0/record/getListLock');
+    const body = { lockID, pageNo, pageSize };
+    return this.http.post<RecordResponse>(url, body, { headers: this.getHeaders(accessToken) });
   }
 }

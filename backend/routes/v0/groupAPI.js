@@ -1,116 +1,121 @@
 const express = require('express');
 const router = express.Router();
-const axios = require('axios');
-const TTLOCK_CLIENT_ID = 'c4114592f7954ca3b751c44d81ef2c7d';
-const TTLOCK_BASE_URL = 'https://euapi.ttlock.com/v3';
-const { getAccessTokenOrFail, buildHeaders } = require('../../utils/ttlock');
+const groupService = require('../../services/v0/groupService');
 
-router.post('/add', async (req, res) => {
-    const { userID, name } = req.body;
+function getAccessToken(req) {
+    return req.headers.authorization?.replace('Bearer ', '');
+}
+
+router.get('/list', async (req, res) => {
+    const accessToken = getAccessToken(req);
+    if (!accessToken) {
+        return res.status(401).json({ errmsg: 'Missing access token' });
+    }
     try {
-        const accessToken = getAccessTokenOrFail(userID, res);
-        if (!accessToken) return;
-        const response = await axios.post(
-            `${TTLOCK_BASE_URL}/group/add`,
-            new URLSearchParams({
-                clientId: TTLOCK_CLIENT_ID,
-                accessToken,
-                name: name,
-                date: Date.now()
-            }),
-            { headers: buildHeaders(accessToken) }
-        );
-        return res.json(response.data);
+        const data = await groupService.list(accessToken);
+        return res.json(data);
     } catch (error) {
+        if (error.ttlockResponse) {
+            return res.status(401).json(error.ttlockResponse);
+        }
         console.error(error);
-        res.status(500).json({ errmsg: 'Error with TTLock API' });
+        return res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
-router.post('/list', async (req, res) => {
-    const { userID } = req.body;
+router.post('/add', async (req, res) => {
+    const { name } = req.body;
+    const accessToken = getAccessToken(req);
+    if (!accessToken) {
+        return res.status(401).json({ errmsg: 'Missing access token' });
+    }
+    if (!name) {
+        return res.status(400).json({ errmsg: 'Missing group name' });
+    }
     try {
-        const accessToken = getAccessTokenOrFail(userID, res);
-        if (!accessToken) return;
-        const response = await axios.get(
-            `${TTLOCK_BASE_URL}/group/list`,
-            {
-                params: {
-                    clientId: TTLOCK_CLIENT_ID,
-                    accessToken,
-                    date: Date.now()
-                },
-                headers: buildHeaders(accessToken)
-            }
-        );
-        return res.json(response.data);
+        const data = await groupService.add(accessToken, name);
+        return res.json(data);
     } catch (error) {
+        if (error.ttlockResponse) {
+            return res.status(401).json(error.ttlockResponse);
+        }
         console.error(error);
-        res.status(500).json({ errmsg: 'Error with TTLock API' });
+        return res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
 router.post('/setLock', async (req, res) => {
-    const { userID, lockID, groupID } = req.body;
+    const { lockID, groupID } = req.body;
+    const accessToken = getAccessToken(req);
+    if (!accessToken) {
+        return res.status(401).json({ errmsg: 'Missing access token' });
+    }
+    if (!lockID || groupID === undefined) {
+        return res.status(400).json({ errmsg: 'Missing parameters' });
+    }
     try {
-        const accessToken = getAccessTokenOrFail(userID, res);
-        if (!accessToken) return;
-        const response = await axios.post(
-            `${TTLOCK_BASE_URL}/lock/setGroup`,
-            new URLSearchParams({
-                clientId: TTLOCK_CLIENT_ID,
-                accessToken,
-                lockId: lockID,
-                groupId: groupID,
-                date: Date.now()
-            }),
-            { headers: buildHeaders(accessToken) }
-        );
-        return res.json(response.data);
+        const data = await groupService.setLock(accessToken, lockID, groupID);
+        return res.json(data);
     } catch (error) {
+        if (error.ttlockResponse) {
+            return res.status(401).json(error.ttlockResponse);
+        }
         console.error(error);
-        res.status(500).json({ errmsg: 'Error with TTLock API' });
+        return res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
 router.post('/delete', async (req, res) => {
-    const { userID, groupID } = req.body;
+    const { groupID } = req.body;
+    const accessToken = getAccessToken(req);
+    if (!accessToken) {
+        return res.status(401).json({ errmsg: 'Missing access token' });
+    }
+    if (!groupID) {
+        return res.status(400).json({ errmsg: 'Missing groupID' });
+    }
     try {
-        const accessToken = getAccessTokenOrFail(userID, res);
-        if (!accessToken) return;
-        const response = await axios.post(
-            `${TTLOCK_BASE_URL}/group/delete`,
-            new URLSearchParams({
-                clientId: TTLOCK_CLIENT_ID,
-                accessToken,
-                groupId: groupID,
-                date: Date.now()
-            }),
-            { headers: buildHeaders(accessToken) }
-        );
-        return res.json(response.data);
+        const data = await groupService.remove(accessToken, groupID);
+        return res.json(data);
     } catch (error) {
+        if (error.ttlockResponse) {
+            return res.status(401).json(error.ttlockResponse);
+        }
         console.error(error);
-        res.status(500).json({ errmsg: 'Error with TTLock API' });
+        return res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
 router.post('/rename', async (req, res) => {
-    const { userID, groupID, newName } = req.body;
+    const { groupID, newName } = req.body;
+    const accessToken = getAccessToken(req);
+    if (!accessToken) {
+        return res.status(401).json({ errmsg: 'Missing access token' });
+    }
+    if (!groupID || !newName) {
+        return res.status(400).json({ errmsg: 'Missing parameters' });
+    }
     try {
-        const accessToken = getAccessTokenOrFail(userID, res);
-        if (!accessToken) return;
-        const response = await axios.post(
-            `${TTLOCK_BASE_URL}/group/update`,
-            new URLSearchParams({
-                clientId: TTLOCK_CLIENT_ID,
-                accessToken,
-                groupId: groupID,
-                name: newName,
-                date: Date.now()
-            }),
-            { headers: buildHeaders(accessToken) }
-        );
-        return res.json(response.data);
+        const data = await groupService.rename(accessToken, groupID, newName);
+        return res.json(data);
     } catch (error) {
+        if (error.ttlockResponse) {
+            return res.status(401).json(error.ttlockResponse);
+        }
         console.error(error);
-        res.status(500).json({ errmsg: 'Error with TTLock API' });
+        return res.status(500).json({ errmsg: 'Error with TTLock API' });
+    }
+});
+router.get('/fetchAll', async (req, res) => {
+    const accessToken = req.headers.authorization?.replace('Bearer ', '');
+    if (!accessToken) {
+        return res.status(401).json({ errmsg: 'Missing access token' });
+    }
+    try {
+        const data = await groupService.fetchAll(accessToken);
+        return res.json(data);
+    } catch (error) {
+        if (error.ttlockResponse) {
+            return res.status(401).json(error.ttlockResponse);
+        }
+        console.error(error);
+        return res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
 

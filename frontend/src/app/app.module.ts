@@ -40,6 +40,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatListModule } from '@angular/material/list'
 import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatSortModule } from '@angular/material/sort';
 import { AppRoutingModule } from './app-routing.module';
 import { RouterModule } from '@angular/router';
 
@@ -66,6 +67,11 @@ import { TTLockComponent } from './layouts/ttlock/ttlock.component';
 import { AdminComponent } from './layouts/admin/admin.component';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthInterceptor } from './services/vohk_app/auth.interceptor';
+import { EkeyTableComponent } from './components/ekey-table/ekey-table.component';
+import { RecordTableComponent } from './components/record-table/record-table.component';
+import { PasscodeTableComponent } from './components/passcode-table/passcode-table.component';
+import { CardTableComponent } from './components/card-table/card-table.component';
+import { FingerprintTableComponent } from './components/fingerprint-table/fingerprint-table.component';
 
 
 export const CUSTOM_DATE_FORMATS = {
@@ -111,6 +117,11 @@ export const CUSTOM_DATE_FORMATS = {
     LoginComponent,
     TTLockComponent,
     AdminComponent,
+    EkeyTableComponent,
+    RecordTableComponent,
+    PasscodeTableComponent,
+    CardTableComponent,
+    FingerprintTableComponent,
   ],
   imports: [
     BrowserModule,
@@ -137,6 +148,7 @@ export const CUSTOM_DATE_FORMATS = {
     MatTooltipModule,
     MatListModule,
     MatPaginatorModule,
+    MatSortModule,
     RouterModule.forRoot([])
   ],
   providers: [

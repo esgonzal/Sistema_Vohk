@@ -8,7 +8,8 @@ import { Component } from '@angular/core';
 export class TTLockComponent {
 
   returnLogged(): boolean {
-    return sessionStorage.getItem('logged') === '1';
+    let log = sessionStorage.getItem('logged') === '1';
+    return log
   }
 
 }

@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { lastValueFrom, Observable } from 'rxjs';
 import { CardResponse, CardResult, MultipleCardResponse, operationResponse } from '../Interfaces/API_responses';
@@ -43,29 +43,34 @@ export class CardServiceService {
       this.cardsDataSource = new MatTableDataSource(this.cards);
     }
   }
-  getCardsofLock(userID: string, lockID: number): Observable<CardResponse> {
-    let body = { userID, lockID };
-    return this.http.post<CardResponse>(this.URL + '/v0/card/getListLock', body);
+
+  private getHeaders(accessToken: string): HttpHeaders {
+    return new HttpHeaders({ Authorization: `Bearer ${accessToken}` });
+  }
+  getCardsofLock(accessToken: string, lockID: number): Observable<CardResponse> {
+    const url = this.URL.concat('/v0/card/getListLock');
+    const body = { lockID };
+    return this.http.post<CardResponse>(url, body, { headers: this.getHeaders(accessToken) });
   }
   addCard(userID: string, lockID: number, cardNumber: string, cardName: string, startDate: string, endDate: string): Observable<operationResponse> {
     let body = { userID, lockID, cardNumber, cardName, startDate, endDate };
     let url = this.URL.concat('/v0/card/add');
     return this.http.post<operationResponse>(url, body);
   }
-  changeName(userID: string, lockID: number, cardID: number, newName: string): Observable<operationResponse> {
-    let body = { userID, lockID, cardID, newName };
-    let url = this.URL.concat('/v0/card/rename');
-    return this.http.post<operationResponse>(url, body);
+  changeName(accessToken: string, lockID: number, cardID: number, newName: string): Observable<operationResponse> {
+    const url = this.URL.concat('/v0/card/rename');
+    const body = { lockID, cardID, newName };
+    return this.http.post<operationResponse>(url, body, { headers: this.getHeaders(accessToken) });
   }
-  deleteCard(userID: string, lockID: number, cardID: number): Observable<operationResponse> {
-    let body = { userID, lockID, cardID };
-    let url = this.URL.concat('/v0/card/delete');
-    return this.http.post<operationResponse>(url, body);
+  deleteCard(accessToken: string, lockID: number, cardID: number): Observable<operationResponse> {
+    const url = this.URL.concat('/v0/card/delete');
+    const body = { lockID, cardID };
+    return this.http.post<operationResponse>(url, body, { headers: this.getHeaders(accessToken) });
   }
-  changePeriod(userID: string, lockID: number, cardID: number, newStartDate: string, newEndDate: string): Observable<operationResponse> {
-    let body = { userID, lockID, cardID, newStartDate, newEndDate };
-    let url = this.URL.concat('/v0/card/changePeriod');
-    return this.http.post<operationResponse>(url, body);
+  changePeriod(accessToken: string, lockID: number, cardID: number, newStartDate: number, newEndDate: number): Observable<operationResponse> {
+    const url = this.URL.concat('/v0/card/changePeriod');
+    const body = { lockID, cardID, newStartDate, newEndDate };
+    return this.http.post<operationResponse>(url, body, { headers: this.getHeaders(accessToken) });
   }
   multipleCards(userID: string, lockID: number, cards: { name: string, tipo: number, number: string }[]): Observable<CardResult[]> {
     let body = { userID, lockID, cards }

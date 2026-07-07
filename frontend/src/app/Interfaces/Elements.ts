@@ -18,7 +18,7 @@ export interface Ekey {
     endDay: string;
     weekDays: string;
     remoteEnable: number;
-    isuser: boolean; 
+    isuser: boolean;
 }
 export interface Passcode {
     endDate: string;
@@ -29,11 +29,11 @@ export interface Passcode {
     lockId: number;
     keyboardPwdVersion: number;
     isCustom: number;
-    keyboardPwdName: string; 
+    keyboardPwdName: string;
     keyboardPwd: string;
     startDate: string;
-    senderUsername: string; 
-    receiverUsername: string; 
+    senderUsername: string;
+    receiverUsername: string;
     status: number;
     hasBeenUsed: boolean;
 }

@@ -25,20 +25,6 @@ app.use(cors({
 // Preflight for all routes
 app.options('*', cors());
 
-// API v0
-const { accessTokenStorage, storeAccessToken } = require('../backend/routes/v0/accessTokenStorage.js');
-const logoutInterval = 30 * 60 * 1000;
-const checkAndLogoutExpiredSessions = () => {
-  const currentTime = Date.now();
-  for (const userId in accessTokenStorage) {
-    const user = accessTokenStorage[userId];
-    if (user && user.loginTime && currentTime - user.loginTime >= logoutInterval) {
-      delete accessTokenStorage[userId];
-      console.log(`Logged out user with ID: ${userId}`);
-    }
-  }
-};
-const logoutIntervalId = setInterval(checkAndLogoutExpiredSessions, logoutInterval);
 const v0Routes = require('./routes/v0');
 app.use('/v0', v0Routes);
 const v1Routes = require('./routes/v1');

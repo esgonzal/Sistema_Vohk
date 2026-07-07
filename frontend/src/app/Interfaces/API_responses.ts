@@ -60,20 +60,20 @@ export interface createPasscodeResponse {
     keyboardPwd: string;
 }
 export interface LockResult {
-  lockID: number;
-  lockAlias: string;
-  passcodePwd?: string; 
-  success: boolean;
-  errcode?: number | string; 
+    lockID: number;
+    lockAlias: string;
+    passcodePwd?: string;
+    success: boolean;
+    errcode?: number | string;
 }
 export interface EmailResult {
-  emailContent: string;
-  emailSent: boolean;
-  emailError?: string; 
+    emailContent: string;
+    emailSent: boolean;
+    emailError?: string;
 }
 export interface InvitationResponse {
-  locks: LockResult[];
-  email?: EmailResult;
+    locks: LockResult[];
+    email?: EmailResult;
 }
 export interface addCardResponse {
     errcode: number;
@@ -105,10 +105,16 @@ export interface LockListResponse {
     errcode: number;
 }
 export interface GetAccessTokenResponse {
+    access_token: string;
+    refresh_token: string;
+    uid: number;
+    openid: number;
+    scope: string;
+    token_type: string;
+    expires_in: number;
     errcode: number;
     errmsg: string;
     description: string;
-    userID: string;
 }
 export interface GatewayAccountResponse {
     list: GatewayAccount[];

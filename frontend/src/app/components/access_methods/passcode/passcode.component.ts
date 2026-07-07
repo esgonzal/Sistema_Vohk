@@ -50,7 +50,7 @@ export class PasscodeComponent implements OnInit {
     const pageSize = 100;
     try {
       while (true) {
-        let response = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.passcodeService.username, pageNo, pageSize, Number(this.currentGroup))) as LockListResponse;
+        let response = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.passcodeService.username, Number(this.currentGroup))) as LockListResponse;
         const filteredLocks = response.list.filter(lock => lock.keyRight === 1 || lock.userType === "110301");
         this.locksOfGroup.push(...filteredLocks);
         if (response.pages > pageNo) {

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Group } from '../Interfaces/Group';
 import { LockData } from '../Interfaces/Lock';
@@ -26,29 +26,36 @@ export class GroupService {
   updateSelectedGroup(group: Group) {
     this.selectedGroupSubject.next(group);
   }
-  getGroupofAccount(userID: string): Observable<GroupResponse> {
-    let body = { userID };
-    let url = this.URL.concat('/v0/group/list');
-    return this.http.post<GroupResponse>(url, body);
+  private getHeaders(accessToken: string): HttpHeaders {
+    return new HttpHeaders({ Authorization: `Bearer ${accessToken}` });
   }
-  addGroup(userID: string, name: string): Observable<addGroupResponse> {
-    let body = { userID, name };
-    let url = this.URL.concat('/v0/group/add');
-    return this.http.post<addGroupResponse>(url, body);
+
+  getGroupofAccount(accessToken: string): Observable<GroupResponse> {
+    const url = this.URL.concat('/v0/group/list');
+    return this.http.get<GroupResponse>(url, { headers: this.getHeaders(accessToken) });
   }
-  deleteGroup(userID: string, groupID: string): Observable<operationResponse> {
-    let body = { userID, groupID };
-    let url = this.URL.concat('/v0/group/delete');
-    return this.http.post<operationResponse>(url, body);
+  addGroup(accessToken: string, name: string): Observable<addGroupResponse> {
+    const url = this.URL.concat('/v0/group/add');
+    const body = { name };
+    return this.http.post<addGroupResponse>(url, body, { headers: this.getHeaders(accessToken) });
   }
-  renameGroup(userID: string, groupID: string, newName: string): Observable<operationResponse> {
-    let body = { userID, groupID, newName };
-    let url = this.URL.concat('/v0/group/rename');
-    return this.http.post<operationResponse>(url, body);
+  deleteGroup(accessToken: string, groupID: string): Observable<operationResponse> {
+    const url = this.URL.concat('/v0/group/delete');
+    const body = { groupID };
+    return this.http.post<operationResponse>(url, body, { headers: this.getHeaders(accessToken) });
   }
-  setGroupofLock(userID: string, lockID: string, groupID: string): Observable<operationResponse> {
-    let body = { userID, lockID, groupID };
-    let url = this.URL.concat('/v0/group/setLock');
-    return this.http.post<operationResponse>(url, body);
+  renameGroup(accessToken: string, groupID: string, newName: string): Observable<operationResponse> {
+    const url = this.URL.concat('/v0/group/rename');
+    const body = { groupID, newName };
+    return this.http.post<operationResponse>(url, body, { headers: this.getHeaders(accessToken) });
+  }
+  setGroupofLock(accessToken: string, lockID: string, groupID: string): Observable<operationResponse> {
+    const url = this.URL.concat('/v0/group/setLock');
+    const body = { lockID, groupID };
+    return this.http.post<operationResponse>(url, body, { headers: this.getHeaders(accessToken) });
+  }
+  fetchAll(accessToken: string): Observable<GroupResponse> {
+    const url = this.URL.concat('/v0/group/fetchAll');
+    return this.http.get<GroupResponse>(url, { headers: this.getHeaders(accessToken) });
   }
 }

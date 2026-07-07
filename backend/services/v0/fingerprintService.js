@@ -1,9 +1,7 @@
 const axios = require('axios');
 const { buildHeaders } = require('../../utils/ttlock');
-
 const TTLOCK_CLIENT_ID = 'c4114592f7954ca3b751c44d81ef2c7d';
 const TTLOCK_BASE_URL = 'https://euapi.ttlock.com/v3';
-
 const MAX_PAGE_SIZE = 200;
 const MAX_PAGES = 50;
 
@@ -11,51 +9,29 @@ const getLockFingerprints = async ({ accessToken, lockID }) => {
     try {
         const now = Date.now();
         let allFingerprints = [];
-        const firstResponse = await axios.get(
-            `${TTLOCK_BASE_URL}/fingerprint/list`,
-            {
-                params: { clientId: TTLOCK_CLIENT_ID, accessToken, lockId: lockID, pageNo: 1, pageSize: MAX_PAGE_SIZE, orderBy: 1, date: now },
-                headers: buildHeaders(accessToken)
-            }
-        );
+        const fetchPage = async (pageNo) => {
+            return axios.get(`${TTLOCK_BASE_URL}/fingerprint/list`, {
+                params: { clientId: TTLOCK_CLIENT_ID, accessToken, lockId: lockID, pageNo, pageSize: MAX_PAGE_SIZE, orderBy: 1, date: now }
+            });
+        };
+        const firstResponse = await fetchPage(1);
         const firstData = firstResponse.data;
         if (!firstData?.list) {
-            throw {
-                status: 400,
-                errcode: firstData.errcode,
-                message: firstData.errmsg
-            };
+            throw { status: 400, errcode: firstData?.errcode, message: firstData?.errmsg };
         }
         allFingerprints.push(...firstData.list);
-        let totalPages = firstData.pages || 1;
-        if (totalPages > MAX_PAGES) {
-            totalPages = MAX_PAGES;
-        }
+        let totalPages = Math.min(firstData.pages || 1, MAX_PAGES);
         for (let page = 2; page <= totalPages; page++) {
-            const response = await axios.get(
-                `${TTLOCK_BASE_URL}/fingerprint/list`,
-                {
-                    params: { clientId: TTLOCK_CLIENT_ID, accessToken, lockId: lockID, pageNo: page, pageSize: MAX_PAGE_SIZE, orderBy: 1, date: now },
-                    headers: buildHeaders(accessToken)
-                }
-            );
+            const response = await fetchPage(page);
             const data = response.data;
-            if (data?.list) {
-                allFingerprints.push(...data.list);
-            } else {
-                break;
-            }
+            if (!data?.list) break;
+            allFingerprints.push(...data.list);
         }
-        return {
-            list: allFingerprints,
-            total: allFingerprints.length,
-            pages: totalPages
-        };
+        return { list: allFingerprints, total: allFingerprints.length, pages: totalPages };
     } catch (error) {
         throw { status: error.response?.status || 500, errcode: error.response?.data?.errcode, message: error.response?.data?.errmsg || error.message };
     }
 };
-
 const rename = async ({ accessToken, lockID, fingerprintID, newName }) => {
     try {
         const response = await axios.post(
@@ -68,7 +44,6 @@ const rename = async ({ accessToken, lockID, fingerprintID, newName }) => {
         throw { status: error.response?.status || 500, errcode: error.response?.data?.errcode, message: error.response?.data?.errmsg || error.message };
     }
 };
-
 const deleteFingerprint = async ({ accessToken, lockID, fingerprintID }) => {
     try {
         const response = await axios.post(
@@ -81,7 +56,6 @@ const deleteFingerprint = async ({ accessToken, lockID, fingerprintID }) => {
         throw { status: error.response?.status || 500, errcode: error.response?.data?.errcode, message: error.response?.data?.errmsg || error.message };
     }
 };
-
 const changePeriod = async ({ accessToken, lockID, newStartDate, newEndDate }) => {
     try {
         const response = await axios.post(

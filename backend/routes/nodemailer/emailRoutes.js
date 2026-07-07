@@ -24,6 +24,31 @@ async function renderTemplate(templateName, variables) {
     });
     return content;
 }
+async function sendEmail({ toEmail, subject, html }) {
+    if (!toEmail || !toEmail.includes("@")) {
+        throw new Error("Invalid email");
+    }
+    await transporter.sendMail({ from: USER, to: toEmail, subject, html });
+}
+router.post('/sendEkeySummary', async (req, res) => {
+    try {
+        const { toEmail, receiverName, results } = req.body;
+        if (!toEmail || !Array.isArray(results)) {
+            return res.status(400).json({ errmsg: "Missing required fields" });
+        }
+        const successLocks = results.filter(r => r.success);
+        const failedLocks = results.filter(r => !r.success);
+        const html = await renderTemplate(
+            'ekeySummary.html',
+            { receiverName, successCount: successLocks.length, failedCount: failedLocks.length, successLocks: successLocks.map(l => l.lockAlias).join("<br>"), failedLocks: failedLocks.map(l => `${l.lockAlias}: ${l.message || 'error'}`).join("<br>") }
+        );
+        await sendEmail({ toEmail, subject: "Resumen de eKeys compartidas", html });
+        return res.json({ success: true });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ errmsg: "Error sending summary email" });
+    }
+});
 //EKEYS
 router.post('/ekeyPermanent', async (req, res) => {
     const { to, from, lock_alias } = req.body;

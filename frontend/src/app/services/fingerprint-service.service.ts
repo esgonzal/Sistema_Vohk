@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { lastValueFrom, Observable } from 'rxjs';
 import { FingerprintResponse, operationResponse } from '../Interfaces/API_responses';
@@ -11,7 +11,7 @@ import { MatTableDataSource } from '@angular/material/table';
 export class FingerprintServiceService {
 
   URL = 'https://api.vohk.cl';
-  //URL = 'http://localhost:8081';
+  //URL = 'http://localhost:8080';
   userID = sessionStorage.getItem('user') ?? ''
   lockID: number = Number(sessionStorage.getItem('lockID') ?? '')
   fingerprints: Fingerprint[] = [];
@@ -19,43 +19,27 @@ export class FingerprintServiceService {
 
   constructor(private http: HttpClient) { }
 
-  async fetchFingerprints(lockId: number) {
-    this.fingerprints = [];
-    try {
-      const response = await lastValueFrom(
-        this.getFingerprintsofLock(this.userID, lockId)
-      );
-      const typedResponse = response as FingerprintResponse;
-      if (typedResponse?.list) {
-        this.fingerprints = typedResponse.list;
-      } else if (typedResponse.errcode === 10003) {
-        sessionStorage.clear();
-      } else {
-        console.log("Fingerprints not available");
-      }
-    } catch (error) {
-      console.error("Error while fetching fingerprints:", error);
-    } finally {
-      this.fingerprintsDataSource = new MatTableDataSource(this.fingerprints);
-    }
+  private getHeaders(accessToken: string): HttpHeaders {
+    return new HttpHeaders({ Authorization: `Bearer ${accessToken}` });
   }
-  getFingerprintsofLock(userID: string, lockID: number): Observable<FingerprintResponse> {
-    let body = { userID, lockID };
-    return this.http.post<FingerprintResponse>(this.URL + '/v0/fingerprint/getListLock', body);
+  getFingerprintsofLock(accessToken: string, lockID: number): Observable<FingerprintResponse> {
+    const url = this.URL.concat('/v0/fingerprint/getListLock');
+    const body = { lockID };
+    return this.http.post<FingerprintResponse>(url, body, { headers: this.getHeaders(accessToken) });
   }
-  deleteFingerprint(userID: string, lockID: number, fingerprintID: number): Observable<operationResponse> {
-    let body = { userID, lockID, fingerprintID };
-    let url = this.URL.concat('/v0/fingerprint/delete');
-    return this.http.post<operationResponse>(url, body);
+  deleteFingerprint(accessToken: string, lockID: number, fingerprintID: number): Observable<operationResponse> {
+    const url = this.URL.concat('/v0/fingerprint/delete');
+    const body = { lockID, fingerprintID }
+    return this.http.post<operationResponse>(url, body, { headers: this.getHeaders(accessToken) });
   }
-  changeName(userID: string, lockID: number, fingerprintID: number, newName: string): Observable<operationResponse> {
-    let body = { userID, lockID, fingerprintID, newName };
-    let url = this.URL.concat('/v0/fingerprint/rename');
-    return this.http.post<operationResponse>(url, body);
+  changeName(accessToken: string, lockID: number, fingerprintID: number, newName: string): Observable<operationResponse> {
+    const url = this.URL.concat('/v0/fingerprint/rename');
+    const body = { lockID, fingerprintID, newName }
+    return this.http.post<operationResponse>(url, body, { headers: this.getHeaders(accessToken) });
   }
-  changePeriod(userID: string, lockID: number, fingerprintID: number, newStartDate: string, newEndDate: string): Observable<operationResponse> {
-    let body = { userID, lockID, fingerprintID, newStartDate, newEndDate };
-    let url = this.URL.concat('/v0/fingerprint/changePeriod');
-    return this.http.post<operationResponse>(url, body);
+  changePeriod(accessToken: string, lockID: number, fingerprintID: number, newStartDate: number, newEndDate: number): Observable<operationResponse> {
+    const url = this.URL.concat('/v0/fingerprint/changePeriod');
+    const body = { lockID, fingerprintID, newStartDate, newEndDate }
+    return this.http.post<operationResponse>(url, body, { headers: this.getHeaders(accessToken) });
   }
 }

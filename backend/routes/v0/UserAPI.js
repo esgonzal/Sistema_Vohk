@@ -1,53 +1,20 @@
 const express = require('express');
 const router = express.Router();
-const axios = require('axios');
-const md5 = require('md5');
-const TTLOCK_CLIENT_ID = 'c4114592f7954ca3b751c44d81ef2c7d';
-const TTLOCK_CLIENT_SECRET = '33b556bdb803763f2e647fc7a357dedf';
-const { accessTokenStorage, storeAccessToken } = require('./accessTokenStorage');
+const userService = require('../../services/v0/userService');
 
 router.post('/login', async (req, res) => {
-    const { nombre, clave } = req.body || {};
+    const { nombre, clave } = req.body;
     if (!nombre || !clave) {
-        return res.status(400).json({ errmsg: 'Missing credentials' });
+        return res.status(400).json({ errmsg: 'Missing credentials', });
     }
     try {
-        const response = await axios.post(
-            'https://euapi.ttlock.com/oauth2/token',
-            new URLSearchParams({
-                clientId: TTLOCK_CLIENT_ID,
-                clientSecret: TTLOCK_CLIENT_SECRET,
-                username: nombre,
-                password: clave
-            }),
-            {
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-            }
-        );
-        const { data } = response;
-        if (data?.access_token) {
-            storeAccessToken(nombre, data.access_token);
-            return res.json({ errcode: 0, userID: nombre });
-        }
+        const data = await userService.login(nombre, clave);
+        // console.log(data);
         return res.json(data);
     } catch (error) {
+        if (error.ttlockResponse) { return res.status(401).json(error.ttlockResponse); }
         console.error(error);
-        res.status(500).json({ errmsg: 'Error with TTLock API' });
-    }
-});
-router.post('/logout', async (req, res) => {
-    try {
-        const { userID } = req.body;
-        if (accessTokenStorage[userID]) {
-            delete accessTokenStorage[userID];
-            res.json({ errmsg: 'Success' });
-            //console.log(accessTokenStorage)
-        } else {
-            res.json({ errmsg: 'Fail' });
-        }
-    } catch (error) {
-        console.error(error);
-        res.json({ errmsg: 'Error with API' });
+        return res.status(500).json({ errmsg: 'Error with TTLock API', });
     }
 });
 

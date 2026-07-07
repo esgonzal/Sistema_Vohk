@@ -2,7 +2,7 @@ import { Component, OnInit, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import moment from 'moment';
 import { lastValueFrom } from 'rxjs';
-import { EkeyResponse, GroupResponse, LockListResponse } from 'src/app/Interfaces/API_responses';
+import { addGroupResponse, EkeyResponse, GroupResponse, LockListResponse, operationResponse } from 'src/app/Interfaces/API_responses';
 import { Group } from 'src/app/Interfaces/Group';
 import { LockData } from 'src/app/Interfaces/Lock';
 import { EkeyServiceService } from 'src/app/services/ekey-service.service';
@@ -14,6 +14,7 @@ import { faHome } from '@fortawesome/free-solid-svg-icons'
 import { Ekey } from 'src/app/Interfaces/Elements';
 import * as XLSX from 'xlsx';
 import { PasscodeServiceService } from 'src/app/services/passcode-service.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-comunidadesv2',
@@ -24,8 +25,7 @@ export class Comunidadesv2Component implements OnInit {
 
   faHome = faHome;
   isLoading: boolean = false;
-  userID = sessionStorage.getItem('user') ?? '';
-
+  accessToken = sessionStorage.getItem('accessToken') ?? '';
   groups: Group[] = [];
   groupsFiltrados: Group[] = [];
   locksWithoutGroup: LockData[] = [];
@@ -46,95 +46,190 @@ export class Comunidadesv2Component implements OnInit {
   }
   async ngOnInit(): Promise<void> {
     this.isLoading = true;
-    await this.fetchGroups();
-    //let lockResponse = await lastValueFrom(this.lockService.getLockListAccount(this.userID)) as LockListResponse;
-    //this.lockService.adminLocks = lockResponse.list;
-    //let gatewayResponse = await lastValueFrom(this.gatewayService.getGatewaysAccount(this.userID, 1, 100)) as GatewayAccountResponse;
-    //this.gatewayService.gateways = gatewayResponse.list;
-    const lockGroupID = sessionStorage.getItem('lockGroupID');
-    if (lockGroupID && lockGroupID !== 'undefined') {
-      const grupoGuardado = this.groups.find(group => group.groupId === Number(lockGroupID));
-      if (grupoGuardado) {
-        this.chosenGroup = grupoGuardado;
-        await this.chooseGroup(this.chosenGroup);
-        if (grupoGuardado.groupId == -1) {
-          this.popupService.locksWithoutGroup = grupoGuardado.locks
-        }
-        this.isLoading = false;
-        return;
-      }
-    } else {
-      let grupoInicial = this.groups.find(group => group.groupId === -1);
-      if (grupoInicial) {
-        await this.chooseGroup(grupoInicial);
-        this.popupService.locksWithoutGroup = grupoInicial.locks;
-        console.log(grupoInicial)
-        this.isLoading = false;
-        return;
-      }
-    }
-    this.isLoading = false;
-  }
-  async fetchGroups() {
     try {
-      let response = await lastValueFrom(this.groupService.getGroupofAccount(this.userID)) as GroupResponse;
+      const response = await lastValueFrom(this.groupService.fetchAll(this.accessToken)) as GroupResponse;
       if (response.list) {
-        this.groups = response.list.map(group => ({
-          ...group,
-          locks: [] as LockData[],  // Initialize locks array for each group
-          lockCount: 0
-        }));
+        this.groups = response.list;
+        this.groupsFiltrados = response.list;
+        this.groupService.groups = response.list;
+        const savedGroupId = Number(sessionStorage.getItem('lockGroupID'));
+        this.chosenGroup = this.groups.find(g => g.groupId === savedGroupId) ?? this.groups.find(g => g.groupId === -1) ?? this.groups[0];
+        if (this.chosenGroup?.groupId === -1) {
+          this.popupService.locksWithoutGroup = this.chosenGroup.locks;
+        }
       } else if (response.errcode === 10003) {
-        sessionStorage.clear;
-      } else {
-        console.log(response);
+        sessionStorage.clear();
       }
     } catch (error) {
-      console.error("Error while fetching groups:", error);
+      console.error('Error while fetching groups:', error);
     } finally {
-      let newGroup: Group = { groupId: -1, groupName: "Sin Asociar", lockCount: 0, locks: [] };
-      this.groups.push(newGroup);
-      //console.log("fetchGroups: ", this.groups)
-      this.groupService.groups = this.groups;
-      this.groupsFiltrados = this.groups;
-    }
-  }
-  async fetchLocksOfGroup(clickedGroup: Group) {
-    this.isLoading = true;
-    let targetGroupIndex = -1;
-    let lockCount = 0;
-    let pageNo = 1;
-    const pageSize = 100;
-    if (clickedGroup) {
-      targetGroupIndex = this.groups.findIndex(group => group.groupId === clickedGroup.groupId);
-    }
-    if (this.groups[targetGroupIndex].locks.length === 0) {
-      while (true) {
-        let response = await lastValueFrom(this.ekeyService.getEkeysofAccount(this.userID, pageNo, pageSize, clickedGroup.groupId)) as LockListResponse;
-        console.log(clickedGroup.groupName, ": ", response.list)
-        if (response.list && response.list.length > 0) {
-          lockCount += response.list.length;
-          this.groups[targetGroupIndex].locks.push(...response.list);
-          if (response.pages > pageNo) {
-            pageNo++;
-          } else {
-            this.isLoading = false;
-            break;
-          }
-        } else {
-          this.isLoading = false;
-          break;
-        }
-      }
-      this.groups[targetGroupIndex].lockCount = lockCount;
-      this.groupService.groups = this.groups;
-    } else {
+      console.log('Groups fetched:', this.groups);
       this.isLoading = false;
     }
   }
-  async chooseGroup(group: Group) {
-    await this.fetchLocksOfGroup(group);
+  chooseGroup(group: Group) {
     this.chosenGroup = group;
+    if (group.groupId === -1) {
+      this.popupService.locksWithoutGroup = group.locks;
+    }
+  }
+  async crearGrupo() {
+    const result = await Swal.fire({
+      title: 'Crear grupo',
+      input: 'text',
+      inputLabel: 'Nombre',
+      inputPlaceholder: 'Ingrese el nombre del grupo',
+      showCancelButton: true,
+      confirmButtonText: 'Crear',
+      cancelButtonText: 'Cancelar'
+    });
+    if (!result.isConfirmed || !result.value) {
+      return;
+    }
+    this.isLoading = true;
+    try {
+      const response = await lastValueFrom(this.groupService.addGroup(this.accessToken, result.value)) as addGroupResponse;
+      if (response.errcode === 0) {
+        await Swal.fire({ icon: 'success', title: 'Grupo creado' });
+        await this.ngOnInit();
+      } else {
+        await Swal.fire({ icon: 'error', title: 'No se pudo crear el grupo', text: response.errmsg });
+      }
+    } finally {
+      this.isLoading = false;
+    }
+  }
+  async cambiarNombre(groupID: number) {
+    const result = await Swal.fire({
+      title: 'Cambiar nombre',
+      input: 'text',
+      inputLabel: 'Nuevo nombre',
+      showCancelButton: true,
+      confirmButtonText: 'Guardar',
+      cancelButtonText: 'Cancelar'
+    });
+    if (!result.isConfirmed || !result.value) {
+      return;
+    }
+    this.isLoading = true;
+    try {
+      const response = await lastValueFrom(this.groupService.renameGroup(this.accessToken, groupID.toString(), result.value)) as operationResponse;
+      if (response.errcode === 0) {
+        await Swal.fire({ icon: 'success', title: 'Nombre actualizado' });
+        await this.ngOnInit();
+      } else {
+        await Swal.fire({ icon: 'error', title: 'Error', text: response.errmsg });
+      }
+    } finally {
+      this.isLoading = false;
+    }
+  }
+  async eliminar(groupID: number) {
+    const result = await Swal.fire({
+      icon: 'warning',
+      title: 'Eliminar grupo',
+      text: 'Esta acción no se puede deshacer.',
+      showCancelButton: true,
+      confirmButtonText: 'Eliminar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#d33'
+    });
+    if (!result.isConfirmed) {
+      return;
+    }
+    this.isLoading = true;
+    try {
+      const response = await lastValueFrom(this.groupService.deleteGroup(this.accessToken, groupID.toString())) as operationResponse;
+      if (response.errcode === 0) {
+        await Swal.fire({ icon: 'success', title: 'Grupo eliminado' });
+        await this.ngOnInit();
+      } else {
+        await Swal.fire({ icon: 'error', title: 'Error', text: response.errmsg });
+      }
+    } finally {
+      this.isLoading = false;
+    }
+  }
+  async agregar(group: Group) {
+    const locks = this.popupService.locksWithoutGroup ?? [];
+    let selected: { id: number; alias: string }[] = [];
+    const html = `
+    <div style="max-height:300px; overflow:auto; text-align:left;">
+      ${locks.map(lock => `
+        <label style="display:block; margin:6px 0;">
+          <input type="checkbox" data-id="${lock.lockId}" data-alias="${lock.lockAlias}"> ${lock.lockAlias}
+        </label>
+      `).join('')}
+    </div>`;
+    const result = await Swal.fire({
+      title: `Agregar cerraduras a ${group.groupName}`,
+      html,
+      showCancelButton: true,
+      confirmButtonText: 'Agregar',
+      cancelButtonText: 'Cancelar',
+      focusConfirm: false,
+      preConfirm: () => {
+        const checkboxes = Swal.getHtmlContainer()?.querySelectorAll('input[type="checkbox"]');
+        selected = [];
+        checkboxes?.forEach((cb: any) => {
+          if (cb.checked) {
+            selected.push({ id: Number(cb.dataset.id), alias: cb.dataset.alias });
+          }
+        });
+        return selected;
+      }
+    });
+    if (!result.isConfirmed || !selected.length) return;
+    this.isLoading = true;
+    try {
+      for (const lock of selected) {
+        await lastValueFrom(this.groupService.setGroupofLock(this.accessToken, lock.id.toString(), group.groupId.toString()));
+      }
+    } finally {
+      this.isLoading = false;
+    }
+    await Swal.fire({ icon: 'success', title: 'Cerraduras agregadas' });
+    await this.ngOnInit();
+  }
+  async remover(group: Group) {
+    const locks = group.locks ?? [];
+    let selected: { id: number; alias: string }[] = [];
+    const html = `
+    <div style="max-height:300px; overflow:auto; text-align:left;">
+      ${locks.map(lock => `
+        <label style="display:block; margin:6px 0;">
+          <input type="checkbox" data-id="${lock.lockId}" data-alias="${lock.lockAlias}"> ${lock.lockAlias}
+        </label>
+      `).join('')}
+    </div>`;
+    const result = await Swal.fire({
+      title: `Remover cerraduras de ${group.groupName}`,
+      html,
+      showCancelButton: true,
+      confirmButtonText: 'Remover',
+      cancelButtonText: 'Cancelar',
+      preConfirm: () => {
+        const checkboxes = Swal.getHtmlContainer()?.querySelectorAll('input[type="checkbox"]');
+        selected = [];
+        checkboxes?.forEach((cb: any) => {
+          if (cb.checked) {
+            selected.push({ id: Number(cb.dataset.id), alias: cb.dataset.alias });
+          }
+        });
+        return selected;
+      }
+    });
+    if (!result.isConfirmed || !selected.length) return;
+    this.isLoading = true;
+    try {
+      for (const lock of selected) {
+        await lastValueFrom(this.groupService.setGroupofLock(this.accessToken, lock.id.toString(), "0"));
+      }
+    } finally {
+      this.isLoading = false;
+    }
+    await Swal.fire({ icon: 'success', title: 'Cerraduras removidas' });
+    await this.ngOnInit();
   }
   searchGroups() {
     this.groupsFiltrados = this.groups.filter(group =>
@@ -149,116 +244,34 @@ export class Comunidadesv2Component implements OnInit {
     }
   }
   onLockButtonClick(lock: LockData) {
-    sessionStorage.setItem('lockID', lock.lockId.toString())
-    sessionStorage.setItem('keyID', lock.keyId.toString())
-    sessionStorage.setItem('userType', lock.userType)
-    sessionStorage.setItem('keyRight', lock.keyRight.toString())
-    sessionStorage.setItem('startDate', lock.startDate)
-    sessionStorage.setItem('endDate', lock.endDate)
-    sessionStorage.setItem('lockAlias', lock.lockAlias)
-    sessionStorage.setItem('lockBatery', lock.electricQuantity.toString())
-    sessionStorage.setItem('lockGateway', lock.hasGateway.toString())
-    sessionStorage.setItem('lockFeature', lock.featureValue.toString())
-    if (lock.groupId) {
-      sessionStorage.setItem('lockGroup', lock.groupName);
-      sessionStorage.setItem('lockGroupID', lock.groupId?.toString());
-    } else {
-      sessionStorage.setItem('lockGroup', "Sin Asociar");
-      sessionStorage.setItem('lockGroupID', "-1");
+    if (!this.hasValidAccess(lock)) {
+      this.onInvalidButtonClick();
+      return;
     }
-
-    this.router.navigate(['users', this.userID, 'lock', lock.lockId])
+    sessionStorage.setItem('lockID', lock.lockId.toString());
+    sessionStorage.setItem('keyID', lock.keyId.toString());
+    sessionStorage.setItem('userType', lock.userType);
+    sessionStorage.setItem('keyRight', lock.keyRight.toString());
+    sessionStorage.setItem('startDate', lock.startDate);
+    sessionStorage.setItem('endDate', lock.endDate);
+    sessionStorage.setItem('lockAlias', lock.lockAlias);
+    sessionStorage.setItem('lockBatery', lock.electricQuantity.toString());
+    sessionStorage.setItem('lockGateway', lock.hasGateway.toString());
+    sessionStorage.setItem('lockFeature', lock.featureValue.toString());
+    const group = lock.groupId ? { name: lock.groupName, id: lock.groupId.toString() } : { name: 'Sin Asociar', id: '-1' };
+    sessionStorage.setItem('lockGroup', group.name);
+    sessionStorage.setItem('lockGroupID', group.id);
+    this.router.navigate(['lock', lock.lockId]);
   }
   onInvalidButtonClick() {
-    this.popupService.invalidLock = true;
-  }
-  crearGrupo() {
-    this.popupService.userID = this.userID
-    this.popupService.newGroup = true;
-  }
-  cambiarNombre(grupoID: number) {
-    this.popupService.userID = this.userID;
-    this.popupService.elementType = 'grupo';
-    this.popupService.elementID = grupoID;
-    this.popupService.cambiarNombre = true
-  }
-  eliminar(grupoID: number) {
-    this.popupService.userID = this.userID;
-    this.popupService.elementType = 'grupo';
-    this.popupService.elementID = grupoID;
-    this.popupService.delete = true
-  }
-  agregar(group: Group) {
-    this.popupService.group = group;
-    this.popupService.userID = this.userID;
-    //this.popupService.locksWithoutGroup = this.locksWithoutGroup;
-    this.popupService.addLockGROUP = true;
-  }
-  remover(group: Group) {
-    this.popupService.group = group;
-    this.popupService.userID = this.userID;
-    this.popupService.removeLockGROUP = true;
-  }
-  async descargarExcel(group: Group) {
-    this.isLoading = true;
-    let ekeysMap: { [username: string]: { eKey: string, cerraduras: { [lockName: string]: string } } } = {};
-    let lockNames: string[] = group.locks.map(lock => lock.lockAlias); // Columnas con nombres de cerraduras
-    for (let i = 0; i < group.lockCount; i++) {
-      let lockActual = group.locks[i];
-      const response = await lastValueFrom(this.ekeyService.getEkeysofLock(this.userID, lockActual.lockId)) as EkeyResponse;
-      let ekeys: Ekey[] = response.list;
-      for (let ekey of ekeys) {
-        if (!ekey.username) continue; // Evitar problemas con cuentas vacías
-        if (!ekeysMap[ekey.username]) {
-          ekeysMap[ekey.username] = {
-            eKey: ekey.keyName, // Guardamos un nombre de eKey representativo
-            cerraduras: {}
-          };
-        }
-        ekeysMap[ekey.username].cerraduras[lockActual.lockAlias] = "X";
-      }
-    }
-    // Convertir datos a un formato adecuado para `json_to_sheet`
-    let data: any[] = Object.keys(ekeysMap).map(username => {
-      let row: any = {
-        Cuenta: username,
-        eKey: ekeysMap[username].eKey, // Se mostrará solo una de las eKeys
-      };
-      lockNames.forEach(lock => {
-        row[lock] = ekeysMap[username].cerraduras[lock] || "";
-      });
-      return row;
+    Swal.fire({
+      icon: 'error',
+      title: 'Acceso denegado',
+      text: 'No tiene permiso para acceder a esta cerradura. Comuníquese con el administrador.',
+      confirmButtonText: 'Ok'
     });
-    // Crear hoja de Excel
-    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(data);
-    const wb: XLSX.WorkBook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'eKeys');
-    // 🔹 Ajustar el ancho de las columnas según su contenido
-    ws['!cols'] = [
-      { wch: 25 }, // Ancho para la columna "Cuenta"
-      { wch: 25 }, // Ancho para la columna "eKey"
-      ...lockNames.map(() => ({ wch: 25 })) // Ancho para las cerraduras
-    ];
-    this.isLoading = false;
-    // Guardar el archivo con el nombre del grupo
-    XLSX.writeFile(wb, `Ekeys_${group.groupName}.xlsx`);
   }
-  invitaciones(group: Group) {
-    const eligibleLocks = group.locks.filter(lock => {
-      const hasGateway = lock.hasGateway === 1;
-      const allowsCodes = this.lockService.checkFeature(lock.featureValue, 0);
-      return hasGateway && allowsCodes;
-    });
-    // store all locks in passcodeService
-    this.passcodeService.availableLocks = eligibleLocks.map(lock => ({
-      id: lock.lockId,
-      alias: lock.lockAlias
-    }));
 
-    // start with all selected
-    this.passcodeService.selectedLocks = [...this.passcodeService.availableLocks];
-    this.popupService.invitation = true
-  }
   @HostListener('window:resize', ['$event'])
   onResize(event: Event) {
     this.updateCols(); // Update cols value on resize

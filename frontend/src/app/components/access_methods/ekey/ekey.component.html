@@ -36,34 +36,18 @@
                     <button class="addLocks" (click)="openLockSelector()">+</button>
                 </span>
             </div>
-            <div class="linea" *ngIf="selectedType==='4'">
-                <span class="input-container">
-                    <div *ngFor="let day of weekDays">
-                        <label>
-                            <input type="checkbox" name="selectedDays" value="day.value" [checked]="day.checked"
-                                (change)="onCheckboxChange($event, day)" />
-                            {{ day.name }}
-                        </label>
-                    </div>
-                </span>
-            </div>
+            
             <div class="linea" *ngIf="selectedType==='2' || selectedType==='4'">
                 <span class="input-container">
                     Fecha de inicio
                     <mat-form-field appearance="fill">
                         <mat-label>Fecha</mat-label>
                         <input matInput [matDatepicker]="startDatePicker" name="startDate" placeholder="DD/MM/YYYY"
-                            required="required" ngModel (dateChange)="startTimePicker.open()">
+                            required="required" ngModel>
                         <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
                         <mat-datepicker #startDatePicker></mat-datepicker>
                     </mat-form-field>
-                    Hora de inicio
-                    <mat-form-field appearance="fill">
-                        <mat-label>Hora</mat-label>
-                        <input matInput [ngxTimepicker]="startTimePicker" name="startHour" placeholder="HH:mm"
-                            required="required" [format]="24" ngModel>
-                    </mat-form-field>
-                    <ngx-material-timepicker #startTimePicker></ngx-material-timepicker>
+                    
                 </span>
             </div>
             <div class="linea" *ngIf="selectedType==='2' || selectedType==='4'">
@@ -72,17 +56,11 @@
                     <mat-form-field appearance="fill">
                         <mat-label>Fecha</mat-label>
                         <input matInput [matDatepicker]="endDatePicker" name="endDate" placeholder="DD/MM/YYYY"
-                            required="required" ngModel (dateChange)="endTimePicker.open()">
+                            required="required" ngModel>
                         <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
                         <mat-datepicker #endDatePicker></mat-datepicker>
                     </mat-form-field>
-                    Hora de finalización
-                    <mat-form-field appearance="fill">
-                        <mat-label>Hora</mat-label>
-                        <input matInput [ngxTimepicker]="endTimePicker" name="endHour" placeholder="HH:mm"
-                            required="required" [format]="24" ngModel>
-                    </mat-form-field>
-                    <ngx-material-timepicker #endTimePicker></ngx-material-timepicker>
+                    
                 </span>
             </div>
             <div class="linea">

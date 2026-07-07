@@ -1,0 +1,87 @@
+<app-loader [loader]="isLoading"></app-loader>
+<div class="contenido">
+    <div class="button-container">
+        <input type="text" [(ngModel)]="searchText" placeholder="Buscar Tarjetas..." (input)="searchCards()">
+        <div>
+            <button (click)="crearCard()" disabled >Generar</button>
+            <button (click)="refresh()">Actualizar</button>
+        </div>
+    </div>
+    <table mat-table [dataSource]="dataSource" matSort class="table">
+        <ng-container matColumnDef="Nombre">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                Nombre
+            </th>
+            <td mat-cell *matCellDef="let card">
+                {{ card.cardName }}
+            </td>
+        </ng-container>
+        <ng-container matColumnDef="Numero_tarjeta">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                Número
+            </th>
+            <td mat-cell *matCellDef="let card">
+                {{ card.cardNumber }}
+            </td>
+        </ng-container>
+        <ng-container matColumnDef="Responsable">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                Creador
+            </th>
+            <td mat-cell *matCellDef="let card">
+                {{ card.senderUsername }}
+            </td>
+        </ng-container>
+        <ng-container matColumnDef="Fecha">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                Fecha
+            </th>
+            <td mat-cell *matCellDef="let card">
+                {{ formatTimestamp(card.createDate) }}
+            </td>
+        </ng-container>
+        <ng-container matColumnDef="Periodo_validez">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                Período de validez
+            </th>
+            <td mat-cell *matCellDef="let card">
+                {{ periodoValidez(card) }}
+            </td>
+        </ng-container>
+        <ng-container matColumnDef="Valido">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                Estado
+            </th>
+            <td mat-cell *matCellDef="let card">
+                <span [style.color]="card.displayStatus.color">
+                    {{ card.displayStatus.text }}
+                </span>
+            </td>
+        </ng-container>
+        <ng-container matColumnDef="Botones">
+            <th mat-header-cell *matHeaderCellDef>
+                Operación
+            </th>
+            <td mat-cell *matCellDef="let card">
+                <button class="custom-button" [matMenuTriggerFor]="editMenu">
+                    Editar
+                </button>
+                <mat-menu #editMenu="matMenu">
+                    <button mat-menu-item (click)="cambiarNombreCard(card.cardId)">
+                        Editar Nombre
+                    </button>
+                    <button mat-menu-item (click)="cambiarPeriodoCard(card.cardId)">
+                        Editar Período
+                    </button>
+                </mat-menu>
+                <button class="custom-button-eliminar" (click)="borrarCard(card.cardId)">
+                    Eliminar
+                </button>
+            </td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+    <mat-paginator [pageSize]="25" [pageSizeOptions]="[10,25,50,100]" showFirstLastButtons>
+    </mat-paginator>
+</div>

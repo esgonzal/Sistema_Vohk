@@ -10,21 +10,203 @@ const URL = 'https://api.vohk.cl';
 //const URL = 'http://localhost:8080';
 const TTLOCK_BASE_URL = 'https://euapi.ttlock.com/v3';
 const { getAccessTokenOrFail, buildHeaders } = require('../../utils/ttlock');
-const ekeyController = require('../../controllers/v0/ekeyController');
+const ekeyService = require('../../services/v0/ekeyService');
 
-router.post('/getListLock', ekeyController.getLockEkeyList);
-router.post('/delete', ekeyController.deleteEkey);
-router.post('/modify', ekeyController.modify);
-router.post('/changePeriod', ekeyController.changePeriod);
-router.post('/freeze', ekeyController.freeze);
-router.post('/unfreeze', ekeyController.unfreeze);
-router.post('/authorize', ekeyController.auth);
-router.post('/unauthorize', ekeyController.unauth);
-router.post('/list', ekeyController.getEkeyListAccount);
-router.post('/send', ekeyController.send);
+router.post('/list', async (req, res) => {
+    const { groupID } = req.body;
+    const accessToken = req.headers.authorization?.replace('Bearer ', '');
+    if (!accessToken) {
+        return res.status(401).json({ errmsg: 'Missing access token' });
+    }
+    try {
+        const data = await ekeyService.getEkeysAccount({ accessToken, groupID });
+        return res.json(data);
+    } catch (error) {
+        if (error.ttlockResponse) {
+            return res.status(401).json(error.ttlockResponse);
+        }
+        console.error(error);
+        return res.status(error.status || 500).json({
+            errcode: error.errcode || 'UNKNOWN',
+            errmsg: error.message || 'Error getting ekeys from account'
+        });
+    }
+});
+router.post('/getListLock', async (req, res) => {
+    const { lockID } = req.body || {};
+    const accessToken = req.headers.authorization?.replace('Bearer ', '');
+    if (!accessToken) {
+        return res.status(401).json({ errmsg: 'Missing access token' });
+    }
+    if (!lockID) {
+        return res.status(400).json({ errmsg: 'Missing lockID' });
+    }
+    try {
+        const data = await ekeyService.getLockEkeys({ accessToken, lockID });
+        return res.json(data);
+    } catch (error) {
+        console.error('getListLock ekeys error:', error);
+        return res.status(error.status || 500).json({ errcode: error.errcode || 'UNKNOWN', errmsg: error.message || 'Error fetching lock ekeys' });
+    }
+});
+router.post('/delete', async (req, res) => {
+    const { keyID } = req.body;
+    const accessToken = req.headers.authorization?.replace('Bearer ', '');
+    if (!accessToken) {
+        return res.status(401).json({ errmsg: 'Missing access token' });
+    }
+    if (!keyID) {
+        return res.status(400).json({ errmsg: 'Missing required fields' });
+    }
+    try {
+        const data = await ekeyService.deleteEkey({ accessToken, keyID });
+        return res.json(data);
+    } catch (error) {
+        console.error('deleteEkey ekeys error:', error);
+        return res.status(error.status || 500).json({ errcode: error.errcode || 'UNKNOWN', errmsg: error.message || 'Error deleting ekey' });
+    }
+});
+router.post('/authorize', async (req, res) => {
+    const { lockID, keyID } = req.body;
+    const accessToken = req.headers.authorization?.replace('Bearer ', '');
+    if (!accessToken) {
+        return res.status(401).json({ errmsg: 'Missing access token' });
+    }
+    if (!lockID || !keyID) {
+        return res.status(400).json({ errmsg: 'Missing required fields' });
+    }
+    try {
+        const data = await ekeyService.authorizeEkey({ accessToken, lockID, keyID });
+        return res.json(data);
+    } catch (error) {
+        console.error('authorizeEkey error:', error);
+        return res.status(error.status || 500).json({ errcode: error.errcode || 'UNKNOWN', errmsg: error.message || 'Error authorizing ekey' });
+    }
+});
+router.post('/unauthorize', async (req, res) => {
+    const { lockID, keyID } = req.body;
+    const accessToken = req.headers.authorization?.replace('Bearer ', '');
+    if (!accessToken) {
+        return res.status(401).json({ errmsg: 'Missing access token' });
+    }
+    if (!lockID || !keyID) {
+        return res.status(400).json({ errmsg: 'Missing required fields' });
+    }
+    try {
+        const data = await ekeyService.unauthorizeEkey({ accessToken, lockID, keyID });
+        return res.json(data);
+    } catch (error) {
+        console.error('authorizeEkey error:', error);
+        return res.status(error.status || 500).json({ errcode: error.errcode || 'UNKNOWN', errmsg: error.message || 'Error unauthorizing ekey' });
+    }
+});
+router.post('/freeze', async (req, res) => {
+    const { keyID } = req.body;
+    const accessToken = req.headers.authorization?.replace('Bearer ', '');
+    if (!accessToken) {
+        return res.status(401).json({ errmsg: 'Missing access token' });
+    }
+    if (!keyID) {
+        return res.status(400).json({ errmsg: 'Missing required fields' });
+    }
+    try {
+        const data = await ekeyService.freezeEkey({ accessToken, keyID });
+        return res.json(data);
+    } catch (error) {
+        console.error('freezeEkey error:', error);
+        return res.status(error.status || 500).json({ errcode: error.errcode || 'UNKNOWN', errmsg: error.message || 'Error freezing ekey' });
+    }
+});
+router.post('/unfreeze', async (req, res) => {
+    const { keyID } = req.body;
+    const accessToken = req.headers.authorization?.replace('Bearer ', '');
+    if (!accessToken) {
+        return res.status(401).json({ errmsg: 'Missing access token' });
+    }
+    if (!keyID) {
+        return res.status(400).json({ errmsg: 'Missing required fields' });
+    }
+    try {
+        const data = await ekeyService.unfreezeEkey({ accessToken, keyID });
+        return res.json(data);
+    } catch (error) {
+        console.error('unfreezeEkey error:', error);
+        return res.status(error.status || 500).json({ errcode: error.errcode || 'UNKNOWN', errmsg: error.message || 'Error unfreezing ekey' });
+    }
+});
+router.post('/modify', async (req, res) => {
+    const { keyID, newName } = req.body;
+    const accessToken = req.headers.authorization?.replace('Bearer ', '');
+    if (!accessToken) {
+        return res.status(401).json({ errmsg: 'Missing access token' });
+    }
+    if (!keyID || !newName) {
+        return res.status(400).json({ errmsg: 'Missing required fields' });
+    }
+    try {
+        const data = await ekeyService.modifyEkey({ accessToken, keyID, newName });
+        return res.json(data);
+    } catch (error) {
+        console.error('modifyEkey error:', error);
+        return res.status(error.status || 500).json({ errcode: error.errcode || 'UNKNOWN', errmsg: error.message || 'Error modifying ekey' });
+    }
+});
+router.post('/changePeriod', async (req, res) => {
+    const { keyID, newStartDate, newEndDate } = req.body;
+    if (keyID == null || newStartDate == null || newEndDate == null) {
+        return res.status(400).json({ errmsg: 'Missing required fields' });
+    }
+    const accessToken = req.headers.authorization?.replace('Bearer ', '');
+    if (!accessToken) {
+        return res.status(401).json({ errmsg: 'Missing access token' });
+    }
+    try {
+        const data = await ekeyService.changePeriod({ accessToken, keyID, newStartDate, newEndDate });
+        return res.json(data);
+    } catch (error) {
+        console.error('changePeriodEkey error:', error);
+        return res.status(error.status || 500).json({ errcode: error.errcode || 'UNKNOWN', errmsg: error.message || 'Error changing ekey period' });
+    }
+});
+router.post('/sendMany', async (req, res) => {
+    const { locks, receiverName, keyName, startDate, endDate, keyRight, remoteEnable, notifyEmail, email } = req.body;
+    const accessToken = req.headers.authorization?.replace('Bearer ', '');
+    if (!accessToken) {
+        return res.status(401).json({ errmsg: 'Missing access token' });
+    }
+    if (!locks || !receiverName || !keyName || startDate == null || endDate == null) {
+        return res.status(400).json({ errmsg: 'Missing required fields' });
+    }
+    try {
+        const data = await ekeyService.sendMany({ accessToken, locks, receiverName, keyName, startDate, endDate, keyRight, remoteEnable, notifyEmail, email })
+        return res.json(data);
+    } catch (error) {
+        console.error('sendMany error:', error);
+        return res.status(error.status || 500).json({ errcode: error.errcode || 'UNKNOWN', errmsg: error.message || 'Error sending many ekey' });
+    }
+});
 
+router.post('/send', async (req, res) => {
+    const { lockID, receiverName, keyName, startDate, endDate, remoteEnable, keyRight, keyType, startDay, endDay } = req.body;
+    console.log(req.body);
+    const accessToken = req.headers.authorization?.replace('Bearer ', '');
+    if (!accessToken) {
+        return res.status(401).json({ errmsg: 'Missing access token' });
+    }
+    if (!lockID || !receiverName, !keyName || !startDate) {
+        return res.status(400).json({ errmsg: 'Missing required fields' });
+    }
+    try {
+        //const data = await ekeyService.sendEkey({ accessToken, lockID, receiverName, keyName, startDate, endDate, remoteEnable, keyRight, keyType, startDay, endDay, weekDays })
+        //console.log('sendEkey response:', data);
+        //return res.json(data);
+    } catch (error) {
+        console.error('sendEkey error:', error);
+        return res.status(error.status || 500).json({ errcode: error.errcode || 'UNKNOWN', errmsg: error.message || 'Error sending ekey' });
+    }
+});
 router.post('/send2', async (req, res) => {
-    let { userID, selectedLocks, recieverName, keyName, startDate, endDate, remoteEnable, keyRight } = req.body;
+    let { userID, selectedLocks, receiverName, keyName, startDate, endDate, remoteEnable, keyRight } = req.body;
     try {
         let date = Date.now()
         const storedData = accessTokenStorage[userID];
@@ -39,7 +221,7 @@ router.post('/send2', async (req, res) => {
                     clientId: TTLOCK_CLIENT_ID,
                     accessToken: accessToken,
                     lockId: lock.id,
-                    receiverUsername: recieverName,
+                    receiverUsername: receiverName,
                     keyName: keyName,
                     startDate: startDate,
                     endDate: endDate,
@@ -86,147 +268,5 @@ router.post('/send2', async (req, res) => {
         res.status(500).json({ errmsg: 'Error with TTLock API' });
     }
 });
-router.post('/generateEmail', async (req, res) => {
-    let { userID, lockAlias, recieverName, startDate, endDate, email } = req.body;
-    try {
-        let emailResponse;
-        let toEmail;
-        // Check if receiverName is email or phone
-        const isEmail = isValidEmail(recieverName);
-        const phone_pass = getLastSixDigits(recieverName);
-        // Check if the account is new or old
-        const isNewAccount = await checkIfNewAccount(recieverName); // Define this function based on your business logic
-        if (isEmail && isNewAccount) { //EMAIL NUEVO
-            toEmail = recieverName;
-            if (endDate === '0') { //Permanent
-                let emailBody = { toEmail: recieverName, to: recieverName, from: userID, lock_alias: lockAlias, password: "il.com" };
-                emailResponse = await axios.post(URL.concat('/mail/eKeyPermanentNewUser'), emailBody)
-            } else { // Periodic
-                let startDate_string = moment(Number(startDate)).tz('America/Santiago').format("DD/MM/YYYY HH:mm");
-                let endDate_string = moment(Number(endDate)).tz('America/Santiago').format("DD/MM/YYYY HH:mm");
-                let body = { toEmail: recieverName, to: recieverName, from: userID, lock_alias: lockAlias, password: "il.com", start: startDate_string, end: endDate_string };
-                emailResponse = await axios.post(URL.concat('/mail/eKeyPeriodicNewUser'), body)
-            }
-        } else if (!isEmail && isNewAccount) { //TELEFONO NUEVO
-            toEmail = email;
-            if (endDate === '0') { //Permanent
-                let body = { toEmail: email, to: recieverName, from: userID, lock_alias: lockAlias, password: phone_pass };
-                emailResponse = await axios.post(URL.concat('/mail/eKeyPermanentNewUser'), body)
-            } else { // Periodic
-                let startDate_string = moment(Number(startDate)).tz('America/Santiago').format("DD/MM/YYYY HH:mm");
-                let endDate_string = moment(Number(endDate)).tz('America/Santiago').format("DD/MM/YYYY HH:mm");
-                let body = { toEmail: email, to: recieverName, from: userID, lock_alias: lockAlias, password: phone_pass, start: startDate_string, end: endDate_string };
-                emailResponse = await axios.post(URL.concat('/mail/eKeyPeriodicNewUser'), body)
-            }
-        } else if (isEmail && !isNewAccount) { //EMAIL ANTIGUO
-            toEmail = recieverName;
-            if (endDate === '0') { //Permanent
-                let emailBody = { toEmail: recieverName, to: recieverName, from: userID, lock_alias: lockAlias };
-                emailResponse = await axios.post(URL.concat('/mail/ekeyPermanent'), emailBody)
-            } else { // Periodic
-                let startDate_string = moment(Number(startDate)).tz('America/Santiago').format("DD/MM/YYYY HH:mm");
-                let endDate_string = moment(Number(endDate)).tz('America/Santiago').format("DD/MM/YYYY HH:mm");
-                let body = { toEmail: recieverName, to: recieverName, from: userID, lock_alias: lockAlias, start: startDate_string, end: endDate_string };
-                emailResponse = await axios.post(URL.concat('/mail/eKeyPeriodic'), body)
-            }
-        } else { //TELEFONO ANTIGUO
-            toEmail = email;
-            if (endDate === '0') { //Permanent
-                let body = { toEmail: email, to: recieverName, from: userID, lock_alias: lockAlias };
-                emailResponse = await axios.post(URL.concat('/mail/ekeyPermanent'), body)
-            } else { // Periodic
-                let startDate_string = moment(Number(startDate)).tz('America/Santiago').format("DD/MM/YYYY HH:mm");
-                let endDate_string = moment(Number(endDate)).tz('America/Santiago').format("DD/MM/YYYY HH:mm");
-                let body = { toEmail: email, to: recieverName, from: userID, lock_alias: lockAlias, start: startDate_string, end: endDate_string };
-                emailResponse = await axios.post(URL.concat('/mail/eKeyPeriodic'), body)
-            }
-        }
-        res.json({ emailContent: emailResponse.data.emailContent, toEmail: toEmail });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ errmsg: 'Error with sending email' });
-    }
-});
-router.post('/generateEmail2', async (req, res) => {
-    let { userID, lockAlias, recieverName, email, code } = req.body;
-    try {
-        let emailResponse;
-        let toEmail;
-        const isEmail = isValidEmail(recieverName);
-        const phone_pass = getLastSixDigits(recieverName);
-        const isNewAccount = await checkIfNewAccount(recieverName);
-        if (isEmail && isNewAccount) {
-            // EMAIL NUEVO
-            toEmail = recieverName;
-            let body = { toEmail: recieverName, to: recieverName, from: userID, lock_alias: lockAlias, password: "il.com", code: code };
-            emailResponse = await axios.post(URL.concat('/mail/eKeyPermanentWithCodeNewUser'), body);
-        }
-        else if (!isEmail && isNewAccount) {
-            // TELEFONO NUEVO
-            toEmail = email;
-            let body = { toEmail: email, to: recieverName, from: userID, lock_alias: lockAlias, password: phone_pass, code: code };
-            emailResponse = await axios.post(URL.concat('/mail/eKeyPermanentWithCodeNewUser'), body);
-        }
-        else if (isEmail && !isNewAccount) {
-            // EMAIL ANTIGUO
-            toEmail = recieverName;
-            let body = { toEmail: recieverName, to: recieverName, from: userID, lock_alias: lockAlias, code: code };
-            emailResponse = await axios.post(URL.concat('/mail/eKeyPermanentWithCode'), body);
-        }
-        else {
-            // TELEFONO ANTIGUO
-            toEmail = email;
-            let body = { toEmail: email, to: recieverName, from: userID, lock_alias: lockAlias, code: code };
-            emailResponse = await axios.post(URL.concat('/mail/eKeyPermanentWithCode'), body);
-        }
-        res.json({ emailContent: emailResponse.data.emailContent, toEmail: toEmail });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ errmsg: 'Error with sending email' });
-    }
-});
 
-function isValidEmail(email) {
-    const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
-    return emailPattern.test(email);
-}
-function isValidPhone(phone) {
-    try {
-        const phoneNumber = phoneUtil.parseAndKeepRawInput(phone, 'US'); // You can specify the default country code here
-        if (phoneUtil.isValidNumber(phoneNumber)) {
-            const country = phoneUtil.getRegionCodeForNumber(phoneNumber);
-            return { isValid: true, country };
-        } else {
-            return { isValid: false };
-        }
-    } catch (error) {
-        return { isValid: false };
-    }
-}
-function getLastSixDigits(phoneNumber) {
-    const lastSixChars = phoneNumber.slice(-6);
-    return lastSixChars;
-}
-async function checkIfNewAccount(username) {
-    const phonePass = getLastSixDigits(username);
-    const checkAccountData = {
-        clientId: TTLOCK_CLIENT_ID,
-        clientSecret: TTLOCK_CLIENT_SECRET,
-        username: username,
-        password: md5(phonePass)
-    };
-    const checkAccountHeaders = {
-        'Content-Type': 'application/x-www-form-urlencoded',
-    };
-    const checkAccountResponse = await axios.post(
-        'https://euapi.ttlock.com/oauth2/token',
-        checkAccountData, { headers: checkAccountHeaders }
-    );
-    if (checkAccountResponse.data.hasOwnProperty('access_token')) {
-        //console.log("Cuenta nueva");
-        return true;
-    } else {
-        return false;
-    }
-}
 module.exports = router;

@@ -42,7 +42,7 @@ const routes: Routes = [
     children: [
       { path: 'login', component: Loginv2Component },
       { path: '', component: Comunidadesv2Component },
-      { path: 'users/:username/lock/:id', component: Lockv2Component },
+      { path: 'lock/:id', component: Lockv2Component },
       { path: 'users/:username/lock/:id/ekey', component: EkeyComponent },
       { path: 'users/:username/lock/:id/passcode', component: PasscodeComponent },
       { path: 'users/:username/lock/:id/card', component: CardComponent },
