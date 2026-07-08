@@ -1,5 +1,6 @@
 const twilio = require('twilio');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const userRepository = require('../../repositories/userRepository');
 const AccessToken = twilio.jwt.AccessToken;
@@ -30,6 +31,37 @@ async function login(username, password) {
         token,
         user: session
     }
+}
+
+async function forgotPassword(email) {
+    const user = await userRepository.findByEmail(email);
+    if (!user) {
+        return;
+    }
+    const token = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+    await userRepository.savePasswordResetToken(user.user_id, tokenHash, expiresAt);
+    const resetUrl = `https://app.vohk.cl/admin/reset-password/${token}`;
+    console.log('====================================');
+    console.log('PASSWORD RESET');
+    console.log(user.email);
+    console.log(resetUrl);
+    console.log('====================================');
+}
+
+async function resetPassword(token, password) {
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const user = await userRepository.findByPasswordResetToken(tokenHash);
+    if (!user) {
+        return { status: 400, error: 'Invalid or expired reset token.' };
+    }
+    if (!user.password_reset_expires_at || new Date(user.password_reset_expires_at) < new Date()) {
+        return { status: 400, error: 'Reset token has expired.' };
+    }
+    const passwordHash = await bcrypt.hash(password, 10);
+    await userRepository.resetPassword(user.user_id, passwordHash);
+    return { ok: true };
 }
 
 function generateTwilioToken(identity) {
@@ -73,4 +105,4 @@ function generateJwt(session) {
     );
 }
 
-module.exports = { login, generateTwilioToken, registerFcmToken };
+module.exports = { login, forgotPassword, resetPassword, generateTwilioToken, registerFcmToken };

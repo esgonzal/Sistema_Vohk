@@ -84,6 +84,38 @@ async function findUnitsByUser(userId) {
     );
     return result.rows;
 }
+async function findResidentUnits(userId) {
+    const result = await pool.query(
+        `
+        SELECT
+            ru.is_primary,
+            u.unit_id,
+            u.name AS unit_name,
+            u.room_no,
+            u.floor,
+            b.building_id,
+            b.name AS building_name,
+            c.condominium_id,
+            c.name AS condominium_name,
+            c.tenant_id
+        FROM resident_unit ru
+        JOIN unit u
+            ON u.unit_id = ru.unit_id
+        JOIN building b
+            ON b.building_id = u.building_id
+        JOIN condominium c
+            ON c.condominium_id = b.condominium_id
+        WHERE ru.user_id = $1
+        ORDER BY
+            ru.is_primary DESC,
+            c.name,
+            b.name,
+            u.room_no
+        `,
+        [userId]
+    );
+    return result.rows;
+}
 async function createUnit(buildingId, tenantId, name, roomNo, floor) {
     const result = await pool.query(
         `
@@ -176,6 +208,6 @@ async function countResidentsByUnit(unitId, tenantId) {
 }
 
 module.exports = {
-    findUnitById, findUnitByIdAndTenant, findUnitsByBuilding, findUnitHierarchy, findUnitsByUser, createUnit, updateUnit, deleteUnit, findBuildingsAndUnitsByCondominium,
-    countResidentsByUnit
+    findUnitById, findUnitByIdAndTenant, findUnitsByBuilding, findUnitHierarchy, findUnitsByUser, findResidentUnits,
+    createUnit, updateUnit, deleteUnit, findBuildingsAndUnitsByCondominium, countResidentsByUnit
 };

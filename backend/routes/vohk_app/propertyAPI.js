@@ -206,6 +206,16 @@ router.delete('/units/:id', async (req, res) => {
         res.status(err.status || 500).json({ error: err.message });
     }
 });
+router.get('/resident/units', authenticate, async (req, res) => {
+    try {
+        const { userId } = req.user;
+        const units = await propertyService.getResidentUnits(userId);
+        res.json(units);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
+});
 // RESIDENTES
 router.get('/units/:id/residents', async (req, res) => {
     try {

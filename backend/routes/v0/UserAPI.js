@@ -9,7 +9,6 @@ router.post('/login', async (req, res) => {
     }
     try {
         const data = await userService.login(nombre, clave);
-        // console.log(data);
         return res.json(data);
     } catch (error) {
         if (error.ttlockResponse) { return res.status(401).json(error.ttlockResponse); }

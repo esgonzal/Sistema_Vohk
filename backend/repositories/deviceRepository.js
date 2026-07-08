@@ -172,7 +172,7 @@ async function findDevicesByZone(zoneId) {
     return result.rows;
 }
 // Get all devices in a condominium (across all its zones), optionally filtered by a specific zone
-async function findDevicesByCondominium(condominiumId, tenantId, zoneId = null) {
+async function findDevicesByCondominium(condominiumId, zoneId = null) {
     if (zoneId) {
         const result = await pool.query(
             `
@@ -192,11 +192,10 @@ async function findDevicesByCondominium(condominiumId, tenantId, zoneId = null) 
             LEFT JOIN intercom i
                 ON i.device_id = d.device_id
             WHERE z.condominium_id = $1
-            AND c.tenant_id = $2
-            AND d.zone_id = $3
+            AND d.zone_id = $2
             ORDER BY d.type, d.name
             `,
-            [condominiumId, tenantId, zoneId]
+            [condominiumId, zoneId]
         );
         return result.rows;
     }
@@ -218,10 +217,9 @@ async function findDevicesByCondominium(condominiumId, tenantId, zoneId = null) 
         LEFT JOIN intercom i
             ON i.device_id = d.device_id
         WHERE z.condominium_id = $1
-        AND c.tenant_id = $2
         ORDER BY z.name, d.type, d.name
         `,
-        [condominiumId, tenantId]
+        [condominiumId]
     );
     return result.rows;
 }

@@ -87,8 +87,8 @@ async function listCameras() {
     }));
 }
 // ── Device management ─────────────────────────────────────────────────────────
-async function getDevicesByCondominium(condominiumId, tenantId, zoneId = null) {
-    return deviceRepository.findDevicesByCondominium(condominiumId, tenantId, zoneId);
+async function getDevicesByCondominium(condominiumId, zoneId = null) {
+    return deviceRepository.findDevicesByCondominium(condominiumId, zoneId);
 }
 async function getDevicesByZone(zoneId) {
     return deviceRepository.findDevicesByZone(zoneId);

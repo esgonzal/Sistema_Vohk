@@ -29,9 +29,11 @@ router.get('/cameras', async (req, res) => {
 // ── Device management ─────────────────────────────────────────────────────────
 router.get('/location', async (req, res) => {
     try {
-        const { condominiumId, zoneId } = req.query;
+        const { condominiumId } = req.query;
         const { tenantId } = req.user;
-        const devices = await deviceService.getDevicesByCondominium(condominiumId, tenantId, zoneId || null);
+        console.log(condominiumId, tenantId)
+        const devices = await deviceService.getDevicesByCondominium(condominiumId, tenantId);
+        console.log(devices)
         res.json(devices);
     } catch (err) {
         console.log(err);
@@ -40,12 +42,22 @@ router.get('/location', async (req, res) => {
 });
 router.get('/location-mobile', async (req, res) => {
     try {
-        const { userId, tenantId  } = req.user;
-        const condominium = await propertyService.findFirstByAdminUserId(userId);
-        if (!condominium) {
-            return res.status(404).json({ error: 'No condominium found for admin' });
+        const { userId, tenantId, role } = req.user;
+        const { condominiumId } = req.query;
+        let targetCondominiumId;
+        if (role === 'admin') {
+            const condominium = await propertyService.findCurrentCondominium(userId, tenantId);
+            if (!condominium) {
+                return res.status(404).json({ error: 'No condominium found for admin' });
+            }
+            targetCondominiumId = condominium.condominium_id;
+        } else if (role === 'resident') {
+            if (!condominiumId) {
+                return res.status(400).json({ error: 'condominiumId is required' });
+            }
+            targetCondominiumId = condominiumId;
         }
-        const devices = await deviceService.getDevicesByCondominium(condominium.condominiumId, tenantId, null);
+        const devices = await deviceService.getDevicesByCondominium(targetCondominiumId, null);
         res.json(devices);
     } catch (err) {
         console.log(err);
@@ -88,8 +100,8 @@ router.delete('/:deviceId', async (req, res) => {
     try {
         const { tenantId } = req.user;
         const deleted = await deviceService.deleteDevice(req.params.deviceId, tenantId);
-        if (!deleted) { 
-            return res.status(404).json({ error: 'Device not found' }); 
+        if (!deleted) {
+            return res.status(404).json({ error: 'Device not found' });
         }
         res.json({ success: true });
     } catch (err) {
@@ -128,7 +140,6 @@ router.get('/:deviceId/users', async (req, res) => {
 });
 router.post('/:deviceId/users', async (req, res) => {
     try {
-        console.log(req.body);
         const data = await deviceService.createIntercomUser(req.params.deviceId, req.body);
         if (data.statusCode !== 1) { return res.status(400).json({ ok: false, error: data.errorMsg, detail: data }); }
         res.json({ ok: true });

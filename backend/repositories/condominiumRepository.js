@@ -90,20 +90,38 @@ async function countBuildingsByCondominium(condominiumId, tenantId) {
     );
     return result.rows[0].count;
 }
-async function findByAdminUserId(userId) {
+async function findFirstAccessibleByUser(userId, tenantId) {
     const result = await pool.query(
         `
         SELECT *
-        FROM condominium
-        WHERE admin_user_id = $1
-        ORDER BY created_at ASC
+        FROM (
+            -- Administrator
+            SELECT c.*
+            FROM condominium c
+            WHERE c.admin_user_id = $1
+              AND c.tenant_id = $2
+            UNION
+            -- Resident
+            SELECT c.*
+            FROM resident_unit ru
+            JOIN unit u
+                ON u.unit_id = ru.unit_id
+            JOIN building b
+                ON b.building_id = u.building_id
+            JOIN condominium c
+                ON c.condominium_id = b.condominium_id
+            WHERE ru.user_id = $1
+              AND c.tenant_id = $2
+        ) accessible
+        ORDER BY created_at
+        LIMIT 1
         `,
-        [userId]
+        [userId, tenantId]
     );
-    return result.rows;
+    return result.rows[0] ?? null;
 }
 
 module.exports = {
-    findCondominiumById, findCondominiums, findCondominiumsByTenant, findByAdminUserId,
+    findCondominiumById, findCondominiums, findCondominiumsByTenant, findFirstAccessibleByUser,
     createCondominium, updateCondominium, deleteCondominium, getCondominiumByUnitId, countBuildingsByCondominium
 };

@@ -15,13 +15,23 @@ async function findTenantIdByUserId(userId) {
     const result = await pool.query(
         `
         SELECT tenant_id
-        FROM tenant_user
-        WHERE user_id = $1
+        FROM condominium
+        WHERE admin_user_id = $1
+        UNION
+        SELECT c.tenant_id
+        FROM resident_unit ru
+        JOIN unit u
+            ON u.unit_id = ru.unit_id
+        JOIN building b
+            ON b.building_id = u.building_id
+        JOIN condominium c
+            ON c.condominium_id = b.condominium_id
+        WHERE ru.user_id = $1
         LIMIT 1
         `,
         [userId]
     );
-    return result.rows[0];
+    return result.rows[0] || null;
 }
 async function findByUsername(username) {
     const result = await pool.query(
@@ -57,6 +67,31 @@ async function findByIdentity(sip_identity) {
     );
 
     return result.rows[0];
+}
+async function findByEmail(email) {
+    const result = await pool.query(
+        `
+        SELECT *
+        FROM app_user
+        WHERE email = $1
+        AND active = true
+        LIMIT 1
+        `,
+        [email]
+    );
+    return result.rows[0] || null;
+}
+async function findByPasswordResetToken(tokenHash) {
+    const result = await pool.query(
+        `
+        SELECT *
+        FROM app_user
+        WHERE password_reset_token_hash = $1
+        LIMIT 1
+        `,
+        [tokenHash]
+    );
+    return result.rows[0] || null;
 }
 async function updateFcmToken(sip_identity, fcmToken) {
     await pool.query(
@@ -178,9 +213,34 @@ async function findUsersByUnit(unitId, tenantId) {
     );
     return result.rows;
 }
-
+async function savePasswordResetToken(userId, tokenHash, expiresAt) {
+    await pool.query(
+        `
+        UPDATE app_user
+        SET
+            password_reset_token_hash = $2,
+            password_reset_expires_at = $3
+        WHERE user_id = $1
+        `,
+        [userId, tokenHash, expiresAt]
+    );
+}
+async function resetPassword(userId, passwordHash) {
+    await pool.query(
+        `
+        UPDATE app_user
+        SET
+            password_hash = $2,
+            password_reset_token_hash = NULL,
+            password_reset_expires_at = NULL
+        WHERE user_id = $1
+        `,
+        [userId, passwordHash]
+    );
+}
 
 module.exports = {
-    findById, findTenantIdByUserId, findByUsername, findByRut, findByIdentity, updateFcmToken, fetchPrimaryUnit, createResident, updateResident, assignResidentToUnit,
-    deleteResident, findUsersByUnit
+    findById, findTenantIdByUserId, findByUsername, findByRut, findByIdentity, findByEmail, findByPasswordResetToken,
+    updateFcmToken, fetchPrimaryUnit, createResident, updateResident, assignResidentToUnit,
+    deleteResident, findUsersByUnit, savePasswordResetToken, resetPassword
 };

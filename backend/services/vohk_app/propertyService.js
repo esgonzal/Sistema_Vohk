@@ -39,12 +39,8 @@ async function deleteCondominium(condominiumId, tenantId) {
     }
     return condominiumRepository.deleteCondominium(condominiumId, tenantId);
 }
-async function findFirstByAdminUserId(userId) {
-    const condominiums = await condominiumRepository.findByAdminUserId(userId);
-    if (!condominiums || condominiums.length === 0) {
-        return null;
-    }
-    return condominiums[0];
+async function findCurrentCondominium(userId, tenantId) {
+    return condominiumRepository.findFirstAccessibleByUser(userId, tenantId);
 }
 
 
@@ -107,6 +103,9 @@ async function deleteUnit(unitId, tenantId) {
         throw error;
     }
     return unitRepository.deleteUnit(unitId, tenantId);
+}
+async function getResidentUnits(userId) {
+    return unitRepository.findResidentUnits(userId);
 }
 
 async function listResidents(unitId, tenantId) {
@@ -196,13 +195,13 @@ async function assignResidentToUnit(userId, unitId, isPrimary, tenantId) {
 
 module.exports = {
     // Condominiums
-    listCondominiums, createCondominium, updateCondominium, deleteCondominium, findFirstByAdminUserId,
+    listCondominiums, createCondominium, updateCondominium, deleteCondominium, findCurrentCondominium,
     // Zones
     listZones, createZone, updateZone, deleteZone,
     // Buildings
     listBuildings, createBuilding, updateBuilding, deleteBuilding,
     // Units
-    listUnits, createUnit, updateUnit, deleteUnit,
+    listUnits, createUnit, updateUnit, deleteUnit, getResidentUnits,
     // Residents
     listResidents, createResident, updateResident, deleteResident, assignResidentToUnit,
 };
