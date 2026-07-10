@@ -1,6 +1,5 @@
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
-
 const condominiumRepository = require('../../repositories/condominiumRepository');
 const zoneRepository = require('../../repositories/zoneRepository');
 const buildingRepository = require('../../repositories/buildingRepository');
@@ -192,6 +191,44 @@ async function deleteResident(userId, tenantId, unitId) {
 async function assignResidentToUnit(userId, unitId, isPrimary, tenantId) {
     return userRepository.assignResidentToUnit(userId, unitId, isPrimary, tenantId);
 }
+async function updateUsername(userId, username) {
+    if (!username?.trim()) {
+        throw new Error('Username is required');
+    }
+    username = username.trim();
+    const existing = await userRepository.findByUsername(username);
+    if (existing && existing.user_id !== userId) {
+        throw new Error('Username is already in use');
+    }
+    return await userRepository.updateUsername(userId, username);
+}
+async function updateEmail(userId, email) {
+    if (!email?.trim()) {
+        throw new Error('Email is required');
+    }
+    email = email.trim().toLowerCase();
+    const existing = await userRepository.findByEmail(email);
+    if (existing && existing.user_id !== userId) {
+        throw new Error('Email is already in use');
+    }
+    return await userRepository.updateEmail(userId, email);
+}
+async function updatePassword(userId, currentPassword, newPassword) {
+    if (!currentPassword || !newPassword) {
+        throw new Error('Current and new password are required');
+    }
+    const user = await userRepository.findById(userId);
+    if (!user) {
+        throw new Error('User not found');
+    }
+    const validPassword = await bcrypt.compare(currentPassword, user.password_hash,);
+    if (!validPassword) {
+        throw new Error('Current password is incorrect');
+    }
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await userRepository.updatePassword(userId, passwordHash,);
+    return true;
+}
 
 module.exports = {
     // Condominiums
@@ -203,5 +240,5 @@ module.exports = {
     // Units
     listUnits, createUnit, updateUnit, deleteUnit, getResidentUnits,
     // Residents
-    listResidents, createResident, updateResident, deleteResident, assignResidentToUnit,
+    listResidents, createResident, updateResident, deleteResident, assignResidentToUnit, updateUsername, updateEmail, updatePassword
 };

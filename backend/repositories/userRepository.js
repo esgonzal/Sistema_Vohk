@@ -74,7 +74,6 @@ async function findByEmail(email) {
         SELECT *
         FROM app_user
         WHERE email = $1
-        AND active = true
         LIMIT 1
         `,
         [email]
@@ -238,9 +237,43 @@ async function resetPassword(userId, passwordHash) {
         [userId, passwordHash]
     );
 }
+async function updateUsername(userId, username) {
+    const result = await pool.query(
+        `
+        UPDATE app_user
+        SET username = $2
+        WHERE user_id = $1
+        RETURNING *;
+        `,
+        [userId, username]
+    );
+    return result.rows[0];
+}
+async function updateEmail(userId, email) {
+    const result = await pool.query(
+        `
+        UPDATE app_user
+        SET email = $2
+        WHERE user_id = $1
+        RETURNING *;
+        `,
+        [userId, email]
+    );
+    return result.rows[0];
+}
+async function updatePassword(userId, passwordHash) {
+    await pool.query(
+        `
+        UPDATE app_user
+        SET password_hash = $2
+        WHERE user_id = $1
+        `,
+        [userId, passwordHash]
+    );
+}
 
 module.exports = {
     findById, findTenantIdByUserId, findByUsername, findByRut, findByIdentity, findByEmail, findByPasswordResetToken,
     updateFcmToken, fetchPrimaryUnit, createResident, updateResident, assignResidentToUnit,
-    deleteResident, findUsersByUnit, savePasswordResetToken, resetPassword
+    deleteResident, findUsersByUnit, savePasswordResetToken, resetPassword, updateUsername, updateEmail, updatePassword
 };

@@ -7,6 +7,8 @@ router.use(authenticate);
 const deviceService = require('../../services/vohk_app/deviceService');
 const propertyService = require('../../services/vohk_app/propertyService');
 
+const axios = require('axios');
+
 // ── Device listing ────────────────────────────────────────────────────────────
 router.get('/intercoms', async (req, res) => {
     try {
@@ -165,6 +167,16 @@ router.delete('/:deviceId/users/:employeeNo', async (req, res) => {
         res.status(500).json({ ok: false, error: error.message });
     }
 });
+router.get('/resident/access-methods', async (req, res) => {
+    try {
+        const { userId } = req.user;
+        const methods = await deviceService.getAccessMethods(userId);
+        res.json(methods);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
+});
 // ── Face enrollment ───────────────────────────────────────────────────────────
 router.post('/:deviceId/users/:employeeNo/face', upload.single('photo'), async (req, res) => {
     try {
@@ -184,6 +196,19 @@ router.put('/:deviceId/users/:employeeNo/face', upload.single('photo'), async (r
         res.json({ ok: true });
     } catch (error) {
         res.status(500).json({ ok: false, error: error.message });
+    }
+});
+router.put('/resident/face', upload.single('photo'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No image uploaded.' });
+        }
+        const { userId } = req.user;
+        const result = await deviceService.updateResidentFace(userId, req.file);
+        res.json(result);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
     }
 });
 router.delete('/:deviceId/users/:employeeNo/face', async (req, res) => {
@@ -231,6 +256,20 @@ router.put('/:deviceId/pins/:employeeNo', async (req, res) => {
         res.json({ ok: true });
     } catch (error) {
         res.status(500).json({ ok: false, error: error.message });
+    }
+});
+router.put('/resident/dynamic-code', async (req, res) => {
+    try {
+        const { userId } = req.user;
+        const { dynamicCode } = req.body;
+        if (!dynamicCode) {
+            return res.status(400).json({ error: 'dynamicCode is required' });
+        }
+        const result = await deviceService.updateResidentDynamicCode(userId, dynamicCode);
+        res.json(result);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
     }
 });
 router.delete('/:deviceId/pins/:employeeNo', async (req, res) => {
@@ -330,6 +369,29 @@ router.delete('/invitations/:id', async (req, res) => {
         res.json({ ok: true });
     } catch (error) {
         res.status(500).json({ ok: false, error: error.message });
+    }
+});
+
+
+router.post('/test-sip', async (req, res) => {
+    try {
+        const { ip, port, username, password, roomNo, phoneNumber } = req.body;
+        const DigestFetch = (await import('digest-fetch')).default;
+        const client = new DigestFetch(username, password);
+        const url = `http://${ip}:${port}/ISAPI/VideoIntercom/PhoneNumberRecords?format=json`;
+        const body = JSON.stringify({
+            PhoneNumberRecord: { roomNo, PhoneNumbers: [{ phoneNumber }] }
+        });
+        const response = await client.fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body
+        });
+        const text = await response.text();
+        res.status(response.status).send(text);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
     }
 });
 

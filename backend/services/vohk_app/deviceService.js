@@ -205,6 +205,16 @@ async function deleteIntercomUser(deviceId, employeeNo) {
     );
     return response.json();
 }
+// GET ACCESS METHODS
+async function getAccessMethods(userId) {
+    const access = await intercomUserRepository.findAccessMethods(userId);
+    if (!access) {
+        return {
+            hasFace: false, hasDynamicCode: false, hasCard: false, dynamicCode: null, faceUpdatedAt: null,
+        };
+    }
+    return { hasFace: access.has_face, hasDynamicCode: access.dynamic_code != null, hasCard: false, dynamicCode: access.dynamic_code, faceUpdatedAt: access.face_updated_at, };
+}
 // ── Face enrollment ───────────────────────────────────────────────────────────
 async function enrollFace(deviceId, employeeNo, file, name) {
     const { intercom, client } = await getIntercomClient(deviceId);
@@ -235,6 +245,31 @@ async function updateFace(deviceId, employeeNo, file, name) {
         { method: 'PUT', headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}`, 'Content-Length': body.length }, body },
     );
     return response.json();
+}
+async function updateResidentFace(userId, file) {
+    const intercomUsers = await intercomUserRepository.findIntercomUsersByUserId(userId);
+    if (!intercomUsers.length) {
+        throw new Error('User has no intercom assignments');
+    }
+    const results = [];
+    for (const iu of intercomUsers) {
+        try {
+            const intercom = await intercomRepository.findIntercomById(iu.intercom_id);
+            let response = await updateFace(intercom.device_id, iu.employee_no, file);
+            // Face doesn't exist on this intercom, try enrolling it.
+            if (response.statusCode !== 1) {
+                response = await enrollFace(intercom.device_id, iu.employee_no, file);
+            }
+            const success = response.statusCode === 1;
+            if (success) {
+                await intercomUserRepository.updateFaceStatus(iu.intercom_user_id, true);
+            }
+            results.push({ intercomId: iu.intercom_id, success, response, });
+        } catch (err) {
+            results.push({ intercomId: iu.intercom_id, success: false, error: err.message, });
+        }
+    }
+    return { success: results.some(r => r.success), results, };
 }
 async function deleteFace(deviceId, employeeNo) {
     const { intercom, client } = await getIntercomClient(deviceId);
@@ -306,6 +341,33 @@ async function updateIntercomPin(deviceId, employeeNo, dynamicCode) {
 async function deleteIntercomPin(deviceId, employeeNo) {
     // ISAPI has no dedicated delete — clearing the field is the correct approach
     return setIntercomPin(deviceId, employeeNo, '');
+}
+async function updateResidentDynamicCode(userId, dynamicCode) {
+    const intercomUsers = await intercomUserRepository.findIntercomUsersByUserId(userId);
+    if (!intercomUsers.length) {
+        throw new Error('User has no intercom assignments');
+    }
+    const results = [];
+    for (const iu of intercomUsers) {
+        try {
+            const dbIntercom = await intercomRepository.findIntercomById(iu.intercom_id);
+            const { intercom, client } = await getIntercomClient(dbIntercom.device_id);
+            const payload = { UserInfo: { employeeNo: iu.employee_no, dynamicCode, }, };
+            const response = await client.fetch(
+                `http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/UserInfo/Modify?format=json`,
+                { method: 'PUT', headers: { 'Content-Type': 'application/json', }, body: JSON.stringify(payload), },
+            );
+            const data = await response.json();
+            if (data.statusCode === 1) {
+                await intercomUserRepository.updateDynamicCode(iu.intercom_user_id, dynamicCode,);
+            }
+            results.push({ intercomId: iu.intercom_id, success: data.statusCode === 1, response: data, });
+        } catch (err) {
+            console.error(err);
+            results.push({ intercomId: iu.intercom_id, success: false, error: err.message, });
+        }
+    }
+    return { success: results.some(r => r.success), results, };
 }
 // ── Cards ─────────────────────────────────────────────────────────────────────
 async function listCards(deviceId) {
@@ -433,11 +495,11 @@ module.exports = {
     // Open door
     openDoor,
     // Intercom users
-    listIntercomUsers, createIntercomUser, updateIntercomUser, deleteIntercomUser,
+    listIntercomUsers, createIntercomUser, updateIntercomUser, deleteIntercomUser, getAccessMethods,
     // Face enrollment
-    enrollFace, updateFace, deleteFace,
+    enrollFace, updateFace, deleteFace, updateResidentFace,
     // PINs 
-    listIntercomPins, getIntercomPin, setIntercomPin, updateIntercomPin, deleteIntercomPin,
+    listIntercomPins, getIntercomPin, setIntercomPin, updateIntercomPin, deleteIntercomPin, updateResidentDynamicCode,
     // Cards
     listCards, assignCard, updateCard, deleteCard,
     // Invitations

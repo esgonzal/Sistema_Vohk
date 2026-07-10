@@ -268,5 +268,46 @@ router.post('/residents/assign', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+router.put('/username', async (req, res) => {
+    try {
+        const { userId } = req.user;
+        const { username } = req.body;
+        const updated = await propertyService.updateUsername(userId, username);
+        if (!updated) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        res.json(updated);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.put('/email', async (req, res) => {
+    try {
+        const { userId } = req.user;
+        const { email } = req.body;
+        const updated = await propertyService.updateEmail(userId, email);
+        if (!updated) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        res.json(updated);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.put('/password', async (req, res) => {
+    try {
+        const { userId } = req.user;
+        const { currentPassword, newPassword } = req.body;
+        await propertyService.updatePassword(userId, currentPassword, newPassword,);
+        res.json({ success: true, message: 'Password updated successfully', });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
+});
 
 module.exports = router;

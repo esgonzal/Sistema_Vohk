@@ -50,6 +50,23 @@ async function findIntercomUserByEmployeeNo(employeeNo) {
     );
     return result.rows[0];
 }
+// Get the access methods of a user_id
+async function findAccessMethods(userId) {
+    const result = await pool.query(
+        `
+        SELECT
+            employee_no,
+            dynamic_code,
+            has_face,
+            face_updated_at
+        FROM intercom_user
+        WHERE user_id = $1
+        LIMIT 1;
+        `,
+        [userId]
+    );
+    return result.rows[0];
+}
 // Create an intercom_user for the intercom
 async function createIntercomUser(userId, intercomId, employeeNo, dynamic_code) {
     const result = await pool.query(
@@ -130,14 +147,41 @@ async function deleteIntercomUserByUserAndIntercom(userId, intercomId) {
     );
     return result.rows[0];
 }
+async function updateFaceStatus(intercomUserId, hasFace) {
+    const result = await pool.query(
+        `
+        UPDATE intercom_user
+        SET
+            has_face = $2,
+            face_updated_at = NOW()
+        WHERE intercom_user_id = $1
+        `,
+        [intercomUserId, hasFace]
+    );
+    return result.rows[0];
+}
+// Update the dynamic code of an intercom_user
+async function updateDynamicCode(intercomUserId, dynamicCode) {
+    const result = await pool.query(
+        `
+        UPDATE intercom_user
+        SET
+            dynamic_code = $2
+        WHERE intercom_user_id = $1
+        RETURNING *
+        `,
+        [intercomUserId, dynamicCode]
+    );
+    return result.rows[0];
+}
 
 module.exports = {
     // Find rows
-    findIntercomUserById, findIntercomUsersByIntercomId, findIntercomUsersByUserId, findIntercomUserByEmployeeNo,
+    findIntercomUserById, findIntercomUsersByIntercomId, findIntercomUsersByUserId, findIntercomUserByEmployeeNo, findAccessMethods,
     // Create
     createIntercomUser,
     // Update
     updateIntercomUser,
     // Delete
-    deleteIntercomUser, deleteIntercomUsersByUserId, deleteIntercomUsersByIntercomId, deleteIntercomUserByUserAndIntercom
+    deleteIntercomUser, deleteIntercomUsersByUserId, deleteIntercomUsersByIntercomId, deleteIntercomUserByUserAndIntercom, updateFaceStatus, updateDynamicCode
 };

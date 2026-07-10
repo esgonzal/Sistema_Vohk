@@ -31,6 +31,7 @@ export class CondominiumDashboardComponent implements OnInit {
       .subscribe({
         next: data => {
           this.buildings = data;
+          console.log("Buildings loaded:", this.buildings);
         },
         error: err => console.error(err)
       });

@@ -23,7 +23,7 @@ export class CondominiumsComponent implements OnInit {
     this.propertyService.getCondominiums().subscribe({
       next: data => {
         this.condominiums = data;
-        console.log(this.condominiums);
+        console.log("Condominios loaded: ",this.condominiums);
       },
       error: err => {
         console.error(err);

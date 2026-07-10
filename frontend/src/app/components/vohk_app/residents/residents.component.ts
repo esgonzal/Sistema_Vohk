@@ -25,6 +25,7 @@ export class ResidentsComponent implements OnInit {
     this.propertyService.getResidents(unitId).subscribe({
       next: data => {
         this.residents = data;
+        console.log(this.residents)
       },
       error: err => {
         console.error(err);

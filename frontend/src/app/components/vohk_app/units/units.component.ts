@@ -26,6 +26,7 @@ export class UnitsComponent implements OnInit {
     this.propertyService.getUnits(buildingId).subscribe({
       next: data => {
         this.units = data;
+        console.log("Unidades loaded: ", this.units);
       },
       error: err => {
         console.error(err);
