@@ -114,6 +114,32 @@ const sendMany = async ({ accessToken, locks, receiverName, keyName, startDate, 
     };
 
 };
+const sendMultiple = async ({ accessToken, locks, receivers, startDate, endDate, keyRight, remoteEnable, notifyEmail }) => {
+    const results = [];
+    for (const receiver of receivers) {
+        console.log("creating an eKey for: ", receiver)
+        const receiverResults = [];
+        for (const lock of locks) {
+            console.log("For the lock: ", lock)
+            try {
+                const response = await sendEkey({ accessToken, lockID: lock.lockId, receiverName: receiver.receiver, keyName: receiver.keyName, startDate, endDate, remoteEnable, keyRight, createUser: 1 });
+                const result = { receiver: receiver.receiver, receiverName: receiver.receiverName, department: receiver.department, keyName: receiver.keyName, lockId: lock.lockId, lockAlias: lock.lockAlias, success: true, keyId: response.keyId };
+                receiverResults.push(result);
+                results.push(result);
+            } catch (error) {
+                const result = { receiver: receiver.receiver, receiverName: receiver.receiverName, department: receiver.department, lockId: lock.lockId, lockAlias: lock.lockAlias, success: false, errcode: error.errcode, message: error.message };
+                receiverResults.push(result);
+                results.push(result);
+            }
+        }
+        if (notifyEmail) {
+            const isNewUser = await isNewTTLockUser(receiver.receiver);
+            const password = receiver.receiver.slice(-6);
+            await emailService.sendEkeyEmail({ toEmail: receiver.notificationEmail, receiverName: receiver.receiver, locks: receiverResults.filter(r => r.success), startDate, endDate, isNewUser, password });
+        }
+    }
+    return { success: results.every(r => r.success), createdCount: results.filter(r => r.success).length, failedCount: results.filter(r => !r.success).length, results };
+};
 const deleteEkey = async ({ accessToken, keyID }) => {
     try {
         const response = await axios.post(
@@ -209,4 +235,4 @@ const isNewTTLockUser = async (username) => {
     }
 };
 
-module.exports = { getLockEkeys, getEkeysAccount, sendEkey, sendMany, deleteEkey, modifyEkey, changePeriod, freezeEkey, unfreezeEkey, authorizeEkey, unauthorizeEkey };
+module.exports = { getLockEkeys, getEkeysAccount, sendEkey, sendMany, sendMultiple, deleteEkey, modifyEkey, changePeriod, freezeEkey, unfreezeEkey, authorizeEkey, unauthorizeEkey };

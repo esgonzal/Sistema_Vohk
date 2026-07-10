@@ -164,3 +164,8 @@ export interface CardResult {
     errcode: number;
     errmsg?: string;
 }
+
+export interface SendMultipleResponse {
+    success: boolean;
+    createdCount: number;
+}

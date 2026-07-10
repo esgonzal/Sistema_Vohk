@@ -1,14 +1,17 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import moment from 'moment';
-import { EkeyServiceService } from '../../../services/ekey-service.service';
-import { PopUpService } from '../../../services/pop-up.service';
-import { LockServiceService } from '../../../services/lock-service.service';
-import { lastValueFrom } from 'rxjs';
-import { UserServiceService } from '../../../services/user-service.service';
-import { sendEkeyResponse } from '../../../Interfaces/API_responses';
-import { DarkModeService } from 'src/app/services/dark-mode.service';
+import Swal from 'sweetalert2';
 import * as XLSX from 'xlsx';
+import { lastValueFrom } from 'rxjs';
+import { EkeyServiceService } from '../../../services/ekey-service.service';
+import { UserServiceService } from '../../../services/user-service.service';
+import { DarkModeService } from 'src/app/services/dark-mode.service';
+import { MultipleEkeyForm } from 'src/app/Interfaces/MultipleEkeyForm';
+import { MultipleReceiver } from 'src/app/Interfaces/MultipleReceiver';
+import { SelectedLock } from 'src/app/Interfaces/SelectedLock';
+import { LockData } from 'src/app/Interfaces/Lock';
+
 
 @Component({
   selector: 'app-multiple-ekey',
@@ -16,423 +19,168 @@ import * as XLSX from 'xlsx';
   styleUrls: ['./multiple-ekey.component.css']
 })
 export class MultipleEkeyComponent implements OnInit {
-  @ViewChild('fileInput') fileInput: ElementRef;
 
-  isLoading: boolean = false;
-  error = "";
-  eKeys: any[] = [];
-  aliases = "";
+  accessToken = sessionStorage.getItem('accessToken') ?? '';
+  lockId = Number(sessionStorage.getItem('lockID') ?? '');
+  isLoading = false;
+  showLocks = false;
+  form: MultipleEkeyForm = { type: '1', startDate: '', endDate: '', remoteEnable: true, keyRight: false, notifyEmail: false };
+  receivers: MultipleReceiver[] = [{ department: '', receiver: '', receiverName: '', keyName: '', notificationEmail: '' }];
+  selectedLocks: SelectedLock[] = [];
+  locksOfGroup: LockData[] = [];
 
-  constructor(private router: Router,
+  constructor(
+    private router: Router,
     public ekeyService: EkeyServiceService,
-    public popupService: PopUpService,
-    private lockService: LockServiceService,
-    private userService: UserServiceService,
-    public DarkModeService: DarkModeService) {
-    if (!this.ekeyService.username || !this.ekeyService.userID || !this.ekeyService.lockID || !this.ekeyService.endDateUser) {
-      this.router.navigate(['users', sessionStorage.getItem('user'), 'lock', sessionStorage.getItem('lockID')])
-    }
-  }
+    public userService: UserServiceService,
+    public DarkModeService: DarkModeService
+  ) { }
 
-  ngOnInit() {
-    this.eKeys = [{
-      account: '', name: '', type: '', startDatepicker: null, startTimepicker: '', endDatepicker: null, endTimepicker: '', email: '', weekDays: [
-        { name: 'L', value: 2, checked: false },
-        { name: 'M', value: 3, checked: false },
-        { name: 'M', value: 4, checked: false },
-        { name: 'J', value: 5, checked: false },
-        { name: 'V', value: 6, checked: false },
-        { name: 'S', value: 7, checked: false },
-        { name: 'D', value: 1, checked: false }
-      ]
-    }];
-  }
-  onCheckboxChange(event: any, day: any) {
-    day.checked = event.target.checked
-  }
-  removeEKey(index: number) {
-    this.eKeys.splice(index, 1); // Remove the eKey at the specified index
-  }
-  addEKey() {
-    const newEKey = {
-      account: '',
-      name: '',
-      type: '',
-      startDatepicker: null,
-      startTimepicker: '',
-      endDatepicker: null,
-      endTimepicker: '',
-      email: '',
-      weekDays: [
-        { name: 'L', value: 2, checked: false },
-        { name: 'M', value: 3, checked: false },
-        { name: 'M', value: 4, checked: false },
-        { name: 'J', value: 5, checked: false },
-        { name: 'V', value: 6, checked: false },
-        { name: 'S', value: 7, checked: false },
-        { name: 'D', value: 1, checked: false }
-      ]
-    };
-    this.eKeys.push(newEKey);
-  }
-  isAccountValid(account: string) {
-    if (this.isAccountEmail(account) || this.isAccountPhone(account)) {
-      return true;
-    } else {
-      return false
+  ngOnInit(): void {
+    this.locksOfGroup = this.ekeyService.locksOfGroup ?? [];
+    const currentLock = this.locksOfGroup.find(lock => lock.lockId === this.lockId);
+    if (currentLock) {
+      this.selectedLocks.push({ lockId: currentLock.lockId, lockAlias: currentLock.lockAlias });
     }
   }
-  isAccountPhone(account: string) {
-    if (this.userService.isValidPhone(account).isValid) {
-      return true;
+  addRecipient(): void {
+    this.receivers.push({ department: '', receiver: '', receiverName: '', keyName: '', notificationEmail: '' });
+  }
+  removeRecipient(index: number): void {
+    this.receivers.splice(index, 1);
+    if (this.receivers.length === 0) {
+      this.addRecipient();
+    }
+  }
+  toggleLocks(): void {
+    this.showLocks = !this.showLocks;
+  }
+  isLockSelected(lockId: number): boolean {
+    return this.selectedLocks.some(lock => lock.lockId === lockId);
+  }
+  toggleLock(lock: LockData, event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    if (checked) {
+      if (!this.isLockSelected(lock.lockId)) {
+        this.selectedLocks.push({ lockId: lock.lockId, lockAlias: lock.lockAlias });
+      }
     } else {
+      this.selectedLocks = this.selectedLocks.filter(selected => selected.lockId !== lock.lockId);
+    }
+  }
+  private validate(): boolean {
+    if (this.selectedLocks.length === 0) {
+      Swal.fire("Error", "Debe seleccionar al menos una cerradura.", "error");
       return false;
     }
-  }
-  isAccountEmail(account: string) {
-    if (this.userService.isValidEmail(account)) {
-      return true;
-    } else
-      return false;
-  }
-  isDateAndTimeValid(eKey: { type: string; startDatepicker: any; startTimepicker: any; endDatepicker: any; endTimepicker: any; }): boolean {
-    if (eKey.type === '2' || eKey.type === '4') {
-      return eKey.startDatepicker && eKey.startTimepicker && eKey.endDatepicker && eKey.endTimepicker;
-    }
-    return true; // No validation needed if not type 2 or 4
-  }
-  isEndDateValid(eKey: { type: string; startDatepicker: any; startTimepicker: any; endDatepicker: any; endTimepicker: any; }): boolean {
-    if (eKey.type === '2' || eKey.type === '4') {
-      const startDateTime = moment(eKey.startDatepicker).add(this.lockService.transformarHora(eKey.startTimepicker), 'milliseconds');
-      const endDateTime = moment(eKey.endDatepicker).add(this.lockService.transformarHora(eKey.endTimepicker), 'milliseconds');
-      if (endDateTime.isBefore(startDateTime)) {
+    if (this.form.type === '2') {
+      if (!this.form.startDate || !this.form.endDate) {
+        Swal.fire("Error", "Debe seleccionar ambas fechas.", "error");
+        return false;
+      }
+      if (new Date(this.form.endDate) <= new Date(this.form.startDate)) {
+        Swal.fire("Error", "La fecha final debe ser mayor.", "error");
         return false;
       }
     }
-    return true; // No validation needed for other types or if validation passed
-  }
-  isCheckboxesValid(eKey: { type: string; weekDays: any[]; }): boolean {
-    if (eKey.type === '4') {
-      return eKey.weekDays && eKey.weekDays.some((day: { checked: any; }) => day.checked);
-    }
-    return true; // No validation needed for other types
-  }
-  getSelectedDayNames(selectedDayNumbers: number[], weekDays: { name: string; value: number; checked: boolean }[]): string {//Guarda el nombre de los dias seleccionados para mandarlos por correo
-    const selectedDays = weekDays.filter(day => selectedDayNumbers.includes(day.value));
-    const selectedDayNames = selectedDays.map(day => day.name);
-    return selectedDayNames.join(', ');
-  }
-  async validarInputs2(eKeys: any[]) {
-    this.error = '';
-    for (const eKey of eKeys) {
-      if (!this.isAccountValid(eKey.account)) {
-        this.error = "La cuenta de destinatario debe ser un correo electrónico o número de celular con código (+569)";
-        break;
-      } else if (!eKey.name) {
-        this.error = "Por favor rellene el campo 'Nombre de eKey'";
-        break;
-      } else if (!eKey.type) {
-        this.error = "Debe seleccionar un tipo de eKey";
-        break;
-      } else if (!this.isDateAndTimeValid(eKey)) {
-        this.error = "Por favor rellene los datos de fecha y/o hora";
-        break;
-      } else if (!this.isCheckboxesValid(eKey)) {
-        this.error = "Si va a crear una ekey solicitante, debe seleccionar al menos un día de habilitación";
-        break;
-      } else if (!this.isEndDateValid(eKey)) {
-        this.error = 'La fecha de finalización debe ser posterior a la fecha de inicio';
-      } else if ((this.userService.isValidPhone(eKey.account).isValid) && (!eKey.email)) {
-        this.error = 'Ingrese un correo electrónico para recibir una notificación'
+    for (const receiver of this.receivers) {
+      if (!receiver.receiver.trim()) {
+        Swal.fire("Error", "Todos los destinatarios deben tener una cuenta.", "error");
+        return false;
       }
-    }
-    if (this.error === '') {
-      for (const eKey of eKeys) {
-        if (await this.crearEkey2(eKey)) {
-          await this.generarEmail2(eKey);
-          //await this.generarEmail3(eKey);
-        }
+      if (!this.userService.isValidEmail(receiver.receiver) && !this.userService.isValidPhone(receiver.receiver).isValid) {
+        Swal.fire("Error", "Hay destinatarios inválidos.", "error");
+        return false;
       }
-      this.popupService.ekeySuccess2 = true;
-    }
-  }
-  async crearEkey2(eKey: { account: string; name: string; type: string; startDatepicker: string; startTimepicker: string, endDatepicker: string, endTimepicker: string, email: string }) {
-    this.isLoading = true;
-    try {
-      if (this.userService.isValidPhone(eKey.account).isValid) {
-        eKey.account = this.userService.normalizePhone(eKey.account);
+      if (!receiver.keyName.trim()) {
+        Swal.fire("Error", "Todos los destinatarios deben tener nombre de eKey.", "error");
+        return false;
       }
-      for (const lock of this.ekeyService.selectedLocks) {
-        if (eKey.type === '1') {
-          ///////////PERMANENTE////////////////////////////////
-          let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, lock.id, lock.alias, eKey.account, eKey.name, "0", "0", 0, 0, eKey.email)) as sendEkeyResponse;
-          if (sendEkeyResponse.keyId) {//Ekey permanente se mandó correctamente
-            return true;
-            //this.popupService.emailMessage = this.sanitizer.bypassSecurityTrustHtml(sendEkeyResponse.emailContent);
-            //this.popupService.emailSuccess = true;
-          } else if (sendEkeyResponse.errcode === 10003) {
-            sessionStorage.clear();
-            return false;
-          } else if (sendEkeyResponse.errcode === -2019) {
-            this.error = "No puedes enviarte una eKey a ti mismo."
-            return false;
-          } else {
-            console.log(sendEkeyResponse);
+      if (this.form.notifyEmail) {
+        if (!this.userService.isValidEmail(receiver.receiver)) {
+          if (!receiver.notificationEmail) {
+            Swal.fire("Error", "Debe ingresar un correo de notificación.", "error");
             return false;
           }
-        }
-        else if (eKey.type === '2') {
-          ///////////PERIODICA//////////////////////////////////////////////////////////////////
-          let newStartDay = moment(eKey.startDatepicker).valueOf();
-          let newEndDay = moment(eKey.endDatepicker).valueOf();
-          let newStartDate = moment(newStartDay).add(this.lockService.transformarHora(eKey.startTimepicker), "milliseconds").valueOf();
-          let newEndDate = moment(newEndDay).add(this.lockService.transformarHora(eKey.endTimepicker), "milliseconds").valueOf();
-          let sendEkeyResponse = await lastValueFrom(this.ekeyService.sendEkey(this.ekeyService.userID, lock.id, lock.alias, eKey.account, eKey.name, newStartDate.toString(), newEndDate.toString(), 0, 0, eKey.email)) as sendEkeyResponse;
-          if (sendEkeyResponse.keyId) {//Ekey periodica se mandó correctamente
-            return true;
-            //this.popupService.emailMessage = this.sanitizer.bypassSecurityTrustHtml(sendEkeyResponse.emailContent);
-            //this.popupService.emailSuccess = true;
-          } else if (sendEkeyResponse.errcode === 10003) {
-            sessionStorage.clear();
-            return false;
-          } else if (sendEkeyResponse.errcode === -2019) {
-            this.error = "No puedes enviarte una eKey a ti mismo."
-            return false;
-          } else {
-            console.log(sendEkeyResponse);
+          if (!this.userService.isValidEmail(receiver.notificationEmail)) {
+            Swal.fire("Error", "Hay correos de notificación inválidos.", "error");
             return false;
           }
         }
       }
-    } catch (error) {
-      console.error("Error while creating Ekey:", error);
-      return false;
-    } finally {
-      this.isLoading = false;
     }
     return true;
   }
-  async generarEmail2(eKey: { account: string; name: string; type: string; startDatepicker: string; startTimepicker: string, endDatepicker: string, endTimepicker: string, email: string }) {
-    if (this.ekeyService.selectedLocks.length === 1) {
-      const Alias = this.ekeyService.selectedLocks[0].alias;
-      if (eKey.type === '1') {
-        // Permanent eKey email
-        const response = await lastValueFrom(this.ekeyService.generateEmail(this.ekeyService.userID, Alias, eKey.account, '0', '0', eKey.email)) as sendEkeyResponse;
-        //console.log(response)
-        if (response.emailContent) {
-          this.popupService.toEmail = response.toEmail;
-          this.popupService.emailMessage = response.emailContent;
-          await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, response.emailContent));
-        }
-      } else if (eKey.type === '2') {
-        // Periodic eKey email
-        let newStartDay = moment(eKey.startDatepicker).valueOf();
-        let newEndDay = moment(eKey.endDatepicker).valueOf();
-        let newStartDate = moment(newStartDay).add(this.lockService.transformarHora(eKey.startTimepicker), "milliseconds").valueOf();
-        let newEndDate = moment(newEndDay).add(this.lockService.transformarHora(eKey.endTimepicker), "milliseconds").valueOf();
-        const response = await lastValueFrom(this.ekeyService.generateEmail(this.ekeyService.userID, Alias, eKey.account, newStartDate.toString(), newEndDate.toString(), eKey.email)) as sendEkeyResponse;
-        if (response.emailContent) {
-          this.popupService.toEmail = response.toEmail;
-          this.popupService.emailMessage = response.emailContent;
-          await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, response.emailContent));
-          //this.popupService.emailSuccess = true;
-          //const updatedHtml = response.emailContent;
-          //let sendEmailResponse = await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, updatedHtml));
-          //this.popupService.createEkey = false;
-          //this.popupService.ekeySuccess = true;
-          //window.location.reload()
-        }
-      }
-    } else {
-      const Alias = this.ekeyService.selectedLocks.map(lock => `<li>${lock.alias}</li>`).join('');
-      if (eKey.type === '1') {
-        // Permanent eKey email
-        const response = await lastValueFrom(this.ekeyService.generateEmail(this.ekeyService.userID, Alias, eKey.account, '0', '0', eKey.email)) as sendEkeyResponse;
-        if (response.emailContent) {
-          console.log(response)
-          this.popupService.toEmail = response.toEmail;
-          this.popupService.emailMessage = response.emailContent;
-          let sendEmailResponse = await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, response.emailContent));
-          console.log(sendEmailResponse)
-          //this.popupService.emailSuccess = true;
-          //const updatedHtml = response.emailContent;
-          //let sendEmailResponse = await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, updatedHtml));
-          //console.log(sendEmailResponse); (success)
-          //this.popupService.createEkey = false;
-          //this.popupService.ekeySuccess = true;
-          //window.location.reload()
-        }
-      } else if (eKey.type === '2') {
-        // Periodic eKey email
-        let newStartDay = moment(eKey.startDatepicker).valueOf();
-        let newEndDay = moment(eKey.endDatepicker).valueOf();
-        let newStartDate = moment(newStartDay).add(this.lockService.transformarHora(eKey.startTimepicker), "milliseconds").valueOf();
-        let newEndDate = moment(newEndDay).add(this.lockService.transformarHora(eKey.endTimepicker), "milliseconds").valueOf();
-        const response = await lastValueFrom(this.ekeyService.generateEmail(this.ekeyService.userID, Alias, eKey.account, newStartDate.toString(), newEndDate.toString(), eKey.email)) as sendEkeyResponse;
-        //console.log(response)
-        if (response.emailContent) {
-          this.popupService.toEmail = response.toEmail;
-          this.popupService.emailMessage = response.emailContent;
-          let sendEmailResponse = await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, response.emailContent));
-          console.log(sendEmailResponse)
-          //this.popupService.emailSuccess = true;
-          //const updatedHtml = response.emailContent;
-          //let sendEmailResponse = await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, updatedHtml));
-          //this.popupService.createEkey = false;
-          //this.popupService.ekeySuccess = true;
-          //window.location.reload()
-        }
-      }
+  async generate(): Promise<void> {
+    if (!this.validate()) {
+      return;
     }
-
-
-  }
-  async generarEmail3(eKey: { account: string; name: string; type: string; startDatepicker: string; startTimepicker: string; endDatepicker: string; endTimepicker: string; email: string, code: string }) {
-    if (this.ekeyService.selectedLocks.length === 1) {
-      const Alias = this.ekeyService.selectedLocks[0].alias;
-      if (eKey.type === '1') {
-        const response = await lastValueFrom(this.ekeyService.generateEmail2(this.ekeyService.userID, Alias, eKey.account, eKey.code, eKey.email)) as sendEkeyResponse;
-        if (response.emailContent) {
-          this.popupService.toEmail = response.toEmail;
-          this.popupService.emailMessage = response.emailContent;
-          await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, response.emailContent));
-        }
+    this.isLoading = true;
+    try {
+      let startMs = "0";
+      let endMs = "0";
+      if (this.form.type === "2") {
+        startMs = moment(this.form.startDate).startOf("day").add(1, "minute").valueOf().toString();
+        endMs = moment(this.form.endDate).endOf("day").valueOf().toString();
       }
-    } else {
-      const Alias = this.ekeyService.selectedLocks
-        .map(lock => `<li>${lock.alias}</li>`)
-        .join('');
-      if (eKey.type === '1') {
-        const response = await lastValueFrom(this.ekeyService.generateEmail2(this.ekeyService.userID, Alias, eKey.account, eKey.code, eKey.email)) as sendEkeyResponse;
-        if (response.emailContent) {
-          this.popupService.toEmail = response.toEmail;
-          this.popupService.emailMessage = response.emailContent;
-          await lastValueFrom(this.ekeyService.sendEmail(response.toEmail, response.emailContent));
-        }
+      const normalizedReceivers = this.receivers.map(receiver => ({
+        department: receiver.department,
+        receiver: this.userService.isValidPhone(receiver.receiver).isValid ? this.userService.normalizePhone(receiver.receiver) : receiver.receiver,
+        receiverName: receiver.receiverName,
+        keyName: receiver.keyName,
+        notificationEmail: this.userService.isValidEmail(receiver.receiver) ? receiver.receiver : receiver.notificationEmail
+      }));
+      const response: any = await lastValueFrom(this.ekeyService.sendMultiple(this.accessToken, this.selectedLocks, normalizedReceivers, startMs, endMs, this.form.keyRight ? 1 : 0, this.form.remoteEnable ? 1 : 2, this.form.notifyEmail));
+      console.log(response)
+      if (!response.success) {
+        await Swal.fire("Error", "No fue posible generar las eKeys.", "error");
+        return;
       }
+      await Swal.fire("Éxito", `${response.createdCount ?? 0} eKeys creadas correctamente.`, "success");
+      this.isLoading = false;
+      this.router.navigate([`/lock/${this.lockId}`]);
+    } catch (error) {
+      console.error(error);
+      await Swal.fire("Error", "Ocurrió un error inesperado.", "error");
+    } finally {
+      this.isLoading = false;
     }
-  }
-  openLockSelector() {
-    this.popupService.selectLocksForEkey = true;
   }
   downloadExcelTemplate(): void {
-    // Crear un libro de trabajo
+    const data = [["", "N° DEPTO", "NOMBRE", "TELEFONO", "EMAIL"]];
+    const worksheet = XLSX.utils.aoa_to_sheet(data);
     const workbook = XLSX.utils.book_new();
-    const headerStyle = {
-      fill: {
-        fgColor: { rgb: "FFDDDDDD" }, // Color de fondo (gris claro)
-      },
-      font: {
-        bold: true, // Negrita
-      },
-      alignment: {
-        horizontal: "center", // Centrar el texto
-      },
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-        left: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-      }
-    };
-    // Crear una hoja de trabajo con los datos deseados
-    const worksheetData = [
-      [], // Línea 1: Vacía
-      ["", "N° DEPTO", "NOMBRE", "TELEFONO", "EMAIL"], // Línea 2
-      ["", "", "", "+56", ""] // Línea 3: Formato de ejemplo para Teléfono
-    ];
-    // Crear la hoja a partir de los datos
-    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
-    const headerCells = ["B2", "C2", "D2", "E2"]; // Celdas del encabezado
-    headerCells.forEach(cell => {
-      worksheet[cell].s = headerStyle; // Aplicar estilo a cada celda del encabezado
-    });
-    // Agregar la hoja al libro de trabajo
     XLSX.utils.book_append_sheet(workbook, worksheet, "Plantilla");
-    // Generar el archivo Excel y disparar la descarga
-    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'Plantilla.xlsx';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
+    XLSX.writeFile(workbook, "Plantilla.xlsx");
   }
   onFileSelected(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    if (target.files && target.files.length) {
-      const file = target.files[0];
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }); // Obtener los datos como una matriz
-        // Procesar los datos desde la fila 3
-        this.processExcelData(jsonData);
-      };
-      reader.readAsArrayBuffer(file);
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) {
+      return;
     }
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+      this.processExcelData(rows);
+    };
+    reader.readAsArrayBuffer(input.files[0]);
   }
-  private processExcelData(data: any[]) {
-    // Comenzar desde la fila 3 (índice 2)
+  private processExcelData(data: any[]): void {
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
-      console.log(row)
-      // Asegurarse de que la fila tenga suficientes datos
-      if (row.length >= 4) {
-        const department = row[1]; // B: Departamento
-        const ownerName = row[2]; // C: Nombre Propietario
-        const phoneNumber = row[3]; // D: N° Telefono
-        const email = row[4]; // E: Correo
-        // Crear el objeto de eKey según el formato requerido
-        const formattedPhoneNumber = String(phoneNumber).replace(/\s+/g, '');
-        const eKey = {
-          account: `${formattedPhoneNumber}`, // Cuenta de Destino
-          name: `${ownerName} - ${department}`, // Nombre de Ekey
-          type: '1', // Tipo: 1 (Permanente)
-          email: email // Correo
-        };
-        // Agregar el objeto de eKey al array
-        this.eKeys.push(eKey);
-      }
-    }
-    console.log(this.eKeys); // Ver los eKeys en la consola
-  }
-  private processExcelData2(data: any[]) {
-    this.eKeys = [];
-    for (let i = 1; i < data.length; i++) {
-      const row = data[i];
-      if (!row || row.length < 6) {
+      if (!row || row.length < 4) {
         continue;
       }
-      const unidad = row[0];              // A = UNIDAD
-      const codigo = row[1];              // B = CÓDIGO
-      const correo = row[2];              // C = CORREO
-      const nombre = row[4];              // E = NOMBRE EN EKEY
-      const telefono = row[5];            // F = TELÉFONO EN EKEY
-      // FORMATEAR TELÉFONO
-      const formattedPhone = String(telefono || '')
-        .replace(/\s+/g, '')
-        .replace(/-/g, '');
-      // SI HAY TELÉFONO -> usar teléfono
-      // SI NO -> usar correo
-      const account = formattedPhone && formattedPhone !== '—'
-        ? formattedPhone
-        : correo;
-      const eKey = {
-        account: account,
-        name: `${nombre} - ${unidad}`,
-        type: '1',
-        email: correo,
-        code: String(codigo)
-      };
-      this.eKeys.push(eKey);
+      this.receivers.push({
+        department: String(row[1] ?? ''),
+        receiver: String(row[3] ?? '').replace(/\s/g, ''),
+        receiverName: String(row[2] ?? ''),
+        keyName: `${row[2] ?? ''} - ${row[1] ?? ''}`,
+        notificationEmail: String(row[4] ?? '')
+      });
     }
-    console.log(this.eKeys);
   }
 }

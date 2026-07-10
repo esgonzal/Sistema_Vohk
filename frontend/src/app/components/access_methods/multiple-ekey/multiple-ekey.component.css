@@ -1,149 +1,172 @@
 .pagina_completa {
-    display: flex;
-    justify-content: center;
-    padding-left: 0;
-    padding-right: 0;
-    background-color: #F7FAFA;
-    /* flex-direction: column;  */
+    min-height: 100%;
+    padding: 30px;
 }
 
 .form-area {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px;
+    border-radius: 12px;
+    background: white;
+}
+
+.titulo {
     text-align: center;
-    padding-top: 15px;
-    padding-bottom: 15px;
+    margin-bottom: 35px;
 }
 
-.weekdays-checkboxes {
-    display: flex;
-    gap: 5px;
-    justify-content: center;
-}
-
-.weekdays-checkboxes label {
-    display: inline-block;
-    margin-right: 5px;
-}
-
-.invalid-input {
-    border: 2px solid red;
-}
-
-.linea {
+.config-section {
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    margin-bottom: 20px;
+    gap: 18px;
+    padding: 20px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.03);
 }
 
-.input-container {
-    display: flex;
-    flex-direction: row;
-    gap: 10px;
-    justify-content: space-between;
-    width: 600px;
-}
-
-.form-button {
+.full-width {
+    width: 100%;
     height: 40px;
-    width: 200px;
-    align-self: center;
-    border: 1px solid black;
-    background-color: #F5C754;
-    cursor: pointer;
-    border-radius: 20px;
+    padding: 0 10px;
 }
 
-.botones {
+.dates {
     display: flex;
-    justify-content: space-evenly;
+    gap: 20px;
+}
+
+.dates>div {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+.dates input {
+    height: 38px;
+    padding: 0 10px;
+}
+
+.buttons,
+.button-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.form-button,
+.import {
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
 }
 
 .import {
-    border-radius: 20px;
-    border: 1px solid black;
-    background-color: #F5C754;
+    background: #e8e8e8;
 }
 
-.addLocks {
-    height: 30px;
-    border-radius: 20px;
-    border: 1px solid black;
-    background-color: #F5C754;
+.form-button:hover,
+.import:hover {
+    opacity: 0.85;
 }
 
-.th_cuenta_destino {
-    width: 20%;
+.locks-container {
+    max-height: 220px;
+    overflow-y: auto;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background: white;
 }
 
-.th_ekey {
-    width: 15%;
+.lock-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
 }
 
-.th_tipo {
-    width: 15%;
+.selected-locks {
+    padding: 15px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.04);
 }
 
-.th_inicio {
-    width: 10%;
+.selected-locks ul {
+    margin: 10px 0 0 0;
+    padding-left: 20px;
 }
 
-.th_expiracion {
-    width: 10%;
+.checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-.th_correo {
-    width: 20%;
+.ekey-table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
 }
 
-.th_eliminar {
-    width: 10%;
+.ekey-table th {
+    text-align: left;
+    padding: 12px;
 }
 
-.error {
-    color: red;
-    font-size: 12px;
+.ekey-table td {
+    padding: 10px;
 }
 
-.dark-mode,
-.dark-mode .pagina_completa {
-    color: #fff;
-    background-color: #121C24;
+.ekey-table input {
+    width: 100%;
+    box-sizing: border-box;
+    height: 36px;
+    padding: 0 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
 }
 
-/* Media Query para pantallas pequeñas */
-@media only screen and (max-width: 600px) {
-    .pagina_completa {
-        justify-content: flex-start;
-        flex-direction: column; /* Asegura que el layout de la página se mantenga como columna */
-        padding-left: 10px;
-        padding-right: 10px;
-    }
+.ekey-table tr {
+    border-bottom: 1px solid #ddd;
+}
 
-    .titulo {
-        font-size: 20px;
-    }
+.custom-button-eliminar {
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
 
-    .botones {
-        justify-content: center;
-        font-size: 10px;
-    }
+.buttons {
+    justify-content: flex-end;
+}
 
-    .form-button {
-        width: 150px;
-    }
+.button-row {
+    justify-content: flex-start;
+}
 
-    .content-container {
-        overflow-x: auto; /* Permite el desplazamiento horizontal */
-        width: 100%; /* Ajusta el contenedor al ancho de la página */
-    }
+.dark-mode .form-area {
+    background: #222;
+}
 
-    .ekey-table {
-        width: 100%; /* Asegura que la tabla ocupe el ancho completo */
-        table-layout: fixed; /* Esto ayuda a que la tabla se ajuste mejor al contenedor */
-    }
+.dark-mode .config-section {
+    background: rgba(255, 255, 255, 0.05);
+}
 
-    .ekey-table th,
-    .ekey-table td {
-        width: 50vw; /* Mantiene un ancho grande en pantallas pequeñas */
-    }
+.dark-mode .locks-container {
+    background: #333;
+    border-color: #555;
+}
+
+.dark-mode .ekey-table input {
+    background: #333;
+    color: white;
+    border-color: #555;
+
+}
+
+.dark-mode .selected-locks {
+    background: rgba(255, 255, 255, 0.08);
 }

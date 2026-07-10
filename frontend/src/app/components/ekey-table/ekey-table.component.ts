@@ -12,6 +12,7 @@ import { operationResponse } from 'src/app/Interfaces/API_responses';
 import { LockData } from 'src/app/Interfaces/Lock';
 import { CreateEkeyForm } from 'src/app/Interfaces/CreateEkeyForm';
 import { UserServiceService } from 'src/app/services/user-service.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-ekey-table',
@@ -33,7 +34,7 @@ export class EkeyTableComponent implements OnInit, AfterViewInit {
   sort!: MatSort;
   isLoading: boolean = false;
 
-  constructor(public ekeyService: EkeyServiceService, public lockService: LockServiceService, private userService: UserServiceService) { }
+  constructor(public ekeyService: EkeyServiceService, public lockService: LockServiceService, private userService: UserServiceService, private router: Router) { }
 
   async ngOnInit() {
     await this.loadEkeys();
@@ -573,5 +574,10 @@ export class EkeyTableComponent implements OnInit, AfterViewInit {
     } finally {
       this.isLoading = false;
     }
+  }
+  toMultiples() {
+    this.ekeyService.locksOfGroup = this.locksOfGroup;
+    let url = "/lock/".concat(this.lockId.toString()) + "/ekey/multiple"
+    this.router.navigate([url]);
   }
 }

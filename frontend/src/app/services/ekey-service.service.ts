@@ -7,6 +7,7 @@ import { RecipientList } from '../Interfaces/RecipientList';
 import { Ekey } from '../Interfaces/Elements';
 import { MatTableDataSource } from '@angular/material/table';
 import { SelectedLock } from '../Interfaces/SelectedLock';
+import { MultipleReceiver } from '../Interfaces/MultipleReceiver';
 
 @Injectable({
   providedIn: 'root'
@@ -26,6 +27,7 @@ export class EkeyServiceService {
   recipients: RecipientList[] = [];
   ekeys: Ekey[] = [];
   ekeysDataSource: MatTableDataSource<Ekey>;
+  locksOfGroup: LockData[] = [];
 
   constructor(private http: HttpClient) { }
 
@@ -49,6 +51,12 @@ export class EkeyServiceService {
     const body = { locks, receiverName, keyName, startDate, endDate, keyRight, remoteEnable, notifyEmail, email };
     return this.http.post(url, body, { headers: this.getHeaders(accessToken) });
   }
+  sendMultiple(accessToken: string, locks: SelectedLock[], receivers: MultipleReceiver[], startDate: string, endDate: string, keyRight: number, remoteEnable: number, notifyEmail: boolean) {
+    const url = this.URL.concat('/v0/ekey/sendMultiple');
+    const body = { locks, receivers, startDate, endDate, keyRight, remoteEnable, notifyEmail };
+    return this.http.post(url, body, { headers: this.getHeaders(accessToken) });
+  }
+
 
   sendEkey(userID: string, lockID: number, lockAlias: string, receiverName: string, keyName: string,
     startDate: string, endDate: string, keyRight: number, remoteEnable: number, email: string,

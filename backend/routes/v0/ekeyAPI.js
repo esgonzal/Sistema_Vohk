@@ -185,6 +185,23 @@ router.post('/sendMany', async (req, res) => {
         return res.status(error.status || 500).json({ errcode: error.errcode || 'UNKNOWN', errmsg: error.message || 'Error sending many ekey' });
     }
 });
+router.post('/sendMultiple', async (req, res) => {
+    const { locks, receivers, startDate, endDate, keyRight, remoteEnable, notifyEmail } = req.body;
+    const accessToken = req.headers.authorization?.replace('Bearer ', '');
+    if (!accessToken) {
+        return res.status(401).json({ errmsg: 'Missing access token' });
+    }
+    if (!Array.isArray(locks) || locks.length === 0 || !Array.isArray(receivers) || receivers.length === 0 || startDate == null || endDate == null) {
+        return res.status(400).json({ errmsg: 'Missing required fields' });
+    }
+    try {
+        const data = await ekeyService.sendMultiple({ accessToken, locks, receivers, startDate, endDate, keyRight, remoteEnable, notifyEmail });
+        return res.json(data);
+    } catch (error) {
+        console.error("sendMultiple error:", error);
+        return res.status(error.status || 500).json({ errcode: error.errcode || "UNKNOWN", errmsg: error.message || "Error sending multiple ekeys" });
+    }
+});
 
 router.post('/send', async (req, res) => {
     const { lockID, receiverName, keyName, startDate, endDate, remoteEnable, keyRight, keyType, startDay, endDay } = req.body;

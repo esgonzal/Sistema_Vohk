@@ -3,6 +3,7 @@
     <div class="button-container">
         <input type="text" [(ngModel)]="searchText" placeholder="Buscar Ekeys..." (input)="searchEkeys()">
         <div>
+            <button (click)="toMultiples()">Generar Multiples</button>
             <button (click)="crearEkey()">Generar</button>
             <button (click)="refresh()">Actualizar</button>
         </div>

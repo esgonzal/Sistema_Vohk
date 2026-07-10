@@ -47,7 +47,7 @@ const routes: Routes = [
       { path: 'users/:username/lock/:id/ekey', component: EkeyComponent },
       { path: 'users/:username/lock/:id/passcode', component: PasscodeComponent },
       { path: 'users/:username/lock/:id/card', component: CardComponent },
-      { path: 'users/:username/lock/:id/ekey/multiple', component: MultipleEkeyComponent },
+      { path: 'lock/:id/ekey/multiple', component: MultipleEkeyComponent },
       { path: 'users/:username/lock/:id/passcode/multiple', component: MultiplePasscodeComponent },
       { path: 'users/:username/lock/:id/card/multiple', component: MultipleCardsComponent },
     ]
