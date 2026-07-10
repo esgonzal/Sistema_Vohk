@@ -36,20 +36,26 @@ export class Loginv2Component {
       const md5 = this.userService.getMD5(data.password);
       const response = await lastValueFrom(this.userService.getAccessToken(data.username, md5)) as GetAccessTokenResponse;
       console.log(response)
-      sessionStorage.setItem('logged', '1');
-      sessionStorage.setItem('user', data.username);
-      sessionStorage.setItem('accessToken', response.access_token);
-      if (response.refresh_token) {
-        sessionStorage.setItem('refreshToken', response.refresh_token);
+      if (response.access_token) {
+        sessionStorage.setItem('logged', '1');
+        sessionStorage.setItem('user', data.username);
+        sessionStorage.setItem('accessToken', response.access_token);
+        if (response.refresh_token) {
+          sessionStorage.setItem('refreshToken', response.refresh_token);
+        }
+        this.isLoading = false;
+        this.router.navigate(['']);
+      } else if (response.errcode === 10007) {
+        this.loginError = "Nombre de usuario y/o contraseña inválidos.\nSi está ingresando su numero de celular recuerde añadir '+56'";
       }
-      this.isLoading = false;
-      this.router.navigate(['']);
     } catch (error: any) {
       if (error.status === 401) {
         this.loginError = "Nombre de usuario y/o contraseña inválidos.\nSi está ingresando su numero de celular recuerde añadir '+56'";
       } else {
         this.loginError = "Ocurrió un error al conectar con el servidor.";
       }
+      this.isLoading = false;
+    } finally {
       this.isLoading = false;
     }
   }
