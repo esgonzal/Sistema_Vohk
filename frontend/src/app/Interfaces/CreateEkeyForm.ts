@@ -5,7 +5,9 @@ export interface CreateEkeyForm {
     name: string;
     type: string;
     startDate: string;
+    startTime: string;
     endDate: string;
+    endTime: string;
     remoteEnable: boolean;
     keyRight: boolean;
     notifyEmail: boolean;

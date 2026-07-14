@@ -174,8 +174,20 @@ export class EkeyTableComponent implements OnInit, AfterViewInit {
       <option value="2"> Temporal </option>
     </select>
     <div id="dateBlock" style="display:none">
-      <input id="startDate" type="date" class="swal2-input">
-      <input id="endDate" type="date" class="swal2-input">
+      <label style="display:block;text-align:left;margin-top:10px;">
+        Inicio
+      </label>
+      <div style="display:flex;gap:10px;">
+        <input id="startDate" type="date" class="swal2-input" style="margin:0;flex:1;">
+        <input id="startTime" type="time" class="swal2-input" value="00:00" style="margin:0;width:140px;">
+      </div>
+      <label style="display:block;text-align:left;margin-top:15px;">
+        Término
+      </label>
+      <div style="display:flex;gap:10px;">
+        <input id="endDate" type="date" class="swal2-input" style="margin:0;flex:1;">
+        <input id="endTime" type="time" class="swal2-input" value="23:59" style="margin:0;width:140px;">
+      </div>
     </div>
     <button id="toggleLocks" type="button" class="swal2-styled" style="margin-top:10px">
       Seleccionar cerraduras ▼
@@ -267,7 +279,9 @@ export class EkeyTableComponent implements OnInit, AfterViewInit {
     const name = (document.getElementById("name") as HTMLInputElement).value.trim();
     const type = (document.getElementById("type") as HTMLSelectElement).value;
     const startDate = (document.getElementById("startDate") as HTMLInputElement).value;
+    const startTime = (document.getElementById("startTime") as HTMLInputElement).value;
     const endDate = (document.getElementById("endDate") as HTMLInputElement).value;
+    const endTime = (document.getElementById("endTime") as HTMLInputElement).value;
     const remoteEnable = (document.getElementById("remoteEnable") as HTMLInputElement).checked;
     const keyRight = (document.getElementById("keyRight") as HTMLInputElement).checked;
     const notifyEmail = (document.getElementById("notifyEmail") as HTMLInputElement).checked;
@@ -289,12 +303,14 @@ export class EkeyTableComponent implements OnInit, AfterViewInit {
       return false;
     }
     if (type === "2") {
-      if (!startDate || !endDate) {
-        Swal.showValidationMessage("Debe seleccionar ambas fechas.");
+      if (!startDate || !startTime || !endDate || !endTime) {
+        Swal.showValidationMessage("Debe seleccionar fecha y hora.");
         return false;
       }
-      if (new Date(endDate) <= new Date(startDate)) {
-        Swal.showValidationMessage("La fecha final debe ser mayor que la inicial.");
+      const start = new Date(`${startDate}T${startTime}`);
+      const end = new Date(`${endDate}T${endTime}`);
+      if (end <= start) {
+        Swal.showValidationMessage("La fecha final debe ser mayor.");
         return false;
       }
     }
@@ -311,7 +327,7 @@ export class EkeyTableComponent implements OnInit, AfterViewInit {
       }
     }
     return {
-      receiver, name, type, startDate, endDate, remoteEnable, keyRight, notifyEmail, notificationEmail,
+      receiver, name, type, startDate, startTime, endDate, endTime, remoteEnable, keyRight, notifyEmail, notificationEmail,
       locks: [...selectedLocks].map(([lockId, lockAlias]) => ({ lockId, lockAlias }))
     };
   }
@@ -323,8 +339,8 @@ export class EkeyTableComponent implements OnInit, AfterViewInit {
       let startMs = "0";
       let endMs = "0";
       if (!isPermanent) {
-        startMs = moment(form.startDate).startOf("day").add(1, "minute").valueOf().toString();
-        endMs = moment(form.endDate).endOf("day").valueOf().toString();
+        startMs = moment(`${form.startDate} ${form.startTime}`, "YYYY-MM-DD HH:mm").valueOf().toString();
+        endMs = moment(`${form.endDate} ${form.endTime}`, "YYYY-MM-DD HH:mm").valueOf().toString();
       }
       let email = "";
       if (form.notifyEmail) {

@@ -7,6 +7,7 @@ const MAX_PAGE_SIZE = 200;
 const MAX_PAGES = 50;
 const userService = require('../../services/v0/userService');
 const emailService = require('../../services/v0/emailService');
+const moment = require('moment');
 
 const getLockEkeys = async ({ accessToken, lockID }) => {
     try {
@@ -102,9 +103,11 @@ const sendMany = async ({ accessToken, locks, receiverName, keyName, startDate, 
         }
     }
     if (notifyEmail) {
+        const formattedStartDate = startDate === "0" ? "Permanente" : moment(Number(startDate)).format("DD/MM/YYYY HH:mm");
+        const formattedEndDate = endDate === "0" ? "Permanente" : moment(Number(endDate)).format("DD/MM/YYYY HH:mm");
         const isNewUser = await isNewTTLockUser(receiverName);
         const password = receiverName.slice(-6);
-        await emailService.sendEkeyEmail({ toEmail: email, receiverName, locks: results.filter(r => r.success), startDate, endDate, isNewUser, password });
+        await emailService.sendEkeyEmail({ toEmail: email, receiverName, locks: results.filter(r => r.success), startDate: formattedStartDate, endDate: formattedEndDate, isNewUser, password });
     }
     return {
         success: results.every(r => r.success),
