@@ -232,7 +232,10 @@ const isNewTTLockUser = async (username) => {
         const rawPassword = username.slice(-6);
         const password = md5(rawPassword);
         const response = await userService.login(username, password);
-        return true;
+        if (response.access_token) {
+            return true;
+        }
+        return false;
     } catch (err) {
         return false;
     }
