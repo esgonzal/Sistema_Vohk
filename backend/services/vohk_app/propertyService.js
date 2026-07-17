@@ -218,10 +218,12 @@ module.exports = {
     // Condominiums
     listCondominiums, findCurrentCondominium,
     // Zones
-    listZones, 
+    listZones,
     // Buildings
     listBuildings,
     // Units
     listUnits, createUnit, updateUnit, deleteUnit, getResidentUnits,
     // Residents
-    listResidents, createResident, updateResident, deleteResident, assignResidentToUnit, updateUsername, updateEmail, updatePassword};
+    listResidents, createResident, updateResident, deleteResident, assignResidentToUnit, updateUsername, updateEmail, updatePassword,
+    getUnitTree
+};

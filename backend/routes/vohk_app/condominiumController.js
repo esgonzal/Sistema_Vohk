@@ -167,5 +167,4 @@ router.delete('/delete-zone/:id', async (req, res) => {
     }
 });
 
-
 module.exports = router;
