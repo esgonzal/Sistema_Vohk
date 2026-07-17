@@ -1,9 +1,9 @@
 <div class="admin-shell">
-
-    <div class="admin-topbar">
-        <button (click)="logout()">Logout</button>
+    <app-sidebar></app-sidebar>
+    <div class="admin-content">
+        <app-topbar></app-topbar>
+        <main class="admin-page">
+            <router-outlet></router-outlet>
+        </main>
     </div>
-
-    <router-outlet></router-outlet>
-
 </div>

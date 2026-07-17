@@ -7,15 +7,27 @@ async function findCondominiumById(condominiumId) {
     );
     return result.rows[0];
 }
-async function findCondominiums(tenantId) {
+async function findByIdAndAdmin(condominiumId, adminUserId) {
+    const result = await pool.query(
+        `
+        SELECT condominium_id
+        FROM condominium
+        WHERE condominium_id = $1
+        AND admin_user_id = $2
+        `,
+        [condominiumId, adminUserId]
+    );
+    return result.rows[0];
+}
+async function findCondominiums(adminUserId) {
     const result = await pool.query(
         `
         SELECT *
         FROM condominium
-        WHERE tenant_id = $1
+        WHERE admin_user_id = $1
         ORDER BY name
         `,
-        [tenantId]
+        [adminUserId]
     );
     return result.rows;
 }
@@ -26,41 +38,40 @@ async function findCondominiumsByTenant(tenantId) {
     );
     return result.rows;
 }
-async function createCondominium(tenantId, name, address, city) {
+async function createCondominium(userId, name, address, city) {
     const result = await pool.query(
         `
-        INSERT INTO condominium (tenant_id, name, address, city)
+        INSERT INTO condominium (admin_user_id, name, address, city)
         VALUES ($1, $2, $3, $4)
         RETURNING *
         `,
-        [tenantId, name, address, city]
+        [userId, name, address, city]
     );
     return result.rows[0];
 }
-async function updateCondominium(condominiumId, tenantId, name, address, city) {
+async function updateCondominium(condominiumId, name, address, city) {
     const result = await pool.query(
         `
         UPDATE condominium
-        SET name = $3,
-            address = $4,
-            city = $5
+        SET name = $2,
+            address = $3,
+            city = $4
         WHERE condominium_id = $1
-          AND tenant_id = $2
         RETURNING *;
         `,
-        [condominiumId, tenantId, name, address, city]
+        [condominiumId, name, address, city]
     );
     return result.rows[0];
 }
-async function deleteCondominium(condominiumId, tenantId) {
+async function deleteCondominium(condominiumId, userId) {
     const result = await pool.query(
         `
         DELETE FROM condominium
         WHERE condominium_id = $1
-          AND tenant_id = $2
+          AND admin_user_id = $2
         RETURNING *;
         `,
-        [condominiumId, tenantId]
+        [condominiumId, userId]
     );
     return result.rows[0];
 }
@@ -76,7 +87,7 @@ async function getCondominiumByUnitId(unitId) {
     );
     return result.rows[0]?.condominium_id;
 }
-async function countBuildingsByCondominium(condominiumId, tenantId) {
+async function countBuildingsByCondominium(condominiumId) {
     const result = await pool.query(
         `
         SELECT COUNT(*)::int AS count
@@ -84,9 +95,8 @@ async function countBuildingsByCondominium(condominiumId, tenantId) {
         JOIN condominium c
             ON c.condominium_id = b.condominium_id
         WHERE b.condominium_id = $1
-        AND c.tenant_id = $2
         `,
-        [condominiumId, tenantId]
+        [condominiumId]
     );
     return result.rows[0].count;
 }
@@ -120,8 +130,74 @@ async function findFirstAccessibleByUser(userId, tenantId) {
     );
     return result.rows[0] ?? null;
 }
+async function findCondominiumTreeRows(adminUserId) {
+    const result = await pool.query(
+        `
+        SELECT
+            c.condominium_id,
+            c.name AS condominium_name,
+            c.address,
+            c.city,
+            b.building_id,
+            b.name AS building_name,
+            b.floor_count,
+            z.zone_id,
+            z.name AS zone_name,
+            z.created_at AS zone_created_at
+        FROM condominium c
+        LEFT JOIN building b ON b.condominium_id = c.condominium_id
+        LEFT JOIN zone z ON z.condominium_id = c.condominium_id
+        WHERE c.admin_user_id = $1
+        ORDER BY
+            c.name,
+            b.name,
+            z.name
+        `,
+        [adminUserId]
+    );
+    return result.rows;
+}
+async function findUnitTreeRows(condominiumId) {
+    const result = await pool.query(
+        `
+        SELECT
+            c.condominium_id,
+            c.name AS condominium_name,
+            c.address,
+            c.city,
+            b.building_id,
+            b.name AS building_name,
+            b.floor_count,
+            u.unit_id,
+            u.room_no,
+            u.floor,
+            au.user_id,
+            au.legal_name,
+            au.email,
+            au.sip_identity,
+            au.role,
+            au.active,
+            ru.is_primary
+        FROM condominium c
+        LEFT JOIN building b  ON b.condominium_id = c.condominium_id
+        LEFT JOIN unit u  ON u.building_id = b.building_id
+        LEFT JOIN resident_unit ru  ON ru.unit_id = u.unit_id
+        LEFT JOIN app_user au  ON au.user_id = ru.user_id
+        WHERE c.condominium_id = $1
+        ORDER BY
+            b.name,
+            u.floor,
+            u.room_no,
+            ru.is_primary DESC,
+            au.legal_name
+        `,
+        [condominiumId]
+    );
+    return result.rows;
+}
 
 module.exports = {
-    findCondominiumById, findCondominiums, findCondominiumsByTenant, findFirstAccessibleByUser,
-    createCondominium, updateCondominium, deleteCondominium, getCondominiumByUnitId, countBuildingsByCondominium
+    findCondominiumById, findByIdAndAdmin, findCondominiums, findCondominiumsByTenant, findFirstAccessibleByUser,
+    createCondominium, updateCondominium, deleteCondominium, getCondominiumByUnitId, countBuildingsByCondominium,
+    findCondominiumTreeRows, findUnitTreeRows
 };

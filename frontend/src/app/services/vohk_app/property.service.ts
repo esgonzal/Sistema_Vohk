@@ -28,18 +28,11 @@ export class PropertyService {
   getResidents(UnitId: string) {
     return this.http.get<any[]>(`${this.URL}/app/admin/units/${UnitId}/residents`);
   }
-
-  createCondominium(name: string, address: string, city: string) {
-    return this.http.post(`${this.URL}/app/admin/condominiums`, { name, address, city });
-  }
-  createZone(condominiumId: string, name: string) {
-    return this.http.post(`${this.URL}/app/admin/zones`, { condominiumId, name });
+  getUnitTree(condominiumId: string) {
+    return this.http.get<any[]>(this.URL + `/app/admin/unit-tree/${condominiumId}`);
   }
   createDevice(data: any) {
     return this.http.post(`${this.URL}/app/device`, data);
-  }
-  createBuilding(condominiumId: string, name: string, floorCount: number) {
-    return this.http.post(`${this.URL}/app/admin/buildings`, { condominiumId, name, floorCount });
   }
   createUnit(buildingId: string, name: string, roomNo: string, floor: number) {
     return this.http.post(`${this.URL}/app/admin/units`, { buildingId, name, roomNo, floor });
@@ -48,17 +41,8 @@ export class PropertyService {
     return this.http.post(`${this.URL}/app/admin/units/${unitId}/residents`, { legalName, rut, email, isPrimary });
   }
 
-  updateCondominium(condominiumId: string, data: any) {
-    return this.http.put(`${this.URL}/app/admin/condominiums/${condominiumId}`, data);
-  }
-  updateZone(zoneId: string, data: any) {
-    return this.http.put(`${this.URL}/app/admin/zones/${zoneId}`, data);
-  }
   updateDevice(deviceId: string, data: any) {
     return this.http.put(`${this.URL}/app/device/${deviceId}`, data);
-  }
-  updateBuilding(buildingId: string, data: any) {
-    return this.http.put(`${this.URL}/app/admin/buildings/${buildingId}`, data);
   }
   updateUnit(UnitId: string, data: any) {
     return this.http.put(`${this.URL}/app/admin/units/${UnitId}`, data);
@@ -67,17 +51,8 @@ export class PropertyService {
     return this.http.put(`${this.URL}/app/admin/residents/${userId}`, { unitId, ...data });
   }
 
-  deleteCondominium(condominiumId: string) {
-    return this.http.delete(`${this.URL}/app/admin/condominiums/${condominiumId}`);
-  }
-  deleteZone(zoneId: string) {
-    return this.http.delete(`${this.URL}/app/admin/zones/${zoneId}`);
-  }
   deleteDevice(deviceId: string) {
     return this.http.delete(`${this.URL}/app/device/${deviceId}`);
-  }
-  deleteBuilding(buildingId: string) {
-    return this.http.delete(`${this.URL}/app/admin/buildings/${buildingId}`);
   }
   deleteUnit(unitId: string) {
     return this.http.delete(`${this.URL}/app/admin/units/${unitId}`);

@@ -1,0 +1,29 @@
+<header class="topbar">
+    <div class="search">
+        <mat-icon>search</mat-icon>
+        <input placeholder="Buscar residente, unidad, dispositivo, evento..." />
+    </div>
+    <div class="actions">
+        <button class="condo-selector" mat-stroked-button [matMenuTriggerFor]="condoMenu">
+            <mat-icon>apartment</mat-icon>
+            <span>
+                {{ selectedCondominium?.name || 'Seleccionar condominio' }}
+            </span>
+            <mat-icon>expand_more</mat-icon>
+        </button>
+        <mat-menu #condoMenu="matMenu">
+            <button mat-menu-item *ngFor="let condo of condominiums" (click)="selectCondominium(condo)">
+                <mat-icon *ngIf="selectedCondominium?.condominium_id === condo.condominium_id">
+                    check
+                </mat-icon>
+                <span>{{ condo.name }}</span>
+            </button>
+        </mat-menu>
+        <button mat-icon-button>
+            <mat-icon>notifications</mat-icon>
+        </button>
+        <button class="logout" (click)="logout()">
+            Cerrar sesión
+        </button>
+    </div>
+</header>

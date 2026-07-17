@@ -1,0 +1,35 @@
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <div class="logo">
+            V
+        </div>
+        <div class="brand">
+            <div class="title">VÖHK</div>
+            <div class="subtitle">CONDOMINIOS</div>
+        </div>
+    </div>
+    <nav class="sidebar-nav">
+        <div class="section-title">GENERAL</div>
+        <a *ngFor="let item of generalItems" [routerLink]="item.route" routerLinkActive="active" class="nav-item">
+            <mat-icon>{{ item.icon }}</mat-icon>
+            <span>{{ item.label }}</span>
+        </a>
+        <div class="section-title">OPERACIÓN</div>
+        <a *ngFor="let item of operationItems" [routerLink]="item.route" routerLinkActive="active" class="nav-item">
+            <mat-icon>{{ item.icon }}</mat-icon>
+            <span>{{ item.label }}</span>
+        </a>
+        <div class="section-title">INTELIGENCIA</div>
+        <a *ngFor="let item of intelligenceItems" [routerLink]="item.route" routerLinkActive="active" class="nav-item">
+            <mat-icon>{{ item.icon }}</mat-icon>
+            <span>{{ item.label }}</span>
+        </a>
+        <div class="section-title">SISTEMA</div>
+        <a *ngFor="let item of systemItems" [routerLink]="item.route" routerLinkActive="active" class="nav-item">
+            <mat-icon>{{ item.icon }}</mat-icon>
+            <span>{{ item.label }}</span>
+        </a>
+    </nav>
+    <div class="sidebar-footer">
+    </div>
+</aside>

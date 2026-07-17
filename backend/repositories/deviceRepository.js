@@ -51,8 +51,8 @@ async function findIntercomByDeviceId(deviceId) {
             d.name,
             d.ip_address,
             d.port,
-            i.username,
-            i.password_encrypted,
+            d.username,
+            d.password_encrypted,
             i.door_id
         FROM device d
         JOIN intercom i
@@ -181,18 +181,16 @@ async function findDevicesByCondominium(condominiumId, zoneId = null) {
                 z.name AS zone_name,
                 i.intercom_id,
                 i.sip_address,
-                i.username AS sip_username,
-                i.password_encrypted,
+                d.username AS sip_username,
+                d.password_encrypted,
                 i.door_id
             FROM device d
             JOIN zone z
                 ON z.zone_id = d.zone_id
-            JOIN condominium c
-                ON c.condominium_id = z.condominium_id
             LEFT JOIN intercom i
                 ON i.device_id = d.device_id
             WHERE z.condominium_id = $1
-            AND d.zone_id = $2
+              AND d.zone_id = $2
             ORDER BY d.type, d.name
             `,
             [condominiumId, zoneId]
@@ -206,14 +204,12 @@ async function findDevicesByCondominium(condominiumId, zoneId = null) {
             z.name AS zone_name,
             i.intercom_id,
             i.sip_address,
-            i.username AS sip_username,
-            i.password_encrypted,
+            d.username,
+            d.password_encrypted,
             i.door_id
         FROM device d
         JOIN zone z
             ON z.zone_id = d.zone_id
-        JOIN condominium c
-            ON c.condominium_id = z.condominium_id
         LEFT JOIN intercom i
             ON i.device_id = d.device_id
         WHERE z.condominium_id = $1
@@ -223,10 +219,34 @@ async function findDevicesByCondominium(condominiumId, zoneId = null) {
     );
     return result.rows;
 }
+async function findActiveDevices() {
+    const query = `
+        SELECT
+            device_id,
+            type,
+            name,
+            ip_address,
+            port,
+            username,
+            password_encrypted AS password
+        FROM device
+        WHERE active = true
+    `;
+    const result = await pool.query(query);
+    return result.rows;
+}
+async function updateLastSeen(deviceId) {
+    const query = `
+        UPDATE device
+        SET last_seen_at = NOW()
+        WHERE device_id = $1
+    `;
+    await pool.query(query, [deviceId]);
+}
 
 
 module.exports = {
     findIntercoms, findCameras, findIntercomBySipAddress, findIntercomByDeviceId, findDeviceById, findDeviceByIdAndTenant,
     createDevice, updateDevice, deleteDevice,
-    moveDeviceToZone, findDevicesByZone, findDevicesByCondominium,
+    moveDeviceToZone, findDevicesByZone, findDevicesByCondominium, findActiveDevices, updateLastSeen
 };

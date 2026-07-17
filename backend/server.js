@@ -42,6 +42,9 @@ app.use("/debug.jpg", (req, res) => {
   res.sendFile("/opt/vohk_ai/debug_center.jpg");
 });
 
+const { startDeviceHeartbeat } = require('./jobs/deviceHeartbeat');
+startDeviceHeartbeat();
+
 // HTTP Configuration
 const httpPort = 8080;
 const httpServer = http.createServer(app);

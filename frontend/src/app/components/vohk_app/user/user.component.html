@@ -1,0 +1,80 @@
+<div class="users-page">
+    <div class="users-header">
+        <div>
+            <div class="eyebrow">CONDOMINIO · {{ selectedCondominium?.name || 'SIN SELECCIONAR' }}</div>
+            <h1>Usuarios</h1>
+            <p>Usuarios vinculados al condominio seleccionado.</p>
+        </div>
+        <div class="header-actions">
+            <button class="secondary-btn">Carga masiva</button>
+            <button class="primary-btn">+ Nuevo usuario</button>
+        </div>
+    </div>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Residentes</div>
+            <div class="stat-value">{{ getResidentsCount() }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Personal</div>
+            <div class="stat-value">{{ getStaffCount() }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Guardias</div>
+            <div class="stat-value">{{ getGuardsCount() }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Administradores</div>
+            <div class="stat-value">{{ getAdminsCount() }}</div>
+        </div>
+    </div>
+    <div class="table-container">
+        <div class="table-toolbar">
+            <input class="search" placeholder="Buscar usuario, RUT o unidad..." (input)="onSearch($event)">
+            <div class="filters">
+                <span class="filter" [class.active]="selectedRole === 'Todos'" (click)="filterByRole('Todos')">Todos</span>
+                <span class="filter" [class.active]="selectedRole === 'resident'" (click)="filterByRole('resident')">Residentes</span>
+                <span class="filter" [class.active]="selectedRole === 'staff'" (click)="filterByRole('staff')">Personal</span>
+                <span class="filter" [class.active]="selectedRole === 'guard'" (click)="filterByRole('guard')">Guardias</span>
+                <span class="filter" [class.active]="selectedRole === 'admin'" (click)="filterByRole('admin')">Administradores</span>
+            </div>
+        </div>
+        <div class="table-header">
+            <div>Usuario</div>
+            <div>RUT</div>
+            <div>Rol</div>
+            <div>Ubicación</div>
+            <div>Acceso</div>
+            <div>Estado</div>
+        </div>
+        <div class="user-row" *ngFor="let user of filteredUsers">
+            <div class="user-info">
+                <div class="avatar">{{ user.legal_name?.charAt(0) }}</div>
+                <div>
+                    <div class="name">{{ user.legal_name }}</div>
+                    <div class="email">{{ user.email }}</div>
+                </div>
+            </div>
+            <div class="mono">{{ user.rut || '-' }}</div>
+            <div>
+                <span class="role">{{ getRoleLabel(user.role) }}</span>
+            </div>
+            <div>
+                <div>{{ user.building || '-' }}</div>
+                <div class="unit">{{ user.unit || '-' }}</div>
+            </div>
+            <div class="methods">
+                <span class="method">APP</span>
+            </div>
+            <div>
+                <span class="status" [class.inactive]="!user.active">
+                    <span class="status-dot"></span>
+                    {{ user.active ? 'Activo' : 'Inactivo' }}
+                </span>
+            </div>
+        </div>
+        <div class="empty" *ngIf="!loading && filteredUsers.length === 0">
+            No hay usuarios registrados en este condominio.
+        </div>
+    </div>
+</div>

@@ -146,7 +146,6 @@ async function openDoor(deviceId) {
             </RemoteControlDoor>`;
     const response = await client.fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/xml' }, body: xml });
     const text = await response.text();
-    console.log('Opening door', intercom.name, intercom.ip_address);
     return { ok: response.ok, text, intercomName: intercom.name };
 }
 // ── Intercom users (Hikvision ISAPI) ─────────────────────────────────────────

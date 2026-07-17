@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Subject, takeUntil } from 'rxjs';
 import { PropertyService } from 'src/app/services/vohk_app/property.service';
+import { SelectedCondominium, SelectedCondominiumService } from 'src/app/services/vohk_app/selected-condominium.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -8,39 +9,85 @@ import Swal from 'sweetalert2';
   templateUrl: './units.component.html',
   styleUrls: ['./units.component.css']
 })
-export class UnitsComponent implements OnInit {
+export class UnitsComponent implements OnInit, OnDestroy {
 
-  buildingId: string;
-  units: any[] = [];
+  condominiums: any[] = [];
+  unitGroups: any = null;
+  selectedCondominium: SelectedCondominium | null = null;
+  loading = true;
+  unitQuery = '';
+  unitStats = { total: 0, occupied: 0, vacant: 0, condosWithUnits: 0, condosEmpty: 0 };
+  private destroy$ = new Subject<void>();
 
   constructor(
-    private route: ActivatedRoute,
     private propertyService: PropertyService,
-    private router: Router,) { }
+    private selectedCondominiumService: SelectedCondominiumService
+  ) { }
 
-  ngOnInit() {
-    this.buildingId = this.route.snapshot.paramMap.get('id')!;
-    this.loadUnits(this.buildingId)
+  ngOnInit(): void {
+    this.selectedCondominiumService.selected$.pipe(takeUntil(this.destroy$)).subscribe(condo => {
+      this.selectedCondominium = condo;
+      if (!condo) {
+        this.condominiums = [];
+        this.unitGroups = [];
+        this.loading = false;
+        return;
+      }
+      this.loadUnitTree(condo.condominium_id);
+    });
   }
-  loadUnits(buildingId: string) {
-    this.propertyService.getUnits(buildingId).subscribe({
+  loadUnitTree(condominiumId: string): void {
+    this.loading = true;
+    this.propertyService.getUnitTree(condominiumId).subscribe({
       next: data => {
-        this.units = data;
-        console.log("Unidades loaded: ", this.units);
+        console.log('UNIT TREE:', data);
+        this.unitGroups = data;
+        this.calculateStats();
+        this.loading = false;
       },
       error: err => {
-        console.error(err);
+        console.error('Error loading unit tree:', err);
+        this.condominiums = [];
+        this.unitGroups = [];
+        this.loading = false;
       }
     });
   }
-  async openCreateUnit() {
+  calculateStats(): void {
+    let total = 0;
+    let occupied = 0;
+    this.unitGroups?.buildings?.forEach((building: any) => {
+      building.units?.forEach((unit: any) => {
+        total++;
+        if (unit.residents?.length) {
+          occupied++;
+        }
+      });
+    });
+    this.unitStats = {
+      total, occupied, vacant: total - occupied, condosWithUnits: total > 0 ? 1 : 0, condosEmpty: total === 0 ? 1 : 0
+    };
+  }
+  toggleCondo(condo: any): void {
+    condo.expanded = !condo.expanded;
+  }
+  toggleBuilding(building: any): void {
+    building.expanded = !building.expanded;
+  }
+  expandAllUnits(): void {
+    this.unitGroups?.buildings?.forEach((building: any) => { building.expanded = true; });
+  }
+  collapseAllUnits(): void {
+    this.unitGroups?.buildings?.forEach((building: any) => { building.expanded = false; });
+  }
+  async openCreateUnit(): Promise<void> {
     const result = await Swal.fire({
       title: 'Nueva Unidad',
       html: `
-      <input id="name" class="swal2-input" placeholder="Nombre">
-      <input id="room_no" class="swal2-input" placeholder="Número">
-      <input id="floor" type="number" class="swal2-input" placeholder="Piso">
-    `,
+        <input id="name" class="swal2-input" placeholder="Nombre">
+        <input id="room_no" class="swal2-input" placeholder="Número">
+        <input id="floor" type="number" class="swal2-input" placeholder="Piso">
+      `,
       showCancelButton: true,
       confirmButtonText: 'Guardar',
       preConfirm: () => ({
@@ -52,20 +99,12 @@ export class UnitsComponent implements OnInit {
     if (!result.isConfirmed) {
       return;
     }
-    this.propertyService.createUnit(this.buildingId, result.value.name, result.value.number, result.value.floor)
-      .subscribe(() => {
-        this.loadUnits(this.buildingId);
-        Swal.fire(
-          'Creada',
-          'Unidad creada correctamente',
-          'success'
-        );
-      });
+    // Crear unidad pendiente de asociar a building seleccionado
   }
-  async deleteUnit(unit: any) {
+  async deleteUnit(unit: any): Promise<void> {
     const result = await Swal.fire({
       title: 'Eliminar Unidad?',
-      text: unit.number,
+      text: unit.room_no,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Eliminar'
@@ -75,10 +114,9 @@ export class UnitsComponent implements OnInit {
     }
     this.propertyService.deleteUnit(unit.unit_id).subscribe({
       next: () => {
-        this.loadUnits(this.buildingId);
         Swal.fire('Eliminado', 'Unidad eliminada correctamente', 'success');
       },
-      error: (err) => {
+      error: err => {
         if (err.status === 409) {
           Swal.fire('No se puede eliminar', err.error.error, 'warning');
           return;
@@ -87,34 +125,29 @@ export class UnitsComponent implements OnInit {
       }
     });
   }
-  async editUnit(unit: any) {
+  async editUnit(unit: any): Promise<void> {
     const { value } = await Swal.fire({
       title: 'Editar Unidad',
       html: `
-          <input id="name" class="swal2-input" value="${unit.name}" placeholder="Número">
-          <input id="number" class="swal2-input" value="${unit.number}" placeholder="Número">
-          <input id="floor" class="swal2-input" value="${unit.floor}" placeholder="Piso">
-        `,
+        <input id="name" class="swal2-input" value="${unit.name ?? ''}" placeholder="Nombre">
+        <input id="number" class="swal2-input" value="${unit.room_no ?? ''}" placeholder="Número">
+        <input id="floor" class="swal2-input" value="${unit.floor ?? ''}" placeholder="Piso">
+      `,
       focusConfirm: false,
       showCancelButton: true,
-      preConfirm: () => {
-        return {
-          name: (document.getElementById('name') as HTMLInputElement).value,
-          number: (document.getElementById('number') as HTMLInputElement).value,
-          floor: (document.getElementById('floor') as HTMLInputElement).value,
-        };
-      }
+      preConfirm: () => ({
+        name: (document.getElementById('name') as HTMLInputElement).value,
+        number: (document.getElementById('number') as HTMLInputElement).value,
+        floor: (document.getElementById('floor') as HTMLInputElement).value
+      })
     });
-    if (!value) return;
-    this.propertyService.updateUnit(unit.unit_id, value)
-      .subscribe(() => {
-        this.loadUnits(this.buildingId);
-      });
+    if (!value) {
+      return;
+    }
+    this.propertyService.updateUnit(unit.unit_id, value).subscribe();
   }
-  manage(unit: any) {
-    this.router.navigate(['admin/units', unit.unit_id, 'residents']);
-  }
-  goBack() {
-    window.history.back();
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

@@ -1,56 +1,118 @@
-<div class="page">
-
-    <div class="header">
-
+<div class="units-page">
+    <div class="units-header">
         <div>
-            <button (click)="goBack()">
-                ← Back
-            </button>
-            <h1>Unidades</h1>
-        </div>
-        <button class="primary-btn" (click)="openCreateUnit()">
-            Nueva Unidad
-        </button>
-    </div>
-
-    <div *ngIf="units.length === 0" class="empty-state">
-
-        No units found.
-
-    </div>
-
-    <div class="cards-grid" *ngIf="units.length > 0">
-
-        <div class="card" *ngFor="let unit of units">
-
-            <h2>{{ unit.name }}</h2>
-            <p>
-                Room Number:
-                {{unit.room_no}}
-            </p>
-            <p>
-                Floor:
-                {{ unit.floor }}
-            </p>
-
-            <div class="actions">
-
-                <button (click)="manage(unit)">
-                    Manage
-                </button>
-
-                <button (click)="editUnit(unit)">
-                    Editar
-                </button>
-
-                <button class="danger-btn" (click)="deleteUnit(unit)">
-                    Eliminar
-                </button>
-
+            <div class="eyebrow">
+                CONDOMINIO · {{ selectedCondominium?.name || 'SIN SELECCIONAR' }}
             </div>
-
+            <h1>Unidades</h1>
+            <p>
+                Gestiona unidades, residentes vinculados y estructura interna.
+            </p>
         </div>
-
     </div>
-
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">
+                Total unidades
+            </div>
+            <div class="stat-value">
+                {{ unitStats.total }}
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">
+                Ocupadas
+            </div>
+            <div class="stat-value">
+                {{ unitStats.occupied }}
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">
+                Vacantes
+            </div>
+            <div class="stat-value">
+                {{ unitStats.vacant }}
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">
+                Edificios
+            </div>
+            <div class="stat-value">
+                {{ unitGroups?.buildings?.length || 0 }}
+            </div>
+        </div>
+    </div>
+    <div class="table-container">
+        <div class="table-toolbar">
+            <input class="search" [(ngModel)]="unitQuery" placeholder="Buscar unidad o residente...">
+            <div class="filters">
+                <span class="filter" (click)="expandAllUnits()">
+                    Expandir
+                </span>
+                <span class="filter" (click)="collapseAllUnits()">
+                    Contraer
+                </span>
+            </div>
+        </div>
+        <div class="table-header">
+            <div> Unidad </div>
+            <div> Residentes </div>
+            <div> SIP </div>
+            <div> Estado </div>
+        </div>
+        <ng-container *ngFor="let building of unitGroups?.buildings">
+            <div class="building-divider">
+                <button class="building-toggle" (click)="toggleBuilding(building)">
+                    <span [class.open]="building.expanded">
+                        ›
+                    </span>
+                    🏢 {{ building.name }}
+                    <small>
+                        {{ building.units.length }} unidades
+                    </small>
+                </button>
+            </div>
+            <div class="unit-row" *ngFor="let unit of building.units" [hidden]="!building.expanded">
+                <div class="unit-info">
+                    <div class="avatar">
+                        {{ unit.room_no }}
+                    </div>
+                    <div>
+                        <div class="name">
+                            Unidad {{ unit.room_no }}
+                        </div>
+                        <div class="email">
+                            {{ building.name }}
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <ng-container *ngFor="let resident of unit.residents">
+                        <div class="resident">
+                            {{ resident.legal_name }}
+                        </div>
+                    </ng-container>
+                    <span class="empty" *ngIf="!unit.residents?.length">
+                        Sin residentes
+                    </span>
+                </div>
+                <div class="mono">
+                    <ng-container *ngFor="let resident of unit.residents">
+                        {{ resident.sip_identity || '-' }}
+                    </ng-container>
+                </div>
+                <div>
+                    <span class="status" [class.inactive]="!unit.residents?.length">
+                        <span class="status-dot"></span>
+                        {{ unit.residents?.length ? 'Ocupada' : 'Vacante' }}
+                    </span>
+                </div>
+            </div>
+        </ng-container>
+        <div class="empty" *ngIf="!loading && !unitGroups?.buildings?.length">
+            No hay unidades registradas en este condominio.
+        </div>
+    </div>
 </div>

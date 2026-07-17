@@ -1,0 +1,140 @@
+:host {
+    display: block;
+    width: 100%;
+    height: 100vh;
+}
+
+.login-page {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle at top, #25200d 0%, #0a0a0b 40%);
+}
+
+.login-card {
+    width: 420px;
+    background: #111214;
+    border: 1px solid rgba(255, 255, 255, .06);
+    border-radius: 18px;
+    padding: 42px;
+    box-shadow:0 25px 70px rgba(0, 0, 0, .45);
+}
+
+.logo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 34px;
+}
+
+.logo-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    background: #f5ce33;
+    color: #111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 34px;
+    font-weight: 700;
+    margin-bottom: 18px;
+}
+
+.logo h1 {
+    margin: 0;
+    color: white;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.logo span {
+    margin-top: 4px;
+    letter-spacing: 4px;
+    color: #777;
+    font-size: 11px;
+}
+
+h2 {
+    color: white;
+    margin: 0;
+    text-align: center;
+    font-size: 22px;
+}
+
+.subtitle {
+    text-align: center;
+    color: #8b8b91;
+    margin-top: 10px;
+    margin-bottom: 30px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 22px;
+}
+
+.field label {
+    margin-bottom: 8px;
+    color: #cfcfd4;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.field input {
+    height: 48px;
+    background: #191a1d;
+    border: 1px solid rgba(255, 255, 255, .08);
+    border-radius: 10px;
+    padding: 0 16px;
+    color: white;
+    font-size: 14px;
+    transition: .2s;
+}
+
+.field input::placeholder {
+    color: #666;
+}
+
+.field input:focus {
+    outline: none;
+    border-color: #f5ce33;
+    box-shadow: 0 0 0 3px rgba(245, 206, 51, .15);
+}
+
+.login-button {
+    width: 100%;
+    height: 50px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 10px;
+    background: #f5ce33;
+    color: #111;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.login-button:hover:not(:disabled) {
+    background: #ffd94f;
+}
+
+.login-button:disabled {
+    opacity: .7;
+    cursor: not-allowed;
+}
+
+.error {
+    margin-top: 20px;
+    padding: 12px;
+    border-radius: 10px;
+    background: rgba(239, 68, 68, .15);
+    border: 1px solid rgba(239, 68, 68, .25);
+    color: #ffb4b4;
+    text-align: center;
+    font-size: 13px;
+}

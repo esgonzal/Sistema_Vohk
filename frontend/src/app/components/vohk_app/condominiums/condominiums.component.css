@@ -1,60 +1,252 @@
 .page {
-  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-.header {
+.page-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
+  align-items: flex-start;
+}
+
+.eyebrow {
+  color: #777;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .18em;
+}
+
+.page-header h1 {
+  margin: 8px 0;
+  font-size: 34px;
+  font-weight: 600;
+  color: white;
+}
+
+.page-header p {
+  margin: 0;
+  color: #909090;
+  max-width: 650px;
 }
 
 .primary-btn {
-  padding: 0.75rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  background: #f5ce33;
+  color: black;
+  border: none;
+  border-radius: 10px;
   cursor: pointer;
+  font-weight: 600;
+  transiion: .2s;
 }
 
-.cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1rem;
+.primary-btn:hover {
+  background: #ffda4d;
 }
 
-.card {
-  border: 1px solid #ddd;
+.small-btn {
+  background: transparent;
+  border: 1px solid #383a42;
+  color: #f5ce33;
   border-radius: 8px;
-  padding: 1rem;
-  background: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: .2s;
 }
 
-.card h2 {
-  margin-top: 0;
+.small-btn:hover {
+  background: #22242a;
+}
+
+.condominiums {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.condo-card {
+  background: #141518;
+  border: 1px solid #26282e;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.condo-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px;
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  text-align: left;
+}
+
+.condo-header:hover {
+  background: rgba(255, 255, 255, .03);
+}
+
+.arrow {
+  font-size: 26px;
+  color: #777;
+  width: 18px;
+  transition: .2s;
+}
+
+.arrow.open {
+  transform: rotate(90deg);
+  color: #f5ce33;
+}
+
+.condo-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #1c1d22;
+  color: #f5ce33;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.condo-info {
+  flex: 1;
+}
+
+.name {
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.direction-city {
+  color: #777;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.summary {
+  display: flex;
+  gap: 14px;
+  color: #999;
+  font-size: 13px;
+}
+
+.summary span {
+  background: #1b1d22;
+  padding: 6px 10px;
+  border-radius: 20px;
 }
 
 .actions {
   display: flex;
   gap: 8px;
-  margin-top: 12px;
 }
 
-.actions button {
+.icon-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid #2d3038;
+  background: transparent;
+  color: #bfbfbf;
   cursor: pointer;
-  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: .2s;
 }
 
-.empty-state {
-  padding: 2rem;
-  text-align: center;
-  color: #777;
-}
-
-.danger-btn {
-  background: #dc3545;
+.icon-btn:hover {
+  background: #22242a;
   color: white;
-  border: none;
 }
 
-.danger-btn:hover {
-  opacity: 0.9;
+.icon-btn.danger:hover {
+  color: #ff5b5b;
+}
+
+.condo-body {
+  border-top: 1px solid #222;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.management-section {
+  background: #101114;
+  border: 1px solid #25272d;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid #25272d;
+}
+
+.section-header>div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+
+  font-weight: 600;
+}
+
+.section-header mat-icon {
+  color: #f5ce33;
+}
+
+.management-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  color: #ddd;
+  border-bottom: 1px solid #222;
+}
+
+.management-row:last-child {
+  border-bottom: none;
+}
+
+.management-row:hover {
+  background: rgba(255, 255, 255, .03);
+}
+
+.row-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.management-row:empty {
+  display: none;
+}
+
+@media(max-width:900px) {
+  .page-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .condo-header {
+    flex-wrap: wrap;
+  }
+
+  .summary {
+    width: 100%;
+    margin-left: 60px;
+  }
 }

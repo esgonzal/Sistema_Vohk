@@ -1,0 +1,149 @@
+<div class="dashboard-page">
+    <div class="dashboard-header">
+        <div>
+            <div class="dashboard-eyebrow">PORTAFOLIO</div>
+            <h1 class="dashboard-title">Vista general del portafolio</h1>
+            <p class="dashboard-subtitle">Resumen de condominios, unidades y dispositivos administrados.</p>
+        </div>
+    </div>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Condominios activos</div>
+            <div class="stat-value">{{ dashboard?.summary?.condominiums }}</div>
+            <div class="stat-note">Bajo tu alcance</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">Unidades gestionadas</div>
+            <div class="stat-value">{{ dashboard?.summary?.units }}</div>
+            <div class="stat-note">Gestionadas</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-label">Dispositivos online</div>
+                <span class="badge warning">
+                    <span class="dot"></span>atención
+                </span>
+            </div>
+
+            <div class="stat-value">
+                {{ dashboard?.deviceSummary?.online }}
+                <span>/ {{ dashboard?.deviceSummary?.total }}</span>
+            </div>
+
+            <div class="stat-note">
+                {{ dashboard?.deviceSummary?.offline }} dispositivos sin conexión
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-label">Cámaras online</div>
+                <span class="badge warning">
+                    <span class="dot"></span>atención
+                </span>
+            </div>
+
+            <div class="stat-value">
+                {{ dashboard?.deviceSummary?.cameras_online }}
+                <span>/ {{ dashboard?.deviceSummary?.cameras }}</span>
+            </div>
+
+            <div class="stat-note">
+                {{ dashboard?.deviceSummary?.cameras - dashboard?.deviceSummary?.cameras_online }} cámaras sin conexión
+            </div>
+        </div>
+    </div>
+</div>
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Visitas hoy · red</div>
+        <div class="stat-value">248</div>
+        <div class="stat-note success">+8% vs ayer</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-top">
+            <div class="stat-label">Encomiendas pend.</div>
+            <span class="badge info"><span class="dot"></span>info</span>
+        </div>
+        <div class="stat-value">14</div>
+        <div class="stat-note">Del día</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-top">
+            <div class="stat-label">Alertas activas</div>
+            <span class="badge danger"><span class="dot"></span>crítico</span>
+        </div>
+        <div class="stat-value">3</div>
+        <div class="stat-note">2 requieren atención inmediata</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-top">
+            <div class="stat-label">Aprob. pendientes</div>
+            <span class="badge info"><span class="dot"></span>info</span>
+        </div>
+        <div class="stat-value">7</div>
+        <div class="stat-note">Esperando revisión</div>
+    </div>
+</div>
+<div class="dashboard-bottom">
+    <div class="chart-panel">
+        <div class="chart-header">
+            <div>
+                <div class="chart-title">Actividad de accesos · portafolio · historial del mes</div>
+                <div class="chart-subtitle">Distribución estimada de accesos durante los últimos 30 días</div>
+            </div>
+            <div class="chart-legend">
+                <span><i class="legend yellow"></i>Residentes</span>
+                <span><i class="legend blue"></i>Visitas</span>
+                <span><i class="legend green"></i>Delivery</span>
+            </div>
+        </div>
+        <div class="chart-placeholder">Gráfico pendiente</div>
+    </div>
+    <div class="attention-panel">
+        <div class="attention-header">
+            <div>
+                <div class="attention-title">Condominios con atención</div>
+                <div class="attention-subtitle">Priorizados por severidad de eventos</div>
+            </div>
+            <span class="badge warning"><span class="dot"></span>4 de 20</span>
+        </div>
+        <div class="attention-list">
+            <div class="attention-item">
+                <span class="attention-dot red"></span>
+                <div class="attention-info">
+                    <div class="attention-name">Edificio Parque Norte</div>
+                    <div class="attention-issue">2 dispositivos offline</div>
+                </div>
+                <span class="attention-tag critical">Crítico</span>
+            </div>
+            <div class="attention-item">
+                <span class="attention-dot orange"></span>
+                <div class="attention-info">
+                    <div class="attention-name">Condominio Los Robles</div>
+                    <div class="attention-issue">3 cámaras sin conexión</div>
+                </div>
+                <span class="attention-tag warning">Alerta</span>
+            </div>
+            <div class="attention-item">
+                <span class="attention-dot yellow"></span>
+                <div class="attention-info">
+                    <div class="attention-name">Portal del Valle</div>
+                    <div class="attention-issue">Visitas pendientes</div>
+                </div>
+                <span class="attention-tag info">Info</span>
+            </div>
+            <div class="attention-item">
+                <span class="attention-dot blue"></span>
+                <div class="attention-info">
+                    <div class="attention-name">Altos del Sur</div>
+                    <div class="attention-issue">Revisión requerida</div>
+                </div>
+                <span class="attention-tag info">Info</span>
+            </div>
+        </div>
+        <button class="attention-button">Ver los 20 condominios</button>
+    </div>
+</div>

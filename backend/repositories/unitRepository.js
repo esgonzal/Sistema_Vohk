@@ -23,6 +23,25 @@ async function findUnitByIdAndTenant(unitId, tenantId) {
     );
     return result.rows[0];
 }
+async function findUnitByIdAndAdmin(unitId, adminUserId) {
+    const result = await pool.query(
+        `
+        SELECT
+            u.*,
+            b.name AS building_name,
+            c.condominium_id
+        FROM unit u
+        INNER JOIN building b
+            ON b.building_id = u.building_id
+        INNER JOIN condominium c
+            ON c.condominium_id = b.condominium_id
+        WHERE u.unit_id = $1
+          AND c.admin_user_id = $2
+        `,
+        [unitId, adminUserId]
+    );
+    return result.rows[0];
+}
 async function findUnitsByBuilding(buildingId, tenantId) {
     const result = await pool.query(
         `
@@ -96,8 +115,7 @@ async function findResidentUnits(userId) {
             b.building_id,
             b.name AS building_name,
             c.condominium_id,
-            c.name AS condominium_name,
-            c.tenant_id
+            c.name AS condominium_name
         FROM resident_unit ru
         JOIN unit u
             ON u.unit_id = ru.unit_id
@@ -208,6 +226,6 @@ async function countResidentsByUnit(unitId, tenantId) {
 }
 
 module.exports = {
-    findUnitById, findUnitByIdAndTenant, findUnitsByBuilding, findUnitHierarchy, findUnitsByUser, findResidentUnits,
+    findUnitById, findUnitByIdAndTenant,findUnitByIdAndAdmin, findUnitsByBuilding, findUnitHierarchy, findUnitsByUser, findResidentUnits,
     createUnit, updateUnit, deleteUnit, findBuildingsAndUnitsByCondominium, countResidentsByUnit
 };

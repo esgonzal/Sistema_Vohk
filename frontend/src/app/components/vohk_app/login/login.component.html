@@ -1,17 +1,33 @@
-<div class="login-container">
-
-    <h2>Admin Login</h2>
-
-    <input type="text" [(ngModel)]="username" placeholder="Username" />
-
-    <input type="password" [(ngModel)]="password" placeholder="Password" />
-
-    <button (click)="login()" [disabled]="isLoading">
-        Login
-    </button>
-
-    <p *ngIf="error" style="color:red;">
-        {{ error }}
-    </p>
-
+<div class="login-page">
+    <div class="login-card">
+        <div class="logo">
+            <div class="logo-icon">
+                V
+            </div>
+            <h1>VÖHK</h1>
+            <span>CONDOMINIOS</span>
+        </div>
+        <h2>Consola de Administración</h2>
+        <p class="subtitle">
+            Inicia sesión para continuar.
+        </p>
+        <form (ngSubmit)="login()">
+            <div class="field">
+                <label>Correo electrónico</label>
+                <input type="text" [(ngModel)]="username" name="username" autocomplete="username"
+                    placeholder="correo@empresa.cl">
+            </div>
+            <div class="field">
+                <label>Contraseña</label>
+                <input type="password" [(ngModel)]="password" name="password" autocomplete="current-password"
+                    placeholder="••••••••">
+            </div>
+            <button class="login-button" type="submit" [disabled]="isLoading">
+                {{ isLoading ? 'Ingresando...' : 'Ingresar' }}
+            </button>
+        </form>
+        <div class="error" *ngIf="error">
+            {{ error }}
+        </div>
+    </div>
 </div>

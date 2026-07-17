@@ -7,8 +7,6 @@ router.use(authenticate);
 const deviceService = require('../../services/vohk_app/deviceService');
 const propertyService = require('../../services/vohk_app/propertyService');
 
-const axios = require('axios');
-
 // ── Device listing ────────────────────────────────────────────────────────────
 router.get('/intercoms', async (req, res) => {
     try {
@@ -394,5 +392,4 @@ router.post('/test-sip', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-
 module.exports = router;

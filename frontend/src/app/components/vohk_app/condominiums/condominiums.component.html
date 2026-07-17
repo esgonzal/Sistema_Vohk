@@ -1,38 +1,105 @@
-<div class="page">
-
-    <div class="header">
-        <h1>Condominios</h1>
-
+<section class="page">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow">
+                VÖHK · PORTAFOLIO
+            </div>
+            <h1>Condominios</h1>
+            <p>
+                Administra los condominios, edificios y zonas del sistema.
+            </p>
+        </div>
         <button class="primary-btn" (click)="openCreateCondominium()">
+            <mat-icon>add</mat-icon>
             Nuevo Condominio
         </button>
     </div>
-
-    <div class="condominiums-grid">
-
-        <div class="condominium-card" *ngFor="let condo of condominiums">
-
-            <h2>{{ condo.name }}</h2>
-
-            <p>Dirección: {{ condo.address }}</p>
-
-            <p>Ciudad: {{ condo.city }}</p>
-
-            <div class="actions">
-                <button (click)="manage(condo)">
-                    Administrar
-                </button>
-                <button (click)="editCondominium(condo)">
-                    Editar
-                </button>
-
-                <button class="danger-btn" (click)="deleteCondominium(condo)">
-                    Eliminar
-                </button>
+    <div class="condominiums">
+        <div class="condo-card" *ngFor="let condo of condominiums">
+            <button class="condo-header" (click)="toggleCondominium(condo)">
+                <span class="arrow" [class.open]="condo.expanded">
+                    ›
+                </span>
+                <div class="condo-icon">
+                    <mat-icon>apartment</mat-icon>
+                </div>
+                <div class="condo-info">
+                 <div class="name">
+                        {{ condo.name }}
+                    </div>
+                    <div class="direction-city">
+                        {{ condo.city }}
+                    </div>
+                </div>
+                <div class="summary">
+                    <span>
+                        {{ condo.buildings?.length || 0 }}
+                        edificios
+                    </span>
+                    <span>
+                        {{ condo.zones?.length || 0 }}
+                        zonas
+                    </span>
+                </div>
+                <div class="actions" (click)="$event.stopPropagation()">
+                    <button class="icon-btn" matTooltip="Editar condominio" (click)="editCondominium(condo)">
+                        <mat-icon>edit</mat-icon>
+                    </button>
+                    <button class="icon-btn danger" matTooltip="Eliminar condominio" (click)="deleteCondominium(condo)">
+                        <mat-icon>delete</mat-icon>
+                    </button>
+                </div>
+            </button>
+            <div class="condo-body" *ngIf="condo.expanded">
+                <div class="management-section">
+                    <div class="section-header">
+                        <div>
+                            <mat-icon>domain</mat-icon>
+                            <span>Edificios</span>
+                        </div>
+                        <button class="small-btn" (click)="openCreateBuilding(condo.condominium_id)">
+                            + Nuevo edificio
+                        </button>
+                    </div>
+                    <div class="management-row" *ngFor="let building of condo.buildings">
+                        <span>
+                            {{ building.name }}
+                        </span>
+                        <div class="row-actions">
+                            <button class="icon-btn" matTooltip="Editar edificio" (click)="editBuilding(building)">
+                                <mat-icon>edit</mat-icon>
+                            </button>
+                            <button class="icon-btn danger" matTooltip="Eliminar edificio" (click)="deleteBuilding(building)">
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="management-section">
+                    <div class="section-header">
+                        <div>
+                            <mat-icon>place</mat-icon>
+                            <span>Zonas</span>
+                        </div>
+                        <button class="small-btn" (click)="openCreateZone(condo.condominium_id)">
+                            + Nueva zona
+                        </button>
+                    </div>
+                    <div class="management-row" *ngFor="let zone of condo.zones">
+                        <span>
+                            {{ zone.name }}
+                        </span>
+                        <div class="row-actions">
+                            <button class="icon-btn" matTooltip="Editar zona" (click)="editZone(zone)">
+                                <mat-icon>edit</mat-icon>
+                            </button>
+                            <button class="icon-btn danger" matTooltip="Eliminar zona" (click)="deleteZone(zone)">
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
-
         </div>
-
     </div>
-
-</div>
+</section>

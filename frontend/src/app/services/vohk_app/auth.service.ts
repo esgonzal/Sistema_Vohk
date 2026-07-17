@@ -24,7 +24,6 @@ export class AuthService {
       tap(response => {
         localStorage.setItem('jwt', response.token);
         localStorage.setItem('userId', response.user.userId);
-        localStorage.setItem('tenantId', response.user.tenantId);
         localStorage.setItem('username', response.user.username);
         localStorage.setItem('role', response.user.role);
         localStorage.setItem('identity', response.user.identity);
@@ -39,18 +38,14 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem('jwt');
     localStorage.removeItem('userId');
-    localStorage.removeItem('tenantId');
     localStorage.removeItem('username');
     localStorage.removeItem('role');
     localStorage.removeItem('identity');
+    localStorage.removeItem('selectedCondominiumId');
   }
 
   getToken(): string | null {
     return localStorage.getItem('jwt');
-  }
-
-  getTenantId(): string | null {
-    return localStorage.getItem('tenantId');
   }
 
   getRole(): string | null {

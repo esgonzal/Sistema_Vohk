@@ -7,105 +7,35 @@ router.use(authenticate);
 // CONDOMINIOS
 router.get('/condominiums', async (req, res) => {
     try {
-        const { tenantId } = req.user;
-        res.json(await propertyService.listCondominiums(tenantId));
+        const { userId, role } = req.user;
+        if (role !== 'admin') {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        res.json(await propertyService.listCondominiums(userId));
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });
     }
 });
-router.post('/condominiums', async (req, res) => {
-    try {
-        const { tenantId } = req.user;
-        const { name, address, city } = req.body;
-        const entity = await propertyService.createCondominium(tenantId, name, address, city);
-        if (!entity) {
-            return res.status(404).json({ error: 'Condominium not found' });
-        }
-        res.status(201).json(entity);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: err.message });
-    }
-});
-router.put('/condominiums/:id', async (req, res) => {
-    try {
-        const { tenantId } = req.user;
-        const { name, address, city } = req.body;
-        const entity = await propertyService.updateCondominium(req.params.id, tenantId, name, address, city);
-        if (!entity) {
-            return res.status(404).json({ error: 'Condominium not found' });
-        }
-        res.json(entity);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: err.message });
-    }
-});
-router.delete('/condominiums/:id', async (req, res) => {
-    try {
-        const { tenantId } = req.user;
-        const entity = await propertyService.deleteCondominium(req.params.id, tenantId);
-        if (!entity) {
-            return res.status(404).json({ error: 'Condominium not found' });
-        }
-        res.json({ success: true, deleted: entity });
-    } catch (err) {
-        console.error(err);
-        res.status(err.status || 500).json({ error: err.message });
-    }
-});
+
+
+
 // ZONAS
 router.get('/condominiums/:id/zones', async (req, res) => {
     try {
-        const { tenantId } = req.user;
-        res.json(await propertyService.listZones(req.params.id, tenantId));
+        const { userId, role } = req.user;
+        if (role !== 'admin') {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        res.json(await propertyService.listZones(req.params.id));
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });
     }
 });
-router.post('/zones', async (req, res) => {
-    try {
-        const { tenantId } = req.user;
-        const { condominiumId, name } = req.body;
-        const entity = await propertyService.createZone(condominiumId, tenantId, name)
-        if (!entity) {
-            return res.status(404).json({ error: 'Zone not found' });
-        }
-        res.status(201).json(entity);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: err.message });
-    }
-});
-router.put('/zones/:id', async (req, res) => {
-    try {
-        const { tenantId } = req.user;
-        const { zoneId, name } = req.body;
-        const entity = await propertyService.updateZone(zoneId, tenantId, name);
-        if (!entity) {
-            return res.status(404).json({ error: 'Zone not found' });
-        }
-        res.json(entity);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: err.message });
-    }
-});
-router.delete('/zones/:id', async (req, res) => {
-    try {
-        const { tenantId } = req.user;
-        const entity = await propertyService.deleteZone(req.params.id, tenantId);
-        if (!entity) {
-            return res.status(404).json({ error: 'Zone not found' });
-        }
-        res.json({ success: true, deleted: entity });
-    } catch (err) {
-        console.error(err);
-        res.status(err.status || 500).json({ error: err.message });
-    }
-});
+
+
+
 // TORRES
 router.get('/condominiums/:id/buildings', async (req, res) => {
     try {
@@ -118,9 +48,12 @@ router.get('/condominiums/:id/buildings', async (req, res) => {
 });
 router.post('/buildings', async (req, res) => {
     try {
-        const { tenantId } = req.user;
+        const { userId, role } = req.user;
         const { condominiumId, name, floorCount } = req.body;
-        const entity = await propertyService.createBuilding(condominiumId, tenantId, name, floorCount);
+        if (role !== 'admin') {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        const entity = await propertyService.createBuilding(condominiumId, userId, name, floorCount);
         if (!entity) {
             return res.status(404).json({ error: 'Building not found' });
         }
@@ -130,32 +63,7 @@ router.post('/buildings', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-router.put('/buildings/:id', async (req, res) => {
-    try {
-        const { tenantId } = req.user;
-        const entity = await propertyService.updateBuilding(req.params.id, tenantId, req.body.name, req.body.floorCount);
-        if (!entity) {
-            return res.status(404).json({ error: 'Building not found' });
-        }
-        res.json(entity);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: err.message });
-    }
-});
-router.delete('/buildings/:id', async (req, res) => {
-    try {
-        const { tenantId } = req.user;
-        const entity = await propertyService.deleteBuilding(req.params.id, tenantId);
-        if (!entity) {
-            return res.status(404).json({ error: 'Building not found' });
-        }
-        res.json({ success: true, deleted: entity });
-    } catch (err) {
-        console.error(err);
-        res.status(err.status || 500).json({ error: err.message });
-    }
-});
+
 // UNIDADES
 router.get('/buildings/:id/units', async (req, res) => {
     try {
@@ -282,7 +190,6 @@ router.put('/username', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-
 router.put('/email', async (req, res) => {
     try {
         const { userId } = req.user;
@@ -297,13 +204,27 @@ router.put('/email', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-
 router.put('/password', async (req, res) => {
     try {
         const { userId } = req.user;
         const { currentPassword, newPassword } = req.body;
         await propertyService.updatePassword(userId, currentPassword, newPassword,);
         res.json({ success: true, message: 'Password updated successfully', });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.get('/unit-tree/:condominiumId', async (req, res) => {
+    try {
+        const { role } = req.user;
+        const { condominiumId } = req.params;
+        if (role !== 'admin') {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        const tree = await propertyService.getUnitTree(condominiumId);
+        res.json(tree);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });

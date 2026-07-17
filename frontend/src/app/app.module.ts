@@ -4,10 +4,6 @@ import { Loginv2Component } from './components/loginv2/loginv2.component';
 import { NavbarComponent } from './components/functions/navbar/navbar.component';
 import { Comunidadesv2Component } from './components/comunidadesv2/comunidadesv2.component';
 import { Lockv2Component } from './components/lockv2/lockv2.component';
-import { EkeyComponent } from './components/access_methods/ekey/ekey.component';
-import { PasscodeComponent } from './components/access_methods/passcode/passcode.component';
-import { CardComponent } from './components/access_methods/card/card.component';
-import { MultipleEkeyComponent } from './components/access_methods/multiple-ekey/multiple-ekey.component';
 import { PopUpComponent } from './components/pop-up/pop-up.component';
 import { PassageModeComponent } from './components/functions/passage-mode/passage-mode.component';
 import { TransferLockComponent } from './components/functions/transfer-lock/transfer-lock.component';
@@ -50,15 +46,12 @@ import { GroupService } from './services/group.service';
 
 import { MAT_DATE_FORMATS } from '@angular/material/core';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
-import { CameraComponent } from './components/camera/camera.component';
 import { AccessModalComponent } from './components/access_methods/access-modal/access-modal.component';
 import { FunctionsModalComponent } from './components/functions/functions-modal/functions-modal.component';
 import { MultiplePasscodeComponent } from './components/access_methods/multiple-passcode/multiple-passcode/multiple-passcode.component';
 import { MultipleCardsComponent } from './components/access_methods/multiple-cards/multiple-cards.component';
 import { InvitationComponent } from './components/vohk_app/invitation/invitation.component';
-import { HomeComponent } from './components/vohk_app/home/home.component';
 import { CondominiumsComponent } from './components/vohk_app/condominiums/condominiums.component';
-import { BuildingsComponent } from './components/vohk_app/buildings/buildings.component';
 import { UnitsComponent } from './components/vohk_app/units/units.component';
 import { ResidentsComponent } from './components/vohk_app/residents/residents.component';
 import { CondominiumDashboardComponent } from './components/vohk_app/condominium-dashboard/condominium-dashboard.component';
@@ -73,6 +66,10 @@ import { PasscodeTableComponent } from './components/passcode-table/passcode-tab
 import { CardTableComponent } from './components/card-table/card-table.component';
 import { FingerprintTableComponent } from './components/fingerprint-table/fingerprint-table.component';
 import { ResetPasswordComponent } from './components/vohk_app/reset-password/reset-password.component';
+import { SidebarComponent } from './layouts/admin/sidebar/sidebar.component';
+import { TopbarComponent } from './layouts/admin/topbar/topbar.component';
+import { DashboardComponent } from './components/vohk_app/dashboard/dashboard.component';
+import { UserComponent } from './components/vohk_app/user/user.component';
 
 
 export const CUSTOM_DATE_FORMATS = {
@@ -91,27 +88,20 @@ export const CUSTOM_DATE_FORMATS = {
   declarations: [
     AppComponent,
     NavbarComponent,
-    PasscodeComponent,
-    EkeyComponent,
     PopUpComponent,
     PassageModeComponent,
     TransferLockComponent,
-    MultipleEkeyComponent,
     LoaderComponent,
-    CardComponent,
     Loginv2Component,
     Comunidadesv2Component,
     Lockv2Component,
     TransferHubComponent,
-    CameraComponent,
     AccessModalComponent,
     FunctionsModalComponent,
     MultiplePasscodeComponent,
     MultipleCardsComponent,
     InvitationComponent,
-    HomeComponent,
     CondominiumsComponent,
-    BuildingsComponent,
     UnitsComponent,
     ResidentsComponent,
     CondominiumDashboardComponent,
@@ -124,6 +114,10 @@ export const CUSTOM_DATE_FORMATS = {
     CardTableComponent,
     FingerprintTableComponent,
     ResetPasswordComponent,
+    SidebarComponent,
+    TopbarComponent,
+    DashboardComponent,
+    UserComponent,
   ],
   imports: [
     BrowserModule,

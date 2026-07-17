@@ -152,20 +152,19 @@ async function updateResident(userId, email, legalName, tenantId) {
     );
     return result.rows[0];
 }
-async function assignResidentToUnit(userId, unitId, isPrimary = false, tenantId) {
+async function assignResidentToUnit(userId, unitId, isPrimary = false) {
     const result = await pool.query(
         `
-        INSERT INTO resident_unit (user_id, unit_id, is_primary)
-        SELECT $1, $2, $3
-        FROM unit u
-        JOIN building b ON b.building_id = u.building_id
-        JOIN condominium c ON c.condominium_id = b.condominium_id
-        WHERE u.unit_id = $2
-          AND c.tenant_id = $4
+        INSERT INTO resident_unit (
+            user_id,
+            unit_id,
+            is_primary
+        )
+        VALUES ($1, $2, $3)
         ON CONFLICT (user_id, unit_id) DO NOTHING
         RETURNING *
         `,
-        [userId, unitId, isPrimary, tenantId]
+        [userId, unitId, isPrimary]
     );
     return result.rows[0];
 }
@@ -271,9 +270,40 @@ async function updatePassword(userId, passwordHash) {
         [userId, passwordHash]
     );
 }
+async function getUsersByCondominium(condominiumId) {
+    const result = await pool.query(
+        `
+        SELECT
+            u.user_id,
+            u.legal_name,
+            u.rut,
+            u.role,
+            u.email,
+            u.active,
+            u.created_at,
+            c.condominium_id,
+            c.name AS condominium,
+            b.building_id,
+            b.name AS building,
+            un.unit_id,
+            un.name AS unit,
+            un.room_no
+        FROM app_user u
+        LEFT JOIN resident_unit ru ON ru.user_id = u.user_id
+        LEFT JOIN unit un ON un.unit_id = ru.unit_id
+        LEFT JOIN building b ON b.building_id = un.building_id
+        LEFT JOIN condominium c ON c.condominium_id = b.condominium_id
+        WHERE c.condominium_id = $1
+        ORDER BY u.created_at DESC
+        `,
+        [condominiumId]
+    );
+    return result.rows;
+}
 
 module.exports = {
     findById, findTenantIdByUserId, findByUsername, findByRut, findByIdentity, findByEmail, findByPasswordResetToken,
     updateFcmToken, fetchPrimaryUnit, createResident, updateResident, assignResidentToUnit,
-    deleteResident, findUsersByUnit, savePasswordResetToken, resetPassword, updateUsername, updateEmail, updatePassword
+    deleteResident, findUsersByUnit, savePasswordResetToken, resetPassword, updateUsername, updateEmail, updatePassword,
+    getUsersByCondominium
 };

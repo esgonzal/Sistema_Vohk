@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const userRepository = require('../../repositories/userRepository');
+const { SsmlBreak } = require('twilio/lib/twiml/VoiceResponse');
 const AccessToken = twilio.jwt.AccessToken;
 const VoiceGrant = AccessToken.VoiceGrant;
 const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
@@ -20,11 +21,7 @@ async function login(username, password) {
     if (!passwordMatches) {
         return { error: 'Invalid password', status: 401 };
     }
-    const tenant = await userRepository.findTenantIdByUserId(user.user_id);
-    if (!tenant) {
-        return { error: 'User is not assigned to any tenant.', status: 403 };
-    }
-    const session = { userId: user.user_id, tenantId: tenant.tenant_id, username: user.username, role: user.role, identity: user.sip_identity };
+    const session = { userId: user.user_id, username: user.username, role: user.role, identity: user.sip_identity };
     const token = generateJwt(session);
     return {
         success: true,
@@ -93,7 +90,6 @@ function generateJwt(session) {
     return jwt.sign(
         {
             userId: session.userId,
-            tenantId: session.tenantId,
             username: session.username,
             role: session.role,
             identity: session.identity

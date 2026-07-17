@@ -11,77 +11,26 @@ const residentUnitRepository = require('../../repositories/residentUnitRepositor
 const intercomRepository = require('../../repositories/intercomRepository');
 const deviceService = require('./deviceService');
 
-async function listCondominiums(tenantId) {
-    return condominiumRepository.findCondominiums(tenantId);
-}
-async function createCondominium(tenantId, name, address, city) {
-    const condominium = await condominiumRepository.createCondominium(tenantId, name, address, city);
-    if (!condominium) {
-        throw new Error('Failed to create condominium.');
-    }
-    const zone = await zoneRepository.createZone(condominium.condominium_id, 'Áreas Comunes');
-    if (!zone) {
-        await condominiumRepository.deleteCondominium(condominium.condominium_id);
-        throw new Error('Failed to create default zone.');
-    }
-    return condominium;
-}
-async function updateCondominium(condominiumId, tenantId, name, address, city) {
-    return condominiumRepository.updateCondominium(condominiumId, tenantId, name, address, city);
-}
-async function deleteCondominium(condominiumId, tenantId) {
-    const buildingCount = await condominiumRepository.countBuildingsByCondominium(condominiumId, tenantId);
-    if (buildingCount > 0) {
-        const error = new Error(`No se puede eliminar el condominio. Hay ${buildingCount} torre(s) fijada(s).`)
-        error.status = 409;
-        throw error;
-    }
-    return condominiumRepository.deleteCondominium(condominiumId, tenantId);
+async function listCondominiums(adminUserId) {
+    return condominiumRepository.findCondominiums(adminUserId);
 }
 async function findCurrentCondominium(userId, tenantId) {
     return condominiumRepository.findFirstAccessibleByUser(userId, tenantId);
 }
 
+async function listZones(condominiumId) {
+    return zoneRepository.findZonesByCondominium(condominiumId);
+}
 
-async function listZones(condominiumId, tenantId) {
-    return zoneRepository.findZonesByCondominium(condominiumId, tenantId);
-}
-async function createZone(condominiumId, tenantId, name) {
-    return zoneRepository.createZone(condominiumId, tenantId, name);
-}
-async function updateZone(zoneId, tenantId, name) {
-    return zoneRepository.updateZone(zoneId, tenantId, name);
-}
-async function deleteZone(zoneId, tenantId) {
-    const deviceCount = await zoneRepository.countDevicesByZone(zoneId, tenantId);
-    if (deviceCount > 0) {
-        const error = new Error(`No se puede eliminar la zona. Hay ${deviceCount} dispositivo(s) fijado(s).`)
-        error.status = 409;
-        throw error;
-    }
-    return zoneRepository.deleteZone(zoneId, tenantId);
-}
+
+
 
 async function listBuildings(condominiumId, tenantId) {
     return buildingRepository.findBuildingsByCondominium(condominiumId, tenantId);
 }
-async function createBuilding(condominiumId, tenantId, name, floorCount) {
-    return buildingRepository.createBuilding(condominiumId, tenantId, name, floorCount);
-}
-async function updateBuilding(buildingId, tenantId, name, floorCount) {
-    return buildingRepository.updateBuilding(buildingId, tenantId, name, floorCount);
-}
-async function deleteBuilding(buildingId, tenantId) {
-    const unitCount = await buildingRepository.countUnitsByBuilding(buildingId, tenantId);
-    if (unitCount > 0) {
-        const error = new Error(
-            `No se puede eliminar la torre. Hay ${unitCount} unidad(es) fijadas.`
-        );
-        error.status = 409;
-        throw error;
-    }
-    return buildingRepository.deleteBuilding(buildingId, tenantId);
-}
+
+
+
 
 async function listUnits(buildingId, tenantId) {
     return unitRepository.findUnitsByBuilding(buildingId, tenantId);
@@ -230,15 +179,49 @@ async function updatePassword(userId, currentPassword, newPassword) {
     return true;
 }
 
+async function getUnitTree(condominiumId) {
+    const rows = await condominiumRepository.findUnitTreeRows(condominiumId);
+    const condominium = {
+        condominium_id: condominiumId, name: rows[0]?.condominium_name, address: rows[0]?.address, city: rows[0]?.city, buildings: [], _buildingMap: new Map()
+    };
+    for (const row of rows) {
+        if (!row.building_id) {
+            continue;
+        }
+        let building = condominium._buildingMap.get(row.building_id);
+        if (!building) {
+            building = { building_id: row.building_id, name: row.building_name, floor_count: row.floor_count, units: [], _unitMap: new Map() };
+            condominium._buildingMap.set(row.building_id, building);
+            condominium.buildings.push(building);
+        }
+        if (!row.unit_id) {
+            continue;
+        }
+        let unit = building._unitMap.get(row.unit_id);
+        if (!unit) {
+            unit = { unit_id: row.unit_id, room_no: row.room_no, floor: row.floor, residents: [] };
+            building._unitMap.set(row.unit_id, unit);
+            building.units.push(unit);
+        }
+        if (row.user_id) {
+            unit.residents.push({
+                user_id: row.user_id, legal_name: row.legal_name, email: row.email, sip_identity: row.sip_identity, role: row.role, active: row.active, is_primary: row.is_primary
+            });
+        }
+    }
+    delete condominium._buildingMap;
+    condominium.buildings.forEach(building => { delete building._unitMap; });
+    return condominium;
+}
+
 module.exports = {
     // Condominiums
-    listCondominiums, createCondominium, updateCondominium, deleteCondominium, findCurrentCondominium,
+    listCondominiums, findCurrentCondominium,
     // Zones
-    listZones, createZone, updateZone, deleteZone,
+    listZones, 
     // Buildings
-    listBuildings, createBuilding, updateBuilding, deleteBuilding,
+    listBuildings,
     // Units
     listUnits, createUnit, updateUnit, deleteUnit, getResidentUnits,
     // Residents
-    listResidents, createResident, updateResident, deleteResident, assignResidentToUnit, updateUsername, updateEmail, updatePassword
-};
+    listResidents, createResident, updateResident, deleteResident, assignResidentToUnit, updateUsername, updateEmail, updatePassword};

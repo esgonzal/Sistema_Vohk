@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
 export class AuthInterceptor implements HttpInterceptor {
 
   intercept(req: HttpRequest<any>, next: HttpHandler) {
-    const protectedUrls = ['/app/auth', '/app/admin', '/app/device'];
+    const protectedUrls = ['/app/auth', '/app/admin', '/app/device', '/app/dashboard', 'app/user', 'app/condominium'];
     const shouldAttachToken = protectedUrls.some(url => req.url.includes(url));
     if (!shouldAttachToken) {
       return next.handle(req);

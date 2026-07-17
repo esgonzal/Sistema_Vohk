@@ -22,7 +22,7 @@ export class LoginComponent {
     this.authService.login(this.username, this.password).subscribe({
       next: (res) => {
         this.isLoading = false;
-        this.router.navigate(['/admin/condominiums']);
+        this.router.navigate(['/admin/dashboard']);
       },
       error: (err) => {
         this.isLoading = false;
