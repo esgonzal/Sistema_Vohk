@@ -64,7 +64,6 @@ router.post('/register-fcm', authenticate, async (req, res) => {
     try {
         const { userId } = req.user;
         const { fcmToken } = req.body;
-        console.log("token in register-fcm", fcmToken)
         if (!fcmToken) {
             return res.status(400).json({ error: 'Missing fcmToken' });
         }

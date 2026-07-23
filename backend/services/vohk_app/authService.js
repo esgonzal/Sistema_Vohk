@@ -64,6 +64,12 @@ function generateTwilioToken(identity) {
         TWILIO_API_SECRET,
         { identity, ttl: 3600 }
     );
+    console.log('====================');
+    console.log('TWILIO_ACCOUNT_SID:', TWILIO_ACCOUNT_SID);
+    console.log('TWILIO_API_KEY:', TWILIO_API_KEY);
+    console.log('TWILIO_TWIML_APP_SID:', TWILIO_TWIML_APP_SID);
+    console.log('TWILIO_PUSH_CRED_SID:', TWILIO_PUSH_CRED_SID);
+    console.log('====================');
     const voiceGrant = new VoiceGrant({
         incomingAllow: true,
         outgoingApplicationSid: TWILIO_TWIML_APP_SID,
