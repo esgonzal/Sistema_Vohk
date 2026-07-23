@@ -23,11 +23,7 @@ async function login(username, password) {
     }
     const session = { userId: user.user_id, username: user.username, role: user.role, identity: user.sip_identity };
     const token = generateJwt(session);
-    return {
-        success: true,
-        token,
-        user: session
-    }
+    return { success: true, token, user: session, legalName: user.legal_name }
 }
 
 async function forgotPassword(email) {
@@ -79,25 +75,20 @@ function generateTwilioToken(identity) {
 
 async function registerFcmToken(userId, fcmToken) {
     const user = await userRepository.findById(userId);
+    console.log(user)
     if (!user) {
         return { error: 'User not found', status: 404 };
     }
-    await userRepository.updateFcmToken(userId, fcmToken);
+    let response = await userRepository.updateFcmToken(userId, fcmToken);
+    console.log(response)
     return { success: true };
 }
 
 function generateJwt(session) {
     return jwt.sign(
-        {
-            userId: session.userId,
-            username: session.username,
-            role: session.role,
-            identity: session.identity
-        },
+        { userId: session.userId, username: session.username, role: session.role, identity: session.identity },
         process.env.JWT_SECRET,
-        {
-            expiresIn: process.env.JWT_EXPIRES_IN || '7d'
-        }
+        { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
     );
 }
 

@@ -43,8 +43,8 @@ async function findIntercomBySipAddress(sipAddress) {
             d.active,
             i.intercom_id,
             i.sip_address,
-            i.username,
-            i.password_encrypted,
+            d.username,
+            d.password_encrypted,
             i.door_id
         FROM intercom i
         JOIN device d ON d.device_id = i.device_id
