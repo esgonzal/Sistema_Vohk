@@ -30,10 +30,8 @@ router.get('/cameras', async (req, res) => {
 router.get('/location', async (req, res) => {
     try {
         const { condominiumId } = req.query;
-        const { tenantId } = req.user;
-        console.log(condominiumId, tenantId)
-        const devices = await deviceService.getDevicesByCondominium(condominiumId, tenantId);
-        console.log(devices)
+        const { userId, role } = req.user;
+        const devices = await deviceService.getDevicesByCondominium(condominiumId);
         res.json(devices);
     } catch (err) {
         console.log(err);

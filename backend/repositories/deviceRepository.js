@@ -181,8 +181,6 @@ async function findDevicesByCondominium(condominiumId, zoneId = null) {
                 z.name AS zone_name,
                 i.intercom_id,
                 i.sip_address,
-                d.username AS sip_username,
-                d.password_encrypted,
                 i.door_id
             FROM device d
             JOIN zone z
@@ -204,8 +202,6 @@ async function findDevicesByCondominium(condominiumId, zoneId = null) {
             z.name AS zone_name,
             i.intercom_id,
             i.sip_address,
-            d.username,
-            d.password_encrypted,
             i.door_id
         FROM device d
         JOIN zone z

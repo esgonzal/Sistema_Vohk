@@ -17,6 +17,9 @@ async function handleIncomingCall(from, to) {
             userRepository.findByIdentity(apartmentIdentity),
             intercomRepository.findIntercomBySipAddress(from),
         ]);
+        console.log("apartmentIdentity: ", apartmentIdentity);
+        console.log("resident: ", resident);
+        console.log("intercom: ", intercom)
         if (resident?.fcm_token) {
             try {
                 await admin.messaging().send({
