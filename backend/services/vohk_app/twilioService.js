@@ -36,7 +36,7 @@ async function handleIncomingCall(from, to) {
         } else {
             console.log('Resident or FCM token not found');
         }
-        const dial = twiml.dial();
+        const dial = twiml.dial({ answerOnBridge: true });
         dial.client(apartmentIdentity);
     } else {
         const dial = twiml.dial({ callerId: OUTBOUND_CALLER_ID });
