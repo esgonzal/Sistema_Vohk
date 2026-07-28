@@ -92,15 +92,30 @@ async function findByPasswordResetToken(tokenHash) {
     );
     return result.rows[0] || null;
 }
-async function updateFcmToken(sip_identity, fcmToken) {
-    await pool.query(
+async function updateFcmToken(userId, fcmToken) {
+    const result = await pool.query(
         `
         UPDATE app_user
-        SET fcm_token = $1
-        WHERE sip_identity = $2
+        SET fcm_token = $2
+        WHERE user_id = $1
+        RETURNING user_id, sip_identity, fcm_token
         `,
-        [fcmToken, sip_identity]
+        [userId, fcmToken]
     );
+    return result.rows[0] || null;
+}
+async function clearFcmToken(userId, fcmToken) {
+    const result = await pool.query(
+        `
+        UPDATE app_user
+        SET fcm_token = NULL
+        WHERE user_id = $1
+          AND fcm_token = $2
+        RETURNING user_id
+        `,
+        [userId, fcmToken]
+    );
+    return result.rows[0] || null;
 }
 async function fetchPrimaryUnit(user_id) {
     const result = await pool.query(
@@ -303,7 +318,7 @@ async function getUsersByCondominium(condominiumId) {
 
 module.exports = {
     findById, findTenantIdByUserId, findByUsername, findByRut, findByIdentity, findByEmail, findByPasswordResetToken,
-    updateFcmToken, fetchPrimaryUnit, createResident, updateResident, assignResidentToUnit,
+    updateFcmToken, clearFcmToken, fetchPrimaryUnit, createResident, updateResident, assignResidentToUnit,
     deleteResident, findUsersByUnit, savePasswordResetToken, resetPassword, updateUsername, updateEmail, updatePassword,
     getUsersByCondominium
 };

@@ -74,13 +74,15 @@ function generateTwilioToken(identity) {
 }
 
 async function registerFcmToken(userId, fcmToken) {
-    const user = await userRepository.findById(userId);
-    console.log(user)
-    if (!user) {
+    const updatedUser = await userRepository.updateFcmToken(userId, fcmToken);
+    if (!updatedUser) {
         return { error: 'User not found', status: 404 };
     }
-    let response = await userRepository.updateFcmToken(userId, fcmToken);
-    console.log(response)
+    return { success: true, identity: updatedUser.sip_identity };
+}
+
+async function unregisterFcmToken(userId, fcmToken) {
+    await userRepository.clearFcmToken(userId, fcmToken);
     return { success: true };
 }
 
@@ -92,4 +94,4 @@ function generateJwt(session) {
     );
 }
 
-module.exports = { login, forgotPassword, resetPassword, generateTwilioToken, registerFcmToken };
+module.exports = { login, forgotPassword, resetPassword, generateTwilioToken, registerFcmToken, unregisterFcmToken };

@@ -77,5 +77,19 @@ router.post('/register-fcm', authenticate, async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+router.delete('/register-fcm', authenticate, async (req, res) => {
+    try {
+        const { userId } = req.user;
+        const { fcmToken } = req.body;
+        if (!fcmToken) {
+            return res.status(400).json({error: 'Missing fcmToken'});
+        }
+        const result = await authService.unregisterFcmToken(userId,fcmToken);
+        res.json(result);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({error: err.message});
+    }
+});
 
 module.exports = router;
