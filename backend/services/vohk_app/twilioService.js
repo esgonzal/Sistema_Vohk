@@ -37,7 +37,14 @@ async function handleIncomingCall(from, to) {
             console.log('Resident or FCM token not found');
         }
         const dial = twiml.dial({ answerOnBridge: true });
-        dial.client(apartmentIdentity);
+        const client = dial.client();
+        client.identity(apartmentIdentity);
+        if (intercom?.intercom_id) {
+            client.parameter({ name: 'intercom_id', value: intercom.intercom_id, });
+        }
+        if (intercom?.device_id) {
+            client.parameter({ name: 'device_id', value: intercom.device_id, });
+        }
     } else {
         const dial = twiml.dial({ callerId: OUTBOUND_CALLER_ID });
         dial.sip(OUTBOUND_SIP_URI);

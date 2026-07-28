@@ -58,17 +58,26 @@ async function resetPassword(token, password) {
 }
 
 function generateTwilioToken(identity) {
-    const token = new AccessToken(TWILIO_ACCOUNT_SID, TWILIO_API_KEY, TWILIO_API_SECRET, { identity, ttl: 3600 });
-    console.log('====================');
-    console.log('TWILIO_ACCOUNT_SID:', TWILIO_ACCOUNT_SID);
-    console.log('TWILIO_API_KEY:', TWILIO_API_KEY);
-    console.log('TWILIO_TWIML_APP_SID:', TWILIO_TWIML_APP_SID);
-    console.log('TWILIO_PUSH_CRED_SID:', TWILIO_PUSH_CRED_SID);
-    console.log('====================');
-    const voiceGrant = new VoiceGrant({ incomingAllow: true, outgoingApplicationSid: TWILIO_TWIML_APP_SID, });
-    if (TWILIO_PUSH_CRED_SID) {
-        voiceGrant.pushCredentialSid = TWILIO_PUSH_CRED_SID;
+    if (!TWILIO_ACCOUNT_SID) {
+        throw new Error('TWILIO_ACCOUNT_SID is not configured');
     }
+    if (!TWILIO_API_KEY) {
+        throw new Error('TWILIO_API_KEY is not configured');
+    }
+    if (!TWILIO_API_SECRET) {
+        throw new Error('TWILIO_API_SECRET is not configured');
+    }
+    if (!TWILIO_TWIML_APP_SID) {
+        throw new Error('TWILIO_TWIML_APP_SID is not configured');
+    }
+    if (!TWILIO_PUSH_CRED_SID) {
+        throw new Error('TWILIO_PUSH_CRED_SID is not configured');
+    }
+    if (!identity) {
+        throw new Error('Twilio identity is required');
+    }
+    const token = new AccessToken(TWILIO_ACCOUNT_SID, TWILIO_API_KEY, TWILIO_API_SECRET, { identity, ttl: 3600 });
+    const voiceGrant = new VoiceGrant({outgoingApplicationSid: TWILIO_TWIML_APP_SID,pushCredentialSid: TWILIO_PUSH_CRED_SID,});
     token.addGrant(voiceGrant);
     return token.toJwt();
 }
