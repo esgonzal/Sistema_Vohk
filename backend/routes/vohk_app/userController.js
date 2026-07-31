@@ -1,8 +1,19 @@
 const express = require('express');
-const router = express.Router();
 const authenticate = require('../../middleware/authMiddleware');
 const userService = require('../../services/vohk_app/userService');
+const router = express.Router();
 router.use(authenticate);
+
+function isBlank(value) {
+    return typeof value !== 'string' || value.trim() === '';
+}
+function sendServerError(res, error, message) {
+    console.error(error);
+    if (error.status && error.status >= 400 && error.status < 500) {
+        return res.status(error.status).json({ error: error.message });
+    }
+    return res.status(500).json({ error: message });
+}
 
 router.get('/:condominiumId', async (req, res) => {
     try {
@@ -11,24 +22,117 @@ router.get('/:condominiumId', async (req, res) => {
         if (role !== 'admin') {
             return res.status(403).json({ error: 'Forbidden' });
         }
+        if (isBlank(condominiumId)) {
+            return res.status(400).json({ error: 'Condominium ID is required' });
+        }
         const users = await userService.getUsersByCondominium(userId, condominiumId);
-        res.json(users);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: err.message });
+        return res.status(200).json(users);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not retrieve users');
     }
 });
-router.post('/units/:unitId/residents', async (req, res) => {
+router.post('/:unitId', async (req, res) => {
     try {
         const { userId, role } = req.user;
+        const { unitId } = req.params;
+        const { legalName, rut, email, isPrimary } = req.body;
         if (role !== 'admin') {
             return res.status(403).json({ error: 'Forbidden' });
         }
-        const resident = await userService.createResident(req.params.unitId, userId, req.body);
-        res.status(201).json(resident);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: err.message });
+        if (isBlank(unitId) || isBlank(legalName) || isBlank(rut) || isBlank(email)) {
+            return res.status(400).json({ error: 'Unit ID, legal name, RUT and email are required' });
+        }
+        if (isPrimary !== undefined && typeof isPrimary !== 'boolean') {
+            return res.status(400).json({ error: 'isPrimary must be a boolean' });
+        }
+        const resident = await userService.createResident(unitId, userId, { legalName: legalName.trim(), rut: rut.trim(), email: email.trim(), isPrimary: isPrimary ?? false });
+        return res.status(201).json(resident);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not create resident');
+    }
+});
+router.put('/:residentId', async (req, res) => {
+    try {
+        const { userId, role } = req.user;
+        const { residentId } = req.params;
+        const { unitId, legalName, email, isPrimary } = req.body;
+        if (role !== 'admin') {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        if (isBlank(residentId) || isBlank(unitId) || isBlank(legalName) || isBlank(email)) {
+            return res.status(400).json({ error: 'Resident ID, unit ID, legal name and email are required' });
+        }
+        if (typeof isPrimary !== 'boolean') {
+            return res.status(400).json({ error: 'isPrimary must be a boolean' });
+        }
+        const resident = await userService.updateResident(residentId, userId, { unitId, legalName: legalName.trim(), email: email.trim(), isPrimary });
+        if (!resident) {
+            return res.status(404).json({ error: 'Resident not found' });
+        }
+        return res.status(200).json(resident);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not update resident');
+    }
+});
+router.delete('/residents/:residentId/units/:unitId', async (req, res) => {
+    try {
+        const { userId, role } = req.user;
+        const { residentId, unitId } = req.params;
+        if (role !== 'admin') {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        const result = await userService.deleteResident(residentId, unitId, userId);
+        if (!result) {
+            return res.status(404).json({ error: 'Resident not found' });
+        }
+        return res.status(200).json({ success: true, ...result });
+    } catch (error) {
+        return sendServerError(res, error, 'Could not delete resident');
+    }
+});
+router.put('/username', async (req, res) => {
+    try {
+        const { userId } = req.user;
+        const { username } = req.body;
+        if (isBlank(username)) {
+            return res.status(400).json({ error: 'Username is required' });
+        }
+        const updated = await userService.updateUsername(userId, username.trim());
+        if (!updated) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        return res.status(200).json(updated);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not update username');
+    }
+});
+router.put('/email', async (req, res) => {
+    try {
+        const { userId } = req.user;
+        const { email } = req.body;
+        if (isBlank(email)) {
+            return res.status(400).json({ error: 'Email is required' });
+        }
+        const updated = await userService.updateEmail(userId, email.trim());
+        if (!updated) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        return res.status(200).json(updated);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not update email');
+    }
+});
+router.put('/password', async (req, res) => {
+    try {
+        const { userId } = req.user;
+        const { currentPassword, newPassword } = req.body;
+        if (isBlank(currentPassword) || isBlank(newPassword)) {
+            return res.status(400).json({ error: 'Current and new password are required' });
+        }
+        await userService.updatePassword(userId, currentPassword, newPassword);
+        return res.status(200).json({ success: true, message: 'Password updated successfully' });
+    } catch (error) {
+        return sendServerError(res, error, 'Could not update password');
     }
 });
 

@@ -27,17 +27,7 @@ router.get('/cameras', async (req, res) => {
     }
 });
 // ── Device management ─────────────────────────────────────────────────────────
-router.get('/location', async (req, res) => {
-    try {
-        const { condominiumId } = req.query;
-        const { userId, role } = req.user;
-        const devices = await deviceService.getDevicesByCondominium(condominiumId);
-        res.json(devices);
-    } catch (err) {
-        console.log(err);
-        res.status(500).json({ error: err.message });
-    }
-});
+
 router.get('/location-mobile', async (req, res) => {
     try {
         const { userId, tenantId, role } = req.user;

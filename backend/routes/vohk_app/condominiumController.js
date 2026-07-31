@@ -1,169 +1,206 @@
 const express = require('express');
-const router = express.Router();
 const authenticate = require('../../middleware/authMiddleware');
 const condominiumService = require('../../services/vohk_app/condominiumService');
+const router = express.Router();
 router.use(authenticate);
 
-router.get('/condominium-tree', async (req, res) => {
+function isBlank(value) {
+    return typeof value !== 'string' || value.trim() === '';
+}
+function isValidFloorCount(value) {
+    return (typeof value === 'number' && Number.isInteger(value) && value > 0);
+}
+function sendServerError(res, error, message) {
+    console.error(error);
+    if (error.status && error.status >= 400 && error.status < 500) {
+        return res.status(error.status).json({ error: error.message });
+    }
+    return res.status(500).json({ error: message });
+}
+
+router.get('/tree', async (req, res) => {
     try {
         const { userId, role } = req.user;
         if (role !== 'admin') {
             return res.status(403).json({ error: 'Forbidden' });
         }
         const tree = await condominiumService.getCondominiumTree(userId);
-        res.json(tree);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: err.message });
+        return res.status(200).json(tree);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not retrieve condominium tree');
     }
 });
-router.post('/create', async (req, res) => {
+router.post('/', async (req, res) => {
     try {
         const { userId, role } = req.user;
         const { name, address, city } = req.body;
         if (role !== 'admin') {
             return res.status(403).json({ error: 'Forbidden' });
         }
-        const entity = await condominiumService.createCondominium(userId, name, address, city);
-        if (!entity) {
-            return res.status(404).json({ error: 'Condominium not found' });
+        if (isBlank(name) || isBlank(address) || isBlank(city)) {
+            return res.status(400).json({ error: 'Name, address and city are required' });
         }
-        res.status(201).json(entity);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: err.message });
+        const condominium = await condominiumService.createCondominium(userId, name.trim(), address.trim(), city.trim());
+        if (!condominium) {
+            return res.status(500).json({ error: 'Could not create condominium' });
+        }
+        return res.status(201).json(condominium);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not create condominium');
     }
 });
-router.put('/:id', async (req, res) => {
+router.put('/:condominiumId', async (req, res) => {
     try {
         const { userId, role } = req.user;
+        const { condominiumId } = req.params;
         const { name, address, city } = req.body;
         if (role !== 'admin') {
             return res.status(403).json({ error: 'Forbidden' });
         }
-        const entity = await condominiumService.updateCondominium(req.params.id, userId, name, address, city);
-        if (!entity) {
+        if (isBlank(name) || isBlank(address) || isBlank(city)) {
+            return res.status(400).json({ error: 'Name, address and city are required' });
+        }
+        const condominium = await condominiumService.updateCondominium(condominiumId, userId, name.trim(), address.trim(), city.trim());
+        if (!condominium) {
             return res.status(404).json({ error: 'Condominium not found' });
         }
-        res.json(entity);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: err.message });
+        return res.status(200).json(condominium);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not update condominium');
     }
 });
-router.delete('/:id', async (req, res) => {
+router.delete('/:condominiumId', async (req, res) => {
     try {
         const { userId, role } = req.user;
+        const { condominiumId } = req.params;
         if (role !== 'admin') {
             return res.status(403).json({ error: 'Forbidden' });
         }
-        const entity = await condominiumService.deleteCondominium(req.params.id, userId);
-        if (!entity) {
+        const condominium = await condominiumService.deleteCondominium(condominiumId, userId);
+        if (!condominium) {
             return res.status(404).json({ error: 'Condominium not found' });
         }
-        res.json({ success: true, deleted: entity });
-    } catch (err) {
-        console.error(err);
-        res.status(err.status || 500).json({ error: err.message });
+        return res.status(200).json({ success: true, deleted: condominium });
+    } catch (error) {
+        return sendServerError(res, error, 'Could not delete condominium');
     }
 });
-router.post('/create-building', async (req, res) => {
+router.post('/:condominiumId/buildings', async (req, res) => {
     try {
         const { userId, role } = req.user;
-        const { condominiumId, name, floorCount } = req.body;
+        const { condominiumId } = req.params;
+        const { name, floorCount } = req.body;
         if (role !== 'admin') {
             return res.status(403).json({ error: 'Forbidden' });
         }
-        const entity = await condominiumService.createBuilding(condominiumId, userId, name, floorCount);
-        if (!entity) {
-            return res.status(404).json({ error: 'Building not found' });
+        if (isBlank(name)) {
+            return res.status(400).json({ error: 'Building name is required' });
         }
-        res.status(201).json(entity);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: err.message });
+        if (!isValidFloorCount(floorCount)) {
+            return res.status(400).json({ error: 'Floor count must be a positive integer' });
+        }
+        const building = await condominiumService.createBuilding(condominiumId, userId, name.trim(), floorCount);
+        if (!building) {
+            return res.status(404).json({ error: 'Condominium not found' });
+        }
+        return res.status(201).json(building);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not create building');
     }
 });
-router.put('/edit-building/:id', async (req, res) => {
+router.put('/buildings/:buildingId', async (req, res) => {
     try {
         const { userId, role } = req.user;
+        const { buildingId } = req.params;
+        const { name, floorCount } = req.body;
         if (role !== 'admin') {
             return res.status(403).json({ error: 'Forbidden' });
         }
-        const entity = await condominiumService.updateBuilding(req.params.id, req.body.name, req.body.floorCount);
-        if (!entity) {
+        if (isBlank(name)) {
+            return res.status(400).json({ error: 'Building name is required' });
+        }
+        if (!isValidFloorCount(floorCount)) {
+            return res.status(400).json({ error: 'Floor count must be a positive integer' });
+        }
+        const building = await condominiumService.updateBuilding(buildingId, userId, name.trim(), floorCount);
+        if (!building) {
             return res.status(404).json({ error: 'Building not found' });
         }
-        res.json(entity);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: err.message });
+        return res.status(200).json(building);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not update building');
     }
 });
-router.delete('/delete-building/:id', async (req, res) => {
+router.delete('/buildings/:buildingId', async (req, res) => {
     try {
-        const { role } = req.user;
+        const { userId, role } = req.user;
+        const { buildingId } = req.params;
         if (role !== 'admin') {
             return res.status(403).json({ error: 'Forbidden' });
         }
-        const entity = await condominiumService.deleteBuilding(req.params.id);
-        if (!entity) {
+        const building = await condominiumService.deleteBuilding(buildingId, userId);
+        if (!building) {
             return res.status(404).json({ error: 'Building not found' });
         }
-        res.json({ success: true, deleted: entity });
-    } catch (err) {
-        console.error(err);
-        res.status(err.status || 500).json({ error: err.message });
+        return res.status(200).json({ success: true, deleted: building });
+    } catch (error) {
+        return sendServerError(res, error, 'Could not delete building');
     }
 });
-router.post('/create-zone/:id', async (req, res) => {
+router.post('/:condominiumId/zones', async (req, res) => {
     try {
         const { userId, role } = req.user;
+        const { condominiumId } = req.params;
         const { name } = req.body;
         if (role !== 'admin') {
             return res.status(403).json({ error: 'Forbidden' });
         }
-        const entity = await condominiumService.createZone(req.params.id, name)
-        if (!entity) {
-            return res.status(404).json({ error: 'Zone not found' });
+        if (isBlank(name)) {
+            return res.status(400).json({ error: 'Zone name is required' });
         }
-        res.status(201).json(entity);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: err.message });
+        const zone = await condominiumService.createZone(condominiumId, userId, name.trim());
+        if (!zone) {
+            return res.status(404).json({ error: 'Condominium not found' });
+        }
+        return res.status(201).json(zone);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not create zone');
     }
 });
-router.put('/edit-zone/:id', async (req, res) => {
+router.put('/zones/:zoneId', async (req, res) => {
     try {
         const { userId, role } = req.user;
+        const { zoneId } = req.params;
         const { name } = req.body;
         if (role !== 'admin') {
             return res.status(403).json({ error: 'Forbidden' });
         }
-        const entity = await condominiumService.updateZone(req.params.id, name);
-        if (!entity) {
+        if (isBlank(name)) {
+            return res.status(400).json({ error: 'Zone name is required' });
+        }
+        const zone = await condominiumService.updateZone(zoneId, userId, name.trim());
+        if (!zone) {
             return res.status(404).json({ error: 'Zone not found' });
         }
-        res.json(entity);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: err.message });
+        return res.status(200).json(zone);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not update zone');
     }
 });
-router.delete('/delete-zone/:id', async (req, res) => {
+router.delete('/zones/:zoneId', async (req, res) => {
     try {
         const { userId, role } = req.user;
+        const { zoneId } = req.params;
         if (role !== 'admin') {
             return res.status(403).json({ error: 'Forbidden' });
         }
-        const entity = await condominiumService.deleteZone(req.params.id);
-        if (!entity) {
+        const zone = await condominiumService.deleteZone(zoneId, userId);
+        if (!zone) {
             return res.status(404).json({ error: 'Zone not found' });
         }
-        res.json({ success: true, deleted: entity });
-    } catch (err) {
-        console.error(err);
-        res.status(err.status || 500).json({ error: err.message });
+        return res.status(200).json({ success: true, deleted: zone });
+    } catch (error) {
+        return sendServerError(res, error, 'Could not delete zone');
     }
 });
 

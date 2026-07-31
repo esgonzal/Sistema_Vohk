@@ -4,7 +4,6 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const app = express();
 const pool = require('../backend/database/db.js');
-// Middleware
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -22,7 +21,6 @@ app.use(cors({
   credentials: true
 }));
 
-// Preflight for all routes
 app.options('*', cors());
 
 const v0Routes = require('./routes/v0');
@@ -33,8 +31,8 @@ const emailRouter = require('../backend/routes/nodemailer/emailRoutes.js');
 app.use('/mail', emailRouter);
 const mondayTest = require('../backend/routes/automation/monday_test.js');
 app.use('/monday', mondayTest);
-const appRouter = require('./routes/vohk_app');
-app.use('/app', appRouter);
+const apiRouter = require('./routes/vohk_app');
+app.use('/api', apiRouter);
 const dbTestRouter = require('./routes/dbTest');
 app.use('/db', dbTestRouter);;
 

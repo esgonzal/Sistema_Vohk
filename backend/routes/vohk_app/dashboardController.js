@@ -1,8 +1,16 @@
 const express = require('express');
-const router = express.Router();
 const authenticate = require('../../middleware/authMiddleware');
 const dashboardService = require('../../services/vohk_app/dashboardService');
+const router = express.Router();
 router.use(authenticate);
+
+function sendServerError(res, error, message) {
+    console.error(error);
+    if (error.status && error.status >= 400 && error.status < 500) {
+        return res.status(error.status).json({ error: error.message });
+    }
+    return res.status(500).json({ error: message });
+}
 
 router.get('/', async (req, res) => {
     try {
@@ -10,10 +18,10 @@ router.get('/', async (req, res) => {
         if (role !== 'admin') {
             return res.status(403).json({ error: 'Forbidden' });
         }
-        res.json(await dashboardService.getDashboard(userId));
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: err.message });
+        const dashboard = await dashboardService.getDashboard(userId);
+        return res.status(200).json(dashboard);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not retrieve dashboard');
     }
 });
 

@@ -485,6 +485,101 @@ async function deleteInvitation(id) {
     }
     return { ok: true };
 }
+// ── SIP Numbers ───────────────────────────────────────────────────────────────
+async function searchIntercomPhoneRecords(deviceId) {
+    const { intercom, client } = await getIntercomClient(deviceId);
+    const payload = {
+        PhoneSearchDescription: {
+            searchID: uuid().replace(/-/g, ''),
+            maxResults: 20,
+            searchResultPosition: 0,
+            RoomNoList: []
+        }
+    };
+    const url = `http://${intercom.ip_address}:${intercom.port}/ISAPI/VideoIntercom/PhoneNumberRecords/phoneSearch?format=json`;
+    console.log('SEARCH SIP URL:', url);
+    console.log('SEARCH SIP PAYLOAD:', JSON.stringify(payload));
+    const response = await client.fetch(
+        url,
+        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) },
+    );
+    const data = await response.json();
+    console.log('SEARCH SIP RESPONSE:', response.status, data);
+    if (!response.ok || data.PhoneSearchResult?.responseStatusStrg !== 'OK') {
+        return { ok: false, status: response.status, data };
+    }
+    return { ok: true, records: data.PhoneSearchResult?.PhoneNumberRecords ?? [], data };
+}
+async function createIntercomPhoneRecord(deviceId, roomNo, phoneNumbers) {
+    const { intercom, client } = await getIntercomClient(deviceId);
+    const payload = {
+        PhoneNumberRecord: {
+            roomNo: String(roomNo),
+            PhoneNumbers: phoneNumbers.map(phoneNumber => ({ phoneNumber: String(phoneNumber) }))
+        }
+    };
+    console.log('CREATE SIP RECORD:', JSON.stringify(payload));
+    const response = await client.fetch(
+        `http://${intercom.ip_address}:${intercom.port}/ISAPI/VideoIntercom/PhoneNumberRecords?format=json`,
+        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) },
+    );
+    const data = await response.json();
+    console.log('CREATE SIP RESPONSE:', response.status, data);
+    return { ok: response.ok && data.statusCode === 1, status: response.status, data };
+}
+async function updateIntercomPhoneRecord(deviceId, recordId, roomNo, phoneNumbers) {
+    const { intercom, client } = await getIntercomClient(deviceId);
+    const payload = {
+        PhoneNumberRecord: {
+            roomNo: String(roomNo),
+            PhoneNumbers: phoneNumbers.map(phoneNumber => ({ phoneNumber: String(phoneNumber) }))
+        }
+    };
+    console.log('UPDATE SIP RECORD:', recordId, JSON.stringify(payload));
+    const response = await client.fetch(
+        `http://${intercom.ip_address}:${intercom.port}/ISAPI/VideoIntercom/PhoneNumberRecords/${recordId}?format=json`,
+        { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) },
+    );
+    const data = await response.json();
+    console.log('UPDATE SIP RESPONSE:', response.status, data);
+    return { ok: response.ok && data.statusCode === 1, status: response.status, data };
+}
+async function deleteIntercomPhoneRecord(deviceId, recordId) {
+    const { intercom, client } = await getIntercomClient(deviceId);
+    const response = await client.fetch(
+        `http://${intercom.ip_address}:${intercom.port}/ISAPI/VideoIntercom/PhoneNumberRecords/${recordId}?format=json`,
+        { method: 'DELETE' },
+    );
+    const data = await response.json();
+    return { ok: response.ok && data.statusCode === 1, status: response.status, data };
+}
+async function syncIntercomRoomSipNumbers(deviceId, roomNo, phoneNumbers) {
+    const normalizedPhoneNumbers = [...new Set(
+        phoneNumbers
+            .filter(phoneNumber => phoneNumber !== null && phoneNumber !== undefined)
+            .map(phoneNumber => String(phoneNumber).trim())
+            .filter(phoneNumber => phoneNumber !== '')
+    )];
+    console.log('SYNC SIP:', { deviceId, roomNo: String(roomNo), phoneNumbers: normalizedPhoneNumbers });
+    const searchResult = await searchIntercomPhoneRecords(deviceId);
+    if (!searchResult.ok) {
+        return searchResult;
+    }
+    const phoneRecord = searchResult.records.find(record => String(record.roomNo) === String(roomNo));
+    if (!phoneRecord) {
+        console.log('SYNC SIP OPERATION: CREATE');
+        if (!normalizedPhoneNumbers.length) {
+            return { ok: true, skipped: true };
+        }
+        return createIntercomPhoneRecord(deviceId, roomNo, normalizedPhoneNumbers);
+    }
+    if (!normalizedPhoneNumbers.length) {
+        console.log('SYNC SIP OPERATION: DELETE', phoneRecord.id);
+        return deleteIntercomPhoneRecord(deviceId, phoneRecord.id);
+    }
+    console.log('SYNC SIP OPERATION: UPDATE', phoneRecord.id);
+    return updateIntercomPhoneRecord(deviceId, phoneRecord.id, roomNo, normalizedPhoneNumbers);
+}
 
 module.exports = {
     // Device listing
@@ -503,4 +598,6 @@ module.exports = {
     listCards, assignCard, updateCard, deleteCard,
     // Invitations
     listInvitations, getInvitation, createInvitation, registerVisitorToInvitation, deleteInvitation,
+    // SIP Numbers
+    searchIntercomPhoneRecords, createIntercomPhoneRecord, updateIntercomPhoneRecord, deleteIntercomPhoneRecord, syncIntercomRoomSipNumbers
 };

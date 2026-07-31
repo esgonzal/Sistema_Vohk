@@ -20,12 +20,9 @@ async function findTenantIdByUserId(userId) {
         UNION
         SELECT c.tenant_id
         FROM resident_unit ru
-        JOIN unit u
-            ON u.unit_id = ru.unit_id
-        JOIN building b
-            ON b.building_id = u.building_id
-        JOIN condominium c
-            ON c.condominium_id = b.condominium_id
+        JOIN unit u ON u.unit_id = ru.unit_id
+        JOIN building b ON b.building_id = u.building_id
+        JOIN condominium c ON c.condominium_id = b.condominium_id
         WHERE ru.user_id = $1
         LIMIT 1
         `,
@@ -109,8 +106,7 @@ async function clearFcmToken(userId, fcmToken) {
         `
         UPDATE app_user
         SET fcm_token = NULL
-        WHERE user_id = $1
-          AND fcm_token = $2
+        WHERE user_id = $1 AND fcm_token = $2
         RETURNING user_id
         `,
         [userId, fcmToken]
@@ -152,14 +148,10 @@ async function updateResident(userId, email, legalName, tenantId) {
         AND EXISTS (
             SELECT 1
             FROM resident_unit ru
-            JOIN unit un
-                ON un.unit_id = ru.unit_id
-            JOIN building b
-                ON b.building_id = un.building_id
-            JOIN condominium c
-                ON c.condominium_id = b.condominium_id
-            WHERE ru.user_id = u.user_id
-                AND c.tenant_id = $4
+            JOIN unit un ON un.unit_id = ru.unit_id
+            JOIN building b ON b.building_id = un.building_id
+            JOIN condominium c ON c.condominium_id = b.condominium_id
+            WHERE ru.user_id = u.user_id AND c.tenant_id = $4
         )
         RETURNING *;
         `,
@@ -208,19 +200,12 @@ async function findUsersByUnit(unitId, tenantId) {
             u.active,
             ru.is_primary
         FROM resident_unit ru
-        JOIN app_user u
-            ON u.user_id = ru.user_id
-        JOIN unit un
-            ON un.unit_id = ru.unit_id
-        JOIN building b
-            ON b.building_id = un.building_id
-        JOIN condominium c
-            ON c.condominium_id = b.condominium_id
-        WHERE ru.unit_id = $1
-          AND c.tenant_id = $2
-        ORDER BY
-            ru.is_primary DESC,
-            u.legal_name
+        JOIN app_user u ON u.user_id = ru.user_id
+        JOIN unit un ON un.unit_id = ru.unit_id
+        JOIN building b ON b.building_id = un.building_id
+        JOIN condominium c ON c.condominium_id = b.condominium_id
+        WHERE ru.unit_id = $1 AND c.tenant_id = $2
+        ORDER BY ru.is_primary DESC, u.legal_name
         `,
         [unitId, tenantId]
     );
@@ -296,19 +281,27 @@ async function getUsersByCondominium(condominiumId) {
             u.email,
             u.active,
             u.created_at,
-            c.condominium_id,
-            c.name AS condominium,
-            b.building_id,
-            b.name AS building,
-            un.unit_id,
-            un.name AS unit,
-            un.room_no
+            JSON_AGG(
+                JSON_BUILD_OBJECT(
+                    'buildingId', b.building_id,
+                    'building', b.name,
+                    'unitId', un.unit_id,
+                    'unit', un.name,
+                    'roomNo', un.room_no,
+                    'isPrimary', ru.is_primary
+                )
+                ORDER BY
+                    ru.is_primary DESC,
+                    b.name,
+                    un.room_no
+            ) AS locations
         FROM app_user u
-        LEFT JOIN resident_unit ru ON ru.user_id = u.user_id
-        LEFT JOIN unit un ON un.unit_id = ru.unit_id
-        LEFT JOIN building b ON b.building_id = un.building_id
-        LEFT JOIN condominium c ON c.condominium_id = b.condominium_id
+        INNER JOIN resident_unit ru ON ru.user_id = u.user_id
+        INNER JOIN unit un ON un.unit_id = ru.unit_id
+        INNER JOIN building b ON b.building_id = un.building_id
+        INNER JOIN condominium c ON c.condominium_id = b.condominium_id
         WHERE c.condominium_id = $1
+        GROUP BY u.user_id, u.legal_name, u.rut, u.role, u.email, u.active, u.created_at
         ORDER BY u.created_at DESC
         `,
         [condominiumId]

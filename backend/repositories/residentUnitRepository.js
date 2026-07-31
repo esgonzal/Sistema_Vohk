@@ -1,21 +1,16 @@
 const pool = require('../database/db');
 
-async function findByUserAndUnit(userId, unitId, tenantId) {
+async function findByUserAndUnit(userId, unitId) {
     const result = await pool.query(
         `
         SELECT ru.*
         FROM resident_unit ru
-        JOIN unit u
-            ON u.unit_id = ru.unit_id
-        JOIN building b
-            ON b.building_id = u.building_id
-        JOIN condominium c
-            ON c.condominium_id = b.condominium_id
-        WHERE ru.user_id = $1
-          AND ru.unit_id = $2
-          AND c.tenant_id = $3
+        JOIN unit u ON u.unit_id = ru.unit_id
+        JOIN building b ON b.building_id = u.building_id
+        JOIN condominium c ON c.condominium_id = b.condominium_id
+        WHERE ru.user_id = $1 AND ru.unit_id = $2
         `,
-        [userId, unitId, tenantId]
+        [userId, unitId]
     );
     return result.rows[0];
 }
@@ -84,7 +79,7 @@ async function setPrimary(userId, unitId) {
     );
     return result.rows[0];
 }
-async function unassignResident(userId, unitId, tenantId) {
+async function unassignResident(userId, unitId) {
     const result = await pool.query(
         `
         DELETE FROM resident_unit ru
@@ -96,10 +91,9 @@ async function unassignResident(userId, unitId, tenantId) {
           AND u.unit_id = ru.unit_id
           AND b.building_id = u.building_id
           AND c.condominium_id = b.condominium_id
-          AND c.tenant_id = $3
         RETURNING ru.*
         `,
-        [userId, unitId, tenantId]
+        [userId, unitId]
     );
     return result.rows[0];
 }
@@ -137,5 +131,22 @@ async function updateResidentUnit(userId, unitId, isPrimary, tenantId) {
     );
     return result.rows[0];
 }
+async function findSipIdentitiesByUnit(unitId) {
+    const result = await pool.query(
+        `
+        SELECT u.sip_identity
+        FROM resident_unit ru
+        INNER JOIN app_user u ON u.user_id = ru.user_id
+        WHERE ru.unit_id = $1 AND u.sip_identity IS NOT NULL
+        ORDER BY ru.is_primary DESC, u.legal_name
+        `,
+        [unitId]
+    );
+    return result.rows.map(row => row.sip_identity);
+}
 
-module.exports = { findByUserAndUnit, findUnitsByUser, findUsersByUnit, assignResident, setPrimary, unassignResident, unassignAllFromUnit, unassignAllFromUser, updateResidentUnit };
+module.exports = {
+    findByUserAndUnit, findUnitsByUser, findUsersByUnit,
+    assignResident, setPrimary, unassignResident, unassignAllFromUnit, unassignAllFromUser, updateResidentUnit,
+    findSipIdentitiesByUnit
+};

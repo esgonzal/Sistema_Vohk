@@ -31,7 +31,6 @@ async function getCondominiumTree(adminUserId) {
         delete condominium._zoneMap;
         condominiums.push(condominium);
     }
-    //console.log(condominiums)
     return condominiums;
 }
 async function createCondominium(userId, name, address, city) {
@@ -39,20 +38,24 @@ async function createCondominium(userId, name, address, city) {
     if (!condominium) {
         throw new Error('Failed to create condominium.');
     }
-    const zone = await zoneRepository.createZone(condominium.condominium_id, 'Áreas Comunes');
+    const zone = await zoneRepository.createZone(condominium.condominium_id, userId, 'Áreas Comunes');
     if (!zone) {
-        await condominiumRepository.deleteCondominium(condominium.condominium_id);
+        try {
+            await condominiumRepository.deleteCondominium(condominium.condominium_id, userId);
+        } catch (rollbackError) {
+            console.error('Failed to roll back condominium creation:', rollbackError);
+        }
         throw new Error('Failed to create default zone.');
     }
     return condominium;
 }
 async function updateCondominium(condominiumId, userId, name, address, city) {
-    return condominiumRepository.updateCondominium(condominiumId, name, address, city);
+    return condominiumRepository.updateCondominium(condominiumId, userId, name, address, city);
 }
 async function deleteCondominium(condominiumId, userId) {
     const buildingCount = await condominiumRepository.countBuildingsByCondominium(condominiumId, userId);
     if (buildingCount > 0) {
-        const error = new Error(`No se puede eliminar el condominio. Hay ${buildingCount} torre(s) fijada(s).`)
+        const error = new Error(`No se puede eliminar el condominio porque contiene ${buildingCount} torre(s).`)
         error.status = 409;
         throw error;
     }
@@ -61,38 +64,37 @@ async function deleteCondominium(condominiumId, userId) {
 async function createBuilding(condominiumId, userId, name, floorCount) {
     return buildingRepository.createBuilding(condominiumId, userId, name, floorCount);
 }
-async function updateBuilding(buildingId, name, floorCount) {
-    return buildingRepository.updateBuilding(buildingId, name, floorCount);
+async function updateBuilding(buildingId, userId, name, floorCount) {
+    return buildingRepository.updateBuilding(buildingId, userId, name, floorCount);
 }
-async function deleteBuilding(buildingId) {
-    const unitCount = await buildingRepository.countUnitsByBuilding(buildingId);
+async function deleteBuilding(buildingId, userId) {
+    const unitCount = await buildingRepository.countUnitsByBuilding(buildingId, userId);
     if (unitCount > 0) {
-        const error = new Error(
-            `No se puede eliminar la torre. Hay ${unitCount} unidad(es) fijadas.`
-        );
+        const error = new Error(`No se puede eliminar la torre porque contiene ${unitCount} unidad(es).`);
         error.status = 409;
         throw error;
     }
-    return buildingRepository.deleteBuilding(buildingId);
+    return buildingRepository.deleteBuilding(buildingId, userId);
 }
-async function createZone(condominiumId, name) {
-    return zoneRepository.createZone(condominiumId, name);
+async function createZone(condominiumId, userId, name) {
+    return zoneRepository.createZone(condominiumId, userId, name);
 }
-async function updateZone(zoneId, name) {
-    return zoneRepository.updateZone(zoneId, name);
+async function updateZone(zoneId, userId, name) {
+    return zoneRepository.updateZone(zoneId, userId, name);
 }
-async function deleteZone(zoneId) {
-    const deviceCount = await zoneRepository.countDevicesByZone(zoneId);
+async function deleteZone(zoneId, userId) {
+    const deviceCount = await zoneRepository.countDevicesByZone(zoneId, userId);
     if (deviceCount > 0) {
-        const error = new Error(`No se puede eliminar la zona. Hay ${deviceCount} dispositivo(s) fijado(s).`)
+        const error = new Error(`No se puede eliminar la zona porque tiene ${deviceCount} dispositivo(s) asociado(s).`)
         error.status = 409;
         throw error;
     }
-    return zoneRepository.deleteZone(zoneId);
+    return zoneRepository.deleteZone(zoneId, userId);
 }
 
 module.exports = {
-    getCondominiumTree, createCondominium, updateCondominium, deleteCondominium,
+    getCondominiumTree,
+    createCondominium, updateCondominium, deleteCondominium,
     createBuilding, updateBuilding, deleteBuilding,
     createZone, updateZone, deleteZone,
 }

@@ -26,15 +26,20 @@ async function findIntercomUsersByIntercomId(intercomId) {
     return result.rows;
 }
 // Find all intercom_users of an user_id
-async function findIntercomUsersByUserId(userId) {
+async function findIntercomUsersByUserAndCondominium(userId, condominiumId) {
     const result = await pool.query(
         `
-        SELECT *
-        FROM intercom_user
-        WHERE user_id = $1
-        ORDER BY created_at
+        SELECT
+            iu.*,
+            d.device_id
+        FROM intercom_user iu
+        INNER JOIN intercom i ON i.intercom_id = iu.intercom_id
+        INNER JOIN device d ON d.device_id = i.device_id
+        INNER JOIN zone z ON z.zone_id = d.zone_id
+        WHERE iu.user_id = $1 AND z.condominium_id = $2
+        ORDER BY iu.created_at
         `,
-        [userId]
+        [userId, condominiumId]
     );
     return result.rows;
 }
@@ -177,7 +182,7 @@ async function updateDynamicCode(intercomUserId, dynamicCode) {
 
 module.exports = {
     // Find rows
-    findIntercomUserById, findIntercomUsersByIntercomId, findIntercomUsersByUserId, findIntercomUserByEmployeeNo, findAccessMethods,
+    findIntercomUserById, findIntercomUsersByIntercomId, findIntercomUsersByUserAndCondominium, findIntercomUserByEmployeeNo, findAccessMethods,
     // Create
     createIntercomUser,
     // Update
