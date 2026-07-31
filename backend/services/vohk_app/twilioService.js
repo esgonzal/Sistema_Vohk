@@ -17,9 +17,6 @@ async function handleIncomingCall(from, to) {
             userRepository.findByIdentity(apartmentIdentity),
             intercomRepository.findIntercomBySipAddress(from),
         ]);
-        console.log("apartmentIdentity: ", apartmentIdentity);
-        console.log("resident: ", resident);
-        console.log("intercom: ", intercom)
         if (resident?.fcm_token) {
             try {
                 await admin.messaging().send({
@@ -39,6 +36,7 @@ async function handleIncomingCall(from, to) {
         const dial = twiml.dial({ answerOnBridge: true });
         const client = dial.client();
         client.identity(apartmentIdentity);
+        client.parameter({ name: 'call_type', value: 'intercom' });
         if (intercom?.intercom_id) {
             client.parameter({ name: 'intercom_id', value: intercom.intercom_id, });
         }
@@ -62,9 +60,14 @@ async function handleOutgoingCall(from, to) {
         error.status = 404;
         throw error;
     }
+    const callerIdentity = from.replace('client:', '');
+    const caller = await userRepository.findByIdentity(callerIdentity);
     const dial = twiml.dial({ answerOnBridge: true });
     const client = dial.client();
     client.identity(to);
+    client.parameter({ name: 'call_type', value: 'admin' });
+    client.parameter({ name: 'caller_identity', value: callerIdentity });
+    client.parameter({ name: 'caller_name', value: caller?.legal_name || 'Administración' });
     return twiml.toString();
 }
 
