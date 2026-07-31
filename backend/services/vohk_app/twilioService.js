@@ -51,5 +51,21 @@ async function handleIncomingCall(from, to) {
     }
     return twiml.toString();
 }
+async function handleOutgoingCall(from, to) {
+    const twiml = new twilio.twiml.VoiceResponse();
+    if (!from.startsWith('client:') || !to) {
+        throw new Error('Invalid client destination');
+    }
+    const resident = await userRepository.findByIdentity(to);
+    if (!resident) {
+        const error = new Error('Resident not found');
+        error.status = 404;
+        throw error;
+    }
+    const dial = twiml.dial({ answerOnBridge: true });
+    const client = dial.client();
+    client.identity(to);
+    return twiml.toString();
+}
 
-module.exports = { handleIncomingCall };
+module.exports = { handleIncomingCall, handleOutgoingCall };

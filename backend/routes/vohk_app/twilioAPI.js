@@ -23,5 +23,20 @@ router.post('/incoming', async (req, res) => {
         res.status(500).send('Internal server error');
     }
 });
+router.post('/outgoing', async (req, res) => {
+    try {
+        console.log('Outgoing call:', req.body);
+        const from = req.body.From || '';
+        const to = req.body.To || '';
+        const twiml = await twilioService.handleOutgoingCall(from, to);
+        return res.type('text/xml').status(200).send(twiml);
+    } catch (error) {
+        console.error('Outgoing call error:', error.message);
+        if (error.message === 'Invalid client destination') {
+            return res.status(400).send(error.message);
+        }
+        return res.status(500).send('Internal server error');
+    }
+});
 
 module.exports = router;
