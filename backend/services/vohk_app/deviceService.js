@@ -246,29 +246,29 @@ async function updateFace(deviceId, employeeNo, file, name) {
     return response.json();
 }
 async function updateResidentFace(userId, file) {
-    const intercomUsers = await intercomUserRepository.findIntercomUsersByUserId(userId);
+    const intercomUsers = await intercomUserRepository.findIntercomUsersWithDeviceByUserId(userId);
     if (!intercomUsers.length) {
-        throw new Error('User has no intercom assignments');
+        const error = new Error('User has no intercom assignments');
+        error.status = 404;
+        throw error;
     }
     const results = [];
-    for (const iu of intercomUsers) {
+    for (const intercomUser of intercomUsers) {
         try {
-            const intercom = await intercomRepository.findIntercomById(iu.intercom_id);
-            let response = await updateFace(intercom.device_id, iu.employee_no, file);
-            // Face doesn't exist on this intercom, try enrolling it.
+            let response = await updateFace(intercomUser.device_id, intercomUser.employee_no, file);
             if (response.statusCode !== 1) {
-                response = await enrollFace(intercom.device_id, iu.employee_no, file);
+                response = await enrollFace(intercomUser.device_id, intercomUser.employee_no, file);
             }
             const success = response.statusCode === 1;
             if (success) {
-                await intercomUserRepository.updateFaceStatus(iu.intercom_user_id, true);
+                await intercomUserRepository.updateFaceStatus(intercomUser.intercom_user_id, true);
             }
-            results.push({ intercomId: iu.intercom_id, success, response, });
-        } catch (err) {
-            results.push({ intercomId: iu.intercom_id, success: false, error: err.message, });
+            results.push({ intercomId: intercomUser.intercom_id, success, response });
+        } catch (error) {
+            results.push({ intercomId: intercomUser.intercom_id, success: false, error: error.message });
         }
     }
-    return { success: results.some(r => r.success), results, };
+    return { success: results.some(result => result.success), results };
 }
 async function deleteFace(deviceId, employeeNo) {
     const { intercom, client } = await getIntercomClient(deviceId);

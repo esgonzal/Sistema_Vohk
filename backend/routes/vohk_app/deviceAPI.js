@@ -7,6 +7,14 @@ router.use(authenticate);
 const deviceService = require('../../services/vohk_app/deviceService');
 const propertyService = require('../../services/vohk_app/propertyService');
 
+
+function sendServerError(res, error, message) {
+    console.error(error);
+    if (error.status && error.status >= 400 && error.status < 500) {
+        return res.status(error.status).json({ error: error.message });
+    }
+    return res.status(500).json({ error: message });
+}
 // ── Device listing ────────────────────────────────────────────────────────────
 router.get('/intercoms', async (req, res) => {
     try {
@@ -186,15 +194,14 @@ router.put('/:deviceId/users/:employeeNo/face', upload.single('photo'), async (r
 });
 router.put('/resident/face', upload.single('photo'), async (req, res) => {
     try {
+        const { userId } = req.user;
         if (!req.file) {
             return res.status(400).json({ error: 'No image uploaded.' });
         }
-        const { userId } = req.user;
         const result = await deviceService.updateResidentFace(userId, req.file);
-        res.json(result);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: err.message });
+        return res.status(200).json(result);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not update resident face');
     }
 });
 router.delete('/:deviceId/users/:employeeNo/face', async (req, res) => {

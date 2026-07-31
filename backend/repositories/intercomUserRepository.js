@@ -179,6 +179,21 @@ async function updateDynamicCode(intercomUserId, dynamicCode) {
     );
     return result.rows[0];
 }
+async function findIntercomUsersWithDeviceByUserId(userId) {
+    const result = await pool.query(
+        `
+        SELECT
+            iu.*,
+            i.device_id
+        FROM intercom_user iu
+        INNER JOIN intercom i ON i.intercom_id = iu.intercom_id
+        WHERE iu.user_id = $1
+        ORDER BY iu.created_at
+        `,
+        [userId]
+    );
+    return result.rows;
+}
 
 module.exports = {
     // Find rows
@@ -188,5 +203,6 @@ module.exports = {
     // Update
     updateIntercomUser,
     // Delete
-    deleteIntercomUser, deleteIntercomUsersByUserId, deleteIntercomUsersByIntercomId, deleteIntercomUserByUserAndIntercom, updateFaceStatus, updateDynamicCode
+    deleteIntercomUser, deleteIntercomUsersByUserId, deleteIntercomUsersByIntercomId, deleteIntercomUserByUserAndIntercom, updateFaceStatus, updateDynamicCode,
+    findIntercomUsersWithDeviceByUserId
 };
