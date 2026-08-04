@@ -14,6 +14,7 @@ router.post('/incoming', async (req, res) => {
         const from = req.body.From || '';
         const to = req.body.To || '';
         const twiml = await twilioService.handleIncomingCall(from, to);
+        console.log('Incoming TwiML:', twiml);
         res.type('text/xml').send(twiml);
     } catch (err) {
         console.error('❌ Incoming call error:', err.message);
