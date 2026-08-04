@@ -5,7 +5,6 @@ const unitRepository = require('../../repositories/unitRepository');
 const deviceRepository = require('../../repositories/deviceRepository');
 const intercomRepository = require('../../repositories/intercomRepository');
 const deviceService = require('./deviceService');
-
 const FRONTEND_URL = 'https://app.vohk.cl';
 const INVITATION_TYPES = ['visit', 'delivery', 'service'];
 
@@ -135,7 +134,7 @@ async function createInvitation({ userId, role, unitId, validFrom, validUntil, t
     const unit = await getAccessibleUnit(userId, role, unitId);
     const validDeviceIds = await validateIntercoms(unit, deviceIds);
     const invitation = await invitationRepository.createWithDevices({ unitId, createdByUserId: userId, validFrom: begin, validUntil: end, type, deviceIds: validDeviceIds });
-    return { invitation, url: `${FRONTEND_URL}/admin/invite/${invitation.invitation_id}` };
+    return { invitation, url: `${FRONTEND_URL}/invite/${invitation.invitation_id}` };
 }
 async function getPublicInvitation(invitationId) {
     const invitation = await invitationRepository.findById(invitationId);
