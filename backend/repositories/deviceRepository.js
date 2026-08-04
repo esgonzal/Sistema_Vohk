@@ -31,12 +31,11 @@ async function findIntercomBySipAddress(sipAddress) {
             d.active,
             i.intercom_id,
             i.sip_address,
-            i.username,
-            i.password_encrypted,
+            d.username,
+            d.password_encrypted,
             i.door_id
         FROM device d
-        JOIN intercom i
-            ON i.device_id = d.device_id
+        JOIN intercom i ON i.device_id = d.device_id
         WHERE split_part(i.sip_address, ';', 1) = $1
         `,
         [sipAddress]
@@ -71,22 +70,6 @@ async function findDeviceById(deviceId) {
         WHERE device_id = $1
         `,
         [deviceId]
-    );
-    return result.rows[0];
-}
-async function findDeviceByIdAndTenant(deviceId, tenantId) {
-    const result = await pool.query(
-        `
-        SELECT d.*
-        FROM device d
-        JOIN zone z
-            ON z.zone_id = d.zone_id
-        JOIN condominium c
-            ON c.condominium_id = z.condominium_id
-        WHERE d.device_id = $1
-          AND c.tenant_id = $2
-        `,
-        [deviceId, tenantId]
     );
     return result.rows[0];
 }
@@ -183,12 +166,9 @@ async function findDevicesByCondominium(condominiumId, zoneId = null) {
                 i.sip_address,
                 i.door_id
             FROM device d
-            JOIN zone z
-                ON z.zone_id = d.zone_id
-            LEFT JOIN intercom i
-                ON i.device_id = d.device_id
-            WHERE z.condominium_id = $1
-              AND d.zone_id = $2
+            JOIN zone z ON z.zone_id = d.zone_id
+            LEFT JOIN intercom i ON i.device_id = d.device_id
+            WHERE z.condominium_id = $1 AND d.zone_id = $2
             ORDER BY d.type, d.name
             `,
             [condominiumId, zoneId]
@@ -204,10 +184,8 @@ async function findDevicesByCondominium(condominiumId, zoneId = null) {
             i.sip_address,
             i.door_id
         FROM device d
-        JOIN zone z
-            ON z.zone_id = d.zone_id
-        LEFT JOIN intercom i
-            ON i.device_id = d.device_id
+        JOIN zone z ON z.zone_id = d.zone_id
+        LEFT JOIN intercom i ON i.device_id = d.device_id
         WHERE z.condominium_id = $1
         ORDER BY z.name, d.type, d.name
         `,

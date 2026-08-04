@@ -47,8 +47,8 @@ async function findIntercoms(invitationId) {
             d.stream_url,
             i.intercom_id,
             i.sip_address,
-            i.username,
-            i.password_encrypted,
+            d.username,
+            d.password_encrypted,
             i.door_id
         FROM invitation_device id
         JOIN device d ON d.device_id = id.device_id

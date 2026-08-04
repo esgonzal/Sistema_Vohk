@@ -17,8 +17,8 @@ async function findIntercomByDeviceId(deviceId) {
             d.port,
             i.intercom_id,
             i.sip_address,
-            i.username,
-            i.password_encrypted,
+            d.username,
+            d.password_encrypted,
             i.door_id
         FROM intercom i
         JOIN device d ON d.device_id = i.device_id
@@ -54,31 +54,29 @@ async function findIntercomBySipAddress(sipAddress) {
     );
     return result.rows[0];
 }
-async function createIntercom(deviceId, sipAddress, username, passwordEncrypted, doorId) {
+async function createIntercom(deviceId, sipAddress, doorId) {
     const result = await pool.query(
         `
-        INSERT INTO intercom (device_id, sip_address, username, password_encrypted, door_id)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO intercom (device_id, sip_address, door_id)
+        VALUES ($1, $2, $3)
         RETURNING *
         `,
-        [deviceId, sipAddress, username, passwordEncrypted, doorId]
+        [deviceId, sipAddress, doorId]
     );
     return result.rows[0];
 }
 // Update intercom-specific fields
-async function updateIntercom(deviceId, sipAddress, username, passwordEncrypted, doorId) {
+async function updateIntercom(deviceId, sipAddress, doorId) {
     const result = await pool.query(
         `
         UPDATE intercom
         SET
             sip_address = $2,
-            username = $3,
-            password_encrypted = $4,
-            door_id = $5
+            door_id = $3
         WHERE device_id = $1
         RETURNING *
         `,
-        [deviceId, sipAddress, username, passwordEncrypted, doorId]
+        [deviceId, sipAddress, doorId]
     );
     return result.rows[0];
 }
