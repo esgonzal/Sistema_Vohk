@@ -220,7 +220,7 @@ async function updateLastSeen(deviceId) {
 
 
 module.exports = {
-    findIntercoms, findCameras, findIntercomBySipAddress, findIntercomByDeviceId, findDeviceById, findDeviceByIdAndTenant,
+    findIntercoms, findCameras, findIntercomBySipAddress, findIntercomByDeviceId, findDeviceById,
     createDevice, updateDevice, deleteDevice,
     moveDeviceToZone, findDevicesByZone, findDevicesByCondominium, findActiveDevices, updateLastSeen
 };
