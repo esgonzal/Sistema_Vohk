@@ -30,8 +30,6 @@ async function handleIncomingCall(from, to) {
             } catch (err) {
                 console.error('Error sending FCM:', err);
             }
-        } else {
-            console.log('Resident or FCM token not found');
         }
         const dial = twiml.dial({ answerOnBridge: true });
         //const client = dial.client();

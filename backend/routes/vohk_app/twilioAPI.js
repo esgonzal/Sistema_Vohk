@@ -10,11 +10,10 @@ if (!admin.apps.length) {
 
 router.post('/incoming', async (req, res) => {
     try {
-        console.log('Incoming call:', req.body);
+        console.log(`Incoming Twilio call ${req.body.CallSid}: ${req.body.From} -> ${req.body.To}`);
         const from = req.body.From || '';
         const to = req.body.To || '';
         const twiml = await twilioService.handleIncomingCall(from, to);
-        console.log('Incoming TwiML:', twiml);
         res.type('text/xml').send(twiml);
     } catch (err) {
         console.error('❌ Incoming call error:', err.message);
@@ -26,13 +25,13 @@ router.post('/incoming', async (req, res) => {
 });
 router.post('/outgoing', async (req, res) => {
     try {
-        console.log('Outgoing call:', req.body);
+        console.log(`Outgoing Twilio call: ${req.body.From} -> ${req.body.To}`);
         const from = req.body.From || '';
         const to = req.body.To || '';
         const twiml = await twilioService.handleOutgoingCall(from, to);
         return res.type('text/xml').status(200).send(twiml);
     } catch (error) {
-        console.error('Outgoing call error:', error.message);
+        console.error('❌ Outgoing call error:', error.message);
         if (error.message === 'Invalid client destination') {
             return res.status(400).send(error.message);
         }
@@ -41,16 +40,17 @@ router.post('/outgoing', async (req, res) => {
 });
 
 router.post('/client-status', (req, res) => {
-    console.log('Twilio Client status:', {
-        callSid: req.body.CallSid,
-        parentCallSid: req.body.ParentCallSid,
-        callStatus: req.body.CallStatus,
-        direction: req.body.Direction,
-        from: req.body.From,
-        to: req.body.To,
-        timestamp: req.body.Timestamp,
-        errorCode: req.body.ErrorCode,
-    });
+    const status = req.body.CallStatus;
+    if (['failed', 'busy', 'no-answer'].includes(status)) {
+        console.warn('Twilio Client call unsuccessful:', {
+            callSid: req.body.CallSid,
+            parentCallSid: req.body.ParentCallSid,
+            status,
+            from: req.body.From,
+            to: req.body.To,
+            errorCode: req.body.ErrorCode,
+        });
+    }
     res.sendStatus(204);
 });
 
