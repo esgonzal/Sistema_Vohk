@@ -15,6 +15,51 @@ function sendServerError(res, error, message) {
     return res.status(500).json({ error: message });
 }
 
+router.put('/username', async (req, res) => {
+    try {
+        const { userId } = req.user;
+        const { username } = req.body;
+        if (isBlank(username)) {
+            return res.status(400).json({ error: 'Username is required' });
+        }
+        const updated = await userService.updateUsername(userId, username.trim());
+        if (!updated) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        return res.status(200).json({ username: updated.username });
+    } catch (error) {
+        return sendServerError(res, error, 'Could not update username');
+    }
+});
+router.put('/email', async (req, res) => {
+    try {
+        const { userId } = req.user;
+        const { email } = req.body;
+        if (isBlank(email)) {
+            return res.status(400).json({ error: 'Email is required' });
+        }
+        const updated = await userService.updateEmail(userId, email.trim());
+        if (!updated) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        return res.status(200).json(updated);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not update email');
+    }
+});
+router.put('/password', async (req, res) => {
+    try {
+        const { userId } = req.user;
+        const { currentPassword, newPassword } = req.body;
+        if (isBlank(currentPassword) || isBlank(newPassword)) {
+            return res.status(400).json({ error: 'Current and new password are required' });
+        }
+        await userService.updatePassword(userId, currentPassword, newPassword);
+        return res.status(200).json({ success: true, message: 'Password updated successfully' });
+    } catch (error) {
+        return sendServerError(res, error, 'Could not update password');
+    }
+});
 router.get('/:condominiumId', async (req, res) => {
     try {
         const { userId, role } = req.user;
@@ -90,50 +135,6 @@ router.delete('/residents/:residentId/units/:unitId', async (req, res) => {
         return sendServerError(res, error, 'Could not delete resident');
     }
 });
-router.put('/username', async (req, res) => {
-    try {
-        const { userId } = req.user;
-        const { username } = req.body;
-        if (isBlank(username)) {
-            return res.status(400).json({ error: 'Username is required' });
-        }
-        const updated = await userService.updateUsername(userId, username.trim());
-        if (!updated) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-        return res.status(200).json({ username: updated.username });
-    } catch (error) {
-        return sendServerError(res, error, 'Could not update username');
-    }
-});
-router.put('/email', async (req, res) => {
-    try {
-        const { userId } = req.user;
-        const { email } = req.body;
-        if (isBlank(email)) {
-            return res.status(400).json({ error: 'Email is required' });
-        }
-        const updated = await userService.updateEmail(userId, email.trim());
-        if (!updated) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-        return res.status(200).json(updated);
-    } catch (error) {
-        return sendServerError(res, error, 'Could not update email');
-    }
-});
-router.put('/password', async (req, res) => {
-    try {
-        const { userId } = req.user;
-        const { currentPassword, newPassword } = req.body;
-        if (isBlank(currentPassword) || isBlank(newPassword)) {
-            return res.status(400).json({ error: 'Current and new password are required' });
-        }
-        await userService.updatePassword(userId, currentPassword, newPassword);
-        return res.status(200).json({ success: true, message: 'Password updated successfully' });
-    } catch (error) {
-        return sendServerError(res, error, 'Could not update password');
-    }
-});
+
 
 module.exports = router;
