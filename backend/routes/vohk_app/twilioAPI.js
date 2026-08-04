@@ -40,4 +40,18 @@ router.post('/outgoing', async (req, res) => {
     }
 });
 
+router.post('/client-status', (req, res) => {
+    console.log('Twilio Client status:', {
+        callSid: req.body.CallSid,
+        parentCallSid: req.body.ParentCallSid,
+        callStatus: req.body.CallStatus,
+        direction: req.body.Direction,
+        from: req.body.From,
+        to: req.body.To,
+        timestamp: req.body.Timestamp,
+        errorCode: req.body.ErrorCode,
+    });
+    res.sendStatus(204);
+});
+
 module.exports = router;

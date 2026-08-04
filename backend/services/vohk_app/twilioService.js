@@ -34,7 +34,8 @@ async function handleIncomingCall(from, to) {
             console.log('Resident or FCM token not found');
         }
         const dial = twiml.dial({ answerOnBridge: true });
-        const client = dial.client();
+        //const client = dial.client();
+        const client = dial.client({ statusCallback: 'https://api.vohk.cl/api/twilio/client-status', statusCallbackMethod: 'POST', statusCallbackEvent: 'initiated ringing answered completed' });
         client.identity(apartmentIdentity);
         client.parameter({ name: 'call_type', value: 'intercom' });
         if (intercom?.intercom_id) {
