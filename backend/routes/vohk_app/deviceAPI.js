@@ -312,58 +312,6 @@ router.delete('/:deviceId/cards/:cardNo', async (req, res) => {
         res.status(500).json({ ok: false, error: error.message });
     }
 });
-// ── Invitations ───────────────────────────────────────────────────────────────
-router.get('/invitations', async (req, res) => {
-    try {
-        const invitations = await deviceService.listInvitations();
-        console.log("En all invitations", invitations);
-        res.json(invitations);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-router.get('/invitations/:id', async (req, res) => {
-    try {
-        const invitation = await deviceService.getInvitation(req.params.id);
-        console.log("En una invitation", invitation);
-        if (!invitation) { return res.status(404).json({ ok: false, error: 'Not found' }); }
-        res.json(invitation);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-router.post('/invitations', async (req, res) => {
-    try {
-        console.log("En nueva invitacion", req.body);
-        const result = await deviceService.createInvitation(req.body);
-        res.json({ ok: true, ...result });
-    } catch (err) {
-        console.log(err);
-        res.status(500).json({ ok: false, error: err.message });
-    }
-});
-router.post('/invitations/:id/register', upload.single('photo'), async (req, res) => {
-    try {
-        console.log("En registrar invitation", req.params.id);
-        const result = await deviceService.registerVisitorToInvitation(req.params.id, req.body, req.file);
-        if (result.notFound) { return res.status(404).json({ ok: false, error: 'Invitation not found' }); }
-        if (result.alreadyUsed) { return res.status(400).json({ ok: false, error: 'Invitation already used' }); }
-        if (result.noIntercom) { return res.status(400).json({ ok: false, error: 'No intercom linked to this invitation' }); }
-        return res.json({ ok: true, dynamicCode: result.dynamicCode });
-    } catch (error) {
-        console.error('[INVITATION REGISTER ERROR]', error);
-        return res.status(500).json({ ok: false, error: error.message });
-    }
-});
-router.delete('/invitations/:id', async (req, res) => {
-    try {
-        const result = await deviceService.deleteInvitation(req.params.id);
-        if (result.notFound) { return res.status(404).json({ ok: false, error: 'Not found' }); }
-        res.json({ ok: true });
-    } catch (error) {
-        res.status(500).json({ ok: false, error: error.message });
-    }
-});
 
 
 router.post('/test-sip', async (req, res) => {

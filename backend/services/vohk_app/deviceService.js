@@ -405,86 +405,6 @@ async function deleteCard(deviceId, cardNo) {
     );
     return response.json();
 }
-// ── Invitations ───────────────────────────────────────────────────────────────
-async function listInvitations() {
-    return invitationRepository.findAll();
-}
-async function getInvitation(id) {
-    return invitationRepository.findById(id);
-}
-async function createInvitation({ unitId, createdByUserId, validFrom, validUntil, type, deviceIds }) {
-    const invitation = await invitationRepository.create({ unitId, createdByUserId, validFrom, validUntil, type });
-    if (Array.isArray(deviceIds) && deviceIds.length > 0) {
-        await Promise.all(
-            deviceIds.map(deviceId => invitationRepository.assignDevice(invitation.invitation_id, deviceId)),
-        );
-    }
-    return { invitation, url: `${FRONTEND_URL}/invite/${invitation.invitation_id}` };
-}
-async function registerVisitorToInvitation(invitationId, body, file) {
-    const invitation = await invitationRepository.findById(invitationId);
-    if (!invitation) { return { notFound: true }; }
-    if (invitation.status !== 'pending') { return { alreadyUsed: true }; }
-    const intercomDevice = await invitationRepository.findFirstIntercom(invitation.invitation_id);
-    if (!intercomDevice) { return { noIntercom: true }; }
-    const { intercom, client } = await getIntercomClient(intercomDevice.device_id);
-    const dynamicCode = String(Math.floor(100000 + Math.random() * 900000));
-    const employeeNo = String(Date.now());
-    const payload = JSON.stringify({
-        UserInfo: {
-            employeeNo,
-            name: body.name,
-            userType: 'visitor',
-            Valid: {
-                enable: true,
-                beginTime: formatHikvisionTime(invitation.valid_from),
-                endTime: formatHikvisionTime(invitation.valid_until),
-                timeType: 'local',
-            },
-            dynamicCode,
-            doorRight: '1',
-            userVerifyMode: 'cardOrPw',
-        },
-    });
-    console.log("PAYLOAD: ", payload);
-    const userResponse = await client.fetch(
-        `http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/UserInfo/Record?format=json`,
-        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload },
-    );
-    console.log("RESPONSE: ", userResponse);
-    const userData = await userResponse.json();
-    if (userData.statusCode !== 1) { throw new Error(userData.errorMsg || 'Intercom error'); }
-    if (file) {
-        await enrollFace(intercomDevice.device_id, employeeNo, file, body.name);
-    }
-    const visitor = await visitorRepository.createVisitor(body.name, body.email, body.phone, body.vehiclePlate);
-    await invitationRepository.registerVisitor(invitation.invitation_id, visitor.visitor_id, employeeNo, dynamicCode);
-    return { dynamicCode };
-}
-async function deleteInvitation(id) {
-    const invitation = await invitationRepository.findById(id);
-    if (!invitation) { return { notFound: true }; }
-    if (invitation.hikvision_employee_no) {
-        try {
-            const intercomDevice = await invitationRepository.findFirstIntercom(invitation.invitation_id);
-            if (intercomDevice) {
-                const { intercom, client } = await getIntercomClient(intercomDevice.device_id);
-                const payload = JSON.stringify({ UserInfoDelCond: { EmployeeNoList: [{ employeeNo: invitation.hikvision_employee_no }] } });
-                await client.fetch(
-                    `http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/UserInfo/Delete?format=json`,
-                    { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: payload },
-                );
-            }
-        } catch (e) {
-            console.error('[DELETE VISITOR FROM INTERCOM]', e.message);
-        }
-    }
-    await invitationRepository.deleteInvitation(invitation.invitation_id);
-    if (invitation.visitor_id) {
-        await visitorRepository.deleteVisitor(invitation.visitor_id);
-    }
-    return { ok: true };
-}
 // ── SIP Numbers ───────────────────────────────────────────────────────────────
 async function searchIntercomPhoneRecords(deviceId) {
     const { intercom, client } = await getIntercomClient(deviceId);
@@ -596,8 +516,6 @@ module.exports = {
     listIntercomPins, getIntercomPin, setIntercomPin, updateIntercomPin, deleteIntercomPin, updateResidentDynamicCode,
     // Cards
     listCards, assignCard, updateCard, deleteCard,
-    // Invitations
-    listInvitations, getInvitation, createInvitation, registerVisitorToInvitation, deleteInvitation,
     // SIP Numbers
     searchIntercomPhoneRecords, createIntercomPhoneRecord, updateIntercomPhoneRecord, deleteIntercomPhoneRecord, syncIntercomRoomSipNumbers
 };
