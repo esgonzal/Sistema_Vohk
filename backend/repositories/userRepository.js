@@ -242,7 +242,7 @@ async function updateUsername(userId, username) {
         UPDATE app_user
         SET username = $2
         WHERE user_id = $1
-        RETURNING *;
+        RETURNING user_id, username
         `,
         [userId, username]
     );

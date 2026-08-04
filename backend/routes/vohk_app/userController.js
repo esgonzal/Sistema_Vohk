@@ -101,7 +101,7 @@ router.put('/username', async (req, res) => {
         if (!updated) {
             return res.status(404).json({ error: 'User not found' });
         }
-        return res.status(200).json(updated);
+        return res.status(200).json({ username: updated.username });
     } catch (error) {
         return sendServerError(res, error, 'Could not update username');
     }
