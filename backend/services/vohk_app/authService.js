@@ -77,7 +77,7 @@ function generateTwilioToken(identity) {
         throw new Error('Twilio identity is required');
     }
     const token = new AccessToken(TWILIO_ACCOUNT_SID, TWILIO_API_KEY, TWILIO_API_SECRET, { identity, ttl: 3600 });
-    const voiceGrant = new VoiceGrant({outgoingApplicationSid: TWILIO_TWIML_APP_SID,pushCredentialSid: TWILIO_PUSH_CRED_SID,});
+    const voiceGrant = new VoiceGrant({ outgoingApplicationSid: TWILIO_TWIML_APP_SID, incomingAllow: true, pushCredentialSid: TWILIO_PUSH_CRED_SID, });
     token.addGrant(voiceGrant);
     return token.toJwt();
 }
