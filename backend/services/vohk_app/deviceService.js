@@ -213,6 +213,31 @@ async function getAccessMethods(userId) {
     return { hasFace, hasDynamicCode: dynamicCodeIsSynchronized, hasCard: false, dynamicCode: dynamicCodeIsSynchronized ? firstCode : null, faceUpdatedAt };
 }
 // ── Face enrollment ───────────────────────────────────────────────────────────
+async function enrollFace(deviceId, employeeNo, file, name) {
+    const { intercom, client } = await getIntercomClient(deviceId);
+    const processedBuffer = await processImageForIntercom(file);
+    const metadata = {
+        faceLibType: 'blackFD',
+        FDID: '1',
+        FPID: employeeNo,
+        name: name || `User ${employeeNo}`,
+    };
+    const { body, boundary } = buildFaceMultipart(metadata, processedBuffer, 'image/jpeg');
+    const response = await client.fetch(
+        `http://${intercom.ip_address}:${intercom.port}/ISAPI/Intelligent/FDLib/FaceDataRecord?format=json`,
+        { method: 'POST', headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}`, 'Content-Length': body.length }, body },
+    );
+    return response.json();
+}
+async function deleteFace(deviceId, employeeNo) {
+    const { intercom, client } = await getIntercomClient(deviceId);
+    const payload = JSON.stringify({ FPID: [{ value: employeeNo }] });
+    const response = await client.fetch(
+        `http://${intercom.ip_address}:${intercom.port}/ISAPI/Intelligent/FDLib/FDSearch/Delete?format=json&FDID=1&faceLibType=blackFD`,
+        { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) }, body: payload },
+    );
+    return response.json();
+}
 async function updateResidentFace(userId, file) {
     await processImageForIntercom(file);
     const intercomUsers = await intercomUserRepository.findIntercomUsersWithDeviceByUserId(userId);
@@ -279,7 +304,12 @@ async function deleteResidentFace(userId) {
     const results = [];
     for (const intercomUser of intercomUsers) {
         if (intercomUser.has_face !== true) {
-            results.push({ intercomId: intercomUser.intercom_id, deviceId: intercomUser.device_id, success: true, skipped: true });
+            results.push({
+                intercomId: intercomUser.intercom_id,
+                deviceId: intercomUser.device_id,
+                success: true,
+                skipped: true,
+            });
             continue;
         }
         try {
@@ -288,13 +318,26 @@ async function deleteResidentFace(userId) {
             if (success) {
                 await intercomUserRepository.updateFaceStatus(intercomUser.intercom_user_id, false);
             }
-            results.push({ intercomId: intercomUser.intercom_id, deviceId: intercomUser.device_id, success, skipped: false, error: success ? null : response.errorMsg || 'Intercom rejected the face deletion' });
+            results.push({
+                intercomId: intercomUser.intercom_id,
+                deviceId: intercomUser.device_id,
+                success,
+                skipped: false,
+                response,
+            });
         } catch (error) {
-            results.push({ intercomId: intercomUser.intercom_id, deviceId: intercomUser.device_id, success: false, skipped: false, error: error.message });
+            results.push({
+                intercomId: intercomUser.intercom_id,
+                deviceId: intercomUser.device_id,
+                success: false,
+                skipped: false,
+                error: error.message,
+            });
         }
     }
     const failedResults = results.filter(result => !result.success);
     if (failedResults.length > 0) {
+        console.error('Resident face deletion failures:', JSON.stringify(failedResults, null, 2));
         const error = new Error('Could not delete the face from all intercoms');
         error.status = 502;
         throw error;
@@ -538,7 +581,7 @@ module.exports = {
     // Intercom users
     listIntercomUsers, createIntercomUser, updateIntercomUser, deleteIntercomUser, getAccessMethods,
     // Face enrollment
-    updateResidentFace, deleteResidentFace,
+    enrollFace, deleteFace, updateResidentFace, deleteResidentFace,
     // PINs 
     listIntercomPins, getIntercomPin, setIntercomPin, updateIntercomPin, deleteIntercomPin, updateResidentDynamicCode,
     // Cards
