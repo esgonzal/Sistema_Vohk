@@ -153,8 +153,9 @@ async function updateFaceStatus(intercomUserId, hasFace) {
         UPDATE intercom_user
         SET
             has_face = $2,
-            face_updated_at = NOW()
+            face_updated_at = CASE WHEN $2 THEN NOW() ELSE NULL END
         WHERE intercom_user_id = $1
+        RETURNING *
         `,
         [intercomUserId, hasFace]
     );

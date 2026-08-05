@@ -1,7 +1,9 @@
 const express = require('express');
-const router = express.Router();
+const multer = require('multer');
 const authenticate = require('../../middleware/authMiddleware');
 const deviceService = require('../../services/vohk_app/deviceService');
+const router = express.Router();
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 router.use(authenticate);
 
 function sendServerError(res, error, message) {
@@ -45,5 +47,27 @@ router.put('/resident/dynamic-code', async (req, res) => {
         return sendServerError(res, error, 'Could not update dynamic code');
     }
 });
+router.put('/resident/face', upload.single('photo'), async (req, res) => {
+    try {
+        const { userId } = req.user;
+        if (!req.file) {
+            return res.status(400).json({ error: 'Face photo is required' });
+        }
+        const result = await deviceService.updateResidentFace(userId, req.file);
+        return res.status(200).json(result);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not update resident face');
+    }
+});
+router.delete('/resident/face', async (req, res) => {
+    try {
+        const { userId } = req.user;
+        const result = await deviceService.deleteResidentFace(userId);
+        return res.status(200).json(result);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not delete resident face');
+    }
+});
+
 
 module.exports = router;

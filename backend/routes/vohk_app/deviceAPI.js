@@ -173,18 +173,6 @@ router.put('/:deviceId/users/:employeeNo/face', upload.single('photo'), async (r
         res.status(500).json({ ok: false, error: error.message });
     }
 });
-router.put('/resident/face', upload.single('photo'), async (req, res) => {
-    try {
-        const { userId } = req.user;
-        if (!req.file) {
-            return res.status(400).json({ error: 'No image uploaded.' });
-        }
-        const result = await deviceService.updateResidentFace(userId, req.file);
-        return res.status(200).json(result);
-    } catch (error) {
-        return sendServerError(res, error, 'Could not update resident face');
-    }
-});
 router.delete('/:deviceId/users/:employeeNo/face', async (req, res) => {
     try {
         const data = await deviceService.deleteFace(req.params.deviceId, req.params.employeeNo);

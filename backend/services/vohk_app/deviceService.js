@@ -208,23 +208,20 @@ async function deleteIntercomUser(deviceId, employeeNo) {
 async function getAccessMethods(userId) {
     const accessRows = await intercomUserRepository.findAccessMethods(userId);
     if (accessRows.length === 0) {
-        return { hasFace: false, hasDynamicCode: false, hasCard: false, dynamicCode: null, faceUpdatedAt: null };
+        return { hasFace: false, hasAnyFace: false, hasDynamicCode: false, hasCard: false, dynamicCode: null, faceUpdatedAt: null };
     }
     const firstCode = accessRows[0].dynamic_code;
     const dynamicCodeIsSynchronized = typeof firstCode === 'string' && /^\d{6}$/.test(firstCode) && accessRows.every(row => row.dynamic_code === firstCode);
     const hasFace = accessRows.every(row => row.has_face === true);
+    const hasAnyFace = accessRows.some(row => row.has_face === true);
     const faceUpdatedAt = hasFace ? accessRows.map(row => row.face_updated_at).filter(Boolean).sort().at(-1) ?? null : null;
-    return { hasFace, hasDynamicCode: dynamicCodeIsSynchronized, hasCard: false, dynamicCode: dynamicCodeIsSynchronized ? firstCode : null, faceUpdatedAt };
+    return { hasFace, hasAnyFace, hasDynamicCode: dynamicCodeIsSynchronized, hasCard: false, dynamicCode: dynamicCodeIsSynchronized ? firstCode : null, faceUpdatedAt };
 }
 // ── Face enrollment ───────────────────────────────────────────────────────────
 async function enrollFace(deviceId, employeeNo, file, name) {
     const { intercom, client } = await getIntercomClient(deviceId);
     const processedBuffer = await processImageForIntercom(file);
-    const metadata = {
-        faceLibType: 'blackFD', FDID: '1',
-        FPID: employeeNo,
-        name: name || `User ${employeeNo}`,
-    };
+    const metadata = { faceLibType: 'blackFD', FDID: '1', FPID: employeeNo, name: name || `User ${employeeNo}`, };
     const { body, boundary } = buildFaceMultipart(metadata, processedBuffer, 'image/jpeg');
     const response = await client.fetch(
         `http://${intercom.ip_address}:${intercom.port}/ISAPI/Intelligent/FDLib/FaceDataRecord?format=json`,
@@ -235,21 +232,18 @@ async function enrollFace(deviceId, employeeNo, file, name) {
 async function updateFace(deviceId, employeeNo, file, name) {
     const { intercom, client } = await getIntercomClient(deviceId);
     const processedBuffer = await processImageForIntercom(file);
-    const metadata = {
-        faceLibType: 'blackFD', FDID: '1',
-        FPID: employeeNo,
-        name: name || `User ${employeeNo}`,
-    };
+    const metadata = { faceLibType: 'blackFD', FDID: '1', FPID: employeeNo, name: name || `User ${employeeNo}` };
     const { body, boundary } = buildFaceMultipart(metadata, processedBuffer, 'image/jpeg');
+    const encodedEmployeeNo = encodeURIComponent(employeeNo);
     const response = await client.fetch(
-        `http://${intercom.ip_address}:${intercom.port}/ISAPI/Intelligent/FDLib/FDModify?format=json`,
+        `http://${intercom.ip_address}:${intercom.port}/ISAPI/Intelligent/FDLib/FDSearch?format=json&FDID=1&FPID=${encodedEmployeeNo}&faceLibType=blackFD`,
         { method: 'PUT', headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}`, 'Content-Length': body.length }, body },
     );
     return response.json();
 }
 async function updateResidentFace(userId, file) {
     const intercomUsers = await intercomUserRepository.findIntercomUsersWithDeviceByUserId(userId);
-    if (!intercomUsers.length) {
+    if (intercomUsers.length === 0) {
         const error = new Error('User has no intercom assignments');
         error.status = 404;
         throw error;
@@ -265,12 +259,18 @@ async function updateResidentFace(userId, file) {
             if (success) {
                 await intercomUserRepository.updateFaceStatus(intercomUser.intercom_user_id, true);
             }
-            results.push({ intercomId: intercomUser.intercom_id, success, response });
+            results.push({ intercomId: intercomUser.intercom_id, deviceId: intercomUser.device_id, success, error: success ? null : response.errorMsg || 'Intercom rejected the face image' });
         } catch (error) {
-            results.push({ intercomId: intercomUser.intercom_id, success: false, error: error.message });
+            results.push({ intercomId: intercomUser.intercom_id, deviceId: intercomUser.device_id, success: false, error: error.message });
         }
     }
-    return { success: results.some(result => result.success), results };
+    const failedResults = results.filter(result => !result.success);
+    if (failedResults.length > 0) {
+        const error = new Error('Could not update the face on all intercoms');
+        error.status = 502;
+        throw error;
+    }
+    return { success: true, updatedIntercoms: results.length };
 }
 async function deleteFace(deviceId, employeeNo) {
     const { intercom, client } = await getIntercomClient(deviceId);
@@ -280,6 +280,39 @@ async function deleteFace(deviceId, employeeNo) {
         { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) }, body: payload },
     );
     return response.json();
+}
+async function deleteResidentFace(userId) {
+    const intercomUsers = await intercomUserRepository.findIntercomUsersWithDeviceByUserId(userId);
+    if (intercomUsers.length === 0) {
+        const error = new Error('User has no intercom assignments');
+        error.status = 404;
+        throw error;
+    }
+    const results = [];
+    for (const intercomUser of intercomUsers) {
+        if (intercomUser.has_face !== true) {
+            results.push({ intercomId: intercomUser.intercom_id, deviceId: intercomUser.device_id, success: true, skipped: true });
+            continue;
+        }
+        try {
+            const response = await deleteFace(intercomUser.device_id, intercomUser.employee_no);
+            const success = response.statusCode === 1;
+            if (success) {
+                await intercomUserRepository.updateFaceStatus(intercomUser.intercom_user_id, false);
+            }
+            results.push({ intercomId: intercomUser.intercom_id, deviceId: intercomUser.device_id, success, skipped: false, error: success ? null : response.errorMsg || 'Intercom rejected the face deletion' });
+        } catch (error) {
+            results.push({ intercomId: intercomUser.intercom_id, deviceId: intercomUser.device_id, success: false, skipped: false, error: error.message });
+        }
+    }
+    const failedResults = results.filter(result => !result.success);
+    if (failedResults.length > 0) {
+        const error = new Error('Could not delete the face from all intercoms');
+        error.status = 502;
+        throw error;
+    }
+    const deletedIntercoms = results.filter(result => !result.skipped).length;
+    return { success: true, deletedIntercoms };
 }
 // ── PINs ──────────────────────────────────────────────────────────────────────
 async function listIntercomPins(deviceId) {
@@ -517,7 +550,7 @@ module.exports = {
     // Intercom users
     listIntercomUsers, createIntercomUser, updateIntercomUser, deleteIntercomUser, getAccessMethods,
     // Face enrollment
-    enrollFace, updateFace, deleteFace, updateResidentFace,
+    enrollFace, updateFace, deleteFace, updateResidentFace, deleteResidentFace,
     // PINs 
     listIntercomPins, getIntercomPin, setIntercomPin, updateIntercomPin, deleteIntercomPin, updateResidentDynamicCode,
     // Cards
