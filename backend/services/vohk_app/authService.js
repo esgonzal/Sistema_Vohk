@@ -23,7 +23,7 @@ async function login(username, password) {
     }
     const session = { userId: user.user_id, username: user.username, role: user.role, identity: user.sip_identity };
     const token = generateJwt(session);
-    return { success: true, token, user: session, legalName: user.legal_name }
+    return { success: true, token, user: session, legalName: user.legal_name, email: user.email };
 }
 
 async function forgotPassword(email) {

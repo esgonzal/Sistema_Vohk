@@ -1,6 +1,5 @@
 const pool = require('../database/db');
 
-// Find intercom users by its intercom_user_id
 async function findIntercomUserById(intercomUserId) {
     const result = await pool.query(
         `
@@ -12,7 +11,6 @@ async function findIntercomUserById(intercomUserId) {
     );
     return result.rows[0];
 }
-// Find all intercom_users of an intercom_id
 async function findIntercomUsersByIntercomId(intercomId) {
     const result = await pool.query(
         `
@@ -25,7 +23,6 @@ async function findIntercomUsersByIntercomId(intercomId) {
     );
     return result.rows;
 }
-// Find all intercom_users of an user_id
 async function findIntercomUsersByUserAndCondominium(userId, condominiumId) {
     const result = await pool.query(
         `
@@ -43,36 +40,38 @@ async function findIntercomUsersByUserAndCondominium(userId, condominiumId) {
     );
     return result.rows;
 }
-// Find all intercom_users of an employeeNo
-async function findIntercomUserByEmployeeNo(employeeNo) {
+async function findIntercomUserByDeviceAndEmployeeNo(deviceId, employeeNo) {
     const result = await pool.query(
         `
-        SELECT *
-        FROM intercom_user
-        WHERE employee_no = $1
+        SELECT iu.*
+        FROM intercom_user iu
+        INNER JOIN intercom i ON i.intercom_id = iu.intercom_id
+        WHERE i.device_id = $1 AND iu.employee_no = $2
         `,
-        [employeeNo]
+        [deviceId, employeeNo]
     );
     return result.rows[0];
 }
-// Get the access methods of a user_id
 async function findAccessMethods(userId) {
     const result = await pool.query(
         `
         SELECT
-            employee_no,
-            dynamic_code,
-            has_face,
-            face_updated_at
-        FROM intercom_user
-        WHERE user_id = $1
-        LIMIT 1;
+            iu.intercom_user_id,
+            iu.intercom_id,
+            iu.employee_no,
+            iu.dynamic_code,
+            iu.has_face,
+            iu.face_updated_at,
+            i.device_id
+        FROM intercom_user iu
+        INNER JOIN intercom i ON i.intercom_id = iu.intercom_id
+        WHERE iu.user_id = $1
+        ORDER BY iu.created_at
         `,
         [userId]
     );
-    return result.rows[0];
+    return result.rows;
 }
-// Create an intercom_user for the intercom
 async function createIntercomUser(userId, intercomId, employeeNo, dynamic_code) {
     const result = await pool.query(
         `
@@ -90,7 +89,6 @@ async function createIntercomUser(userId, intercomId, employeeNo, dynamic_code) 
     );
     return result.rows[0];
 }
-// Update one intercom_users
 async function updateIntercomUser(intercomUserId, { employeeNo, dynamicCode }) {
     const result = await pool.query(
         `
@@ -105,7 +103,6 @@ async function updateIntercomUser(intercomUserId, { employeeNo, dynamicCode }) {
     );
     return result.rows[0];
 }
-// Delete an intercom_user
 async function deleteIntercomUser(intercomUserId) {
     const result = await pool.query(
         `
@@ -117,7 +114,6 @@ async function deleteIntercomUser(intercomUserId) {
     );
     return result.rows[0];
 }
-// Delete all intercom_users for an user
 async function deleteIntercomUsersByUserId(userId) {
     const result = await pool.query(
         `
@@ -129,7 +125,6 @@ async function deleteIntercomUsersByUserId(userId) {
     );
     return result.rows;
 }
-// Delete all intercom_users for an intercom
 async function deleteIntercomUsersByIntercomId(intercomId) {
     const result = await pool.query(
         `
@@ -165,7 +160,6 @@ async function updateFaceStatus(intercomUserId, hasFace) {
     );
     return result.rows[0];
 }
-// Update the dynamic code of an intercom_user
 async function updateDynamicCode(intercomUserId, dynamicCode) {
     const result = await pool.query(
         `
@@ -197,7 +191,7 @@ async function findIntercomUsersWithDeviceByUserId(userId) {
 
 module.exports = {
     // Find rows
-    findIntercomUserById, findIntercomUsersByIntercomId, findIntercomUsersByUserAndCondominium, findIntercomUserByEmployeeNo, findAccessMethods,
+    findIntercomUserById, findIntercomUsersByIntercomId, findIntercomUsersByUserAndCondominium, findIntercomUserByDeviceAndEmployeeNo, findAccessMethods,
     // Create
     createIntercomUser,
     // Update

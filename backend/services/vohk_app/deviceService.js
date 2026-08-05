@@ -206,13 +206,15 @@ async function deleteIntercomUser(deviceId, employeeNo) {
 }
 // GET ACCESS METHODS
 async function getAccessMethods(userId) {
-    const access = await intercomUserRepository.findAccessMethods(userId);
-    if (!access) {
-        return {
-            hasFace: false, hasDynamicCode: false, hasCard: false, dynamicCode: null, faceUpdatedAt: null,
-        };
+    const accessRows = await intercomUserRepository.findAccessMethods(userId);
+    if (accessRows.length === 0) {
+        return { hasFace: false, hasDynamicCode: false, hasCard: false, dynamicCode: null, faceUpdatedAt: null };
     }
-    return { hasFace: access.has_face, hasDynamicCode: access.dynamic_code != null, hasCard: false, dynamicCode: access.dynamic_code, faceUpdatedAt: access.face_updated_at, };
+    const firstCode = accessRows[0].dynamic_code;
+    const dynamicCodeIsSynchronized = typeof firstCode === 'string' && /^\d{6}$/.test(firstCode) && accessRows.every(row => row.dynamic_code === firstCode);
+    const hasFace = accessRows.every(row => row.has_face === true);
+    const faceUpdatedAt = hasFace ? accessRows.map(row => row.face_updated_at).filter(Boolean).sort().at(-1) ?? null : null;
+    return { hasFace, hasDynamicCode: dynamicCodeIsSynchronized, hasCard: false, dynamicCode: dynamicCodeIsSynchronized ? firstCode : null, faceUpdatedAt };
 }
 // ── Face enrollment ───────────────────────────────────────────────────────────
 async function enrollFace(deviceId, employeeNo, file, name) {
@@ -326,11 +328,12 @@ async function setIntercomPin(deviceId, employeeNo, dynamicCode) {
         { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) },
     );
     const data = await response.json();
-    if (data.statusCode !== 1) { return data; }
-    // Keep DB in sync — find the intercom_user record by employeeNo, then update it
-    const intercomUser = await intercomUserRepository.findIntercomUserByEmployeeNo(employeeNo);
+    if (data.statusCode !== 1) {
+        return data;
+    }
+    const intercomUser = await intercomUserRepository.findIntercomUserByDeviceAndEmployeeNo(deviceId, employeeNo);
     if (intercomUser) {
-        await intercomUserRepository.updateIntercomUser(intercomUser.intercom_user_id, { employeeNo, dynamicCode });
+        await intercomUserRepository.updateDynamicCode(intercomUser.intercom_user_id, dynamicCode);
     }
     return data;
 }
@@ -342,31 +345,34 @@ async function deleteIntercomPin(deviceId, employeeNo) {
     return setIntercomPin(deviceId, employeeNo, '');
 }
 async function updateResidentDynamicCode(userId, dynamicCode) {
-    const intercomUsers = await intercomUserRepository.findIntercomUsersByUserId(userId);
-    if (!intercomUsers.length) {
-        throw new Error('User has no intercom assignments');
+    if (typeof dynamicCode !== 'string' || !/^\d{6}$/.test(dynamicCode)) {
+        const error = new Error('Dynamic code must contain exactly 6 digits');
+        error.status = 400;
+        throw error;
+    }
+    const intercomUsers = await intercomUserRepository.findIntercomUsersWithDeviceByUserId(userId);
+    if (intercomUsers.length === 0) {
+        const error = new Error('User has no intercom assignments');
+        error.status = 404;
+        throw error;
     }
     const results = [];
-    for (const iu of intercomUsers) {
+    for (const intercomUser of intercomUsers) {
         try {
-            const dbIntercom = await intercomRepository.findIntercomById(iu.intercom_id);
-            const { intercom, client } = await getIntercomClient(dbIntercom.device_id);
-            const payload = { UserInfo: { employeeNo: iu.employee_no, dynamicCode, }, };
-            const response = await client.fetch(
-                `http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/UserInfo/Modify?format=json`,
-                { method: 'PUT', headers: { 'Content-Type': 'application/json', }, body: JSON.stringify(payload), },
-            );
-            const data = await response.json();
-            if (data.statusCode === 1) {
-                await intercomUserRepository.updateDynamicCode(iu.intercom_user_id, dynamicCode,);
-            }
-            results.push({ intercomId: iu.intercom_id, success: data.statusCode === 1, response: data, });
-        } catch (err) {
-            console.error(err);
-            results.push({ intercomId: iu.intercom_id, success: false, error: err.message, });
+            const response = await setIntercomPin(intercomUser.device_id, intercomUser.employee_no, dynamicCode);
+            const success = response.statusCode === 1;
+            results.push({ intercomId: intercomUser.intercom_id, deviceId: intercomUser.device_id, success, error: success ? null : response.errorMsg || 'Intercom rejected the dynamic code' });
+        } catch (error) {
+            results.push({ intercomId: intercomUser.intercom_id, deviceId: intercomUser.device_id, success: false, error: error.message });
         }
     }
-    return { success: results.some(r => r.success), results, };
+    const failedResults = results.filter(result => !result.success);
+    if (failedResults.length > 0) {
+        const error = new Error('Could not update the dynamic code on all intercoms');
+        error.status = 502;
+        throw error;
+    }
+    return { success: true, dynamicCode, updatedIntercoms: results.length };
 }
 // ── Cards ─────────────────────────────────────────────────────────────────────
 async function listCards(deviceId) {

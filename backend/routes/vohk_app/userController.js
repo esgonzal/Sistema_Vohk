@@ -7,6 +7,9 @@ router.use(authenticate);
 function isBlank(value) {
     return typeof value !== 'string' || value.trim() === '';
 }
+function isValidEmail(value) {
+    return typeof value === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+}
 function sendServerError(res, error, message) {
     console.error(error);
     if (error.status && error.status >= 400 && error.status < 500) {
@@ -38,11 +41,14 @@ router.put('/email', async (req, res) => {
         if (isBlank(email)) {
             return res.status(400).json({ error: 'Email is required' });
         }
+        if (!isValidEmail(email)) {
+            return res.status(400).json({ error: 'A valid email is required' });
+        }
         const updated = await userService.updateEmail(userId, email.trim());
         if (!updated) {
             return res.status(404).json({ error: 'User not found' });
         }
-        return res.status(200).json(updated);
+        return res.status(200).json({ email: updated.email });
     } catch (error) {
         return sendServerError(res, error, 'Could not update email');
     }

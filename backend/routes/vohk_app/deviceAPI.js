@@ -115,16 +115,7 @@ router.put('/:deviceId/zone', async (req, res) => {
     }
 });
 // ── Open door ─────────────────────────────────────────────────────────────────
-router.post('/open-door/:deviceId', async (req, res) => {
-    try {
-        const result = await deviceService.openDoor(req.params.deviceId);
-        if (!result) { return res.status(404).json({ ok: false, error: 'Device not found' }); }
-        if (result.ok) { return res.json({ ok: true, message: 'Door opened' }); }
-        return res.status(500).json({ ok: false, error: result.text });
-    } catch (error) {
-        res.status(500).json({ ok: false, error: error.message });
-    }
-});
+
 // ── Intercom users (Hikvision ISAPI) ─────────────────────────────────────────
 router.get('/:deviceId/users', async (req, res) => {
     try {
@@ -159,16 +150,6 @@ router.delete('/:deviceId/users/:employeeNo', async (req, res) => {
         res.json({ ok: true });
     } catch (error) {
         res.status(500).json({ ok: false, error: error.message });
-    }
-});
-router.get('/resident/access-methods', async (req, res) => {
-    try {
-        const { userId } = req.user;
-        const methods = await deviceService.getAccessMethods(userId);
-        res.json(methods);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: err.message });
     }
 });
 // ── Face enrollment ───────────────────────────────────────────────────────────
@@ -249,20 +230,6 @@ router.put('/:deviceId/pins/:employeeNo', async (req, res) => {
         res.json({ ok: true });
     } catch (error) {
         res.status(500).json({ ok: false, error: error.message });
-    }
-});
-router.put('/resident/dynamic-code', async (req, res) => {
-    try {
-        const { userId } = req.user;
-        const { dynamicCode } = req.body;
-        if (!dynamicCode) {
-            return res.status(400).json({ error: 'dynamicCode is required' });
-        }
-        const result = await deviceService.updateResidentDynamicCode(userId, dynamicCode);
-        res.json(result);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: err.message });
     }
 });
 router.delete('/:deviceId/pins/:employeeNo', async (req, res) => {

@@ -132,6 +132,21 @@ async function updatePassword(userId, currentPassword, newPassword) {
         error.status = 404;
         throw error;
     }
+    if (newPassword.length < 8) {
+        const error = new Error('New password must contain at least 8 characters');
+        error.status = 400;
+        throw error;
+    }
+    if (Buffer.byteLength(newPassword, 'utf8') > 72) {
+        const error = new Error('New password is too long');
+        error.status = 400;
+        throw error;
+    }
+    if (newPassword === currentPassword) {
+        const error = new Error('New password must be different from the current password');
+        error.status = 400;
+        throw error;
+    }
     const validPassword = await bcrypt.compare(currentPassword, user.password_hash);
     if (!validPassword) {
         const error = new Error('Current password is incorrect');

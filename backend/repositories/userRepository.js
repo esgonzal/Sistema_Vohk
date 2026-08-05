@@ -254,7 +254,7 @@ async function updateEmail(userId, email) {
         UPDATE app_user
         SET email = $2
         WHERE user_id = $1
-        RETURNING *;
+        RETURNING user_id, email
         `,
         [userId, email]
     );
