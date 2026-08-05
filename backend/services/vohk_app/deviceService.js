@@ -538,7 +538,7 @@ module.exports = {
     // Intercom users
     listIntercomUsers, createIntercomUser, updateIntercomUser, deleteIntercomUser, getAccessMethods,
     // Face enrollment
-    enrollFace, updateFace, deleteFace, updateResidentFace, deleteResidentFace,
+    updateResidentFace, deleteResidentFace,
     // PINs 
     listIntercomPins, getIntercomPin, setIntercomPin, updateIntercomPin, deleteIntercomPin, updateResidentDynamicCode,
     // Cards
