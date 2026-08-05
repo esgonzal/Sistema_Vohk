@@ -208,14 +208,13 @@ async function deleteIntercomUser(deviceId, employeeNo) {
 async function getAccessMethods(userId) {
     const accessRows = await intercomUserRepository.findAccessMethods(userId);
     if (accessRows.length === 0) {
-        return { hasFace: false, hasAnyFace: false, hasDynamicCode: false, hasCard: false, dynamicCode: null, faceUpdatedAt: null };
+        return { hasFace: false, hasDynamicCode: false, hasCard: false, dynamicCode: null, faceUpdatedAt: null };
     }
     const firstCode = accessRows[0].dynamic_code;
     const dynamicCodeIsSynchronized = typeof firstCode === 'string' && /^\d{6}$/.test(firstCode) && accessRows.every(row => row.dynamic_code === firstCode);
     const hasFace = accessRows.every(row => row.has_face === true);
-    const hasAnyFace = accessRows.some(row => row.has_face === true);
     const faceUpdatedAt = hasFace ? accessRows.map(row => row.face_updated_at).filter(Boolean).sort().at(-1) ?? null : null;
-    return { hasFace, hasAnyFace, hasDynamicCode: dynamicCodeIsSynchronized, hasCard: false, dynamicCode: dynamicCodeIsSynchronized ? firstCode : null, faceUpdatedAt };
+    return { hasFace, hasDynamicCode: dynamicCodeIsSynchronized, hasCard: false, dynamicCode: dynamicCodeIsSynchronized ? firstCode : null, faceUpdatedAt };
 }
 // ── Face enrollment ───────────────────────────────────────────────────────────
 async function enrollFace(deviceId, employeeNo, file, name) {
@@ -232,7 +231,7 @@ async function enrollFace(deviceId, employeeNo, file, name) {
 async function updateFace(deviceId, employeeNo, file, name) {
     const { intercom, client } = await getIntercomClient(deviceId);
     const processedBuffer = await processImageForIntercom(file);
-    const metadata = { faceLibType: 'blackFD', FDID: '1', FPID: employeeNo, name: name || `User ${employeeNo}` };
+    const metadata = { name: name || `User ${employeeNo}` };
     const { body, boundary } = buildFaceMultipart(metadata, processedBuffer, 'image/jpeg');
     const encodedEmployeeNo = encodeURIComponent(employeeNo);
     const response = await client.fetch(
@@ -251,21 +250,34 @@ async function updateResidentFace(userId, file) {
     const results = [];
     for (const intercomUser of intercomUsers) {
         try {
-            let response = await updateFace(intercomUser.device_id, intercomUser.employee_no, file);
-            if (response.statusCode !== 1) {
-                response = await enrollFace(intercomUser.device_id, intercomUser.employee_no, file);
-            }
+            const operation = intercomUser.has_face === true ? 'update' : 'enroll';
+            const response = operation === 'update'
+                ? await updateFace(intercomUser.device_id, intercomUser.employee_no, file)
+                : await enrollFace(intercomUser.device_id, intercomUser.employee_no, file);
             const success = response.statusCode === 1;
             if (success) {
                 await intercomUserRepository.updateFaceStatus(intercomUser.intercom_user_id, true);
             }
-            results.push({ intercomId: intercomUser.intercom_id, deviceId: intercomUser.device_id, success, error: success ? null : response.errorMsg || 'Intercom rejected the face image' });
+            results.push({
+                intercomId: intercomUser.intercom_id,
+                deviceId: intercomUser.device_id,
+                operation,
+                success,
+                response,
+            });
         } catch (error) {
-            results.push({ intercomId: intercomUser.intercom_id, deviceId: intercomUser.device_id, success: false, error: error.message });
+            results.push({
+                intercomId: intercomUser.intercom_id,
+                deviceId: intercomUser.device_id,
+                operation: intercomUser.has_face === true ? 'update' : 'enroll',
+                success: false,
+                error: error.message,
+            });
         }
     }
     const failedResults = results.filter(result => !result.success);
     if (failedResults.length > 0) {
+        console.error('Resident face update failures:', JSON.stringify(failedResults, null, 2));
         const error = new Error('Could not update the face on all intercoms');
         error.status = 502;
         throw error;
