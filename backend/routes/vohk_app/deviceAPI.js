@@ -152,36 +152,6 @@ router.delete('/:deviceId/users/:employeeNo', async (req, res) => {
         res.status(500).json({ ok: false, error: error.message });
     }
 });
-// ── Face enrollment ───────────────────────────────────────────────────────────
-router.post('/:deviceId/users/:employeeNo/face', upload.single('photo'), async (req, res) => {
-    try {
-        if (!req.file) { return res.status(400).json({ ok: false, error: 'No image uploaded. Use field name "photo".' }); }
-        const data = await deviceService.enrollFace(req.params.deviceId, req.params.employeeNo, req.file, req.body.name);
-        if (data.statusCode !== 1) { return res.status(400).json({ ok: false, error: data.errorMsg, detail: data }); }
-        res.json({ ok: true, FPID: data.FPID });
-    } catch (error) {
-        res.status(500).json({ ok: false, error: error.message });
-    }
-});
-router.put('/:deviceId/users/:employeeNo/face', upload.single('photo'), async (req, res) => {
-    try {
-        if (!req.file) { return res.status(400).json({ ok: false, error: 'No image uploaded. Use field name "photo".' }); }
-        const data = await deviceService.updateFace(req.params.deviceId, req.params.employeeNo, req.file, req.body.name);
-        if (data.statusCode !== 1) { return res.status(400).json({ ok: false, error: data.errorMsg, detail: data }); }
-        res.json({ ok: true });
-    } catch (error) {
-        res.status(500).json({ ok: false, error: error.message });
-    }
-});
-router.delete('/:deviceId/users/:employeeNo/face', async (req, res) => {
-    try {
-        const data = await deviceService.deleteFace(req.params.deviceId, req.params.employeeNo);
-        if (data.statusCode !== 1) { return res.status(400).json({ ok: false, error: data.errorMsg, detail: data }); }
-        res.json({ ok: true });
-    } catch (error) {
-        res.status(500).json({ ok: false, error: error.message });
-    }
-});
 // ── PIN codes ─────────────────────────────────────────────────────────────────
 router.get('/:deviceId/pins', async (req, res) => {
     try {

@@ -61,11 +61,7 @@ function buildFaceMultipart(metadata, imageBuffer, imageType = 'image/jpeg') {
 async function processImageForIntercom(file) {
     const meta = await sharp(file.buffer).metadata();
     if (!meta.width || !meta.height) { throw new Error('Invalid image'); }
-    return sharp(file.buffer)
-        .rotate()
-        .resize(600, 600, { fit: 'inside', withoutEnlargement: true })
-        .jpeg({ quality: 75, mozjpeg: true })
-        .toBuffer();
+    return sharp(file.buffer).rotate().resize(600, 600, { fit: 'inside', withoutEnlargement: true }).jpeg({ quality: 75, mozjpeg: true }).toBuffer();
 }
 // ── Device listing ────────────────────────────────────────────────────────────
 async function listIntercoms() {
@@ -217,30 +213,8 @@ async function getAccessMethods(userId) {
     return { hasFace, hasDynamicCode: dynamicCodeIsSynchronized, hasCard: false, dynamicCode: dynamicCodeIsSynchronized ? firstCode : null, faceUpdatedAt };
 }
 // ── Face enrollment ───────────────────────────────────────────────────────────
-async function enrollFace(deviceId, employeeNo, file, name) {
-    const { intercom, client } = await getIntercomClient(deviceId);
-    const processedBuffer = await processImageForIntercom(file);
-    const metadata = { faceLibType: 'blackFD', FDID: '1', FPID: employeeNo, name: name || `User ${employeeNo}`, };
-    const { body, boundary } = buildFaceMultipart(metadata, processedBuffer, 'image/jpeg');
-    const response = await client.fetch(
-        `http://${intercom.ip_address}:${intercom.port}/ISAPI/Intelligent/FDLib/FaceDataRecord?format=json`,
-        { method: 'POST', headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}`, 'Content-Length': body.length }, body },
-    );
-    return response.json();
-}
-async function updateFace(deviceId, employeeNo, file, name) {
-    const { intercom, client } = await getIntercomClient(deviceId);
-    const processedBuffer = await processImageForIntercom(file);
-    const metadata = { name: name || `User ${employeeNo}` };
-    const { body, boundary } = buildFaceMultipart(metadata, processedBuffer, 'image/jpeg');
-    const encodedEmployeeNo = encodeURIComponent(employeeNo);
-    const response = await client.fetch(
-        `http://${intercom.ip_address}:${intercom.port}/ISAPI/Intelligent/FDLib/FDSearch?format=json&FDID=1&FPID=${encodedEmployeeNo}&faceLibType=blackFD`,
-        { method: 'PUT', headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}`, 'Content-Length': body.length }, body },
-    );
-    return response.json();
-}
 async function updateResidentFace(userId, file) {
+    await processImageForIntercom(file);
     const intercomUsers = await intercomUserRepository.findIntercomUsersWithDeviceByUserId(userId);
     if (intercomUsers.length === 0) {
         const error = new Error('User has no intercom assignments');
@@ -250,26 +224,37 @@ async function updateResidentFace(userId, file) {
     const results = [];
     for (const intercomUser of intercomUsers) {
         try {
-            const operation = intercomUser.has_face === true ? 'update' : 'enroll';
-            const response = operation === 'update'
-                ? await updateFace(intercomUser.device_id, intercomUser.employee_no, file)
-                : await enrollFace(intercomUser.device_id, intercomUser.employee_no, file);
-            const success = response.statusCode === 1;
+            if (intercomUser.has_face === true) {
+                const deleteResponse = await deleteFace(intercomUser.device_id, intercomUser.employee_no);
+                if (deleteResponse.statusCode !== 1) {
+                    results.push({
+                        intercomId: intercomUser.intercom_id,
+                        deviceId: intercomUser.device_id,
+                        operation: 'delete-existing-face',
+                        success: false,
+                        response: deleteResponse,
+                    });
+                    continue;
+                }
+                await intercomUserRepository.updateFaceStatus(intercomUser.intercom_user_id, false);
+            }
+            const enrollResponse = await enrollFace(intercomUser.device_id, intercomUser.employee_no, file);
+            const success = enrollResponse.statusCode === 1;
             if (success) {
                 await intercomUserRepository.updateFaceStatus(intercomUser.intercom_user_id, true);
             }
             results.push({
                 intercomId: intercomUser.intercom_id,
                 deviceId: intercomUser.device_id,
-                operation,
+                operation: intercomUser.has_face === true ? 'replace' : 'enroll',
                 success,
-                response,
+                response: enrollResponse,
             });
         } catch (error) {
             results.push({
                 intercomId: intercomUser.intercom_id,
                 deviceId: intercomUser.device_id,
-                operation: intercomUser.has_face === true ? 'update' : 'enroll',
+                operation: intercomUser.has_face === true ? 'replace' : 'enroll',
                 success: false,
                 error: error.message,
             });
@@ -283,15 +268,6 @@ async function updateResidentFace(userId, file) {
         throw error;
     }
     return { success: true, updatedIntercoms: results.length };
-}
-async function deleteFace(deviceId, employeeNo) {
-    const { intercom, client } = await getIntercomClient(deviceId);
-    const payload = JSON.stringify({ FPID: [{ value: employeeNo }] });
-    const response = await client.fetch(
-        `http://${intercom.ip_address}:${intercom.port}/ISAPI/Intelligent/FDLib/FDSearch/Delete?format=json&FDID=1&faceLibType=blackFD`,
-        { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) }, body: payload },
-    );
-    return response.json();
 }
 async function deleteResidentFace(userId) {
     const intercomUsers = await intercomUserRepository.findIntercomUsersWithDeviceByUserId(userId);
