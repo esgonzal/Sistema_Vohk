@@ -209,7 +209,9 @@ async function getUsersByCondominium(condominiumId) {
         SELECT
             u.user_id,
             u.legal_name,
+            u.username,
             u.rut,
+            u.sip_identity,
             u.role,
             u.email,
             u.active,
@@ -221,11 +223,13 @@ async function getUsersByCondominium(condominiumId) {
                     'unitId', un.unit_id,
                     'unit', un.name,
                     'roomNo', un.room_no,
+                    'floor', un.floor,
                     'isPrimary', ru.is_primary
                 )
                 ORDER BY
                     ru.is_primary DESC,
                     b.name,
+                    un.floor,
                     un.room_no
             ) AS locations
         FROM app_user u
@@ -234,8 +238,8 @@ async function getUsersByCondominium(condominiumId) {
         INNER JOIN building b ON b.building_id = un.building_id
         INNER JOIN condominium c ON c.condominium_id = b.condominium_id
         WHERE c.condominium_id = $1
-        GROUP BY u.user_id, u.legal_name, u.rut, u.role, u.email, u.active, u.created_at
-        ORDER BY u.created_at DESC
+        GROUP BY u.user_id, u.legal_name, u.username,vu.rut, u.sip_identity, u.role, u.email, u.active, u.created_at
+        ORDER BY u.legal_name
         `,
         [condominiumId]
     );
