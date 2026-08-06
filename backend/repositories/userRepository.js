@@ -238,7 +238,7 @@ async function getUsersByCondominium(condominiumId) {
         INNER JOIN building b ON b.building_id = un.building_id
         INNER JOIN condominium c ON c.condominium_id = b.condominium_id
         WHERE c.condominium_id = $1
-        GROUP BY u.user_id, u.legal_name, u.username,vu.rut, u.sip_identity, u.role, u.email, u.active, u.created_at
+        GROUP BY u.user_id, u.legal_name, u.username, u.rut, u.sip_identity, u.role, u.email, u.active, u.created_at
         ORDER BY u.legal_name
         `,
         [condominiumId]
