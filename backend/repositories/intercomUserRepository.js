@@ -1,28 +1,5 @@
 const pool = require('../database/db');
 
-async function findIntercomUserById(intercomUserId) {
-    const result = await pool.query(
-        `
-        SELECT *
-        FROM intercom_user
-        WHERE intercom_user_id = $1
-        `,
-        [intercomUserId]
-    );
-    return result.rows[0];
-}
-async function findIntercomUsersByIntercomId(intercomId) {
-    const result = await pool.query(
-        `
-        SELECT *
-        FROM intercom_user
-        WHERE intercom_id = $1
-        ORDER BY created_at
-        `,
-        [intercomId]
-    );
-    return result.rows;
-}
 async function findIntercomUsersByUserAndCondominium(userId, condominiumId) {
     const result = await pool.query(
         `
@@ -72,6 +49,21 @@ async function findAccessMethods(userId) {
     );
     return result.rows;
 }
+async function findIntercomUsersWithDeviceByUserId(userId) {
+    const result = await pool.query(
+        `
+        SELECT
+            iu.*,
+            i.device_id
+        FROM intercom_user iu
+        INNER JOIN intercom i ON i.intercom_id = iu.intercom_id
+        WHERE iu.user_id = $1
+        ORDER BY iu.created_at
+        `,
+        [userId]
+    );
+    return result.rows;
+}
 async function createIntercomUser(userId, intercomId, employeeNo, dynamic_code) {
     const result = await pool.query(
         `
@@ -88,53 +80,6 @@ async function createIntercomUser(userId, intercomId, employeeNo, dynamic_code) 
         [userId, intercomId, employeeNo, dynamic_code]
     );
     return result.rows[0];
-}
-async function updateIntercomUser(intercomUserId, { employeeNo, dynamicCode }) {
-    const result = await pool.query(
-        `
-        UPDATE intercom_user
-        SET
-            employee_no = $2,
-            dynamic_code = $3
-        WHERE intercom_user_id = $1
-        RETURNING *
-        `,
-        [intercomUserId, employeeNo, dynamicCode]
-    );
-    return result.rows[0];
-}
-async function deleteIntercomUser(intercomUserId) {
-    const result = await pool.query(
-        `
-        DELETE FROM intercom_user
-        WHERE intercom_user_id = $1
-        RETURNING *
-        `,
-        [intercomUserId]
-    );
-    return result.rows[0];
-}
-async function deleteIntercomUsersByUserId(userId) {
-    const result = await pool.query(
-        `
-        DELETE FROM intercom_user
-        WHERE user_id = $1
-        RETURNING *
-        `,
-        [userId]
-    );
-    return result.rows;
-}
-async function deleteIntercomUsersByIntercomId(intercomId) {
-    const result = await pool.query(
-        `
-        DELETE FROM intercom_user
-        WHERE intercom_id = $1
-        RETURNING *
-        `,
-        [intercomId]
-    );
-    return result.rows;
 }
 async function deleteIntercomUserByUserAndIntercom(userId, intercomId) {
     const result = await pool.query(
@@ -174,30 +119,8 @@ async function updateDynamicCode(intercomUserId, dynamicCode) {
     );
     return result.rows[0];
 }
-async function findIntercomUsersWithDeviceByUserId(userId) {
-    const result = await pool.query(
-        `
-        SELECT
-            iu.*,
-            i.device_id
-        FROM intercom_user iu
-        INNER JOIN intercom i ON i.intercom_id = iu.intercom_id
-        WHERE iu.user_id = $1
-        ORDER BY iu.created_at
-        `,
-        [userId]
-    );
-    return result.rows;
-}
 
 module.exports = {
-    // Find rows
-    findIntercomUserById, findIntercomUsersByIntercomId, findIntercomUsersByUserAndCondominium, findIntercomUserByDeviceAndEmployeeNo, findAccessMethods,
-    // Create
-    createIntercomUser,
-    // Update
-    updateIntercomUser,
-    // Delete
-    deleteIntercomUser, deleteIntercomUsersByUserId, deleteIntercomUsersByIntercomId, deleteIntercomUserByUserAndIntercom, updateFaceStatus, updateDynamicCode,
-    findIntercomUsersWithDeviceByUserId
+    findIntercomUsersByUserAndCondominium, findIntercomUserByDeviceAndEmployeeNo, findAccessMethods, findIntercomUsersWithDeviceByUserId,
+    createIntercomUser, deleteIntercomUserByUserAndIntercom, updateFaceStatus, updateDynamicCode,
 };

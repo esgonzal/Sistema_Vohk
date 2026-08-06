@@ -1,12 +1,5 @@
 const pool = require('../database/db');
 
-async function findUnitById(unitId) {
-    const result = await pool.query(
-        `SELECT * FROM unit WHERE unit_id = $1`,
-        [unitId]
-    );
-    return result.rows[0];
-}
 async function findUnitByIdAndAdmin(unitId, adminUserId) {
     const result = await pool.query(
         `
@@ -124,26 +117,6 @@ async function deleteUnit(unitId) {
     );
     return result.rows[0];
 }
-async function findBuildingsAndUnitsByCondominium(condominiumId) {
-    const result = await pool.query(
-        `
-        SELECT
-            b.building_id,
-            b.name AS building_name,
-            b.floor_count,
-            u.unit_id,
-            u.name AS unit_name,
-            u.room_no AS unit_room_no,
-            u.floor AS unit_floor
-        FROM building b
-        LEFT JOIN unit u ON u.building_id = b.building_id
-        WHERE b.condominium_id = $1
-        ORDER BY b.name, u.floor, u.room_no
-        `,
-        [condominiumId]
-    );
-    return result.rows;
-}
 async function countResidentsByUnit(unitId) {
     const result = await pool.query(
         `
@@ -160,6 +133,6 @@ async function countResidentsByUnit(unitId) {
 }
 
 module.exports = {
-    findUnitById, findUnitByIdAndAdmin, findUnitHierarchy, findUnitsByUser, findResidentUnits,
-    createUnit, updateUnit, deleteUnit, findBuildingsAndUnitsByCondominium, countResidentsByUnit
+    findUnitByIdAndAdmin, findUnitHierarchy, findUnitsByUser, findResidentUnits,
+    createUnit, updateUnit, deleteUnit, countResidentsByUnit
 };

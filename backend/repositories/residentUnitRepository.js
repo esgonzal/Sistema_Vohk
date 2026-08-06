@@ -14,6 +14,20 @@ async function findByUserAndUnit(userId, unitId) {
     );
     return result.rows[0];
 }
+async function findByUserAndCondominium(userId, condominiumId) {
+    const result = await pool.query(
+        `
+        SELECT ru.user_id
+        FROM resident_unit ru
+        INNER JOIN unit u ON u.unit_id = ru.unit_id
+        INNER JOIN building b ON b.building_id = u.building_id
+        WHERE ru.user_id = $1 AND b.condominium_id = $2
+        LIMIT 1
+        `,
+        [userId, condominiumId]
+    );
+    return result.rows[0];
+}
 async function findUnitsByUser(userId) {
     const result = await pool.query(
         `
@@ -146,7 +160,7 @@ async function findSipIdentitiesByUnit(unitId) {
 }
 
 module.exports = {
-    findByUserAndUnit, findUnitsByUser, findUsersByUnit,
+    findByUserAndUnit, findByUserAndCondominium, findUnitsByUser, findUsersByUnit,
     assignResident, setPrimary, unassignResident, unassignAllFromUnit, unassignAllFromUser, updateResidentUnit,
     findSipIdentitiesByUnit
 };

@@ -1,6 +1,8 @@
 const sharp = require('sharp');
 const { v4: uuid } = require('uuid');
 const FRONTEND_URL = "https://app.vohk.cl";
+const condominiumRepository = require('../../repositories/condominiumRepository');
+const residentUnitRepository = require('../../repositories/residentUnitRepository');
 const deviceRepository = require('../../repositories/deviceRepository');
 const invitationRepository = require('../../repositories/invitationRepository');
 const visitorRepository = require('../../repositories/visitorRepository');
@@ -11,18 +13,6 @@ const intercomRepository = require('../../repositories/intercomRepository');
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function formatCardForHikvision(cardNumber) {
     return cardNumber.padStart(10, '0');
-}
-function formatHikvisionTime(date) {
-    const d = new Date(date);
-    const pad = (n) => String(n).padStart(2, '0');
-    return (
-        d.getFullYear() + '-' +
-        pad(d.getMonth() + 1) + '-' +
-        pad(d.getDate()) + 'T' +
-        pad(d.getHours()) + ':' +
-        pad(d.getMinutes()) + ':' +
-        pad(d.getSeconds())
-    );
 }
 async function getIntercomClient(deviceId) {
     const intercom = await deviceRepository.findIntercomByDeviceId(deviceId);
@@ -81,6 +71,28 @@ async function listCameras() {
         snapshot: device.snapshot_url,
         url: device.stream_url,
     }));
+}
+async function getMobileDevices({ userId, role, condominiumId }) {
+    if (role === 'admin') {
+        const condominium = await condominiumRepository.findByIdAndAdmin(condominiumId, userId);
+        if (!condominium) {
+            const error = new Error('Condominium not found or not accessible');
+            error.status = 404;
+            throw error;
+        }
+    } else if (role === 'resident') {
+        const residentUnit = await residentUnitRepository.findByUserAndCondominium(userId, condominiumId);
+        if (!residentUnit) {
+            const error = new Error('Condominium not found or not accessible');
+            error.status = 404;
+            throw error;
+        }
+    } else {
+        const error = new Error('Forbidden');
+        error.status = 403;
+        throw error;
+    }
+    return deviceRepository.findMobileDevicesByCondominium(condominiumId);
 }
 // ── Device management ─────────────────────────────────────────────────────────
 async function getDevicesByCondominium(condominiumId, zoneId = null) {
@@ -573,7 +585,7 @@ async function syncIntercomRoomSipNumbers(deviceId, roomNo, phoneNumbers) {
 
 module.exports = {
     // Device listing
-    listIntercoms, listCameras,
+    listIntercoms, listCameras, getMobileDevices,
     // Device management
     getDevicesByCondominium, getDevicesByZone, createDevice, updateDevice, deleteDevice, moveDeviceToZone,
     // Open door

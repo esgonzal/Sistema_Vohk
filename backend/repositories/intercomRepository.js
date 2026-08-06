@@ -1,12 +1,5 @@
 const pool = require('../database/db');
 
-async function findIntercomById(intercomId) {
-    const result = await pool.query(
-        `SELECT * FROM intercom WHERE intercom_id = $1`,
-        [intercomId]
-    );
-    return result.rows[0];
-}
 async function findIntercomByDeviceId(deviceId) {
     const result = await pool.query(
         `
@@ -65,7 +58,6 @@ async function createIntercom(deviceId, sipAddress, doorId) {
     );
     return result.rows[0];
 }
-// Update intercom-specific fields
 async function updateIntercom(deviceId, sipAddress, doorId) {
     const result = await pool.query(
         `
@@ -80,12 +72,5 @@ async function updateIntercom(deviceId, sipAddress, doorId) {
     );
     return result.rows[0];
 }
-async function deleteIntercom(deviceId) {
-    const result = await pool.query(
-        `DELETE FROM intercom WHERE device_id = $1 RETURNING *`,
-        [deviceId]
-    );
-    return result.rows[0];
-}
 
-module.exports = { findIntercomById, findIntercomByDeviceId, findIntercomBySipAddress, createIntercom, updateIntercom, deleteIntercom, };
+module.exports = { findIntercomByDeviceId, findIntercomBySipAddress, createIntercom, updateIntercom, };

@@ -30,6 +30,18 @@ router.get('/tree', async (req, res) => {
         return sendServerError(res, error, 'Could not retrieve condominium tree');
     }
 });
+router.get('/mobile', async (req, res) => {
+    try {
+        const { userId, role } = req.user;
+        if (role !== 'admin') {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        const condominiums = await condominiumService.listAdminCondominiums(userId);
+        return res.status(200).json(condominiums);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not retrieve condominiums');
+    }
+});
 router.post('/', async (req, res) => {
     try {
         const { userId, role } = req.user;

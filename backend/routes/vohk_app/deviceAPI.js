@@ -5,8 +5,6 @@ const upload = multer({ storage: multer.memoryStorage() });
 const authenticate = require('../../middleware/authMiddleware');
 router.use(authenticate);
 const deviceService = require('../../services/vohk_app/deviceService');
-const propertyService = require('../../services/vohk_app/propertyService');
-
 
 function sendServerError(res, error, message) {
     console.error(error);
@@ -35,31 +33,6 @@ router.get('/cameras', async (req, res) => {
     }
 });
 // ── Device management ─────────────────────────────────────────────────────────
-
-router.get('/location-mobile', async (req, res) => {
-    try {
-        const { userId, tenantId, role } = req.user;
-        const { condominiumId } = req.query;
-        let targetCondominiumId;
-        if (role === 'admin') {
-            const condominium = await propertyService.findCurrentCondominium(userId, tenantId);
-            if (!condominium) {
-                return res.status(404).json({ error: 'No condominium found for admin' });
-            }
-            targetCondominiumId = condominium.condominium_id;
-        } else if (role === 'resident') {
-            if (!condominiumId) {
-                return res.status(400).json({ error: 'condominiumId is required' });
-            }
-            targetCondominiumId = condominiumId;
-        }
-        const devices = await deviceService.getDevicesByCondominium(targetCondominiumId, null);
-        res.json(devices);
-    } catch (err) {
-        console.log(err);
-        res.status(500).json({ error: err.message });
-    }
-});
 router.get('/zone/:zoneId', async (req, res) => {
     try {
         const devices = await deviceService.getDevicesByZone(req.params.zoneId);

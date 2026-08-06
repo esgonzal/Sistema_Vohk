@@ -1,25 +1,5 @@
 const pool = require('../database/db');
 
-async function findBuildingById(buildingId) {
-    const result = await pool.query(
-        `SELECT * FROM building WHERE building_id = $1`,
-        [buildingId]
-    );
-    return result.rows[0];
-}
-async function findBuildingsByCondominium(condominiumId) {
-    const result = await pool.query(
-        `
-        SELECT b.*
-        FROM building b
-        INNER JOIN condominium c ON c.condominium_id = b.condominium_id
-        WHERE b.condominium_id = $1
-        ORDER BY b.name
-        `,
-        [condominiumId]
-    );
-    return result.rows;
-}
 async function createBuilding(condominiumId, userId, name, floorCount) {
     const result = await pool.query(
         `
@@ -73,4 +53,4 @@ async function countUnitsByBuilding(buildingId, userId) {
     return result.rows[0].count;
 }
 
-module.exports = { findBuildingById, findBuildingsByCondominium, createBuilding, updateBuilding, deleteBuilding, countUnitsByBuilding };
+module.exports = { createBuilding, updateBuilding, deleteBuilding, countUnitsByBuilding };

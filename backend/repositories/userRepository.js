@@ -11,25 +11,6 @@ async function findById(userId) {
     );
     return result.rows[0];
 }
-async function findTenantIdByUserId(userId) {
-    const result = await pool.query(
-        `
-        SELECT tenant_id
-        FROM condominium
-        WHERE admin_user_id = $1
-        UNION
-        SELECT c.tenant_id
-        FROM resident_unit ru
-        JOIN unit u ON u.unit_id = ru.unit_id
-        JOIN building b ON b.building_id = u.building_id
-        JOIN condominium c ON c.condominium_id = b.condominium_id
-        WHERE ru.user_id = $1
-        LIMIT 1
-        `,
-        [userId]
-    );
-    return result.rows[0] || null;
-}
 async function findByUsername(username) {
     const result = await pool.query(
         `
@@ -113,18 +94,6 @@ async function clearFcmToken(userId, fcmToken) {
     );
     return result.rows[0] || null;
 }
-async function fetchPrimaryUnit(user_id) {
-    const result = await pool.query(
-        `
-        SELECT unit_id
-         FROM resident_unit
-         WHERE user_id = $1 AND is_primary = TRUE
-         LIMIT 1
-        `,
-        [user_id]
-    );
-    return result.rows[0] ?? null;
-}
 async function createResident(username, passwordHash, rut, sipIdentity, email, legalName) {
     const result = await pool.query(
         `
@@ -174,42 +143,6 @@ async function assignResidentToUnit(userId, unitId, isPrimary = false) {
         [userId, unitId, isPrimary]
     );
     return result.rows[0];
-}
-async function deleteResident(userId) {
-    const result = await pool.query(
-        `
-        DELETE FROM app_user
-        WHERE user_id = $1
-        RETURNING *
-        `,
-        [userId]
-    );
-    return result.rows[0];
-}
-async function findUsersByUnit(unitId, tenantId) {
-    const result = await pool.query(
-        `
-        SELECT
-            u.user_id,
-            u.username,
-            u.rut,
-            u.sip_identity,
-            u.email,
-            u.legal_name,
-            u.role,
-            u.active,
-            ru.is_primary
-        FROM resident_unit ru
-        JOIN app_user u ON u.user_id = ru.user_id
-        JOIN unit un ON un.unit_id = ru.unit_id
-        JOIN building b ON b.building_id = un.building_id
-        JOIN condominium c ON c.condominium_id = b.condominium_id
-        WHERE ru.unit_id = $1 AND c.tenant_id = $2
-        ORDER BY ru.is_primary DESC, u.legal_name
-        `,
-        [unitId, tenantId]
-    );
-    return result.rows;
 }
 async function savePasswordResetToken(userId, tokenHash, expiresAt) {
     await pool.query(
@@ -310,8 +243,8 @@ async function getUsersByCondominium(condominiumId) {
 }
 
 module.exports = {
-    findById, findTenantIdByUserId, findByUsername, findByRut, findByIdentity, findByEmail, findByPasswordResetToken,
-    updateFcmToken, clearFcmToken, fetchPrimaryUnit, createResident, updateResident, assignResidentToUnit,
-    deleteResident, findUsersByUnit, savePasswordResetToken, resetPassword, updateUsername, updateEmail, updatePassword,
+    findById, findByUsername, findByRut, findByIdentity, findByEmail, findByPasswordResetToken,
+    updateFcmToken, clearFcmToken, createResident, updateResident, assignResidentToUnit,
+    savePasswordResetToken, resetPassword, updateUsername, updateEmail, updatePassword,
     getUsersByCondominium
 };

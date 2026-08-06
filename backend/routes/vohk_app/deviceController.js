@@ -13,7 +13,22 @@ function sendServerError(res, error, message) {
     }
     return res.status(500).json({ error: message });
 }
-
+router.get('/location-mobile', async (req, res) => {
+    try {
+        const { userId, role } = req.user;
+        const { condominiumId } = req.query;
+        if (role !== 'admin' && role !== 'resident') {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        if (typeof condominiumId !== 'string' || condominiumId.trim() === '') {
+            return res.status(400).json({ error: 'Condominium ID is required' });
+        }
+        const devices = await deviceService.getMobileDevices({ userId, role, condominiumId });
+        return res.status(200).json(devices);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not retrieve devices');
+    }
+});
 router.post('/open-door/:deviceId', async (req, res) => {
     try {
         const result = await deviceService.openDoor(req.params.deviceId);

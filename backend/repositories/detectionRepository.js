@@ -23,13 +23,6 @@ async function findDetectionsByDevice(deviceId, limit = 100) {
     );
     return result.rows;
 }
-async function findDetectionById(detectionId) {
-    const result = await pool.query(
-        `SELECT * FROM detection WHERE detection_id = $1`,
-        [detectionId]
-    );
-    return result.rows[0];
-}
 async function createDetection(deviceId, detectedClass, confidence, snapshotPath, detectedAt) {
     const result = await pool.query(
         `
@@ -41,12 +34,5 @@ async function createDetection(deviceId, detectedClass, confidence, snapshotPath
     );
     return result.rows[0];
 }
-async function deleteDetection(detectionId) {
-    const result = await pool.query(
-        `DELETE FROM detection WHERE detection_id = $1 RETURNING *`,
-        [detectionId]
-    );
-    return result.rows[0];
-}
 
-module.exports = { findDetections, findDetectionsByDevice, findDetectionById, createDetection, deleteDetection };
+module.exports = { findDetections, findDetectionsByDevice, createDetection };

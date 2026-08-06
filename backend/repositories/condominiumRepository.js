@@ -1,28 +1,25 @@
 const pool = require('../database/db');
 
-async function findCondominiumById(condominiumId) {
-    const result = await pool.query(
-        `SELECT * FROM condominium WHERE condominium_id = $1`,
-        [condominiumId]
-    );
-    return result.rows[0];
-}
 async function findByIdAndAdmin(condominiumId, adminUserId) {
     const result = await pool.query(
         `
         SELECT condominium_id
         FROM condominium
-        WHERE condominium_id = $1
-        AND admin_user_id = $2
+        WHERE condominium_id = $1 AND admin_user_id = $2
         `,
         [condominiumId, adminUserId]
     );
     return result.rows[0];
 }
-async function findCondominiums(adminUserId) {
+async function findByAdminUserId(adminUserId) {
     const result = await pool.query(
         `
-        SELECT *
+        SELECT
+            condominium_id,
+            name,
+            address,
+            city,
+            created_at
         FROM condominium
         WHERE admin_user_id = $1
         ORDER BY name
@@ -66,18 +63,6 @@ async function deleteCondominium(condominiumId, userId) {
         [condominiumId, userId]
     );
     return result.rows[0];
-}
-async function getCondominiumByUnitId(unitId) {
-    const result = await pool.query(
-        `
-        SELECT b.condominium_id
-        FROM unit u
-        JOIN building b ON u.building_id = b.building_id
-        WHERE u.unit_id = $1
-        `,
-        [unitId]
-    );
-    return result.rows[0]?.condominium_id;
 }
 async function countBuildingsByCondominium(condominiumId, userId) {
     const result = await pool.query(
@@ -151,7 +136,6 @@ async function findUnitTreeRows(condominiumId) {
 }
 
 module.exports = {
-    findCondominiumById, findByIdAndAdmin, findCondominiums,
-    createCondominium, updateCondominium, deleteCondominium, getCondominiumByUnitId, countBuildingsByCondominium,
-    findCondominiumTreeRows, findUnitTreeRows
+    findByIdAndAdmin, findByAdminUserId, findCondominiumTreeRows, findUnitTreeRows,
+    createCondominium, updateCondominium, deleteCondominium, countBuildingsByCondominium,
 };

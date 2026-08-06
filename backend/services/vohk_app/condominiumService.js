@@ -33,6 +33,9 @@ async function getCondominiumTree(adminUserId) {
     }
     return condominiums;
 }
+async function listAdminCondominiums(adminUserId) {
+    return condominiumRepository.findByAdminUserId(adminUserId);
+}
 async function createCondominium(userId, name, address, city) {
     const condominium = await condominiumRepository.createCondominium(userId, name, address, city);
     if (!condominium) {
@@ -93,7 +96,7 @@ async function deleteZone(zoneId, userId) {
 }
 
 module.exports = {
-    getCondominiumTree,
+    getCondominiumTree, listAdminCondominiums,
     createCondominium, updateCondominium, deleteCondominium,
     createBuilding, updateBuilding, deleteBuilding,
     createZone, updateZone, deleteZone,

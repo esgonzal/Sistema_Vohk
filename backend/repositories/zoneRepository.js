@@ -1,24 +1,5 @@
 const pool = require('../database/db');
 
-async function findZonesByCondominium(condominiumId) {
-    const result = await pool.query(
-        `SELECT z.*
-        FROM zone z
-        INNER JOIN condominium c ON c.condominium_id = z.condominium_id
-        WHERE z.condominium_id = $1
-        ORDER BY z.name
-        `,
-        [condominiumId]
-    );
-    return result.rows;
-}
-async function findZoneById(zoneId) {
-    const result = await pool.query(
-        `SELECT * FROM zone WHERE zone_id = $1`,
-        [zoneId]
-    );
-    return result.rows[0];
-}
 async function createZone(condominiumId, userId, name) {
     const result = await pool.query(
         `
@@ -71,4 +52,4 @@ async function countDevicesByZone(zoneId, userId) {
     return result.rows[0].count;
 }
 
-module.exports = { findZonesByCondominium, findZoneById, createZone, updateZone, deleteZone, countDevicesByZone };
+module.exports = { createZone, updateZone, deleteZone, countDevicesByZone };
