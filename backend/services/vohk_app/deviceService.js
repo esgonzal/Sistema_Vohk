@@ -520,13 +520,11 @@ async function createIntercomPhoneRecord(deviceId, roomNo, phoneNumbers) {
             PhoneNumbers: phoneNumbers.map(phoneNumber => ({ phoneNumber: String(phoneNumber) }))
         }
     };
-    console.log('CREATE SIP RECORD:', JSON.stringify(payload));
     const response = await client.fetch(
         `http://${intercom.ip_address}:${intercom.port}/ISAPI/VideoIntercom/PhoneNumberRecords?format=json`,
         { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) },
     );
     const data = await response.json();
-    console.log('CREATE SIP RESPONSE:', response.status, data);
     return { ok: response.ok && data.statusCode === 1, status: response.status, data };
 }
 async function updateIntercomPhoneRecord(deviceId, recordId, roomNo, phoneNumbers) {

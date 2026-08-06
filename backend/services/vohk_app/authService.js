@@ -3,14 +3,15 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const userRepository = require('../../repositories/userRepository');
-const { SsmlBreak } = require('twilio/lib/twiml/VoiceResponse');
 const AccessToken = twilio.jwt.AccessToken;
 const VoiceGrant = AccessToken.VoiceGrant;
 const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
 const TWILIO_API_KEY = process.env.TWILIO_API_KEY;
 const TWILIO_API_SECRET = process.env.TWILIO_API_SECRET;
 const TWILIO_TWIML_APP_SID = process.env.TWILIO_TWIML_APP_SID;
-const TWILIO_PUSH_CRED_SID = process.env.TWILIO_PUSH_CRED_SID;
+const TWILIO_ANDROID_PUSH_CRED_SID = process.env.TWILIO_ANDROID_PUSH_CRED_SID;
+const TWILIO_IOS_PUSH_CRED_SANDBOX_SID = process.env.TWILIO_IOS_PUSH_CRED_SANDBOX_SID;
+const TWILIO_IOS_PUSH_CRED_PRODUCTION_SID = process.env.TWILIO_IOS_PUSH_CRED_PRODUCTION_SID;
 
 async function login(username, password) {
     const user = await userRepository.findByUsername(username);
@@ -25,7 +26,6 @@ async function login(username, password) {
     const token = generateJwt(session);
     return { success: true, token, user: session, legalName: user.legal_name, email: user.email };
 }
-
 async function forgotPassword(email) {
     const user = await userRepository.findByEmail(email);
     if (!user) {
@@ -42,7 +42,6 @@ async function forgotPassword(email) {
     console.log(resetUrl);
     console.log('====================================');
 }
-
 async function resetPassword(token, password) {
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
     const user = await userRepository.findByPasswordResetToken(tokenHash);
@@ -56,8 +55,31 @@ async function resetPassword(token, password) {
     await userRepository.resetPassword(user.user_id, passwordHash);
     return { ok: true };
 }
-
-function generateTwilioToken(identity) {
+function resolveTwilioPushCredential(platform, environment) {
+    if (platform === 'android') {
+        if (!TWILIO_ANDROID_PUSH_CRED_SID) {
+            throw new Error('TWILIO_ANDROID_PUSH_CRED_SID is not configured');
+        }
+        return TWILIO_ANDROID_PUSH_CRED_SID;
+    }
+    if (platform === 'ios') {
+        if (environment === 'sandbox') {
+            if (!TWILIO_IOS_PUSH_CRED_SANDBOX_SID) {
+                throw new Error('TWILIO_IOS_PUSH_CRED_SANDBOX_SID is not configured');
+            }
+            return TWILIO_IOS_PUSH_CRED_SANDBOX_SID;
+        }
+        if (environment === 'production') {
+            if (!TWILIO_IOS_PUSH_CRED_PRODUCTION_SID) {
+                throw new Error('TWILIO_IOS_PUSH_CRED_PRODUCTION_SID is not configured');
+            }
+            return TWILIO_IOS_PUSH_CRED_PRODUCTION_SID;
+        }
+        throw new Error(`Unsupported iOS environment: ${environment}`);
+    }
+    throw new Error(`Unsupported platform: ${platform}`);
+}
+function generateTwilioToken(identity, platform, environment) {
     if (!TWILIO_ACCOUNT_SID) {
         throw new Error('TWILIO_ACCOUNT_SID is not configured');
     }
@@ -70,18 +92,15 @@ function generateTwilioToken(identity) {
     if (!TWILIO_TWIML_APP_SID) {
         throw new Error('TWILIO_TWIML_APP_SID is not configured');
     }
-    if (!TWILIO_PUSH_CRED_SID) {
-        throw new Error('TWILIO_PUSH_CRED_SID is not configured');
-    }
     if (!identity) {
         throw new Error('Twilio identity is required');
     }
-    const token = new AccessToken(TWILIO_ACCOUNT_SID, TWILIO_API_KEY, TWILIO_API_SECRET, { identity, ttl: 3600 });
-    const voiceGrant = new VoiceGrant({ outgoingApplicationSid: TWILIO_TWIML_APP_SID, incomingAllow: true, pushCredentialSid: TWILIO_PUSH_CRED_SID, });
+    const pushCredentialSid = resolveTwilioPushCredential(platform, environment);
+    const token = new AccessToken(TWILIO_ACCOUNT_SID, TWILIO_API_KEY, TWILIO_API_SECRET, { identity, ttl: 3600, });
+    const voiceGrant = new VoiceGrant({ outgoingApplicationSid: TWILIO_TWIML_APP_SID, incomingAllow: true, pushCredentialSid, });
     token.addGrant(voiceGrant);
     return token.toJwt();
 }
-
 async function registerFcmToken(userId, fcmToken) {
     const updatedUser = await userRepository.updateFcmToken(userId, fcmToken);
     if (!updatedUser) {
@@ -89,12 +108,10 @@ async function registerFcmToken(userId, fcmToken) {
     }
     return { success: true, identity: updatedUser.sip_identity };
 }
-
 async function unregisterFcmToken(userId, fcmToken) {
     await userRepository.clearFcmToken(userId, fcmToken);
     return { success: true };
 }
-
 function generateJwt(session) {
     return jwt.sign(
         { userId: session.userId, username: session.username, role: session.role, identity: session.identity },
