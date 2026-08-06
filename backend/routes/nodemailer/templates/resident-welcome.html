@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenido a VÖHK</title>
+</head>
+
+<body style="margin: 0;padding: 0;background-color: #f4f5f7;font-family: Arial, Helvetica, sans-serif;color: #202124;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding: 32px 16px;">
+        <tr>
+            <td align="center">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+                    style="max-width: 600px;background-color: #ffffff;border-radius: 12px;overflow: hidden;">
+                    <tr>
+                        <td style="padding: 24px;background-color: #111827;color: #ffffff;text-align: center;">
+                            <h1 style="margin: 0; font-size: 26px;">
+                                VÖHK
+                            </h1>
+                            <p style="margin: 6px 0 0;font-size: 12px;letter-spacing: 2px;">
+                                CONDOMINIOS
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding: 32px;">
+                            <h2 style="margin-top: 0;">Hola {{legalName}}</h2>
+                            <p>
+                                Se ha creado una cuenta para ti en la
+                                plataforma VÖHK Condominios.
+                            </p>
+                            <p>
+                                Utiliza las siguientes credenciales para
+                                iniciar sesión:
+                            </p>
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+                                style="margin: 24px 0;padding: 20px;background-color: #f4f5f7;border-radius: 8px;">
+                                <tr>
+                                    <td style="padding: 6px 0;">
+                                        <strong>Correo:</strong>
+                                    </td>
+                                    <td style="padding: 6px 0;text-align: right;">
+                                        {{email}}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 6px 0;">
+                                        <strong>Contraseña temporal:</strong>
+                                    </td>
+                                    <td
+                                        style="padding: 6px 0;text-align: right;font-family: monospace;font-size: 16px;">
+                                        {{temporaryPassword}}
+                                    </td>
+                                </tr>
+                            </table>
+                            <p>
+                                Por seguridad, te recomendamos cambiar tu
+                                contraseña después de iniciar sesión.
+                            </p>
+                            <p style="margin-bottom: 0;color: #6b7280;font-size: 13px;">
+                                Si no esperabas recibir este correo,
+                                comunícate con la administración de tu
+                                condominio.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

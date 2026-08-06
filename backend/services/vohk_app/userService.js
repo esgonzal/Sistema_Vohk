@@ -5,6 +5,7 @@ const deviceRepository = require('../../repositories/deviceRepository');
 const residentUnitRepository = require('../../repositories/residentUnitRepository');
 const intercomUserRepository = require('../../repositories/intercomUserRepository');
 const deviceService = require('../../services/vohk_app/deviceService');
+const emailService = require('../../services/vohk_app/emailService');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 
@@ -29,8 +30,11 @@ async function createResident(unitId, adminUserId, { legalName, rut, email, isPr
     const normalizedLegalName = legalName.trim();
     const sipIdentity = formattedRut.replace(/[.-]/g, '').slice(0, -1);
     let resident = await userRepository.findByRut(formattedRut);
+    let isNewUser = false;
+    let temporaryPassword = null;
     if (!resident) {
-        const temporaryPassword = crypto.randomInt(100000, 1000000).toString();
+        isNewUser = true;
+        temporaryPassword = crypto.randomInt(100000, 1000000).toString();
         const passwordHash = await bcrypt.hash(temporaryPassword, 10);
         resident = await userRepository.createResident(normalizedEmail, passwordHash, formattedRut, sipIdentity, normalizedEmail, normalizedLegalName);
     }
@@ -43,20 +47,27 @@ async function createResident(unitId, adminUserId, { legalName, rut, email, isPr
         const dynamicCode = crypto.randomInt(100000, 1000000).toString();
         for (const device of intercoms) {
             try {
-                const result = await deviceService.createIntercomUser(
-                    device.device_id, { employeeNo: resident.sip_identity, dynamicCode, name: resident.legal_name, roomNumber: unit.room_no, floorNumber: unit.floor ?? 1 }
-                );
+                const result = await deviceService.createIntercomUser(device.device_id, { employeeNo: resident.sip_identity, dynamicCode, name: resident.legal_name, roomNumber: unit.room_no, floorNumber: unit.floor ?? 1 });
                 if (result.ok || result.error === 'employeeNoAlreadyExist') {
                     await intercomUserRepository.createIntercomUser(resident.user_id, device.intercom_id, resident.sip_identity, dynamicCode);
                 } else {
-                    console.error(`Intercom sync failed for device ${device.device_id}:`, result.error);
+                    console.error(`Intercom sync failed for device ` + `${device.device_id}:`, result.error);
                 }
             } catch (error) {
-                console.error(`Unexpected intercom error for device ${device.device_id}:`, error.message);
+                console.error(`Unexpected intercom error for device ` + `${device.device_id}:`, error.message);
             }
         }
     }
     await syncUnitSipNumbers(unit, intercoms);
+    let welcomeEmailSent = false;
+    if (isNewUser && temporaryPassword) {
+        try {
+            await emailService.sendResidentWelcomeEmail({ toEmail: normalizedEmail, legalName: normalizedLegalName, temporaryPassword });
+            welcomeEmailSent = true;
+        } catch (error) {
+            console.error(`Could not send welcome email to ${normalizedEmail}:`, error.message);
+        }
+    }
     return resident;
 }
 async function updateResident(residentId, adminUserId, { unitId, legalName, email, isPrimary }) {
