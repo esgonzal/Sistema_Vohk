@@ -98,10 +98,11 @@ const multipleCards = async ({ accessToken, locks, cards }) => {
                     }
                     const response = await axios.post(
                         `${TTLOCK_BASE_URL}/identityCard/add`,
-                        new URLSearchParams({ clientId: TTLOCK_CLIENT_ID, accessToken, lockId: lock.lockId.toString(), cardNumber: card.number.toString(), cardName: card.name, startDate: now.toString(), endDate: '0', addType: '2', date: now.toString() }),
+                        new URLSearchParams({ clientId: TTLOCK_CLIENT_ID, accessToken, lockId: lock.lockId.toString(), cardNumber: card.number.toString(), cardName: card.name, startDate: '0', endDate: '0', addType: '2', date: now.toString() }),
                         { headers: buildHeaders(accessToken) }
                     );
                     const data = response.data;
+                    console.log(data);
                     if (data?.cardId) {
                         results.push({ lockId: lock.lockId, lockAlias: lock.lockAlias, cardName: card.name, tipo: card.tipo, number: card.number, result: 'success', cardId: data.cardId, errcode: 0 });
                     } else {

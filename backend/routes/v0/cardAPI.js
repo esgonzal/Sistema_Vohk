@@ -77,6 +77,7 @@ router.post('/changePeriod', async (req, res) => {
 });
 router.post('/multipleCards', async (req, res) => {
     const { locks, cards } = req.body;
+    console.log(locks, cards);
     const accessToken = req.headers.authorization?.replace('Bearer ', '');
     if (!accessToken) {
         return res.status(401).json({ errmsg: 'Missing access token' });
