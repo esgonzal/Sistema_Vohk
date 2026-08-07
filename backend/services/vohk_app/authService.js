@@ -82,24 +82,21 @@ function resolveTwilioPushCredential(platform, environment) {
     throw new Error(`Unsupported platform: ${platform}`);
 }
 function generateTwilioToken(identity, platform, environment) {
-    if (!TWILIO_ACCOUNT_SID) {
-        throw new Error('TWILIO_ACCOUNT_SID is not configured');
+    if (!TWILIO_ACCOUNT_SID) throw new Error('TWILIO_ACCOUNT_SID is not configured');
+    if (!TWILIO_API_KEY) throw new Error('TWILIO_API_KEY is not configured');
+    if (!TWILIO_API_SECRET) throw new Error('TWILIO_API_SECRET is not configured');
+    if (!TWILIO_TWIML_APP_SID) throw new Error('TWILIO_TWIML_APP_SID is not configured');
+    if (!identity) throw new Error('Twilio identity is required');
+    let pushCredentialSid;
+    if (platform === 'android' || platform === 'ios') {
+        pushCredentialSid = resolveTwilioPushCredential(platform, environment);
     }
-    if (!TWILIO_API_KEY) {
-        throw new Error('TWILIO_API_KEY is not configured');
+    const token = new AccessToken(TWILIO_ACCOUNT_SID, TWILIO_API_KEY, TWILIO_API_SECRET, { identity, ttl: 3600 });
+    const grantOptions = { outgoingApplicationSid: TWILIO_TWIML_APP_SID, incomingAllow: true };
+    if (pushCredentialSid) {
+        grantOptions.pushCredentialSid = pushCredentialSid;
     }
-    if (!TWILIO_API_SECRET) {
-        throw new Error('TWILIO_API_SECRET is not configured');
-    }
-    if (!TWILIO_TWIML_APP_SID) {
-        throw new Error('TWILIO_TWIML_APP_SID is not configured');
-    }
-    if (!identity) {
-        throw new Error('Twilio identity is required');
-    }
-    const pushCredentialSid = resolveTwilioPushCredential(platform, environment);
-    const token = new AccessToken(TWILIO_ACCOUNT_SID, TWILIO_API_KEY, TWILIO_API_SECRET, { identity, ttl: 3600, });
-    const voiceGrant = new VoiceGrant({ outgoingApplicationSid: TWILIO_TWIML_APP_SID, incomingAllow: true, pushCredentialSid, });
+    const voiceGrant = new VoiceGrant(grantOptions);
     token.addGrant(voiceGrant);
     return token.toJwt();
 }

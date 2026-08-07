@@ -55,7 +55,7 @@ router.get('/token', authenticate, (req, res) => {
         const { identity } = req.user;
         const { platform, environment } = req.query;
         console.log('Twilio token request:', { platform, environment, identity });
-        if (platform !== 'android' && platform !== 'ios') {
+        if (platform && platform !== 'android' && platform !== 'ios') {
             return res.status(400).json({ error: 'platform must be android or ios' });
         }
         if (platform === 'ios' && environment !== 'sandbox' && environment !== 'production') {
