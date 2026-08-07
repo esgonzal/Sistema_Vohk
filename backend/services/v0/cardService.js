@@ -85,47 +85,31 @@ const changeCardPeriod = async ({ accessToken, lockID, cardID, newStartDate, new
         throw { status: error.response?.status || 500, errcode: error.response?.data?.errcode, message: error.response?.data?.errmsg || error.message };
     }
 }
-const multipleCards = async ({ accessToken, lockID, cards }) => {
+const multipleCards = async ({ accessToken, locks, cards }) => {
     try {
         const results = [];
-        for (const card of cards) {
-            try {
-                const now = Date.now();
-                if (card.tipo === 1) {
-                    const response = await axios.post(
-                        `${TTLOCK_BASE_URL}/identityCard/addForReversedCardNumber`,
-                        new URLSearchParams({ clientId: TTLOCK_CLIENT_ID, accessToken: accessToken, lockId: lockID, cardNumber: card.number, cardName: card.name, startDate: now, endDate: 0, addType: '2', date: now }),
-                        { headers: buildHeaders(accessToken) }
-                    )
-                    const data = response.data;
-                    if (data?.cardId) {
-                        results.push({
-                            cardName: card.name,
-                            tipo: card.tipo,
-                            number: card.number,
-                            result: "success",
-                            cardId: data.cardId,
-                            errcode: 0
-                        });
-                    } else {
-                        results.push({
-                            cardName: card.name || null,
-                            tipo: card.tipo || null,
-                            result: "failed",
-                            errcode: "INVALID_CARD",
-                            errmsg: "Missing card number or name"
-                        });
+        for (const lock of locks) {
+            for (const card of cards) {
+                try {
+                    const now = Date.now();
+                    if (card.tipo !== 1) {
+                        results.push({ lockId: lock.lockId, lockAlias: lock.lockAlias, cardName: card.name, tipo: card.tipo, number: card.number, result: 'failed', errcode: 'INVALID_TYPE', errmsg: 'Unsupported card type' });
                         continue;
                     }
+                    const response = await axios.post(
+                        `${TTLOCK_BASE_URL}/identityCard/addForReversedCardNumber`,
+                        new URLSearchParams({ clientId: TTLOCK_CLIENT_ID, accessToken, lockId: lock.lockId.toString(), cardNumber: card.number.toString(), cardName: card.name, startDate: now.toString(), endDate: '0', addType: '2', date: now.toString() }),
+                        { headers: buildHeaders(accessToken) }
+                    );
+                    const data = response.data;
+                    if (data?.cardId) {
+                        results.push({ lockId: lock.lockId, lockAlias: lock.lockAlias, cardName: card.name, tipo: card.tipo, number: card.number, result: 'success', cardId: data.cardId, errcode: 0 });
+                    } else {
+                        results.push({ lockId: lock.lockId, lockAlias: lock.lockAlias, cardName: card.name, tipo: card.tipo, number: card.number, result: 'failed', errcode: data?.errcode || 'INVALID_CARD', errmsg: data?.errmsg || 'Card could not be created' });
+                    }
+                } catch (error) {
+                    results.push({ lockId: lock.lockId, lockAlias: lock.lockAlias, cardName: card.name, tipo: card.tipo, number: card.number, result: 'failed', errcode: error.response?.data?.errcode || 'UNKNOWN', errmsg: error.response?.data?.errmsg || error.message });
                 }
-            } catch (error) {
-                results.push({
-                    cardName: card.name,
-                    tipo: card.tipo,
-                    result: "failed",
-                    errcode: error.response?.data?.errcode || "UNKNOWN",
-                    errmsg: error.response?.data?.errmsg || error.message
-                });
             }
         }
         return results;

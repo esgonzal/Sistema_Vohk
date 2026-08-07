@@ -75,7 +75,23 @@ router.post('/changePeriod', async (req, res) => {
         return res.status(error.status || 500).json({ errcode: error.errcode || 'UNKNOWN', errmsg: error.message || 'Error changing a card period' });
     }
 });
+router.post('/multipleCards', async (req, res) => {
+    const { locks, cards } = req.body;
+    const accessToken = req.headers.authorization?.replace('Bearer ', '');
+    if (!accessToken) {
+        return res.status(401).json({ errmsg: 'Missing access token' });
+    }
+    if (!Array.isArray(locks) || locks.length === 0 || !Array.isArray(cards) || cards.length === 0) {
+        return res.status(400).json({ errmsg: 'Missing locks or cards' });
+    }
+    try {
+        const data = await cardService.multipleCards({ accessToken, locks, cards });
+        return res.json(data);
+    } catch (error) {
+        console.error('multiple Cards error:', error);
+        return res.status(error.status || 500).json({ errcode: error.errcode || 'UNKNOWN', errmsg: error.message || 'Error adding multiple cards' });
+    }
+});
 router.post('/add', cardController.add);
-router.post('/multipleCards', cardController.multipleCards);
 
 module.exports = router;
