@@ -8,6 +8,8 @@ import { Card } from 'src/app/Interfaces/Elements';
 import { CardServiceService } from 'src/app/services/card-service.service';
 import Swal from 'sweetalert2';
 import { operationResponse } from 'src/app/Interfaces/API_responses';
+import { LockData } from 'src/app/Interfaces/Lock';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-card-table',
@@ -18,6 +20,7 @@ export class CardTableComponent implements OnInit, AfterViewInit {
 
   @Input() lockId!: number;
   @Input() accessToken!: string;
+  @Input() locksOfGroup: LockData[] = [];
   cards: any[] = [];
   displayedColumns = ['Nombre', 'Numero_tarjeta', 'Responsable', 'Fecha', 'Periodo_validez', 'Valido', 'Botones'];
   searchText = '';
@@ -29,7 +32,7 @@ export class CardTableComponent implements OnInit, AfterViewInit {
   isLoading: boolean = false;
 
   constructor(
-    public cardService: CardServiceService) { }
+    public cardService: CardServiceService, private router: Router) { }
 
   async ngOnInit() {
     await this.loadCards();
@@ -67,6 +70,7 @@ export class CardTableComponent implements OnInit, AfterViewInit {
         displayStatus: this.consultarEstado(card)
       }));
       this.dataSource.data = this.cards;
+      console.log(this.cards)
     } catch (err) {
       console.error(err);
     } finally {
@@ -228,5 +232,10 @@ export class CardTableComponent implements OnInit, AfterViewInit {
     } finally {
       this.isLoading = false;
     }
+  }
+  toMultiples() {
+    this.cardService.locksOfGroup = this.locksOfGroup;
+    let url = "/lock/".concat(this.lockId.toString()) + "/card/multiple"
+    this.router.navigate([url]);
   }
 }

@@ -12,33 +12,33 @@ export class CondominiumService {
   constructor(private http: HttpClient) { }
 
   getCondominiums() {
-    return this.http.get<any>(`${this.URL}/app/condominium/condominium-tree`);
+    return this.http.get<any>(`${this.URL}/api/condominiums/tree`);
   }
   createCondominium(name: string, address: string, city: string) {
-    return this.http.post(`${this.URL}/app/condominium/create`, { name, address, city });
+    return this.http.post(`${this.URL}/api/condominiums/`, { name, address, city });
   }
   updateCondominium(condominiumId: string, data: any) {
-    return this.http.put(`${this.URL}/app/condominium/${condominiumId}`, data);
+    return this.http.put(`${this.URL}/api/condominiums/${condominiumId}`, data);
   }
   deleteCondominium(condominiumId: string) {
-    return this.http.delete(`${this.URL}/app/condominium/${condominiumId}`);
+    return this.http.delete(`${this.URL}/api/condominiums/${condominiumId}`);
   }
   createBuilding(condominiumId: string, name: string, floorCount: number) {
-    return this.http.post(`${this.URL}/app/condominium/create-building`, { condominiumId, name, floorCount });
+    return this.http.post(`${this.URL}/api/condominiums/${condominiumId}/buildings`, { name, floorCount });
   }
   updateBuilding(buildingId: string, data: any) {
-    return this.http.put(`${this.URL}/app/condominium/edit-building/${buildingId}`, data);
+    return this.http.put(`${this.URL}/api/condominiums/buildings/${buildingId}`, data);
   }
   deleteBuilding(buildingId: string) {
-    return this.http.delete(`${this.URL}/app/condominium/delete-building/${buildingId}`);
+    return this.http.delete(`${this.URL}/api/condominiums/buildings/${buildingId}`);
   }
   createZone(condominiumId: string, name: string) {
-    return this.http.post(`${this.URL}/app/condominium/create-zone/${condominiumId}`, { name });
+    return this.http.post(`${this.URL}/api/condominiums/${condominiumId}/zones`, { name });
   }
   updateZone(zoneId: string, data: any) {
-    return this.http.put(`${this.URL}/app/condominium/edit-zone/${zoneId}`, data);
+    return this.http.put(`${this.URL}/api/condominiums/zones/${zoneId}`, data);
   }
   deleteZone(zoneId: string) {
-    return this.http.delete(`${this.URL}/app/condominium/delete-zone/${zoneId}`);
+    return this.http.delete(`${this.URL}/api/condominiums/zones/${zoneId}`);
   }
 }

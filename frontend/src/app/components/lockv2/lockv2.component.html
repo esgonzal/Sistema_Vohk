@@ -46,7 +46,9 @@
                         <button mat-menu-item *ngIf="userType==='110301'" (click)="TransferirLock()"><span>Transferir
                                 Dispositivo</span></button>
                         -->
-                        <button mat-menu-item *ngIf="(userType==='110301' || (userType==='110302' && keyRight==='1'))  && lockService.checkFeature(featureValue, 22)" (click)="PassageMode()" disabled>
+                        <button mat-menu-item
+                            *ngIf="(userType==='110301' || (userType==='110302' && keyRight==='1'))  && lockService.checkFeature(featureValue, 22)"
+                            (click)="PassageMode()" disabled>
                             <span>Modo de Paso</span>
                         </button>
                         <button mat-menu-item (click)="esencial()" disabled>
@@ -60,7 +62,9 @@
                     </button>
                 </div>
                 <div>
-                    <button (click)="Unlock()" *ngIf="lockService.checkFeature(featureValue, 10)" matTooltip="Presione para abrir la cerradura remotamente si es que está conectada a un dispositivo hub" disabled>
+                    <button (click)="Unlock()" *ngIf="lockService.checkFeature(featureValue, 10)"
+                        matTooltip="Presione para abrir la cerradura remotamente si es que está conectada a un dispositivo hub"
+                        disabled>
                         <fa-icon [icon]="faDoorOpen"></fa-icon>
                     </button>
                 </div>
@@ -90,7 +94,8 @@
                         <mat-tab label="Tarjetas" *ngIf="lockService.checkFeature(featureValue, 1)"
                             [attr.data-tab]="'cards'">
                             <ng-template matTabContent>
-                                <app-card-table [lockId]="lockId" [accessToken]="accessToken">
+                                <app-card-table [lockId]="lockId" [accessToken]="accessToken"
+                                    [locksOfGroup]="locksOfGroup">
                                 </app-card-table>
                             </ng-template>
                         </mat-tab>

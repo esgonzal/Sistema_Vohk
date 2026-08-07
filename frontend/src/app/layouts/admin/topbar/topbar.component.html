@@ -19,11 +19,47 @@
                 <span>{{ condo.name }}</span>
             </button>
         </mat-menu>
-        <button mat-icon-button>
-            <mat-icon>notifications</mat-icon>
+        <button class="user-menu" mat-button [matMenuTriggerFor]="userMenu">
+            <div class="avatar">
+                {{ userInitials }}
+            </div>
+            <div class="user-info">
+                <div class="user-name">
+                    {{ username }}
+                </div>
+                <div class="user-role">
+                    {{ role }}
+                </div>
+            </div>
         </button>
-        <button class="logout" (click)="logout()">
-            Cerrar sesión
-        </button>
+        <mat-menu #userMenu="matMenu" class="user-dropdown">
+            <div class="menu-header">
+                <div class="avatar large">
+                    {{ userInitials }}
+                </div>
+                <div>
+                    <div class="menu-name">
+                        {{ username }}
+                    </div>
+                    <div class="menu-role">
+                        {{ role }}
+                    </div>
+                </div>
+            </div>
+            <mat-divider></mat-divider>
+            <button mat-menu-item>
+                <mat-icon>lock</mat-icon>
+                <span>Cambiar contraseña</span>
+            </button>
+            <button mat-menu-item>
+                <mat-icon>mail</mat-icon>
+                <span>Cambiar correo</span>
+            </button>
+            <mat-divider></mat-divider>
+            <button mat-menu-item class="logout-item" (click)="logout()">
+                <mat-icon>logout</mat-icon>
+                <span>Cerrar sesión</span>
+            </button>
+        </mat-menu>
     </div>
 </header>

@@ -20,12 +20,15 @@
             <span>{{ item.label }}</span>
         </a>
         <div class="section-title">INTELIGENCIA</div>
-        <a *ngFor="let item of intelligenceItems" [routerLink]="item.route" routerLinkActive="active" class="nav-item">
+        <a *ngFor="let item of intelligenceItems" [routerLink]="item.disabled ? null : item.route"
+            routerLinkActive="active" class="nav-item" [class.disabled]="item.disabled">
             <mat-icon>{{ item.icon }}</mat-icon>
             <span>{{ item.label }}</span>
         </a>
+
         <div class="section-title">SISTEMA</div>
-        <a *ngFor="let item of systemItems" [routerLink]="item.route" routerLinkActive="active" class="nav-item">
+        <a *ngFor="let item of systemItems" [routerLink]="item.disabled ? null : item.route" routerLinkActive="active"
+            class="nav-item" [class.disabled]="item.disabled">
             <mat-icon>{{ item.icon }}</mat-icon>
             <span>{{ item.label }}</span>
         </a>

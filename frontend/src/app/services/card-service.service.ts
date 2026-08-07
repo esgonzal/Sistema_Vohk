@@ -4,6 +4,8 @@ import { lastValueFrom, Observable } from 'rxjs';
 import { CardResponse, CardResult, MultipleCardResponse, operationResponse } from '../Interfaces/API_responses';
 import { Card } from '../Interfaces/Elements';
 import { MatTableDataSource } from '@angular/material/table';
+import { LockData } from '../Interfaces/Lock';
+import { SelectedLock } from '../Interfaces/SelectedLock';
 
 @Injectable({
   providedIn: 'root'
@@ -20,6 +22,7 @@ export class CardServiceService {
   cardNumber: string;
   cards: Card[] = [];
   cardsDataSource: MatTableDataSource<Card>;
+  locksOfGroup: LockData[] = [];
 
   constructor(private http: HttpClient) { }
 
@@ -72,9 +75,9 @@ export class CardServiceService {
     const body = { lockID, cardID, newStartDate, newEndDate };
     return this.http.post<operationResponse>(url, body, { headers: this.getHeaders(accessToken) });
   }
-  multipleCards(userID: string, lockID: number, cards: { name: string, tipo: number, number: string }[]): Observable<CardResult[]> {
-    let body = { userID, lockID, cards }
-    let url = this.URL.concat('/v0/card/multipleCards');
-    return this.http.post<CardResult[]>(url, body);
+  multipleCards(accessToken: string, locks: SelectedLock[], cards: { name: string, tipo: number, number: string }[]): Observable<CardResult[]> {
+    const url = this.URL.concat('/v0/card/multipleCards');
+    const body = { locks, cards }
+    return this.http.post<CardResult[]>(url, body, { headers: this.getHeaders(accessToken) });
   }
 }

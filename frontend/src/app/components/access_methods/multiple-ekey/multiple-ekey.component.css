@@ -25,6 +25,29 @@
     background: rgba(0, 0, 0, 0.03);
 }
 
+.full-width {
+    width: 100%;
+    height: 40px;
+    padding: 0 10px;
+}
+
+.dates {
+    display: flex;
+    gap: 20px;
+}
+
+.dates>div {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+.dates input {
+    height: 38px;
+    padding: 0 10px;
+}
+
 .buttons,
 .button-row {
     display: flex;
@@ -76,23 +99,28 @@
     padding-left: 20px;
 }
 
-.card-table {
+.checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ekey-table {
     width: 100%;
     margin-top: 20px;
     border-collapse: collapse;
 }
 
-.card-table th {
+.ekey-table th {
     text-align: left;
     padding: 12px;
 }
 
-.card-table td {
+.ekey-table td {
     padding: 10px;
 }
 
-.card-table input,
-.card-table select {
+.ekey-table input {
     width: 100%;
     box-sizing: border-box;
     height: 36px;
@@ -101,7 +129,7 @@
     border: 1px solid #ccc;
 }
 
-.card-table tr {
+.ekey-table tr {
     border-bottom: 1px solid #ddd;
 }
 
@@ -132,11 +160,11 @@
     border-color: #555;
 }
 
-.dark-mode .card-table input,
-.dark-mode .card-table select {
+.dark-mode .ekey-table input {
     background: #333;
     color: white;
     border-color: #555;
+
 }
 
 .dark-mode .selected-locks {

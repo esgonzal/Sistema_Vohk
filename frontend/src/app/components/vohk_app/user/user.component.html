@@ -32,11 +32,16 @@
         <div class="table-toolbar">
             <input class="search" placeholder="Buscar usuario, RUT o unidad..." (input)="onSearch($event)">
             <div class="filters">
-                <span class="filter" [class.active]="selectedRole === 'Todos'" (click)="filterByRole('Todos')">Todos</span>
-                <span class="filter" [class.active]="selectedRole === 'resident'" (click)="filterByRole('resident')">Residentes</span>
-                <span class="filter" [class.active]="selectedRole === 'staff'" (click)="filterByRole('staff')">Personal</span>
-                <span class="filter" [class.active]="selectedRole === 'guard'" (click)="filterByRole('guard')">Guardias</span>
-                <span class="filter" [class.active]="selectedRole === 'admin'" (click)="filterByRole('admin')">Administradores</span>
+                <span class="filter" [class.active]="selectedRole === 'Todos'"
+                    (click)="filterByRole('Todos')">Todos</span>
+                <span class="filter" [class.active]="selectedRole === 'resident'"
+                    (click)="filterByRole('resident')">Residentes</span>
+                <span class="filter" [class.active]="selectedRole === 'staff'"
+                    (click)="filterByRole('staff')">Personal</span>
+                <span class="filter" [class.active]="selectedRole === 'guard'"
+                    (click)="filterByRole('guard')">Guardias</span>
+                <span class="filter" [class.active]="selectedRole === 'admin'"
+                    (click)="filterByRole('admin')">Administradores</span>
             </div>
         </div>
         <div class="table-header">
@@ -60,8 +65,10 @@
                 <span class="role">{{ getRoleLabel(user.role) }}</span>
             </div>
             <div>
-                <div>{{ user.building || '-' }}</div>
-                <div class="unit">{{ user.unit || '-' }}</div>
+                <div>{{ getBuildingNames(user) }}</div>
+                <div class="unit">
+                    {{ getUnitNames(user) }}
+                </div>
             </div>
             <div class="methods">
                 <span class="method">APP</span>

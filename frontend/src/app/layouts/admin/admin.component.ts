@@ -1,19 +1,24 @@
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
-import { AuthService } from 'src/app/services/vohk_app/auth.service';
+import { Component, OnInit } from '@angular/core';
+import { TwilioService } from '../../services/vohk_app/twilio.service';
+
 
 @Component({
   selector: 'app-admin',
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css']
 })
-export class AdminComponent {
+export class AdminComponent implements OnInit {
 
-  constructor(private authService: AuthService, private router: Router) { }
+  
+  constructor(private twilioService: TwilioService) { }
 
-  logout() {
-    this.authService.logout();
-    this.router.navigate(['/admin/login']);
+  async ngOnInit(): Promise<void> {
+    try {
+      await this.twilioService.initialize();
+    } catch (error) {
+      console.error('Unable to initialize Twilio:', error);
+    }
   }
+
 
 }

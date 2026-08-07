@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { authGuard, authChildGuard } from './guards/auth.guard';
 
 /* =========================
    TTLOCK COMPONENTS
@@ -9,6 +10,7 @@ import { Comunidadesv2Component } from './components/comunidadesv2/comunidadesv2
 import { Lockv2Component } from './components/lockv2/lockv2.component';
 import { MultiplePasscodeComponent } from './components/access_methods/multiple-passcode/multiple-passcode/multiple-passcode.component';
 import { MultipleCardsComponent } from './components/access_methods/multiple-cards/multiple-cards.component';
+import { MultipleEkeyComponent } from './components/access_methods/multiple-ekey/multiple-ekey.component';
 
 /* =========================
    ADMIN COMPONENTS
@@ -16,8 +18,6 @@ import { MultipleCardsComponent } from './components/access_methods/multiple-car
 import { InvitationComponent } from './components/vohk_app/invitation/invitation.component';
 import { CondominiumsComponent } from './components/vohk_app/condominiums/condominiums.component';
 import { UnitsComponent } from './components/vohk_app/units/units.component';
-import { ResidentsComponent } from './components/vohk_app/residents/residents.component';
-import { CondominiumDashboardComponent } from './components/vohk_app/condominium-dashboard/condominium-dashboard.component';
 
 /* =========================
    LAYOUTS
@@ -28,6 +28,7 @@ import { LoginComponent } from './components/vohk_app/login/login.component';
 import { ResetPasswordComponent } from './components/vohk_app/reset-password/reset-password.component';
 import { DashboardComponent } from './components/vohk_app/dashboard/dashboard.component';
 import { UserComponent } from './components/vohk_app/user/user.component';
+import { ConserjeriaComponent } from './components/vohk_app/conserjeria/conserjeria.component';
 
 const routes: Routes = [
 
@@ -41,8 +42,9 @@ const routes: Routes = [
       { path: 'login', component: Loginv2Component },
       { path: '', component: Comunidadesv2Component },
       { path: 'lock/:id', component: Lockv2Component },
+      { path: 'lock/:id/ekey/multiple', component: MultipleEkeyComponent },
       { path: 'users/:username/lock/:id/passcode/multiple', component: MultiplePasscodeComponent },
-      { path: 'users/:username/lock/:id/card/multiple', component: MultipleCardsComponent },
+      { path: 'lock/:id/card/multiple', component: MultipleCardsComponent },
     ]
   },
 
@@ -51,18 +53,19 @@ const routes: Routes = [
   ========================= */
   { path: 'admin/login', component: LoginComponent },
   { path: 'admin/reset-password/:token', component: ResetPasswordComponent },
-  { path: 'admin/invite/:id', component: InvitationComponent },
+  { path: 'invite/:id', component: InvitationComponent },
   /* =========================
      ADMIN PRIVATE
   ========================= */
   {
-    path: 'admin', component: AdminComponent,
+    path: 'admin', component: AdminComponent, canActivate: [authGuard], canActivateChild: [authGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: DashboardComponent },
       { path: 'condominiums', component: CondominiumsComponent },
       { path: 'unidades', component: UnitsComponent },
       { path: 'usuarios', component: UserComponent },
+      { path: 'conserjeria', component: ConserjeriaComponent }
     ]
   }
 

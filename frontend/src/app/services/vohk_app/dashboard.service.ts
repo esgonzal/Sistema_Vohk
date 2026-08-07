@@ -11,9 +11,9 @@ export class DashboardService {
   constructor(private http: HttpClient) { }
 
   getDashboard() {
-    return this.http.get<any>(`${this.URL}/app/dashboard`);
+    return this.http.get<any>(`${this.URL}/api/dashboard`);
   }
   getCondominiums() {
-    return this.http.get<any>(`${this.URL}/app/admin/condominium-tree`);
+    return this.http.get<any>(`${this.URL}/api/condominiums/tree`);
   }
 }

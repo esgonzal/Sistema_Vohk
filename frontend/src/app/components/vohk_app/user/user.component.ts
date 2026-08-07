@@ -77,7 +77,8 @@ export class UserComponent implements OnInit, OnDestroy {
   applyFilters(): void {
     this.filteredUsers = this.users.filter(user => {
       const matchesRole = this.selectedRole === 'Todos' || user.role === this.selectedRole;
-      const text = `${user.legal_name}${user.rut}${user.email}${user.condominium ?? ''}${user.building ?? ''}${user.unit ?? ''}`.toLowerCase();
+      const locations = (user.locations ?? []).map((l: any) => `${l.building} ${l.unit} ${l.roomNo}`).join(' ');
+      const text = `${user.legal_name} ${user.rut} ${user.email} ${locations}`.toLowerCase();
       const matchesSearch = text.includes(this.searchText);
       return matchesRole && matchesSearch;
     });
@@ -96,11 +97,17 @@ export class UserComponent implements OnInit, OnDestroy {
         return role;
     }
   }
-  getLocation(user: any): string {
-    if (!user.condominium) {
+  getBuildingNames(user: any): string {
+    if (!user.locations?.length) {
       return '-';
     }
-    return `${user.condominium}${user.building ?? ''}${user.unit ?? ''}`;
+    return [...new Set(user.locations.map((l: any) => l.building))].join(', ');
+  }
+  getUnitNames(user: any): string {
+    if (!user.locations?.length) {
+      return '-';
+    }
+    return user.locations.map((l: any) => l.unit).join(', ');
   }
   ngOnDestroy(): void {
     this.destroy$.next();

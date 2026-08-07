@@ -202,19 +202,29 @@ export class CondominiumsComponent implements OnInit {
     const { value } = await Swal.fire({
       title: 'Editar torre',
       html: `
-          <input id="name" class="swal2-input" value="${building.name}" placeholder="Nombre">
-          <input id="floors" class="swal2-input" value="${building.floor_count}" placeholder="Cantidad de pisos">
-        `,
+      <input id="name" class="swal2-input" value="${building.name}" placeholder="Nombre">
+      <input id="floors" type="number" class="swal2-input" value="${building.floor_count}" placeholder="Cantidad de pisos">
+    `,
       focusConfirm: false,
       showCancelButton: true,
       preConfirm: () => {
-        return {
-          name: (document.getElementById('name') as HTMLInputElement).value,
-          floorCount: (document.getElementById('floors') as HTMLInputElement).value,
-        };
+        const name = (document.getElementById('name') as HTMLInputElement).value;
+        const floorCount = Number((document.getElementById('floors') as HTMLInputElement).value);
+        if (!name.trim()) {
+          Swal.showValidationMessage('El nombre es obligatorio');
+          return;
+        }
+        if (!Number.isInteger(floorCount) || floorCount <= 0) {
+          Swal.showValidationMessage('La cantidad de pisos debe ser un número entero positivo');
+          return;
+        }
+        return { name, floorCount };
       }
     });
-    if (!value) return;
+    if (!value) {
+      return;
+    }
+    console.log(building.building_id, value);
     this.condominiumService.updateBuilding(building.building_id, value).subscribe(() => {
       this.loadCondominiums();
     });

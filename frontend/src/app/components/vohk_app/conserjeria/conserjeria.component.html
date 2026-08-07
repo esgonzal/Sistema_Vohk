@@ -1,0 +1,82 @@
+<div class="concierge-page">
+    <ng-container *ngIf="!loading">
+        <div class="camera-grid">
+            <div class="camera-card" *ngFor="let device of cameraDevices">
+                <div class="camera-player">
+                    <iframe class="camera-frame" [src]="device.safeStreamUrl" [title]="device.name"
+                        frameborder="0" allow="camera; microphone; autoplay; fullscreen" loading="lazy" >
+                    </iframe>
+                </div>
+                <div class="camera-footer">
+                    <div>
+                        <strong>{{device.name}}</strong>
+                        <div>{{device.zone_name}}</div>
+                    </div>
+                    <div class="status">
+                        <span class="online" *ngIf="device.active">● Online</span>
+                        <span class="offline" *ngIf="!device.active">● Offline</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="bottom-panel">
+            <div class="activity">
+                <div class="section-title">Actividad Reciente</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Hora</th>
+                            <th>Evento</th>
+                            <th>Zona</th>
+                            <th>Clasificación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of activities">
+                            <td>{{item.time}}</td>
+                            <td>{{item.event}}</td>
+                            <td>{{item.zone}}</td>
+                            <td><span class="badge">{{item.classification}}</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="actions">
+                <div class="section-title">Acciones</div>
+                <button mat-raised-button color="primary" (click)="simulateCall()">Simular llamada</button>
+                <button mat-stroked-button (click)="openDoor()">Abrir puerta</button>
+                <button mat-stroked-button (click)="callResident()">Llamar residente</button>
+                <button mat-stroked-button (click)="registerVisit()">Registrar visita</button>
+                <button mat-raised-button color="warn" (click)="emergency()">SOS</button>
+            </div>
+        </div>
+    </ng-container>
+</div>
+<div class="incoming-call-backdrop" *ngIf="incomingCall || activeCall">
+    <div class="incoming-call-card">
+        <h2 *ngIf="incomingCall">Llamada entrante</h2>
+        <h2 *ngIf="activeCall">Llamada en curso</h2>
+        <p *ngIf="incomingCall">Llamada recibida desde Twilio</p>
+        <p *ngIf="activeCall">Comunicación activa</p>
+        <div *ngIf="incomingDevice">
+            <h3>{{incomingDevice.name}}</h3>
+            <iframe class="call-camera" [src]="incomingDevice.safeStreamUrl" frameborder="0">
+            </iframe>
+        </div>
+        <div class="buttons">
+            <ng-container *ngIf="incomingCall">
+                <button mat-raised-button color="primary" (click)="answerCall()">
+                    Contestar
+                </button>
+
+                <button mat-raised-button color="warn" (click)="rejectCall()">
+                    Rechazar
+                </button>
+            </ng-container>
+
+            <button *ngIf="activeCall" mat-raised-button color="warn" (click)="hangupCall()">
+                Colgar
+            </button>
+        </div>
+    </div>
+</div>

@@ -38,7 +38,6 @@ import { MatListModule } from '@angular/material/list'
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSortModule } from '@angular/material/sort';
 import { AppRoutingModule } from './app-routing.module';
-import { RouterModule } from '@angular/router';
 
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
@@ -53,8 +52,6 @@ import { MultipleCardsComponent } from './components/access_methods/multiple-car
 import { InvitationComponent } from './components/vohk_app/invitation/invitation.component';
 import { CondominiumsComponent } from './components/vohk_app/condominiums/condominiums.component';
 import { UnitsComponent } from './components/vohk_app/units/units.component';
-import { ResidentsComponent } from './components/vohk_app/residents/residents.component';
-import { CondominiumDashboardComponent } from './components/vohk_app/condominium-dashboard/condominium-dashboard.component';
 import { LoginComponent } from './components/vohk_app/login/login.component';
 import { TTLockComponent } from './layouts/ttlock/ttlock.component';
 import { AdminComponent } from './layouts/admin/admin.component';
@@ -70,6 +67,8 @@ import { SidebarComponent } from './layouts/admin/sidebar/sidebar.component';
 import { TopbarComponent } from './layouts/admin/topbar/topbar.component';
 import { DashboardComponent } from './components/vohk_app/dashboard/dashboard.component';
 import { UserComponent } from './components/vohk_app/user/user.component';
+import { MultipleEkeyComponent } from './components/access_methods/multiple-ekey/multiple-ekey.component';
+import { ConserjeriaComponent } from './components/vohk_app/conserjeria/conserjeria.component';
 
 
 export const CUSTOM_DATE_FORMATS = {
@@ -103,8 +102,6 @@ export const CUSTOM_DATE_FORMATS = {
     InvitationComponent,
     CondominiumsComponent,
     UnitsComponent,
-    ResidentsComponent,
-    CondominiumDashboardComponent,
     LoginComponent,
     TTLockComponent,
     AdminComponent,
@@ -118,6 +115,8 @@ export const CUSTOM_DATE_FORMATS = {
     TopbarComponent,
     DashboardComponent,
     UserComponent,
+    MultipleEkeyComponent,
+    ConserjeriaComponent,
   ],
   imports: [
     BrowserModule,
@@ -145,7 +144,6 @@ export const CUSTOM_DATE_FORMATS = {
     MatListModule,
     MatPaginatorModule,
     MatSortModule,
-    RouterModule.forRoot([])
   ],
   providers: [
     DatePipe,

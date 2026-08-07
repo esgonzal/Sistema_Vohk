@@ -16,7 +16,7 @@ export class ResetPasswordComponent implements OnInit {
   completed = false;
   errorMessage = '';
 
-  constructor(private route: ActivatedRoute, private userService: AuthService) { }
+  constructor(private route: ActivatedRoute, private authService: AuthService) { }
 
   ngOnInit(): void {
     this.token = this.route.snapshot.paramMap.get('token') ?? '';
@@ -37,7 +37,7 @@ export class ResetPasswordComponent implements OnInit {
     }
     this.isLoading = true;
     try {
-      await this.userService.resetPassword({ token: this.token, password: this.password });
+      await this.authService.resetPassword({ token: this.token, password: this.password });
       this.completed = true;
     } catch (error: any) {
       this.errorMessage = error?.error?.error ?? 'No se pudo cambiar la contraseña.';

@@ -73,18 +73,21 @@
                         {{ building.units.length }} unidades
                     </small>
                 </button>
+                <button class="primary-btn" (click)="openCreateUnit(building)">
+                    + Nueva unidad
+                </button>
             </div>
-            <div class="unit-row" *ngFor="let unit of building.units" [hidden]="!building.expanded">
+            <div class="unit-row" *ngFor="let unit of getFilteredUnits(building)" [hidden]="!building.expanded">
                 <div class="unit-info">
                     <div class="avatar">
                         {{ unit.room_no }}
                     </div>
                     <div>
                         <div class="name">
-                            Unidad {{ unit.room_no }}
+                            {{ unit.name || 'Unidad ' + unit.room_no }}
                         </div>
                         <div class="email">
-                            {{ building.name }}
+                            {{ building.name }} · Piso {{ unit.floor }}
                         </div>
                     </div>
                 </div>
@@ -100,14 +103,36 @@
                 </div>
                 <div class="mono">
                     <ng-container *ngFor="let resident of unit.residents">
-                        {{ resident.sip_identity || '-' }}
+                        <div>
+                            <button class="sip-link" *ngIf="resident.sip_identity" (click)="callResident(resident)">
+                                {{ resident.sip_identity }}
+                            </button>
+                            <span *ngIf="!resident.sip_identity">
+                                -
+                            </span>
+                        </div>
                     </ng-container>
+                    <span *ngIf="!unit.residents?.length">
+                        -
+                    </span>
                 </div>
-                <div>
+                <div class="unit-actions">
                     <span class="status" [class.inactive]="!unit.residents?.length">
                         <span class="status-dot"></span>
                         {{ unit.residents?.length ? 'Ocupada' : 'Vacante' }}
                     </span>
+                    <button class="action-btn" (click)="openCreateResident(unit)">
+                        +
+                    </button>
+                    <button class="action-btn" *ngIf="unit.residents?.length" (click)="removeResident(unit)">
+                        -
+                    </button>
+                    <button class="action-btn" (click)="editUnit(unit)">
+                        <mat-icon>edit</mat-icon>
+                    </button>
+                    <button class="action-btn danger" (click)="deleteUnit(unit)">
+                        <mat-icon>delete</mat-icon>
+                    </button>
                 </div>
             </div>
         </ng-container>

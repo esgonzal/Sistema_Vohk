@@ -11,53 +11,33 @@ export class PropertyService {
   constructor(private http: HttpClient) { }
 
   getCondominiums() {
-    return this.http.get<any[]>(this.URL + '/app/admin/condominiums');
+    return this.http.get<any[]>(this.URL + '/api/admin/condominiums');
   }
   getZones(condominiumId: string) {
-    return this.http.get<any[]>(`${this.URL}/app/admin/condominiums/${condominiumId}/zones`);
-  }
-  getDevices(condominiumId: string) {
-    return this.http.get<any[]>(`${this.URL}/app/device/location?condominiumId=${condominiumId}`);
+    return this.http.get<any[]>(`${this.URL}/api/admin/condominiums/${condominiumId}/zones`);
   }
   getBuildings(condominiumId: string) {
-    return this.http.get<any[]>(`${this.URL}/app/admin/condominiums/${condominiumId}/buildings`);
+    return this.http.get<any[]>(`${this.URL}/api/admin/condominiums/${condominiumId}/buildings`);
   }
   getUnits(buildingId: string) {
-    return this.http.get<any[]>(`${this.URL}/app/admin/buildings/${buildingId}/units`);
+    return this.http.get<any[]>(`${this.URL}/api/admin/buildings/${buildingId}/units`);
   }
   getResidents(UnitId: string) {
-    return this.http.get<any[]>(`${this.URL}/app/admin/units/${UnitId}/residents`);
-  }
-  getUnitTree(condominiumId: string) {
-    return this.http.get<any[]>(this.URL + `/app/admin/unit-tree/${condominiumId}`);
+    return this.http.get<any[]>(`${this.URL}/api/admin/units/${UnitId}/residents`);
   }
   createDevice(data: any) {
-    return this.http.post(`${this.URL}/app/device`, data);
+    return this.http.post(`${this.URL}/api/devices`, data);
   }
-  createUnit(buildingId: string, name: string, roomNo: string, floor: number) {
-    return this.http.post(`${this.URL}/app/admin/units`, { buildingId, name, roomNo, floor });
-  }
-  createResident(unitId: string, legalName: string, rut: string, email: string, isPrimary: boolean) {
-    return this.http.post(`${this.URL}/app/admin/units/${unitId}/residents`, { legalName, rut, email, isPrimary });
-  }
-
   updateDevice(deviceId: string, data: any) {
-    return this.http.put(`${this.URL}/app/device/${deviceId}`, data);
-  }
-  updateUnit(UnitId: string, data: any) {
-    return this.http.put(`${this.URL}/app/admin/units/${UnitId}`, data);
+    return this.http.put(`${this.URL}/api/devices/${deviceId}`, data);
   }
   updateResident(userId: string, unitId: string, data: any) {
-    return this.http.put(`${this.URL}/app/admin/residents/${userId}`, { unitId, ...data });
+    return this.http.put(`${this.URL}/api/admin/residents/${userId}`, { unitId, ...data });
   }
-
   deleteDevice(deviceId: string) {
-    return this.http.delete(`${this.URL}/app/device/${deviceId}`);
-  }
-  deleteUnit(unitId: string) {
-    return this.http.delete(`${this.URL}/app/admin/units/${unitId}`);
+    return this.http.delete(`${this.URL}/api/devices/${deviceId}`);
   }
   deleteResident(userId: string, unitId: string) {
-    return this.http.delete(`${this.URL}/app/admin/residents/${userId}/units/${unitId}`);
+    return this.http.delete(`${this.URL}/api/admin/residents/${userId}/units/${unitId}`);
   }
 }

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
+import { InvitationService } from 'src/app/services/vohk_app/invitation.service';
 
 @Component({
   selector: 'app-invitation',
@@ -14,18 +14,13 @@ export class InvitationComponent implements OnInit {
   invitationId = '';
   invitation: any = null;
   dynamicCode = '';
-  visitor = {
-    name: '',
-    email: '',
-    phone: '',
-    vehiclePlate: ''
-  };
+  visitor = { name: '', email: '', phone: '', vehiclePlate: '' };
   selectedPhoto: File | null = null;
   errorMessage = '';
 
   constructor(
     private route: ActivatedRoute,
-    private http: HttpClient
+    private invitationService: InvitationService
   ) { }
 
   ngOnInit(): void {
@@ -35,13 +30,19 @@ export class InvitationComponent implements OnInit {
 
   loadInvitation() {
     this.isLoading = true;
-    this.http.get(`https://api.vohk.cl/app/device/invitations/${this.invitationId}`).subscribe({
-      next: (response: any) => {
-        this.invitation = response;
+    this.errorMessage = '';
+    this.invitationService.getPublicInvitation(this.invitationId).subscribe({
+      next: invitation => {
+        this.invitation = invitation;
+        console.log(this.invitation);
         this.isLoading = false;
       },
-      error: (error) => {
+      error: error => {
         console.error(error);
+        this.errorMessage =
+          error?.error?.error ||
+          error?.message ||
+          'No se pudo cargar la invitación.';
         this.isLoading = false;
       }
     });
@@ -50,18 +51,7 @@ export class InvitationComponent implements OnInit {
   submitInvitation() {
     this.errorMessage = '';
     this.isLoading = true;
-    const formData = new FormData();
-    formData.append('name', this.visitor.name);
-    formData.append('email', this.visitor.email);
-    formData.append('phone', this.visitor.phone);
-    formData.append('vehiclePlate', this.visitor.vehiclePlate);
-    if (this.selectedPhoto) {
-      formData.append('photo', this.selectedPhoto);
-    }
-    this.http.post<any>(
-      `https://api.vohk.cl/app/device/invitations/${this.invitationId}/register`,
-      formData
-    ).subscribe({
+    this.invitationService.registerVisitor(this.invitationId, this.visitor, this.selectedPhoto).subscribe({
       next: response => {
         this.dynamicCode = response.dynamicCode;
         this.registrationCompleted = true;
@@ -70,10 +60,9 @@ export class InvitationComponent implements OnInit {
       error: error => {
         console.error(error);
         this.errorMessage =
-          error?.error?.message ||
           error?.error?.error ||
           error?.message ||
-          JSON.stringify(error);
+          'No se pudo registrar la visita.';
         this.isLoading = false;
       }
     });
