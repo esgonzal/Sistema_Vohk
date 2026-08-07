@@ -3,18 +3,16 @@
         <div class="camera-grid">
             <div class="camera-card" *ngFor="let device of cameraDevices">
                 <div class="camera-player">
-                    <iframe class="camera-frame" [src]="device.safeStreamUrl" [title]="device.name"
-                        frameborder="0" allow="camera; microphone; autoplay; fullscreen" loading="lazy" >
-                    </iframe>
-                </div>
-                <div class="camera-footer">
-                    <div>
-                        <strong>{{device.name}}</strong>
-                        <div>{{device.zone_name}}</div>
-                    </div>
-                    <div class="status">
-                        <span class="online" *ngIf="device.active">● Online</span>
-                        <span class="offline" *ngIf="!device.active">● Offline</span>
+                    <iframe #cameraFrame class="camera-frame" [src]="device.safeStreamUrl" [title]="device.name"
+                        frameborder="0" allow="autoplay; fullscreen" loading="lazy"></iframe>
+                    <button class="fullscreen-button" type="button" (click)="openFullscreen($event)">
+                        <mat-icon>fullscreen</mat-icon>
+                    </button>
+                    <div class="camera-info">
+                        <div>
+                            <strong>{{device.name}}</strong>
+                            <span>{{device.zone_name}}</span>
+                        </div>
                     </div>
                 </div>
             </div>

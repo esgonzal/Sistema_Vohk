@@ -67,7 +67,11 @@ export class ConserjeriaComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.consjerjeriaService.getDevices(condominiumId).subscribe({
       next: devices => {
-        const preparedDevices = devices.map(device => ({ ...device, safeStreamUrl: this.sanitizer.bypassSecurityTrustResourceUrl(device.stream_url) }));
+        const preparedDevices = devices.map(device => {
+          const separator = device.stream_url.includes('?') ? '&' : '?';
+          const streamUrl = `${device.stream_url}${separator}controls=false&autoplay=true&muted=true&playsInline=true&disablepictureinpicture=true`;
+          return { ...device, safeStreamUrl: this.sanitizer.bypassSecurityTrustResourceUrl(streamUrl) };
+        });
         this.devices = preparedDevices;
         this.cameraDevices = preparedDevices.filter(device => device.type === 'camera' || device.type === 'intercom');
         this.loading = false;
@@ -77,6 +81,15 @@ export class ConserjeriaComponent implements OnInit, OnDestroy {
         this.loading = false;
       }
     });
+  }
+
+  openFullscreen(event: Event): void {
+    const button = event.currentTarget as HTMLElement;
+    const cameraPlayer = button.closest('.camera-player') as HTMLElement;
+    if (!cameraPlayer) return;
+    if (cameraPlayer.requestFullscreen) {
+      cameraPlayer.requestFullscreen();
+    }
   }
 
   getLastSeen(device: any): string {
