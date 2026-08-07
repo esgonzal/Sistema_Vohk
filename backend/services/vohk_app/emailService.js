@@ -46,4 +46,10 @@ async function sendResidentWelcomeEmail({ toEmail, legalName, temporaryPassword 
     return sendEmail({ toEmail, subject: 'Tu cuenta en VÖHK Condominios', html, text });
 }
 
-module.exports = { sendEmail, renderTemplate, sendResidentWelcomeEmail };
+async function sendPasswordResetEmail({ toEmail, legalName, resetUrl }) {
+    const html = await renderTemplate('password-reset.html', { legalName: legalName || 'usuario', resetUrl });
+    const text = [`Hola ${legalName || 'usuario'},`, '', 'Recibimos una solicitud para restablecer tu contraseña de VÖHK.', '', 'Puedes cambiar tu contraseña usando el siguiente enlace:', resetUrl, '', 'Este enlace expirará en 30 minutos.', '', 'Si no solicitaste este cambio, puedes ignorar este correo.'].join('\n');
+    return sendEmail({ toEmail, subject: 'Restablecer contraseña - VÖHK', html, text });
+}
+
+module.exports = { sendEmail, renderTemplate, sendResidentWelcomeEmail, sendPasswordResetEmail };

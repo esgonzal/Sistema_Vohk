@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const userRepository = require('../../repositories/userRepository');
+const emailService = require('../vohk_app/emailService');
 const AccessToken = twilio.jwt.AccessToken;
 const VoiceGrant = AccessToken.VoiceGrant;
 const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
@@ -27,7 +28,8 @@ async function login(username, password) {
     return { success: true, token, user: session, legalName: user.legal_name, email: user.email };
 }
 async function forgotPassword(email) {
-    const user = await userRepository.findByEmail(email);
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await userRepository.findByEmail(normalizedEmail);
     if (!user) {
         return;
     }
@@ -36,11 +38,11 @@ async function forgotPassword(email) {
     const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
     await userRepository.savePasswordResetToken(user.user_id, tokenHash, expiresAt);
     const resetUrl = `https://app.vohk.cl/admin/reset-password/${token}`;
-    console.log('====================================');
-    console.log('PASSWORD RESET');
-    console.log(user.email);
-    console.log(resetUrl);
-    console.log('====================================');
+    try {
+        await emailService.sendPasswordResetEmail({ toEmail: user.email, legalName: user.legal_name, resetUrl });
+    } catch (error) {
+        console.error(`Could not send password reset email to ${user.email}:`, error.message);
+    }
 }
 async function resetPassword(token, password) {
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');

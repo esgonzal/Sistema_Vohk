@@ -5,7 +5,7 @@ const deviceRepository = require('../../repositories/deviceRepository');
 const residentUnitRepository = require('../../repositories/residentUnitRepository');
 const intercomUserRepository = require('../../repositories/intercomUserRepository');
 const deviceService = require('../../services/vohk_app/deviceService');
-const emailService = require('../../services/vohk_app/emailService');
+const emailService = require('../vohk_app/emailService');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 

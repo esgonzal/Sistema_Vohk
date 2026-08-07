@@ -47,15 +47,12 @@ async function findByIdentity(sip_identity) {
     return result.rows[0];
 }
 async function findByEmail(email) {
-    const result = await pool.query(
-        `
+    const result = await pool.query(`
         SELECT *
         FROM app_user
-        WHERE email = $1
+        WHERE LOWER(email) = LOWER($1)
         LIMIT 1
-        `,
-        [email]
-    );
+    `, [email]);
     return result.rows[0] || null;
 }
 async function findByPasswordResetToken(tokenHash) {
