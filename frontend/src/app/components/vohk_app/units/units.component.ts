@@ -37,6 +37,10 @@ export class UnitsComponent implements OnInit, OnDestroy {
       }
       this.loadUnitTree(condo.condominium_id);
     });
+    this.twilioService.callEnded$.pipe(takeUntil(this.destroy$)).subscribe(() => {
+      console.log('Remote Twilio call ended');
+      Swal.close();
+    });
   }
   loadUnitTree(condominiumId: string): void {
     this.loading = true;
@@ -314,21 +318,13 @@ export class UnitsComponent implements OnInit, OnDestroy {
     }
     try {
       await this.twilioService.call(resident.sip_identity);
-      Swal.fire({
-        title: 'Llamando',
-        text: resident.legal_name,
-        icon: 'info',
-        showCancelButton: true,
-        showConfirmButton: false,
-        cancelButtonText: 'Colgar',
-        allowOutsideClick: false
-      }).then(() => {
+      const result = await Swal.fire({ title: 'Llamando', text: resident.legal_name, icon: 'info', showCancelButton: true, showConfirmButton: false, cancelButtonText: 'Colgar', allowOutsideClick: false });
+      if (result.dismiss === Swal.DismissReason.cancel) {
         this.twilioService.disconnectCall();
-      });
+      }
     } catch (error: any) {
       console.error('Unable to start call:', error);
       Swal.fire('Error', error.message || 'No se pudo iniciar la llamada.', 'error');
     }
   }
-
 }

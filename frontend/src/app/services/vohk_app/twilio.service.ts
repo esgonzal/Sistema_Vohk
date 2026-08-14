@@ -1,9 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Call, Device } from '@twilio/voice-sdk';
-import { BehaviorSubject, firstValueFrom } from 'rxjs';
 import { AuthService } from './auth.service';
-
-import { Subject } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, Subject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -14,6 +12,8 @@ export class TwilioService {
   private initialization?: Promise<void>;
   private incomingCallSubject = new BehaviorSubject<Call | null>(null);
   readonly incomingCall$ = this.incomingCallSubject.asObservable();
+  private callEndedSubject = new Subject<void>();
+  readonly callEnded$ = this.callEndedSubject.asObservable();
   private activeCall?: Call;
   private remoteAudio?: HTMLAudioElement;
 
@@ -108,11 +108,20 @@ export class TwilioService {
       audio.volume = 1;
     });
     call.on('disconnect', () => {
+      console.log('Twilio call disconnected');
       this.remoteAudio = undefined;
-      this.activeCall = undefined;
+      if (this.activeCall === call) {
+        this.activeCall = undefined;
+      }
+      this.callEndedSubject.next();
     });
     call.on('error', error => {
       console.error('Twilio call error:', error);
+      this.remoteAudio = undefined;
+      if (this.activeCall === call) {
+        this.activeCall = undefined;
+      }
+      this.callEndedSubject.next();
     });
   }
 }

@@ -33,8 +33,6 @@ const mondayTest = require('../backend/routes/automation/monday_test.js');
 app.use('/monday', mondayTest);
 const apiRouter = require('./routes/vohk_app');
 app.use('/api', apiRouter);
-const dbTestRouter = require('./routes/dbTest');
-app.use('/db', dbTestRouter);;
 
 app.use("/debug.jpg", (req, res) => {
   res.sendFile("/opt/vohk_ai/debug_center.jpg");

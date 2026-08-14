@@ -91,6 +91,7 @@ function generateTwilioToken(identity, platform, environment) {
     if (platform === 'android' || platform === 'ios') {
         pushCredentialSid = resolveTwilioPushCredential(platform, environment);
     }
+    console.log('Resolved Twilio push credential:', { identity, platform, environment, pushCredentialSid });
     const token = new AccessToken(TWILIO_ACCOUNT_SID, TWILIO_API_KEY, TWILIO_API_SECRET, { identity, ttl: 3600 });
     const grantOptions = { outgoingApplicationSid: TWILIO_TWIML_APP_SID, incomingAllow: true };
     if (pushCredentialSid) {
