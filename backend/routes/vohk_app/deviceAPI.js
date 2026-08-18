@@ -87,8 +87,6 @@ router.put('/:deviceId/zone', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-// ── Open door ─────────────────────────────────────────────────────────────────
-
 // ── Intercom users (Hikvision ISAPI) ─────────────────────────────────────────
 router.get('/:deviceId/users', async (req, res) => {
     try {

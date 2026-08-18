@@ -53,6 +53,24 @@ async function handleOutgoingCall(from, to) {
     if (!from.startsWith('client:') || !to) {
         throw new Error('Invalid client destination');
     }
+    // APP -> INTERCOM
+    if (to.startsWith('intercom:')) {
+        const deviceId = to.substring('intercom:'.length);
+        if (!deviceId) {
+            throw new Error('Invalid intercom destination');
+        }
+        const intercom = await intercomRepository.findIntercomByDeviceId(deviceId);
+        if (!intercom || !intercom.sip_address) {
+            const error = new Error('Intercom not found');
+            error.status = 404;
+            throw error;
+        }
+        console.log(`Outgoing intercom call: ${from} -> ${intercom.sip_address}`);
+        const dial = twiml.dial({ answerOnBridge: true });
+        dial.sip(intercom.sip_address);
+        return twiml.toString();
+    }
+    // APP -> APP / RESIDENT
     const resident = await userRepository.findByIdentity(to);
     if (!resident) {
         const error = new Error('Resident not found');
