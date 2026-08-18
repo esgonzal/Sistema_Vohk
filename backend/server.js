@@ -44,6 +44,8 @@ startDeviceHeartbeat();
 // HTTP Configuration
 const httpPort = 8080;
 const httpServer = http.createServer(app);
+const attachIntercomTalkWebSocket = require('./websocket/intercomTalkWebSocket');
+attachIntercomTalkWebSocket(httpServer);
 
 httpServer.listen(httpPort, () => {
   console.log(`HTTP Server is running on port ${httpPort}`);

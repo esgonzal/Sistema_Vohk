@@ -26,10 +26,13 @@ async function findIntercomByDeviceId(deviceId) {
             d.port,
             d.username,
             d.password_encrypted,
-            i.door_id
+            i.door_id,
+            z.condominium_id
         FROM device d
         JOIN intercom i
             ON i.device_id = d.device_id
+        JOIN zone z
+            ON z.zone_id = d.zone_id
         WHERE d.device_id = $1
         `,
         [deviceId]
