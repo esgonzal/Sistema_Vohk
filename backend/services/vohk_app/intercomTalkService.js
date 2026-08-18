@@ -1,10 +1,13 @@
-const { PassThrough, Readable } = require('stream');
+const net = require('net');
+const { Readable } = require('stream');
 const condominiumRepository = require('../../repositories/condominiumRepository');
 const residentUnitRepository = require('../../repositories/residentUnitRepository');
 const deviceRepository = require('../../repositories/deviceRepository');
 
 const SAMPLE_RATE = 8000;
 const TALK_CHANNEL = 1;
+const G711_FRAME_BYTES = 160;
+const G711_FRAME_INTERVAL_MS = 20;
 
 function httpError(message, status) {
     const error = new Error(message);
@@ -135,6 +138,67 @@ function nodeReadable(body) {
     return Readable.fromWeb(body);
 }
 
+function parseSessionId(openXml) {
+    return openXml.match(/<sessionId>\s*([^<]+)\s*<\/sessionId>/i)?.[1]?.trim() || null;
+}
+
+function openHikvisionUploadSocket(client, url) {
+    const parsedUrl = new URL(url);
+    const requestPath = `${parsedUrl.pathname}${parsedUrl.search}`;
+    const authorization = client.addAuth(url, { method: 'PUT', headers: {} }).headers.Authorization;
+
+    return new Promise((resolve, reject) => {
+        const socket = net.createConnection({ host: parsedUrl.hostname, port: Number(parsedUrl.port) || 80 });
+        let response = Buffer.alloc(0);
+        let settled = false;
+
+        const fail = (error) => {
+            if (settled) return;
+            settled = true;
+            socket.destroy();
+            reject(error);
+        };
+
+        socket.setTimeout(15000, () => fail(new Error('Starting intercom audio upload timed out')));
+        socket.once('error', fail);
+        socket.once('connect', () => {
+            // Hikvision's talk backchannel is intentionally non-standard: it
+            // acknowledges an empty PUT, then consumes raw G.711 bytes sent on
+            // that same persistent TCP socket. A chunked fetch body is ignored.
+            socket.write(
+                `PUT ${requestPath} HTTP/1.1\r\n` +
+                `Host: ${parsedUrl.host}\r\n` +
+                `Authorization: ${authorization}\r\n` +
+                'Connection: keep-alive\r\n' +
+                'Content-Length: 0\r\n' +
+                'Content-Type: application/octet-stream\r\n\r\n'
+            );
+        });
+        socket.on('data', function readHandshake(chunk) {
+            if (settled) return;
+            response = Buffer.concat([response, chunk]);
+            const headerEnd = response.indexOf('\r\n\r\n');
+            if (headerEnd < 0) {
+                if (response.length > 64 * 1024) fail(new Error('Invalid response starting intercom audio upload'));
+                return;
+            }
+
+            const statusLine = response.subarray(0, response.indexOf('\r\n')).toString('ascii');
+            const status = Number(statusLine.split(' ')[1]);
+            if (status < 200 || status >= 300) {
+                fail(new Error(`Starting intercom audio upload failed (${status || 'invalid response'})`));
+                return;
+            }
+
+            settled = true;
+            socket.removeListener('data', readHandshake);
+            socket.removeListener('error', fail);
+            socket.setTimeout(0);
+            resolve(socket);
+        });
+    });
+}
+
 class HikvisionTalkSession {
     constructor(intercom, onAudio, onError) {
         this.intercom = intercom;
@@ -142,13 +206,24 @@ class HikvisionTalkSession {
         this.onError = onError;
         this.codec = null;
         this.upload = null;
+        this.uploadBuffer = Buffer.alloc(0);
+        this.uploadTimer = null;
+        this.uploadBlocked = false;
         this.download = null;
         this.controlClient = null;
         this.closed = false;
+        this.sessionId = null;
+        this.phonePcmBytes = 0;
+        this.deviceAudioBytes = 0;
     }
 
     get baseUrl() {
         return `http://${this.intercom.ip_address}:${this.intercom.port}/ISAPI/System/TwoWayAudio/channels/${TALK_CHANNEL}`;
+    }
+
+    get audioDataUrl() {
+        const query = this.sessionId ? `?sessionId=${encodeURIComponent(this.sessionId)}` : '';
+        return `${this.baseUrl}/audioData${query}`;
     }
 
     async warmClient(client) {
@@ -168,7 +243,9 @@ class HikvisionTalkSession {
         if (this.closed) throw new Error('Talk session was cancelled');
         this.codec = normalizeCodec(channelXml);
 
-        await checkedFetch(this.controlClient, `${this.baseUrl}/open`, { method: 'PUT' }, 'Opening two-way audio');
+        await this.controlClient.fetch(`${this.baseUrl}/close`, { method: 'PUT' }).catch(() => null);
+        const openResponse = await checkedFetch(this.controlClient, `${this.baseUrl}/open`, { method: 'PUT' }, 'Opening two-way audio');
+        this.sessionId = parseSessionId(await openResponse.text());
         if (this.closed) throw new Error('Talk session was cancelled');
 
         try {
@@ -181,32 +258,41 @@ class HikvisionTalkSession {
 
             const downloadResponse = await checkedFetch(
                 downloadClient,
-                `${this.baseUrl}/audioData`,
+                this.audioDataUrl,
                 { method: 'GET', headers: { Accept: 'application/octet-stream' } },
                 'Starting intercom audio download'
             );
             if (this.closed) throw new Error('Talk session was cancelled');
             this.download = nodeReadable(downloadResponse.body);
             this.download.on('data', (chunk) => {
-                if (!this.closed && chunk.length > 0) this.onAudio(decodeG711(Buffer.from(chunk), this.codec));
+                if (!this.closed && chunk.length > 0) {
+                    this.deviceAudioBytes += chunk.length;
+                    this.onAudio(decodeG711(Buffer.from(chunk), this.codec));
+                }
             });
             this.download.on('error', (error) => this.fail(error));
             this.download.on('end', () => {
                 if (!this.closed) this.fail(new Error('Intercom audio stream ended'));
             });
 
-            this.upload = new PassThrough({ highWaterMark: 32 * 1024 });
-            this.uploadRequest = checkedFetch(
-                uploadClient,
-                `${this.baseUrl}/audioData`,
-                {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/octet-stream' },
-                    body: this.upload,
-                    duplex: 'half',
-                },
-                'Starting intercom audio upload'
-            ).catch((error) => this.fail(error));
+            this.upload = await openHikvisionUploadSocket(uploadClient, this.audioDataUrl);
+            this.upload.on('error', (error) => this.fail(error));
+            this.upload.on('close', () => {
+                if (!this.closed) this.fail(new Error('Intercom audio upload connection closed'));
+            });
+            this.upload.on('drain', () => {
+                this.uploadBlocked = false;
+            });
+            const silence = Buffer.alloc(G711_FRAME_BYTES, this.codec === 'mulaw' ? 0xff : 0xd5);
+            this.uploadTimer = setInterval(() => {
+                if (this.closed || !this.upload || this.upload.destroyed || this.uploadBlocked) return;
+                let frame = silence;
+                if (this.uploadBuffer.length >= G711_FRAME_BYTES) {
+                    frame = this.uploadBuffer.subarray(0, G711_FRAME_BYTES);
+                    this.uploadBuffer = this.uploadBuffer.subarray(G711_FRAME_BYTES);
+                }
+                this.uploadBlocked = !this.upload.write(frame);
+            }, G711_FRAME_INTERVAL_MS);
         } catch (error) {
             await this.close();
             throw error;
@@ -217,9 +303,12 @@ class HikvisionTalkSession {
 
     writePcm(pcm) {
         if (this.closed || !this.upload || !Buffer.isBuffer(pcm) || pcm.length < 2) return;
-        if (this.upload.writableLength > 256 * 1024) return;
         const evenLength = pcm.length - (pcm.length % 2);
-        this.upload.write(encodePcm16(pcm.subarray(0, evenLength), this.codec));
+        this.phonePcmBytes += evenLength;
+        this.uploadBuffer = Buffer.concat([this.uploadBuffer, encodePcm16(pcm.subarray(0, evenLength), this.codec)]);
+        if (this.uploadBuffer.length > SAMPLE_RATE * 2) {
+            this.uploadBuffer = this.uploadBuffer.subarray(this.uploadBuffer.length - SAMPLE_RATE);
+        }
     }
 
     fail(error) {
@@ -229,11 +318,17 @@ class HikvisionTalkSession {
     async close() {
         if (this.closed) return;
         this.closed = true;
-        this.upload?.end();
+        if (this.uploadTimer) clearInterval(this.uploadTimer);
+        this.uploadTimer = null;
+        this.upload?.destroy();
         this.download?.destroy();
         if (this.controlClient) {
             await this.controlClient.fetch(`${this.baseUrl}/close`, { method: 'PUT' }).catch(() => null);
         }
+        console.log(
+            `Intercom talk closed for ${this.intercom.device_id}: ` +
+            `${this.phonePcmBytes} phone PCM bytes, ${this.deviceAudioBytes} device G.711 bytes`
+        );
     }
 }
 
