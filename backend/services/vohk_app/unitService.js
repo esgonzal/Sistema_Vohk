@@ -79,4 +79,8 @@ async function deleteUnit(unitId, userId, role) {
     return unitRepository.deleteUnit(unitId);
 }
 
+async function getResidentUnits(userId) {
+    return unitRepository.findResidentUnits(userId);
+}
+
 module.exports = { getUnitTree, createUnit, updateUnit, deleteUnit };

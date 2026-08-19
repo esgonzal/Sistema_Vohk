@@ -89,5 +89,17 @@ router.delete('/:unitId', async (req, res) => {
         return sendServerError(res, error, 'Could not delete unit');
     }
 });
+router.get('/resident/units', async (req, res) => {
+    try {
+        const { userId, role } = req.user;
+        if (role !== 'resident') {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        const units = await unitService.getResidentUnits(userId);
+        return res.status(200).json(units);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not retrieve resident units');
+    }
+});
 
 module.exports = router;
