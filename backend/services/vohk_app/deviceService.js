@@ -102,11 +102,7 @@ async function getDevicesByCondominium(condominiumId, userId, role) {
             condominium.zones.push(zone);
         }
         if (!row.device_id) continue;
-        if (role === 'superadmin') {
-            zone.devices.push({ device_id: row.device_id, type: row.type, vendor: row.vendor, name: row.device_name, ip_address: row.ip_address, port: row.port, username: row.username, password_encrypted: row.password_encrypted, snapshot_url: row.snapshot_url, stream_url: row.stream_url, active: row.active, last_seen_at: row.last_seen_at, created_at: row.device_created_at, intercom_id: row.intercom_id, sip_address: row.sip_address, door_id: row.door_id });
-        } else {
-            zone.devices.push({ device_id: row.device_id, type: row.type, vendor: row.vendor, name: row.device_name, active: row.active, last_seen_at: row.last_seen_at });
-        }
+        zone.devices.push({ device_id: row.device_id, type: row.type, vendor: row.vendor, name: row.device_name, ip_address: row.ip_address, port: row.port, username: row.username, password_encrypted: row.password_encrypted, snapshot_url: row.snapshot_url, stream_url: row.stream_url, active: row.active, last_seen_at: row.last_seen_at, created_at: row.device_created_at, intercom_id: row.intercom_id, sip_address: row.sip_address, door_id: row.door_id });
     }
     delete condominium._zoneMap;
     return condominium;
