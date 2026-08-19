@@ -163,6 +163,7 @@ async function findActiveDevices() {
         SELECT
             device_id,
             type,
+            vendor,
             name,
             ip_address,
             port,
