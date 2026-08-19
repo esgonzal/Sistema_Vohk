@@ -13,6 +13,20 @@ function sendServerError(res, error, message) {
     }
     return res.status(500).json({ error: message });
 }
+
+router.get('/condominium/:condominiumId', async (req, res) => {
+    try {
+        const { userId, role } = req.user;
+        const { condominiumId } = req.params;
+        if (role !== 'admin') {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        const devices = await deviceService.getDevicesByCondominium(condominiumId, userId);
+        return res.status(200).json(devices);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not retrieve devices');
+    }
+});
 router.get('/location-mobile', async (req, res) => {
     try {
         const { userId, role } = req.user;
@@ -27,6 +41,52 @@ router.get('/location-mobile', async (req, res) => {
         return res.status(200).json(devices);
     } catch (error) {
         return sendServerError(res, error, 'Could not retrieve devices');
+    }
+});
+router.post('/', async (req, res) => {
+    try {
+        const { userId, role } = req.user;
+        const { deviceData, intercomData } = req.body;
+        if (role !== 'admin') {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        if (!deviceData) {
+            return res.status(400).json({ error: 'Device data is required' });
+        }
+        const created = await deviceService.createDevice(deviceData, intercomData);
+        return res.status(201).json(created);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not create device');
+    }
+});
+router.put('/:deviceId/name', async (req, res) => {
+    try {
+        const { userId, role } = req.user;
+        const { deviceId } = req.params;
+        const { name } = req.body;
+        if (role !== 'admin') {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        if (typeof name !== 'string' || name.trim() === '') {
+            return res.status(400).json({ error: 'Device name is required' });
+        }
+        const updated = await deviceService.updateDeviceName(deviceId, userId, name.trim());
+        return res.status(200).json(updated);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not update device');
+    }
+});
+router.delete('/:deviceId', async (req, res) => {
+    try {
+        const { userId, role } = req.user;
+        const { deviceId } = req.params;
+        if (role !== 'admin') {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        await deviceService.deleteDevice(deviceId, userId);
+        return res.status(200).json({ success: true });
+    } catch (error) {
+        return sendServerError(res, error, 'Could not delete device');
     }
 });
 router.post('/open-door/:deviceId', async (req, res) => {

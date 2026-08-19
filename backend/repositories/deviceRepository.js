@@ -16,6 +16,39 @@ async function findCameras() {
     `);
     return result.rows;
 }
+async function findDeviceTreeRows(condominiumId) {
+    const result = await pool.query(`
+        SELECT
+            c.condominium_id,
+            c.name AS condominium_name,
+            c.address,
+            c.city,
+            z.zone_id,
+            z.name AS zone_name,
+            d.device_id,
+            d.type,
+            d.name AS device_name,
+            d.ip_address,
+            d.port,
+            d.username,
+            d.password_encrypted,
+            d.snapshot_url,
+            d.stream_url,
+            d.active,
+            d.last_seen_at,
+            d.created_at AS device_created_at,
+            i.intercom_id,
+            i.sip_address,
+            i.door_id
+        FROM condominium c
+        LEFT JOIN zone z ON z.condominium_id = c.condominium_id
+        LEFT JOIN device d ON d.zone_id = z.zone_id
+        LEFT JOIN intercom i ON i.device_id = d.device_id
+        WHERE c.condominium_id = $1
+        ORDER BY z.name, d.type, d.name
+    `, [condominiumId]);
+    return result.rows;
+}
 async function findIntercomByDeviceId(deviceId) {
     const result = await pool.query(
         `
@@ -47,8 +80,8 @@ async function findDevicesByZone(zoneId) {
             z.name AS zone_name,
             i.intercom_id,
             i.sip_address,
-            i.username AS sip_username,
-            i.password_encrypted,
+            d.username,
+            d.password_encrypted,
             i.door_id
         FROM device d
         JOIN zone z
@@ -68,7 +101,7 @@ async function findDevicesByCondominium(condominiumId, zoneId = null) {
             `
             SELECT
                 d.*,
-                z.name AS zone_name,
+                z.name,
                 i.intercom_id,
                 i.sip_address,
                 i.door_id
@@ -86,7 +119,7 @@ async function findDevicesByCondominium(condominiumId, zoneId = null) {
         `
         SELECT
             d.*,
-            z.name AS zone_name,
+            z.name,
             i.intercom_id,
             i.sip_address,
             i.door_id
@@ -141,34 +174,34 @@ async function findActiveDevices() {
     const result = await pool.query(query);
     return result.rows;
 }
-async function createDevice(zoneId, type, name, ipAddress, port, snapshotUrl, streamUrl, active = true) {
+async function findDeviceByIdAndAdmin(deviceId, adminUserId) {
+    const result = await pool.query(`
+        SELECT d.*
+        FROM device d
+        JOIN zone z ON z.zone_id = d.zone_id
+        JOIN condominium c ON c.condominium_id = z.condominium_id
+        WHERE d.device_id = $1 AND c.admin_user_id = $2
+    `, [deviceId, adminUserId]);
+    return result.rows[0];
+}
+async function createDevice({ zoneId, type, name, ipAddress, port, username, passwordEncrypted, snapshotUrl, streamUrl, active = true }) {
     const result = await pool.query(
         `
-        INSERT INTO device (zone_id, type, name, ip_address, port, snapshot_url, stream_url, active)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        INSERT INTO device (zone_id, type, name, ip_address, port, username, password_encrypted, snapshot_url, stream_url, active)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         RETURNING *
         `,
-        [zoneId, type, name, ipAddress, port, snapshotUrl, streamUrl, active]
+        [zoneId, type, name, ipAddress, port, username, passwordEncrypted, snapshotUrl, streamUrl, active]
     );
     return result.rows[0];
 }
-async function updateDevice(deviceId, zoneId, name, ipAddress, port, snapshotUrl, streamUrl, active) {
-    const result = await pool.query(
-        `
+async function updateDeviceName(deviceId, name) {
+    const result = await pool.query(`
         UPDATE device
-        SET
-            zone_id = $2,
-            name = $3,
-            ip_address = $4,
-            port = $5,
-            snapshot_url = $6,
-            stream_url = $7,
-            active = $8
+        SET name = $2
         WHERE device_id = $1
         RETURNING *
-        `,
-        [deviceId, zoneId, name, ipAddress, port, snapshotUrl, streamUrl, active]
-    );
+    `, [deviceId, name]);
     return result.rows[0];
 }
 async function deleteDevice(deviceId) {
@@ -204,6 +237,6 @@ async function updateLastSeen(deviceId) {
 }
 
 module.exports = {
-    findIntercoms, findCameras, findIntercomByDeviceId, findDevicesByZone, findDevicesByCondominium, findMobileDevicesByCondominium, findActiveDevices,
-    createDevice, updateDevice, deleteDevice, moveDeviceToZone, updateLastSeen
+    findIntercoms, findCameras, findDeviceTreeRows, findIntercomByDeviceId, findDevicesByZone, findDevicesByCondominium, findMobileDevicesByCondominium, findActiveDevices, findDeviceByIdAndAdmin,
+    createDevice, updateDeviceName, deleteDevice, moveDeviceToZone, updateLastSeen
 };
