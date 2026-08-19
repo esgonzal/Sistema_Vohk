@@ -8,7 +8,10 @@ router.get('/location', async (req, res) => {
     try {
         const { condominiumId } = req.query;
         const { userId, role } = req.user;
-        const devices = await deviceService.getDevicesByCondominium(condominiumId);
+        if (role !== 'admin') {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        const devices = await deviceService.getDevicesByCondominium(condominiumId, userId);
         res.json(devices);
     } catch (err) {
         console.log(err);
