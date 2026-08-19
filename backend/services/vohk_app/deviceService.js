@@ -54,27 +54,10 @@ async function processImageForIntercom(file) {
     return sharp(file.buffer).rotate().resize(600, 600, { fit: 'inside', withoutEnlargement: true }).jpeg({ quality: 75, mozjpeg: true }).toBuffer();
 }
 // ── Device listing ────────────────────────────────────────────────────────────
-async function listIntercoms() {
-    const intercoms = await deviceRepository.findIntercoms();
-    return intercoms.map(device => ({
-        id: device.device_id,
-        name: device.name,
-        snapshot: device.snapshot_url,
-        url: device.stream_url,
-    }));
-}
-async function listCameras() {
-    const cameras = await deviceRepository.findCameras();
-    return cameras.map(device => ({
-        id: device.device_id,
-        name: device.name,
-        snapshot: device.snapshot_url,
-        url: device.stream_url,
-    }));
-}
 async function getMobileDevices({ userId, role, condominiumId }) {
+    let condominium = null;
     if (role === 'admin') {
-        const condominium = await condominiumRepository.findByIdAndAdmin(condominiumId, userId);
+        condominium = await condominiumRepository.findByIdAndAdmin(condominiumId, userId);
         if (!condominium) {
             const error = new Error('Condominium not found or not accessible');
             error.status = 404;
@@ -87,46 +70,50 @@ async function getMobileDevices({ userId, role, condominiumId }) {
             error.status = 404;
             throw error;
         }
-    } else {
+        condominium = await condominiumRepository.findById(condominiumId);
+    } else if (role !== 'superadmin') {
         const error = new Error('Forbidden');
         error.status = 403;
         throw error;
     }
-    return deviceRepository.findMobileDevicesByCondominium(condominiumId);
+    const devices = await deviceRepository.findMobileDevicesByCondominium(condominiumId);
+    if (role === 'resident' && condominium?.resident_camera_access !== true) {
+        return devices.filter(device => device.type !== 'camera');
+    }
+    return devices;
 }
-async function getDevicesByCondominium(condominiumId, adminUserId) {
-    const allowed = await condominiumRepository.findByIdAndAdmin(condominiumId, adminUserId);
-    if (!allowed) {
-        const error = new Error('Condominium not found or not accessible');
-        error.status = 404;
-        throw error;
+async function getDevicesByCondominium(condominiumId, userId, role) {
+    if (role === 'admin') {
+        const allowed = await condominiumRepository.findByIdAndAdmin(condominiumId, userId);
+        if (!allowed) {
+            const error = new Error('Condominium not found or not accessible');
+            error.status = 404;
+            throw error;
+        }
     }
     const rows = await deviceRepository.findDeviceTreeRows(condominiumId);
     const condominium = { condominium_id: condominiumId, name: rows[0]?.condominium_name, address: rows[0]?.address, city: rows[0]?.city, zones: [], _zoneMap: new Map() };
     for (const row of rows) {
-        if (!row.zone_id) {
-            continue;
-        }
+        if (!row.zone_id) continue;
         let zone = condominium._zoneMap.get(row.zone_id);
         if (!zone) {
             zone = { zone_id: row.zone_id, name: row.zone_name, devices: [] };
             condominium._zoneMap.set(row.zone_id, zone);
             condominium.zones.push(zone);
         }
-        if (!row.device_id) {
-            continue;
+        if (!row.device_id) continue;
+        if (role === 'superadmin') {
+            zone.devices.push({ device_id: row.device_id, type: row.type, vendor: row.vendor, name: row.device_name, ip_address: row.ip_address, port: row.port, username: row.username, password_encrypted: row.password_encrypted, snapshot_url: row.snapshot_url, stream_url: row.stream_url, active: row.active, last_seen_at: row.last_seen_at, created_at: row.device_created_at, intercom_id: row.intercom_id, sip_address: row.sip_address, door_id: row.door_id });
+        } else {
+            zone.devices.push({ device_id: row.device_id, type: row.type, vendor: row.vendor, name: row.device_name, active: row.active, last_seen_at: row.last_seen_at });
         }
-        zone.devices.push({ device_id: row.device_id, type: row.type, name: row.device_name, ip_address: row.ip_address, port: row.port, username: row.username, password_encrypted: row.password_encrypted, snapshot_url: row.snapshot_url, stream_url: row.stream_url, active: row.active, last_seen_at: row.last_seen_at, created_at: row.device_created_at, intercom_id: row.intercom_id, sip_address: row.sip_address, door_id: row.door_id });
     }
     delete condominium._zoneMap;
     return condominium;
 }
 // ── Device management ─────────────────────────────────────────────────────────
-async function getDevicesByZone(zoneId) {
-    return deviceRepository.findDevicesByZone(zoneId);
-}
 async function createDevice(deviceData, intercomData = null) {
-    const device = await deviceRepository.createDevice({ zoneId: deviceData.zoneId, type: deviceData.type, name: deviceData.name, ipAddress: deviceData.ipAddress, port: deviceData.port, username: deviceData.username, passwordEncrypted: deviceData.passwordEncrypted, snapshotUrl: deviceData.snapshotUrl, streamUrl: deviceData.streamUrl, active: deviceData.active ?? true });
+    const device = await deviceRepository.createDevice({ zoneId: deviceData.zoneId, type: deviceData.type, vendor: deviceData.vendor, name: deviceData.name, ipAddress: deviceData.ipAddress, port: deviceData.port, username: deviceData.username, passwordEncrypted: deviceData.passwordEncrypted, snapshotUrl: deviceData.snapshotUrl, streamUrl: deviceData.streamUrl, active: deviceData.active ?? true });
     if (device.type === 'intercom') {
         if (!intercomData?.sipAddress) {
             await deviceRepository.deleteDevice(device.device_id);
@@ -143,26 +130,36 @@ async function createDevice(deviceData, intercomData = null) {
     }
     return device;
 }
-async function updateDeviceName(deviceId, adminUserId, name) {
-    const existingDevice = await deviceRepository.findDeviceByIdAndAdmin(deviceId, adminUserId);
-    if (!existingDevice) {
-        const error = new Error('Device not found');
-        error.status = 404;
-        throw error;
+async function updateDeviceName(deviceId, userId, role, name) {
+    if (role === 'admin') {
+        const existingDevice = await deviceRepository.findDeviceByIdAndAdmin(deviceId, userId);
+        if (!existingDevice) {
+            const error = new Error('Device not found');
+            error.status = 404;
+            throw error;
+        }
     }
     return deviceRepository.updateDeviceName(deviceId, name);
 }
-async function deleteDevice(deviceId, adminUserId) {
-    const device =
-        await deviceRepository.findDeviceByIdAndAdmin(deviceId, adminUserId);
+async function deleteDevice(deviceId) {
+    return deviceRepository.deleteDevice(deviceId);
+}
+async function moveDeviceToZone(deviceId, zoneId, userId, role) {
+    if (role === 'superadmin') {
+        return deviceRepository.moveDeviceToZone(deviceId, zoneId);
+    }
+    const device = await deviceRepository.findDeviceByIdAndAdmin(deviceId, userId);
     if (!device) {
         const error = new Error('Device not found');
         error.status = 404;
         throw error;
     }
-    return deviceRepository.deleteDevice(deviceId);
-}
-async function moveDeviceToZone(deviceId, zoneId) {
+    const zone = await zoneRepository.findById(zoneId);
+    if (!zone || zone.condominium_id !== device.condominium_id) {
+        const error = new Error('Zone does not belong to the same condominium');
+        error.status = 400;
+        throw error;
+    }
     return deviceRepository.moveDeviceToZone(deviceId, zoneId);
 }
 // ── Open door ─────────────────────────────────────────────────────────────────
@@ -609,9 +606,9 @@ async function syncIntercomRoomSipNumbers(deviceId, roomNo, phoneNumbers) {
 
 module.exports = {
     // Device listing
-    listIntercoms, listCameras, getMobileDevices,
+    getMobileDevices,
     // Device management
-    getDevicesByCondominium, getDevicesByZone, createDevice, updateDeviceName, deleteDevice, moveDeviceToZone,
+    getDevicesByCondominium, createDevice, updateDeviceName, deleteDevice, moveDeviceToZone,
     // Open door
     openDoor,
     // Intercom users

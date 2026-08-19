@@ -1,6 +1,7 @@
 const dashboardRepository = require('../../repositories/dashboardRepository');
 
-async function getDashboard(adminUserId) {
+async function getDashboard(userId, role) {
+    const adminUserId = role === 'superadmin' ? null : userId;
     const [summary, condominiums, deviceSummary, recentResidents, recentCondominiums] = await Promise.all([
         dashboardRepository.getSummary(adminUserId),
         dashboardRepository.getCondominiums(adminUserId),

@@ -9,17 +9,19 @@ const emailService = require('../vohk_app/emailService');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 
-async function getUsersByCondominium(adminUserId, condominiumId) {
-    const condominium = await condominiumRepository.findByIdAndAdmin(condominiumId, adminUserId);
-    if (!condominium) {
-        const error = new Error('Condominium not found');
-        error.status = 404;
-        throw error;
+async function getUsersByCondominium(userId, role, condominiumId) {
+    if (role === 'admin') {
+        const condominium = await condominiumRepository.findByIdAndAdmin(condominiumId, userId);
+        if (!condominium) {
+            const error = new Error('Condominium not found');
+            error.status = 404;
+            throw error;
+        }
     }
     return userRepository.getUsersByCondominium(condominiumId);
 }
-async function createResident(unitId, adminUserId, { legalName, rut, email, isPrimary }) {
-    const unit = await unitRepository.findUnitByIdAndAdmin(unitId, adminUserId);
+async function createResident(unitId, userId, role, { legalName, rut, email, isPrimary }) {
+    const unit = role === 'superadmin' ? await unitRepository.findUnitHierarchy(unitId) : await unitRepository.findUnitByIdAndAdmin(unitId, userId);
     if (!unit) {
         const error = new Error('Unit not found');
         error.status = 404;
@@ -40,7 +42,7 @@ async function createResident(unitId, adminUserId, { legalName, rut, email, isPr
     }
     const currentUnits = await residentUnitRepository.findUnitsByUser(resident.user_id);
     const alreadyInSameCondo = currentUnits.some(currentUnit => currentUnit.condominium_id === unit.condominium_id);
-    await userRepository.assignResidentToUnit(resident.user_id, unitId, isPrimary ?? false);
+    await residentUnitRepository.assignResident(resident.user_id, unitId, isPrimary ?? false);
     const devices = await deviceRepository.findDevicesByCondominium(unit.condominium_id);
     const intercoms = devices.filter(device => device.type === 'intercom');
     if (!alreadyInSameCondo) {
@@ -51,47 +53,37 @@ async function createResident(unitId, adminUserId, { legalName, rut, email, isPr
                 if (result.ok || result.error === 'employeeNoAlreadyExist') {
                     await intercomUserRepository.createIntercomUser(resident.user_id, device.intercom_id, resident.sip_identity, dynamicCode);
                 } else {
-                    console.error(`Intercom sync failed for device ` + `${device.device_id}:`, result.error);
+                    console.error(`Intercom sync failed for device ${device.device_id}:`, result.error);
                 }
             } catch (error) {
-                console.error(`Unexpected intercom error for device ` + `${device.device_id}:`, error.message);
+                console.error(`Unexpected intercom error for device ${device.device_id}:`, error.message);
             }
         }
     }
     await syncUnitSipNumbers(unit, intercoms);
-    let welcomeEmailSent = false;
     if (isNewUser && temporaryPassword) {
         try {
             await emailService.sendResidentWelcomeEmail({ toEmail: normalizedEmail, legalName: normalizedLegalName, temporaryPassword });
-            welcomeEmailSent = true;
         } catch (error) {
             console.error(`Could not send welcome email to ${normalizedEmail}:`, error.message);
         }
     }
     return resident;
 }
-async function updateResident(residentId, adminUserId, { unitId, legalName, email, isPrimary }) {
-    const unit = await unitRepository.findUnitByIdAndAdmin(unitId, adminUserId);
-    if (!unit) {
-        return null;
-    }
+async function updateResident(residentId, userId, role, { unitId, legalName, email, isPrimary }) {
+    const unit = role === 'superadmin' ? await unitRepository.findUnitHierarchy(unitId) : await unitRepository.findUnitByIdAndAdmin(unitId, userId);
+    if (!unit) return null;
     const residentUnit = await residentUnitRepository.findByUserAndUnit(residentId, unitId);
-    if (!residentUnit) {
-        return null;
-    }
+    if (!residentUnit) return null;
     await userRepository.updateResident(residentId, email.toLowerCase(), legalName);
     await residentUnitRepository.updateResidentUnit(residentId, unitId, isPrimary);
     return userRepository.findById(residentId);
 }
-async function deleteResident(residentId, unitId, adminUserId) {
-    const unit = await unitRepository.findUnitByIdAndAdmin(unitId, adminUserId);
-    if (!unit) {
-        return null;
-    }
+async function deleteResident(residentId, unitId, userId, role) {
+    const unit = role === 'superadmin' ? await unitRepository.findUnitHierarchy(unitId) : await unitRepository.findUnitByIdAndAdmin(unitId, userId);
+    if (!unit) return null;
     const residentUnit = await residentUnitRepository.findByUserAndUnit(residentId, unitId);
-    if (!residentUnit) {
-        return null;
-    }
+    if (!residentUnit) return null;
     const currentUnits = await residentUnitRepository.findUnitsByUser(residentId);
     const otherUnitsInSameCondo = currentUnits.some(currentUnit => currentUnit.unit_id !== unitId && currentUnit.condominium_id === unit.condominium_id);
     const devices = await deviceRepository.findDevicesByCondominium(unit.condominium_id);
@@ -112,9 +104,7 @@ async function deleteResident(residentId, unitId, adminUserId) {
     }
     await residentUnitRepository.unassignResident(residentId, unitId);
     await syncUnitSipNumbers(unit, intercoms);
-    if (otherUnitsInSameCondo) {
-        return { removedFromUnitOnly: true };
-    }
+    if (otherUnitsInSameCondo) return { removedFromUnitOnly: true };
     return { removedFromCondo: true };
 }
 async function updateUsername(userId, username) {
@@ -168,7 +158,6 @@ async function updatePassword(userId, currentPassword, newPassword) {
     await userRepository.updatePassword(userId, passwordHash);
     return true;
 }
-
 async function syncUnitSipNumbers(unit, intercoms) {
     const sipIdentities = await residentUnitRepository.findSipIdentitiesByUnit(unit.unit_id);
     for (const device of intercoms) {

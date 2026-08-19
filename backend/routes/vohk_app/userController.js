@@ -17,6 +17,9 @@ function sendServerError(res, error, message) {
     }
     return res.status(500).json({ error: message });
 }
+function isAdminRole(role) {
+    return role === 'admin' || role === 'superadmin';
+}
 
 router.put('/username', async (req, res) => {
     try {
@@ -70,13 +73,13 @@ router.get('/:condominiumId', async (req, res) => {
     try {
         const { userId, role } = req.user;
         const { condominiumId } = req.params;
-        if (role !== 'admin') {
+        if (!isAdminRole(role)) {
             return res.status(403).json({ error: 'Forbidden' });
         }
         if (isBlank(condominiumId)) {
             return res.status(400).json({ error: 'Condominium ID is required' });
         }
-        const users = await userService.getUsersByCondominium(userId, condominiumId);
+        const users = await userService.getUsersByCondominium(userId, role, condominiumId);
         return res.status(200).json(users);
     } catch (error) {
         return sendServerError(res, error, 'Could not retrieve users');
@@ -87,7 +90,7 @@ router.post('/:unitId', async (req, res) => {
         const { userId, role } = req.user;
         const { unitId } = req.params;
         const { legalName, rut, email, isPrimary } = req.body;
-        if (role !== 'admin') {
+        if (!isAdminRole(role)) {
             return res.status(403).json({ error: 'Forbidden' });
         }
         if (isBlank(unitId) || isBlank(legalName) || isBlank(rut) || isBlank(email)) {
@@ -96,7 +99,7 @@ router.post('/:unitId', async (req, res) => {
         if (isPrimary !== undefined && typeof isPrimary !== 'boolean') {
             return res.status(400).json({ error: 'isPrimary must be a boolean' });
         }
-        const resident = await userService.createResident(unitId, userId, { legalName: legalName.trim(), rut: rut.trim(), email: email.trim(), isPrimary: isPrimary ?? false });
+        const resident = await userService.createResident(unitId, userId, role, { legalName: legalName.trim(), rut: rut.trim(), email: email.trim(), isPrimary: isPrimary ?? false });
         return res.status(201).json(resident);
     } catch (error) {
         return sendServerError(res, error, 'Could not create resident');
@@ -107,7 +110,7 @@ router.put('/:residentId', async (req, res) => {
         const { userId, role } = req.user;
         const { residentId } = req.params;
         const { unitId, legalName, email, isPrimary } = req.body;
-        if (role !== 'admin') {
+        if (!isAdminRole(role)) {
             return res.status(403).json({ error: 'Forbidden' });
         }
         if (isBlank(residentId) || isBlank(unitId) || isBlank(legalName) || isBlank(email)) {
@@ -116,7 +119,7 @@ router.put('/:residentId', async (req, res) => {
         if (typeof isPrimary !== 'boolean') {
             return res.status(400).json({ error: 'isPrimary must be a boolean' });
         }
-        const resident = await userService.updateResident(residentId, userId, { unitId, legalName: legalName.trim(), email: email.trim(), isPrimary });
+        const resident = await userService.updateResident(residentId, userId, role, { unitId, legalName: legalName.trim(), email: email.trim(), isPrimary });
         if (!resident) {
             return res.status(404).json({ error: 'Resident not found' });
         }
@@ -129,10 +132,10 @@ router.delete('/residents/:residentId/units/:unitId', async (req, res) => {
     try {
         const { userId, role } = req.user;
         const { residentId, unitId } = req.params;
-        if (role !== 'admin') {
+        if (!isAdminRole(role)) {
             return res.status(403).json({ error: 'Forbidden' });
         }
-        const result = await userService.deleteResident(residentId, unitId, userId);
+        const result = await userService.deleteResident(residentId, unitId, userId, role);
         if (!result) {
             return res.status(404).json({ error: 'Resident not found' });
         }

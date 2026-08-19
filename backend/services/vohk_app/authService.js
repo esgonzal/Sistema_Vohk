@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const userRepository = require('../../repositories/userRepository');
+const userDeviceRepository = require('../../repositories/userDeviceRepository');
 const emailService = require('../vohk_app/emailService');
 const AccessToken = twilio.jwt.AccessToken;
 const VoiceGrant = AccessToken.VoiceGrant;
@@ -101,15 +102,16 @@ function generateTwilioToken(identity, platform, environment) {
     token.addGrant(voiceGrant);
     return token.toJwt();
 }
-async function registerFcmToken(userId, fcmToken) {
-    const updatedUser = await userRepository.updateFcmToken(userId, fcmToken);
-    if (!updatedUser) {
+async function registerFcmToken(userId, { fcmToken, platform, deviceName }) {
+    const user = await userRepository.findById(userId);
+    if (!user) {
         return { error: 'User not found', status: 404 };
     }
-    return { success: true, identity: updatedUser.sip_identity };
+    await userDeviceRepository.upsertDevice(userId, platform, fcmToken, deviceName);
+    return { success: true, identity: user.sip_identity };
 }
 async function unregisterFcmToken(userId, fcmToken) {
-    await userRepository.clearFcmToken(userId, fcmToken);
+    await userDeviceRepository.deactivateDevice(userId, fcmToken);
     return { success: true };
 }
 function generateJwt(session) {

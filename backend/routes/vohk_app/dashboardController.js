@@ -11,14 +11,17 @@ function sendServerError(res, error, message) {
     }
     return res.status(500).json({ error: message });
 }
+function isAdminRole(role) {
+    return role === 'admin' || role === 'superadmin';
+}
 
 router.get('/', async (req, res) => {
     try {
         const { userId, role } = req.user;
-        if (role !== 'admin') {
+        if (!isAdminRole(role)) {
             return res.status(403).json({ error: 'Forbidden' });
         }
-        const dashboard = await dashboardService.getDashboard(userId);
+        const dashboard = await dashboardService.getDashboard(userId, role);
         return res.status(200).json(dashboard);
     } catch (error) {
         return sendServerError(res, error, 'Could not retrieve dashboard');

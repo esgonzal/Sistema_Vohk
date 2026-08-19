@@ -4,14 +4,18 @@ const authenticate = require('../../middleware/authMiddleware');
 const deviceService = require('../../services/vohk_app/deviceService');
 router.use(authenticate);
 
+function isAdminRole(role) {
+    return role === 'admin' || role === 'superadmin';
+}
+
 router.get('/location', async (req, res) => {
     try {
         const { condominiumId } = req.query;
         const { userId, role } = req.user;
-        if (role !== 'admin') {
+        if (!isAdminRole(role)) {
             return res.status(403).json({ error: 'Forbidden' });
         }
-        const devices = await deviceService.getDevicesByCondominium(condominiumId, userId);
+        const devices = await deviceService.getDevicesByCondominium(condominiumId, userId, role);
         res.json(devices);
     } catch (err) {
         console.log(err);

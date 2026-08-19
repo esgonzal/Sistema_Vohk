@@ -27,23 +27,23 @@ function formatHikvisionTime(date) {
     const values = Object.fromEntries(parts.filter(part => part.type !== 'literal').map(part => [part.type, part.value]));
     return `${values.year}-${values.month}-${values.day}T${values.hour}:${values.minute}:${values.second}`;
 }
+
 async function getAccessibleUnit(userId, role, unitId) {
+    if (role === 'superadmin') {
+        const unit = await unitRepository.findUnitHierarchy(unitId);
+        if (!unit) throw createError('Unit not found', 404);
+        return unit;
+    }
     if (role === 'admin') {
         const unit = await unitRepository.findUnitByIdAndAdmin(unitId, userId);
-        if (!unit) {
-            throw createError('Unit not found or not accessible', 404);
-        }
+        if (!unit) throw createError('Unit not found or not accessible', 404);
         return unit;
     }
     const residentUnits = await unitRepository.findUnitsByUser(userId);
     const residentUnit = residentUnits.find(unit => unit.unit_id === unitId);
-    if (!residentUnit) {
-        throw createError('Unit not found or not accessible', 404);
-    }
+    if (!residentUnit) throw createError('Unit not found or not accessible', 404);
     const hierarchy = await unitRepository.findUnitHierarchy(unitId);
-    if (!hierarchy) {
-        throw createError('Unit not found', 404);
-    }
+    if (!hierarchy) throw createError('Unit not found', 404);
     return hierarchy;
 }
 async function validateIntercoms(unit, deviceIds) {

@@ -23,7 +23,7 @@ router.get('/', authenticate, async (req, res) => {
     try {
         const { userId, role } = req.user;
         const { unitId } = req.query;
-        if (role !== 'admin' && role !== 'resident') {
+        if (!['admin', 'superadmin', 'resident'].includes(role)) {
             return res.status(403).json({ error: 'Forbidden' });
         }
         if (isBlank(unitId)) {
@@ -39,7 +39,7 @@ router.post('/', authenticate, async (req, res) => {
     try {
         const { userId, role } = req.user;
         const { unitId, validFrom, validUntil, type, deviceIds } = req.body;
-        if (role !== 'admin' && role !== 'resident') {
+        if (!['admin', 'superadmin', 'resident'].includes(role)) {
             return res.status(403).json({ error: 'Forbidden' });
         }
         if (isBlank(unitId) || isBlank(validFrom) || isBlank(validUntil)) {
@@ -58,7 +58,7 @@ router.delete('/:id', authenticate, async (req, res) => {
     try {
         const { userId, role } = req.user;
         const { id } = req.params;
-        if (role !== 'admin' && role !== 'resident') {
+        if (!['admin', 'superadmin', 'resident'].includes(role)) {
             return res.status(403).json({ error: 'Forbidden' });
         }
         if (isBlank(id)) {

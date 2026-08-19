@@ -13,15 +13,18 @@ function sendServerError(res, error, message) {
     }
     return res.status(500).json({ error: message });
 }
+function isAdminRole(role) {
+    return role === 'admin' || role === 'superadmin';
+}
 
 router.get('/condominium/:condominiumId', async (req, res) => {
     try {
         const { userId, role } = req.user;
         const { condominiumId } = req.params;
-        if (role !== 'admin') {
+        if (!isAdminRole(role)) {
             return res.status(403).json({ error: 'Forbidden' });
         }
-        const devices = await deviceService.getDevicesByCondominium(condominiumId, userId);
+        const devices = await deviceService.getDevicesByCondominium(condominiumId, userId, role);
         return res.status(200).json(devices);
     } catch (error) {
         return sendServerError(res, error, 'Could not retrieve devices');
@@ -31,7 +34,7 @@ router.get('/location-mobile', async (req, res) => {
     try {
         const { userId, role } = req.user;
         const { condominiumId } = req.query;
-        if (role !== 'admin' && role !== 'resident') {
+        if (!['admin', 'superadmin', 'resident'].includes(role)) {
             return res.status(403).json({ error: 'Forbidden' });
         }
         if (typeof condominiumId !== 'string' || condominiumId.trim() === '') {
@@ -45,9 +48,9 @@ router.get('/location-mobile', async (req, res) => {
 });
 router.post('/', async (req, res) => {
     try {
-        const { userId, role } = req.user;
+        const { role } = req.user;
         const { deviceData, intercomData } = req.body;
-        if (role !== 'admin') {
+        if (role !== 'superadmin') {
             return res.status(403).json({ error: 'Forbidden' });
         }
         if (!deviceData) {
@@ -64,26 +67,43 @@ router.put('/:deviceId/name', async (req, res) => {
         const { userId, role } = req.user;
         const { deviceId } = req.params;
         const { name } = req.body;
-        if (role !== 'admin') {
+        if (!isAdminRole(role)) {
             return res.status(403).json({ error: 'Forbidden' });
         }
         if (typeof name !== 'string' || name.trim() === '') {
             return res.status(400).json({ error: 'Device name is required' });
         }
-        const updated = await deviceService.updateDeviceName(deviceId, userId, name.trim());
+        const updated = await deviceService.updateDeviceName(deviceId, userId, role, name.trim());
         return res.status(200).json(updated);
     } catch (error) {
         return sendServerError(res, error, 'Could not update device');
     }
 });
-router.delete('/:deviceId', async (req, res) => {
+router.put('/:deviceId/zone', async (req, res) => {
     try {
         const { userId, role } = req.user;
         const { deviceId } = req.params;
-        if (role !== 'admin') {
+        const { zoneId } = req.body;
+        if (!isAdminRole(role)) {
             return res.status(403).json({ error: 'Forbidden' });
         }
-        await deviceService.deleteDevice(deviceId, userId);
+        if (typeof zoneId !== 'string' || zoneId.trim() === '') {
+            return res.status(400).json({ error: 'Zone ID is required' });
+        }
+        const updated = await deviceService.moveDeviceToZone(deviceId, zoneId, userId, role);
+        return res.status(200).json(updated);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not move device');
+    }
+});
+router.delete('/:deviceId', async (req, res) => {
+    try {
+        const { role } = req.user;
+        const { deviceId } = req.params;
+        if (role !== 'superadmin') {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        await deviceService.deleteDevice(deviceId);
         return res.status(200).json({ success: true });
     } catch (error) {
         return sendServerError(res, error, 'Could not delete device');

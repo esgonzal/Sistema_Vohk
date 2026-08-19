@@ -2,16 +2,14 @@ const condominiumRepository = require('../../repositories/condominiumRepository'
 const zoneRepository = require('../../repositories/zoneRepository');
 const buildingRepository = require('../../repositories/buildingRepository');
 
-async function getCondominiumTree(adminUserId) {
+async function getCondominiumTree(userId, role) {
+    const adminUserId = role === 'superadmin' ? null : userId;
     const rows = await condominiumRepository.findCondominiumTreeRows(adminUserId);
     const condominiumMap = new Map();
     for (const row of rows) {
         let condominium = condominiumMap.get(row.condominium_id);
         if (!condominium) {
-            condominium = {
-                condominium_id: row.condominium_id, name: row.condominium_name, address: row.address, city: row.city, buildings: [], zones: [],
-                _buildingMap: new Map(), _zoneMap: new Map()
-            };
+            condominium = { condominium_id: row.condominium_id, name: row.condominium_name, address: row.address, city: row.city, resident_camera_access: row.resident_camera_access, buildings: [], zones: [], _buildingMap: new Map(), _zoneMap: new Map() };
             condominiumMap.set(row.condominium_id, condominium);
         }
         if (row.building_id && !condominium._buildingMap.has(row.building_id)) {
@@ -33,18 +31,20 @@ async function getCondominiumTree(adminUserId) {
     }
     return condominiums;
 }
-async function listAdminCondominiums(adminUserId) {
-    return condominiumRepository.findByAdminUserId(adminUserId);
+
+async function listAdminCondominiums(userId, role) {
+    return condominiumRepository.findByAdminUserId(role === 'superadmin' ? null : userId);
 }
-async function createCondominium(userId, name, address, city) {
+
+async function createCondominium(userId, role, name, address, city) {
     const condominium = await condominiumRepository.createCondominium(userId, name, address, city);
     if (!condominium) {
         throw new Error('Failed to create condominium.');
     }
-    const zone = await zoneRepository.createZone(condominium.condominium_id, userId, 'Áreas Comunes');
+    const zone = await zoneRepository.createZone(condominium.condominium_id, role === 'superadmin' ? null : userId, 'Áreas Comunes');
     if (!zone) {
         try {
-            await condominiumRepository.deleteCondominium(condominium.condominium_id, userId);
+            await condominiumRepository.deleteCondominium(condominium.condominium_id, role === 'superadmin' ? null : userId);
         } catch (rollbackError) {
             console.error('Failed to roll back condominium creation:', rollbackError);
         }
@@ -52,52 +52,67 @@ async function createCondominium(userId, name, address, city) {
     }
     return condominium;
 }
-async function updateCondominium(condominiumId, userId, name, address, city) {
-    return condominiumRepository.updateCondominium(condominiumId, userId, name, address, city);
+
+async function updateCondominium(condominiumId, userId, role, name, address, city) {
+    return condominiumRepository.updateCondominium(condominiumId, role === 'superadmin' ? null : userId, name, address, city);
 }
-async function deleteCondominium(condominiumId, userId) {
-    const buildingCount = await condominiumRepository.countBuildingsByCondominium(condominiumId, userId);
+
+async function deleteCondominium(condominiumId, userId, role) {
+    const adminUserId = role === 'superadmin' ? null : userId;
+    const buildingCount = await condominiumRepository.countBuildingsByCondominium(condominiumId, adminUserId);
     if (buildingCount > 0) {
-        const error = new Error(`No se puede eliminar el condominio porque contiene ${buildingCount} torre(s).`)
+        const error = new Error(`No se puede eliminar el condominio porque contiene ${buildingCount} torre(s).`);
         error.status = 409;
         throw error;
     }
-    return condominiumRepository.deleteCondominium(condominiumId, userId);
+    return condominiumRepository.deleteCondominium(condominiumId, adminUserId);
 }
-async function createBuilding(condominiumId, userId, name, floorCount) {
-    return buildingRepository.createBuilding(condominiumId, userId, name, floorCount);
+
+async function updateResidentCameraAccess(condominiumId, userId, role, enabled) {
+    return condominiumRepository.updateResidentCameraAccess(condominiumId, role === 'superadmin' ? null : userId, enabled);
 }
-async function updateBuilding(buildingId, userId, name, floorCount) {
-    return buildingRepository.updateBuilding(buildingId, userId, name, floorCount);
+
+async function createBuilding(condominiumId, userId, role, name, floorCount) {
+    return buildingRepository.createBuilding(condominiumId, role === 'superadmin' ? null : userId, name, floorCount);
 }
-async function deleteBuilding(buildingId, userId) {
-    const unitCount = await buildingRepository.countUnitsByBuilding(buildingId, userId);
+
+async function updateBuilding(buildingId, userId, role, name, floorCount) {
+    return buildingRepository.updateBuilding(buildingId, role === 'superadmin' ? null : userId, name, floorCount);
+}
+
+async function deleteBuilding(buildingId, userId, role) {
+    const adminUserId = role === 'superadmin' ? null : userId;
+    const unitCount = await buildingRepository.countUnitsByBuilding(buildingId, adminUserId);
     if (unitCount > 0) {
         const error = new Error(`No se puede eliminar la torre porque contiene ${unitCount} unidad(es).`);
         error.status = 409;
         throw error;
     }
-    return buildingRepository.deleteBuilding(buildingId, userId);
+    return buildingRepository.deleteBuilding(buildingId, adminUserId);
 }
-async function createZone(condominiumId, userId, name) {
-    return zoneRepository.createZone(condominiumId, userId, name);
+
+async function createZone(condominiumId, userId, role, name) {
+    return zoneRepository.createZone(condominiumId, role === 'superadmin' ? null : userId, name);
 }
-async function updateZone(zoneId, userId, name) {
-    return zoneRepository.updateZone(zoneId, userId, name);
+
+async function updateZone(zoneId, userId, role, name) {
+    return zoneRepository.updateZone(zoneId, role === 'superadmin' ? null : userId, name);
 }
-async function deleteZone(zoneId, userId) {
-    const deviceCount = await zoneRepository.countDevicesByZone(zoneId, userId);
+
+async function deleteZone(zoneId, userId, role) {
+    const adminUserId = role === 'superadmin' ? null : userId;
+    const deviceCount = await zoneRepository.countDevicesByZone(zoneId, adminUserId);
     if (deviceCount > 0) {
-        const error = new Error(`No se puede eliminar la zona porque tiene ${deviceCount} dispositivo(s) asociado(s).`)
+        const error = new Error(`No se puede eliminar la zona porque tiene ${deviceCount} dispositivo(s) asociado(s).`);
         error.status = 409;
         throw error;
     }
-    return zoneRepository.deleteZone(zoneId, userId);
+    return zoneRepository.deleteZone(zoneId, adminUserId);
 }
 
 module.exports = {
     getCondominiumTree, listAdminCondominiums,
-    createCondominium, updateCondominium, deleteCondominium,
+    createCondominium, updateCondominium, deleteCondominium, updateResidentCameraAccess,
     createBuilding, updateBuilding, deleteBuilding,
-    createZone, updateZone, deleteZone,
-}
+    createZone, updateZone, deleteZone
+};

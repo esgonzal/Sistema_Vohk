@@ -13,25 +13,6 @@ function sendServerError(res, error, message) {
     }
     return res.status(500).json({ error: message });
 }
-// ── Device listing ────────────────────────────────────────────────────────────
-router.get('/intercoms', async (req, res) => {
-    try {
-        const intercoms = await deviceService.listIntercoms();
-        res.json(intercoms);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: err.message });
-    }
-});
-router.get('/cameras', async (req, res) => {
-    try {
-        const cameras = await deviceService.listCameras();
-        res.json(cameras);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: err.message });
-    }
-});
 // ── Device management ─────────────────────────────────────────────────────────
 router.get('/zone/:zoneId', async (req, res) => {
     try {

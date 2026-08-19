@@ -2,6 +2,7 @@ const twilio = require('twilio');
 const admin = require('firebase-admin');
 const userRepository = require('../../repositories/userRepository');
 const intercomRepository = require('../../repositories/intercomRepository');
+const userDeviceRepository = require('../../repositories/userDeviceRepository');
 const OUTBOUND_CALLER_ID = process.env.TWILIO_CALLER_ID;
 const OUTBOUND_SIP_URI = process.env.TWILIO_OUTBOUND_SIP_URI;
 
@@ -17,18 +18,14 @@ async function handleIncomingCall(from, to) {
             userRepository.findByIdentity(apartmentIdentity),
             intercomRepository.findIntercomBySipAddress(from),
         ]);
-        if (resident?.fcm_token) {
-            try {
-                await admin.messaging().send({
-                    token: resident.fcm_token,
-                    data: {
-                        type: 'incoming_call',
-                        identity: apartmentIdentity,
-                        intercom: JSON.stringify(intercom),
-                    },
-                });
-            } catch (err) {
-                console.error('Error sending FCM:', err);
+        if (resident) {
+            const devices = await userDeviceRepository.findActiveByUserId(resident.user_id);
+            for (const device of devices) {
+                try {
+                    await admin.messaging().send({ token: device.fcm_token, data: { type: 'incoming_call', identity: apartmentIdentity, intercom: JSON.stringify(intercom) } });
+                } catch (err) {
+                    console.error(`Error sending FCM to device ${device.user_device_id}:`, err);
+                }
             }
         }
         const dial = twiml.dial({ answerOnBridge: true });

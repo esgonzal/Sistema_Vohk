@@ -71,18 +71,18 @@ router.get('/token', authenticate, (req, res) => {
 router.post('/register-fcm', authenticate, async (req, res) => {
     try {
         const { userId } = req.user;
-        const { fcmToken } = req.body;
-        if (!fcmToken) {
-            return res.status(400).json({ error: 'Missing fcmToken' });
+        const { fcmToken, platform, deviceName } = req.body;
+        if (!fcmToken || !platform) {
+            return res.status(400).json({ error: 'fcmToken and platform are required' });
         }
-        const result = await authService.registerFcmToken(userId, fcmToken);
-        if (result.error) {
-            return res.status(result.status).json({ error: result.error });
+        if (!['android', 'ios'].includes(platform)) {
+            return res.status(400).json({ error: 'Invalid platform' });
         }
-        res.json(result);
+        const result = await authService.registerFcmToken(userId, { fcmToken, platform, deviceName });
+        return res.status(200).json(result);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: err.message });
+        return res.status(500).json({ error: err.message });
     }
 });
 router.delete('/register-fcm', authenticate, async (req, res) => {
@@ -93,10 +93,10 @@ router.delete('/register-fcm', authenticate, async (req, res) => {
             return res.status(400).json({ error: 'Missing fcmToken' });
         }
         const result = await authService.unregisterFcmToken(userId, fcmToken);
-        res.json(result);
+        return res.status(200).json(result);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: err.message });
+        return res.status(500).json({ error: err.message });
     }
 });
 
