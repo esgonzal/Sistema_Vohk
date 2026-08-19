@@ -83,4 +83,4 @@ async function getResidentUnits(userId) {
     return unitRepository.findResidentUnits(userId);
 }
 
-module.exports = { getUnitTree, createUnit, updateUnit, deleteUnit };
+module.exports = { getUnitTree, createUnit, updateUnit, deleteUnit, getResidentUnits };
