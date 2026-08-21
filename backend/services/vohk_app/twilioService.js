@@ -18,13 +18,15 @@ async function handleIncomingCall(from, to) {
             userRepository.findByIdentity(apartmentIdentity),
             intercomRepository.findIntercomBySipAddress(from),
         ]);
+        const callerName = intercom ? `${intercom.intercom_name} - ${intercom.condominium_name}` : 'Citófono';
         if (resident) {
             const devices = await userDeviceRepository.findActiveByUserId(resident.user_id);
             for (const device of devices) {
                 try {
-                    await admin.messaging().send({ 
-                        token: device.fcm_token, 
-                        data: { type: 'incoming_call', call_type: 'intercom', identity: apartmentIdentity, caller_name: callerName, device_id: String(intercom?.device_id ?? ''), intercom: JSON.stringify(intercom) } });
+                    await admin.messaging().send({
+                        token: device.fcm_token,
+                        data: { type: 'incoming_call', call_type: 'intercom', identity: apartmentIdentity, caller_name: callerName, device_id: String(intercom?.device_id ?? ''), intercom: JSON.stringify(intercom) }
+                    });
                 } catch (err) {
                     console.error(`Error sending FCM to device ${device.user_device_id}:`, err);
                 }
@@ -34,7 +36,6 @@ async function handleIncomingCall(from, to) {
         const client = dial.client({ statusCallback: 'https://api.vohk.cl/api/twilio/client-status', statusCallbackMethod: 'POST', statusCallbackEvent: 'initiated ringing answered completed' });
         client.identity(apartmentIdentity);
         client.parameter({ name: 'call_type', value: 'intercom' });
-        const callerName = intercom ? `${intercom.intercom_name} - ${intercom.condominium_name}` : 'Citófono';
         client.parameter({ name: 'caller_name', value: callerName });
         client.parameter({ name: '__TWI_CALLER_NAME', value: callerName });
         if (intercom?.intercom_id) {
