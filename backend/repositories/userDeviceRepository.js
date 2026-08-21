@@ -30,4 +30,15 @@ async function findActiveByUserId(userId) {
     return result.rows;
 }
 
-module.exports = { upsertDevice, deactivateDevice, findActiveByUserId };
+async function deactivateDeviceById(userDeviceId) {
+    const result = await pool.query(`
+        UPDATE user_device
+        SET active = FALSE,
+            updated_at = NOW()
+        WHERE user_device_id = $1
+        RETURNING *
+    `, [userDeviceId]);
+    return result.rows[0] || null;
+}
+
+module.exports = { upsertDevice, deactivateDevice, findActiveByUserId, deactivateDeviceById };

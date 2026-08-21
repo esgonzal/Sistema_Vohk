@@ -25,9 +25,24 @@ async function handleIncomingCall(from, to) {
                 try {
                     await admin.messaging().send({
                         token: device.fcm_token,
-                        data: { type: 'incoming_call', call_type: 'intercom', identity: apartmentIdentity, caller_name: callerName, device_id: String(intercom?.device_id ?? ''), intercom: JSON.stringify(intercom) }
+                        data: {
+                            type: 'incoming_call',
+                            call_type: 'intercom',
+                            identity: apartmentIdentity,
+                            caller_name: callerName,
+                            device_id: String(intercom?.device_id ?? ''),
+                            condominium_id: String(intercom?.condominium_id ?? ''),
+                            intercom_name: intercom?.intercom_name ?? '',
+                            condominium_name: intercom?.condominium_name ?? '',
+                        }
                     });
                 } catch (err) {
+                    const errorCode = err?.errorInfo?.code ?? err?.code;
+                    if (errorCode === 'messaging/registration-token-not-registered' || errorCode === 'messaging/invalid-registration-token') {
+                        console.log(`Deactivating invalid FCM device ${device.user_device_id}`);
+                        await userDeviceRepository.deactivateDeviceById(device.user_device_id);
+                        continue;
+                    }
                     console.error(`Error sending FCM to device ${device.user_device_id}:`, err);
                 }
             }
