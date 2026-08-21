@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const admin = require('firebase-admin');
-const twilio = require('twilio');
 const twilioService = require('../../services/vohk_app/twilioService');
 const serviceAccount = require('../../firebase/firebase-service-account.json');
 
@@ -9,22 +8,7 @@ if (!admin.apps.length) {
     admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
 }
 
-function validateTwilioWebhook(req, res, next) {
-    const authToken = process.env.TWILIO_AUTH_TOKEN;
-    const signature = req.get('X-Twilio-Signature');
-    if (!authToken) {
-        console.error('TWILIO_AUTH_TOKEN is required to validate Twilio webhooks');
-        return res.status(503).send('Twilio webhook validation is not configured');
-    }
-    const baseUrl = process.env.TWILIO_WEBHOOK_BASE_URL || 'https://api.vohk.cl';
-    const requestUrl = new URL(req.originalUrl, baseUrl).toString();
-    if (!signature || !twilio.validateRequest(authToken, signature, requestUrl, req.body)) {
-        return res.status(403).send('Invalid Twilio signature');
-    }
-    return next();
-}
-
-router.post('/incoming', validateTwilioWebhook, async (req, res) => {
+router.post('/incoming', async (req, res) => {
     try {
         console.log(`Incoming Twilio call ${req.body.CallSid}: ${req.body.From} -> ${req.body.To}`);
         const from = req.body.From || '';
@@ -39,7 +23,7 @@ router.post('/incoming', validateTwilioWebhook, async (req, res) => {
         res.status(500).send('Internal server error');
     }
 });
-router.post('/outgoing', validateTwilioWebhook, async (req, res) => {
+router.post('/outgoing', async (req, res) => {
     try {
         console.log(`Outgoing Twilio call: ${req.body.From} -> ${req.body.To}`);
         const from = req.body.From || '';
@@ -58,7 +42,7 @@ router.post('/outgoing', validateTwilioWebhook, async (req, res) => {
     }
 });
 
-router.post('/client-status', validateTwilioWebhook, async (req, res) => {
+router.post('/client-status', async (req, res) => {
     const status = req.body.CallStatus;
     try {
         await twilioService.recordCallStatus(req.body);
