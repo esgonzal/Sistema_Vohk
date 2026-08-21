@@ -41,8 +41,16 @@ router.post('/outgoing', async (req, res) => {
 
 router.post('/client-status', (req, res) => {
     const status = req.body.CallStatus;
-    if (['failed', 'busy', 'no-answer'].includes(status)) {
-        console.warn('Twilio Client call unsuccessful:', {
+    if (['busy', 'no-answer', 'canceled'].includes(status)) {
+        console.log('Twilio Client call ended without connection:', {
+            callSid: req.body.CallSid,
+            parentCallSid: req.body.ParentCallSid,
+            status,
+            from: req.body.From,
+            to: req.body.To,
+        });
+    } else if (status === 'failed') {
+        console.error('Twilio Client call failed:', {
             callSid: req.body.CallSid,
             parentCallSid: req.body.ParentCallSid,
             status,
