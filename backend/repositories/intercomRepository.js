@@ -28,7 +28,7 @@ async function findIntercomBySipAddress(sipAddress) {
             d.device_id,
             d.zone_id,
             d.type,
-            d.name,
+            d.name AS intercom_name,
             d.ip_address,
             d.port,
             d.snapshot_url,
@@ -36,11 +36,16 @@ async function findIntercomBySipAddress(sipAddress) {
             d.active,
             i.intercom_id,
             i.sip_address,
+            i.door_id,
             d.username,
             d.password_encrypted,
-            i.door_id
+            z.name AS zone_name,
+            z.condominium_id,
+            c.name AS condominium_name
         FROM intercom i
         JOIN device d ON d.device_id = i.device_id
+        JOIN zone z ON z.zone_id = d.zone_id
+        JOIN condominium c ON c.condominium_id = z.condominium_id
         WHERE split_part(i.sip_address, ';', 1) = $1
         `,
         [sipAddress]
