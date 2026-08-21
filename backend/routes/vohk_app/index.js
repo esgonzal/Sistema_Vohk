@@ -5,7 +5,7 @@ const router = express.Router();
 router.use('/auth', require('./authAPI'));
 router.use('/twilio', require('./twilioAPI'));
 
-router.use('/events', require('./events'));
+router.use('/activities', require('./activityController'));
 router.use('/invitation', require('./invitationController'));
 
 // ANGULAR TABS

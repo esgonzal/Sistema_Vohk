@@ -7,8 +7,8 @@ const deviceRepository = require('../../repositories/deviceRepository');
 const invitationRepository = require('../../repositories/invitationRepository');
 const visitorRepository = require('../../repositories/visitorRepository');
 const intercomUserRepository = require('../../repositories/intercomUserRepository');
-const zoneRepository = require('../../repositories/zoneRepository');
 const intercomRepository = require('../../repositories/intercomRepository');
+const activityRepository = require('../../repositories/activityRepository');
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function formatCardForHikvision(cardNumber) {
@@ -102,7 +102,7 @@ async function getDevicesByCondominium(condominiumId, userId, role) {
             condominium.zones.push(zone);
         }
         if (!row.device_id) continue;
-        zone.devices.push({ device_id: row.device_id, type: row.type, vendor: row.vendor, name: row.device_name, ip_address: row.ip_address, port: row.port, username: row.username, password_encrypted: row.password_encrypted, snapshot_url: row.snapshot_url, stream_url: row.stream_url, active: row.active, last_seen_at: row.last_seen_at, created_at: row.device_created_at, intercom_id: row.intercom_id, sip_address: row.sip_address, door_id: row.door_id });
+        zone.devices.push({ device_id: row.device_id, type: row.type, vendor: row.vendor, name: row.device_name, ip_address: row.ip_address, port: row.port, snapshot_url: row.snapshot_url, stream_url: row.stream_url, active: row.active, last_seen_at: row.last_seen_at, created_at: row.device_created_at, intercom_id: row.intercom_id, sip_address: row.sip_address, door_id: row.door_id });
     }
     delete condominium._zoneMap;
     return condominium;
@@ -141,27 +141,44 @@ async function deleteDevice(deviceId) {
     return deviceRepository.deleteDevice(deviceId);
 }
 async function moveDeviceToZone(deviceId, zoneId, userId, role) {
-    if (role === 'superadmin') {
-        return deviceRepository.moveDeviceToZone(deviceId, zoneId);
-    }
-    const device = await deviceRepository.findDeviceByIdAndAdmin(deviceId, userId);
-    if (!device) {
+    const scope = await deviceRepository.findDeviceAndZoneCondominiums(deviceId, zoneId);
+    if (!scope) {
         const error = new Error('Device not found');
         error.status = 404;
         throw error;
     }
-    const zone = await zoneRepository.findById(zoneId);
-    if (!zone || zone.condominium_id !== device.condominium_id) {
+    if (scope.device_condominium_id !== scope.zone_condominium_id) {
         const error = new Error('Zone does not belong to the same condominium');
         error.status = 400;
         throw error;
     }
+    if (role === 'admin') {
+        const device = await deviceRepository.findDeviceByIdAndAdmin(deviceId, userId);
+        if (!device) {
+            const error = new Error('Device not found');
+            error.status = 404;
+            throw error;
+        }
+    }
     return deviceRepository.moveDeviceToZone(deviceId, zoneId);
 }
 // ── Open door ─────────────────────────────────────────────────────────────────
-async function openDoor(deviceId) {
+async function openDoor(deviceId, user) {
     const intercom = await deviceRepository.findIntercomByDeviceId(deviceId);
     if (!intercom) { return null; }
+
+    let allowed = user.role === 'superadmin';
+    if (user.role === 'admin') {
+        allowed = Boolean(await condominiumRepository.findByIdAndAdmin(intercom.condominium_id, user.userId));
+    } else if (user.role === 'resident') {
+        allowed = Boolean(await intercomUserRepository.findIntercomUserByUserAndDevice(user.userId, deviceId));
+    }
+    if (!allowed) {
+        const error = new Error('You do not have permission to open this door');
+        error.status = 403;
+        throw error;
+    }
+
     const DigestFetch = (await import('digest-fetch')).default;
     const client = new DigestFetch(intercom.username, intercom.password_encrypted);
     const path = `/ISAPI/AccessControl/RemoteControl/door/${intercom.door_id}`;
@@ -171,9 +188,33 @@ async function openDoor(deviceId) {
             <RemoteControlDoor>
                 <cmd>open</cmd>
             </RemoteControlDoor>`;
-    const response = await client.fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/xml' }, body: xml });
-    const text = await response.text();
-    return { ok: response.ok, text, intercomName: intercom.name };
+    try {
+        const response = await client.fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/xml' }, body: xml });
+        const text = await response.text();
+        await activityRepository.createActivity({
+            condominiumId: intercom.condominium_id,
+            deviceId,
+            actorUserId: user.userId,
+            eventType: 'door_open',
+            status: response.ok ? 'succeeded' : 'failed',
+            source: 'server',
+            participants: [{ userId: user.userId, role: 'actor' }],
+            metadata: { intercomName: intercom.name, httpStatus: response.status },
+        }).catch(logError => console.error('Could not record door activity:', logError));
+        return { ok: response.ok, text, intercomName: intercom.name };
+    } catch (error) {
+        await activityRepository.createActivity({
+            condominiumId: intercom.condominium_id,
+            deviceId,
+            actorUserId: user.userId,
+            eventType: 'door_open',
+            status: 'failed',
+            source: 'server',
+            participants: [{ userId: user.userId, role: 'actor' }],
+            metadata: { intercomName: intercom.name, error: error.message },
+        }).catch(logError => console.error('Could not record failed door activity:', logError));
+        throw error;
+    }
 }
 // ── Intercom users (Hikvision ISAPI) ─────────────────────────────────────────
 async function listIntercomUsers(deviceId) {

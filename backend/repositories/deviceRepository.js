@@ -2,7 +2,7 @@ const pool = require('../database/db');
 
 async function findDeviceTreeRows(condominiumId) {
     const result = await pool.query(`
-        SELECT c.condominium_id, c.name AS condominium_name, c.address, c.city, z.zone_id, z.name AS zone_name, d.device_id, d.type, d.vendor, d.name AS device_name, d.ip_address, d.port, d.username, d.password_encrypted, d.snapshot_url, d.stream_url, d.active, d.last_seen_at, d.created_at AS device_created_at, i.intercom_id, i.sip_address, i.door_id
+        SELECT c.condominium_id, c.name AS condominium_name, c.address, c.city, z.zone_id, z.name AS zone_name, d.device_id, d.type, d.vendor, d.name AS device_name, d.ip_address, d.port, d.snapshot_url, d.stream_url, d.active, d.last_seen_at, d.created_at AS device_created_at, i.intercom_id, i.sip_address, i.door_id
         FROM condominium c
         LEFT JOIN zone z ON z.condominium_id = c.condominium_id
         LEFT JOIN device d ON d.zone_id = z.zone_id
@@ -72,7 +72,8 @@ async function createDevice({ zoneId, type, vendor, name, ipAddress, port, usern
     const result = await pool.query(`
         INSERT INTO device (zone_id, type, vendor, name, ip_address, port, username, password_encrypted, snapshot_url, stream_url, active) 
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) 
-        RETURNING *
+        RETURNING device_id, zone_id, type, vendor, name, ip_address, port,
+                  snapshot_url, stream_url, active, last_seen_at, created_at
     `, [zoneId, type, vendor, name, ipAddress, port, username, passwordEncrypted, snapshotUrl, streamUrl, active]);
     return result.rows[0];
 }
@@ -82,7 +83,8 @@ async function updateDeviceName(deviceId, name) {
         UPDATE device 
         SET name = $2 
         WHERE device_id = $1 
-        RETURNING *
+        RETURNING device_id, zone_id, type, vendor, name, ip_address, port,
+                  snapshot_url, stream_url, active, last_seen_at, created_at
     `, [deviceId, name]);
     return result.rows[0];
 }
@@ -92,7 +94,8 @@ async function deleteDevice(deviceId) {
         DELETE 
         FROM device 
         WHERE device_id = $1 
-        RETURNING *
+        RETURNING device_id, zone_id, type, vendor, name, ip_address, port,
+                  snapshot_url, stream_url, active, last_seen_at, created_at
     `, [deviceId]);
     return result.rows[0];
 }
@@ -102,7 +105,20 @@ async function moveDeviceToZone(deviceId, zoneId) {
         UPDATE device 
         SET zone_id = $2 
         WHERE device_id = $1 
-        RETURNING *
+        RETURNING device_id, zone_id, type, vendor, name, ip_address, port,
+                  snapshot_url, stream_url, active, last_seen_at, created_at
+    `, [deviceId, zoneId]);
+    return result.rows[0];
+}
+
+async function findDeviceAndZoneCondominiums(deviceId, zoneId) {
+    const result = await pool.query(`
+        SELECT source_zone.condominium_id AS device_condominium_id,
+               target_zone.condominium_id AS zone_condominium_id
+        FROM device d
+        INNER JOIN zone source_zone ON source_zone.zone_id = d.zone_id
+        INNER JOIN zone target_zone ON target_zone.zone_id = $2
+        WHERE d.device_id = $1
     `, [deviceId, zoneId]);
     return result.rows[0];
 }
@@ -117,5 +133,5 @@ async function updateLastSeen(deviceId) {
 
 module.exports = { 
     findDeviceTreeRows, findIntercomByDeviceId, findDevicesByCondominium, findMobileDevicesByCondominium, findActiveDevices, findDeviceByIdAndAdmin, 
-    createDevice, updateDeviceName, deleteDevice, moveDeviceToZone, updateLastSeen 
+    createDevice, updateDeviceName, deleteDevice, moveDeviceToZone, findDeviceAndZoneCondominiums, updateLastSeen
 };

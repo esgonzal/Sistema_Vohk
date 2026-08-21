@@ -29,6 +29,18 @@ async function findIntercomUserByDeviceAndEmployeeNo(deviceId, employeeNo) {
     );
     return result.rows[0];
 }
+async function findIntercomUserByUserAndDevice(userId, deviceId) {
+    const result = await pool.query(
+        `
+        SELECT iu.*
+        FROM intercom_user iu
+        INNER JOIN intercom i ON i.intercom_id = iu.intercom_id
+        WHERE iu.user_id = $1 AND i.device_id = $2
+        `,
+        [userId, deviceId]
+    );
+    return result.rows[0];
+}
 async function findAccessMethods(userId) {
     const result = await pool.query(
         `
@@ -121,6 +133,6 @@ async function updateDynamicCode(intercomUserId, dynamicCode) {
 }
 
 module.exports = {
-    findIntercomUsersByUserAndCondominium, findIntercomUserByDeviceAndEmployeeNo, findAccessMethods, findIntercomUsersWithDeviceByUserId,
+    findIntercomUsersByUserAndCondominium, findIntercomUserByDeviceAndEmployeeNo, findIntercomUserByUserAndDevice, findAccessMethods, findIntercomUsersWithDeviceByUserId,
     createIntercomUser, deleteIntercomUserByUserAndIntercom, updateFaceStatus, updateDynamicCode,
 };

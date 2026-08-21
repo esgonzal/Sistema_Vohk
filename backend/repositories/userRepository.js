@@ -130,6 +130,33 @@ async function getUsersByCondominium(condominiumId) {
     return result.rows;
 }
 
+async function findCallCondominium(callerUserId, recipientUserId) {
+    const result = await pool.query(`
+        SELECT c.condominium_id
+        FROM resident_unit recipient_ru
+        INNER JOIN unit recipient_unit ON recipient_unit.unit_id = recipient_ru.unit_id
+        INNER JOIN building recipient_building ON recipient_building.building_id = recipient_unit.building_id
+        INNER JOIN condominium c ON c.condominium_id = recipient_building.condominium_id
+        INNER JOIN app_user caller ON caller.user_id = $1
+        WHERE recipient_ru.user_id = $2
+          AND (
+              caller.role = 'superadmin'
+              OR (caller.role = 'admin' AND c.admin_user_id = caller.user_id)
+              OR (caller.role = 'resident' AND EXISTS (
+                  SELECT 1
+                  FROM resident_unit caller_ru
+                  INNER JOIN unit caller_unit ON caller_unit.unit_id = caller_ru.unit_id
+                  INNER JOIN building caller_building ON caller_building.building_id = caller_unit.building_id
+                  WHERE caller_ru.user_id = caller.user_id
+                    AND caller_building.condominium_id = c.condominium_id
+              ))
+          )
+        ORDER BY c.name
+        LIMIT 1
+    `, [callerUserId, recipientUserId]);
+    return result.rows[0] || null;
+}
+
 module.exports = { 
     findById, findByUsername, findByRut, findByIdentity, findByEmail, findByPasswordResetToken, 
-    createResident, updateResident, savePasswordResetToken, resetPassword, updateUsername, updateEmail, updatePassword, getUsersByCondominium };
+    createResident, updateResident, savePasswordResetToken, resetPassword, updateUsername, updateEmail, updatePassword, getUsersByCondominium, findCallCondominium };

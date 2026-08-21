@@ -3,10 +3,14 @@ const admin = require('firebase-admin');
 const userRepository = require('../../repositories/userRepository');
 const intercomRepository = require('../../repositories/intercomRepository');
 const userDeviceRepository = require('../../repositories/userDeviceRepository');
+const activityRepository = require('../../repositories/activityRepository');
+const condominiumRepository = require('../../repositories/condominiumRepository');
+const intercomUserRepository = require('../../repositories/intercomUserRepository');
 const OUTBOUND_CALLER_ID = process.env.TWILIO_CALLER_ID;
 const OUTBOUND_SIP_URI = process.env.TWILIO_OUTBOUND_SIP_URI;
+const STATUS_CALLBACK_URL = process.env.TWILIO_STATUS_CALLBACK_URL || 'https://api.vohk.cl/api/twilio/client-status';
 
-async function handleIncomingCall(from, to) {
+async function handleIncomingCall(from, to, callSid = null) {
     const twiml = new twilio.twiml.VoiceResponse();
     if (from.startsWith('sip:')) {
         const match = to.match(/sip:(\d+)@/);
@@ -47,8 +51,20 @@ async function handleIncomingCall(from, to) {
                 }
             }
         }
+        if (resident && intercom?.condominium_id) {
+            await activityRepository.createActivity({
+                condominiumId: intercom.condominium_id,
+                deviceId: intercom.device_id,
+                eventType: 'call',
+                status: 'initiated',
+                source: 'twilio',
+                correlationId: callSid,
+                participants: [{ userId: resident.user_id, role: 'recipient' }],
+                metadata: { direction: 'intercom_to_user', from, to, callerName },
+            }).catch(error => console.error('Could not record incoming call activity:', error));
+        }
         const dial = twiml.dial({ answerOnBridge: true });
-        const client = dial.client({ statusCallback: 'https://api.vohk.cl/api/twilio/client-status', statusCallbackMethod: 'POST', statusCallbackEvent: 'initiated ringing answered completed' });
+        const client = dial.client({ statusCallback: STATUS_CALLBACK_URL, statusCallbackMethod: 'POST', statusCallbackEvent: 'initiated ringing answered completed' });
         client.identity(apartmentIdentity);
         client.parameter({ name: 'call_type', value: 'intercom' });
         client.parameter({ name: 'caller_name', value: callerName });
@@ -74,7 +90,7 @@ async function handleIncomingCall(from, to) {
     }
     return twiml.toString();
 }
-async function handleOutgoingCall(from, to) {
+async function handleOutgoingCall(from, to, callSid = null) {
     const twiml = new twilio.twiml.VoiceResponse();
     if (!from.startsWith('client:') || !to) {
         throw new Error('Invalid client destination');
@@ -91,9 +107,38 @@ async function handleOutgoingCall(from, to) {
             error.status = 404;
             throw error;
         }
+        const callerIdentity = from.replace('client:', '');
+        const caller = await userRepository.findByIdentity(callerIdentity);
+        if (!caller) {
+            const error = new Error('Caller not found');
+            error.status = 403;
+            throw error;
+        }
+        let allowed = caller.role === 'superadmin';
+        if (caller.role === 'admin') {
+            allowed = Boolean(await condominiumRepository.findByIdAndAdmin(intercom.condominium_id, caller.user_id));
+        } else if (caller.role === 'resident') {
+            allowed = Boolean(await intercomUserRepository.findIntercomUserByUserAndDevice(caller.user_id, deviceId));
+        }
+        if (!allowed) {
+            const error = new Error('Caller does not have access to this intercom');
+            error.status = 403;
+            throw error;
+        }
+        await activityRepository.createActivity({
+            condominiumId: intercom.condominium_id,
+            deviceId,
+            actorUserId: caller.user_id,
+            eventType: 'call',
+            status: 'initiated',
+            source: 'twilio',
+            correlationId: callSid,
+            participants: [{ userId: caller.user_id, role: 'caller' }],
+            metadata: { direction: 'user_to_intercom', from, to },
+        }).catch(error => console.error('Could not record outgoing intercom call activity:', error));
         console.log(`Outgoing intercom call: ${from} -> ${intercom.sip_address}`);
         const dial = twiml.dial({ answerOnBridge: true });
-        dial.sip(intercom.sip_address);
+        dial.sip({ statusCallback: STATUS_CALLBACK_URL, statusCallbackMethod: 'POST', statusCallbackEvent: 'initiated ringing answered completed' }, intercom.sip_address);
         return twiml.toString();
     }
     // APP -> APP / RESIDENT
@@ -105,8 +150,27 @@ async function handleOutgoingCall(from, to) {
     }
     const callerIdentity = from.replace('client:', '');
     const caller = await userRepository.findByIdentity(callerIdentity);
+    const callCondominium = caller ? await userRepository.findCallCondominium(caller.user_id, resident.user_id) : null;
+    if (!caller || !callCondominium) {
+        const error = new Error('Caller cannot reach this resident');
+        error.status = 403;
+        throw error;
+    }
+    await activityRepository.createActivity({
+        condominiumId: callCondominium.condominium_id,
+        actorUserId: caller.user_id,
+        eventType: 'call',
+        status: 'initiated',
+        source: 'twilio',
+        correlationId: callSid,
+        participants: [
+            { userId: caller.user_id, role: 'caller' },
+            { userId: resident.user_id, role: 'recipient' },
+        ],
+        metadata: { direction: 'user_to_user', from, to },
+    }).catch(error => console.error('Could not record outgoing user call activity:', error));
     const dial = twiml.dial({ answerOnBridge: true });
-    const client = dial.client();
+    const client = dial.client({ statusCallback: STATUS_CALLBACK_URL, statusCallbackMethod: 'POST', statusCallbackEvent: 'initiated ringing answered completed' });
     client.identity(to);
     client.parameter({ name: 'call_type', value: 'admin' });
     client.parameter({ name: 'caller_identity', value: callerIdentity });
@@ -114,4 +178,33 @@ async function handleOutgoingCall(from, to) {
     return twiml.toString();
 }
 
-module.exports = { handleIncomingCall, handleOutgoingCall };
+async function recordCallStatus(payload) {
+    const status = payload.CallStatus;
+    if (!status) return null;
+    const context = await activityRepository.findCallContext([payload.ParentCallSid, payload.CallSid]);
+    if (!context) {
+        console.warn('Could not match Twilio status to a call activity:', payload.CallSid, payload.ParentCallSid);
+        return null;
+    }
+    return activityRepository.createActivity({
+        condominiumId: context.condominium_id,
+        deviceId: context.device_id,
+        actorUserId: context.actor_user_id,
+        eventType: 'call',
+        status,
+        source: 'twilio',
+        correlationId: context.correlation_id,
+        occurredAt: payload.Timestamp || null,
+        participants: context.participants,
+        metadata: {
+            direction: context.metadata?.direction,
+            callSid: payload.CallSid,
+            parentCallSid: payload.ParentCallSid || null,
+            from: payload.From,
+            to: payload.To,
+            errorCode: payload.ErrorCode || null,
+        },
+    });
+}
+
+module.exports = { handleIncomingCall, handleOutgoingCall, recordCallStatus };

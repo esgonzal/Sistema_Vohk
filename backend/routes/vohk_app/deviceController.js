@@ -111,12 +111,12 @@ router.delete('/:deviceId', async (req, res) => {
 });
 router.post('/open-door/:deviceId', async (req, res) => {
     try {
-        const result = await deviceService.openDoor(req.params.deviceId);
+        const result = await deviceService.openDoor(req.params.deviceId, req.user);
         if (!result) { return res.status(404).json({ ok: false, error: 'Device not found' }); }
         if (result.ok) { return res.json({ ok: true, message: 'Door opened' }); }
         return res.status(500).json({ ok: false, error: result.text });
     } catch (error) {
-        res.status(500).json({ ok: false, error: error.message });
+        return sendServerError(res, error, 'Could not open door');
     }
 });
 router.get('/resident/access-methods', async (req, res) => {
