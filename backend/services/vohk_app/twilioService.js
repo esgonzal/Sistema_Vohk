@@ -47,6 +47,9 @@ async function handleIncomingCall(from, to) {
         if (intercom?.intercom_name) {
             client.parameter({ name: 'intercom_name', value: intercom.intercom_name });
         }
+        if (intercom?.condominium_id) {
+            client.parameter({ name: 'condominium_id', value: String(intercom.condominium_id) });
+        }
         if (intercom?.condominium_name) {
             client.parameter({ name: 'condominium_name', value: intercom.condominium_name });
         }
