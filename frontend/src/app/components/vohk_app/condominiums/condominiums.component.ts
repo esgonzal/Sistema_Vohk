@@ -1,7 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { CondominiumService } from 'src/app/services/vohk_app/condominium.service';
-import { DashboardService } from 'src/app/services/vohk_app/dashboard.service';
-import { PropertyService } from 'src/app/services/vohk_app/property.service';
 import Swal from 'sweetalert2';
 
 interface Condominium {
@@ -9,9 +7,11 @@ interface Condominium {
   name: string;
   address: string;
   city: string;
+  resident_camera_access: boolean;
   buildings: Building[];
   zones: Zone[];
   expanded?: boolean;
+  cameraAccessSaving?: boolean;
 }
 interface Building {
   building_id: string;
@@ -36,7 +36,7 @@ export class CondominiumsComponent implements OnInit {
   condominiums: Condominium[] = [];
   loading = true;
 
-  constructor(private propertyService: PropertyService, private condominiumService: CondominiumService) { }
+  constructor(private condominiumService: CondominiumService) { }
 
   ngOnInit(): void {
     this.loadCondominiums();
@@ -77,6 +77,23 @@ export class CondominiumsComponent implements OnInit {
     this.condominiums.forEach(condo => {
       condo.expanded = false;
       condo.buildings.forEach(building => { building.expanded = false; });
+    });
+  }
+  updateResidentCameraAccess(condo: Condominium, event: Event) {
+    const input = event.target as HTMLInputElement;
+    const enabled = input.checked;
+    condo.cameraAccessSaving = true;
+    this.condominiumService.updateResidentCameraAccess(condo.condominium_id, enabled).subscribe({
+      next: () => {
+        condo.resident_camera_access = enabled;
+        condo.cameraAccessSaving = false;
+      },
+      error: err => {
+        console.error('Error updating resident camera access:', err);
+        input.checked = condo.resident_camera_access;
+        condo.cameraAccessSaving = false;
+        Swal.fire('Error', err.error?.error || 'No se pudo actualizar el acceso a cámaras.', 'error');
+      }
     });
   }
   async openCreateCondominium() {

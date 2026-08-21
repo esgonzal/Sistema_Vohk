@@ -55,6 +55,57 @@
             </div>
         </div>
     </div>
+    <section class="activity-panel">
+        <div class="activity-header">
+            <div>
+                <div class="attention-title">Actividad reciente</div>
+                <div class="attention-subtitle">Puertas y llamadas de los condominios bajo tu alcance</div>
+            </div>
+        </div>
+        <div class="activity-list" *ngIf="activities.length; else noActivity">
+            <div class="activity-item" *ngFor="let activity of pagedActivities">
+                <mat-icon>{{ activity.event_type === 'door_open' ? 'lock_open' : 'call' }}</mat-icon>
+                <div class="activity-info">
+                    <div class="activity-title">{{ activityTitle(activity) }}</div>
+                    <div class="activity-detail">
+                        {{ activity.condominium_name }} · {{ activity.occurred_at | date:'dd/MM/yyyy HH:mm' }}
+                    </div>
+                </div>
+                <span class="activity-status"
+                    [class.failed]="activity.status === 'failed' || activity.status === 'no-answer'">
+                    {{ activityStatus(activity.status) }}
+                </span>
+            </div>
+        </div>
+        <ng-template #noActivity>
+            <div class="activity-empty">Aún no hay actividad registrada.</div>
+        </ng-template>
+        <div class="activity-pagination" *ngIf="activities.length">
+            <div class="activity-page-size">
+                <span>Mostrar</span>
+                <select [value]="activityPageSize" (change)="changeActivityPageSize($any($event.target).value)">
+                    <option *ngFor="let option of activityPageSizeOptions" [value]="option">
+                        {{ option }}
+                    </option>
+                </select>
+            </div>
+            <div class="activity-page-info">
+                {{ activityStart }}–{{ activityEnd }} de {{ activities.length }}
+            </div>
+            <div class="activity-page-buttons">
+                <button type="button" (click)="previousActivityPage()" [disabled]="activityPage === 0">
+                    <mat-icon>chevron_left</mat-icon>
+                </button>
+
+                <span>
+                    {{ activityPage + 1 }} / {{ activityTotalPages }}
+                </span>
+                <button type="button" (click)="nextActivityPage()" [disabled]="activityPage + 1 >= activityTotalPages">
+                    <mat-icon>chevron_right</mat-icon>
+                </button>
+            </div>
+        </div>
+    </section>
 </div>
 <div class="stats-grid">
     <div class="stat-card">

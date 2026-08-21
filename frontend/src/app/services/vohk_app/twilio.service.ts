@@ -53,6 +53,24 @@ export class TwilioService {
     });
     device.on('incoming', (call: Call) => {
       this.incomingCallSubject.next(call);
+      const clearIncomingCall = () => {
+        if (this.incomingCallSubject.value === call) {
+          this.incomingCallSubject.next(null);
+        }
+      };
+      call.on('cancel', () => {
+        clearIncomingCall();
+        this.callEndedSubject.next();
+      });
+      call.on('disconnect', () => {
+        clearIncomingCall();
+        this.callEndedSubject.next();
+      });
+      call.on('error', error => {
+        console.error('Incoming Twilio call error:', error);
+        clearIncomingCall();
+        this.callEndedSubject.next();
+      });
     });
     device.on('tokenWillExpire', async () => {
       try {

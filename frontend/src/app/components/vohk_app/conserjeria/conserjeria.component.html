@@ -20,24 +20,80 @@
         <div class="bottom-panel">
             <div class="activity">
                 <div class="section-title">Actividad Reciente</div>
-                <table>
+
+                <table *ngIf="activities.length; else noConciergeActivity">
                     <thead>
                         <tr>
                             <th>Hora</th>
                             <th>Evento</th>
-                            <th>Zona</th>
-                            <th>Clasificación</th>
+                            <th>Dispositivo</th>
+                            <th>Estado</th>
                         </tr>
                     </thead>
+
                     <tbody>
-                        <tr *ngFor="let item of activities">
-                            <td>{{item.time}}</td>
-                            <td>{{item.event}}</td>
-                            <td>{{item.zone}}</td>
-                            <td><span class="badge">{{item.classification}}</span></td>
+                        <tr *ngFor="let activity of pagedActivities">
+                            <td>
+                                {{ activity.occurred_at | date:'dd/MM HH:mm' }}
+                            </td>
+
+                            <td>
+                                {{ activityTitle(activity) }}
+                            </td>
+
+                            <td>
+                                {{ activity.device_name || '—' }}
+                            </td>
+
+                            <td>
+                                <span class="badge" [class.activity-failed]="
+                            activity.status === 'failed' ||
+                            activity.status === 'no-answer'
+                        ">
+                                    {{ activityStatus(activity.status) }}
+                                </span>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
+
+                <ng-template #noConciergeActivity>
+                    <div class="activity-empty">
+                        Aún no hay actividad registrada.
+                    </div>
+                </ng-template>
+
+                <div class="activity-pagination" *ngIf="activities.length">
+                    <div class="activity-page-size">
+                        <span>Mostrar</span>
+
+                        <select [value]="activityPageSize" (change)="changeActivityPageSize($any($event.target).value)">
+                            <option *ngFor="let option of activityPageSizeOptions" [value]="option">
+                                {{ option }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="activity-page-info">
+                        {{ activityStart }}–{{ activityEnd }}
+                        de {{ activities.length }}
+                    </div>
+
+                    <div class="activity-page-buttons">
+                        <button type="button" (click)="previousActivityPage()" [disabled]="activityPage === 0">
+                            <mat-icon>chevron_left</mat-icon>
+                        </button>
+
+                        <span>
+                            {{ activityPage + 1 }} / {{ activityTotalPages }}
+                        </span>
+
+                        <button type="button" (click)="nextActivityPage()"
+                            [disabled]="activityPage + 1 >= activityTotalPages">
+                            <mat-icon>chevron_right</mat-icon>
+                        </button>
+                    </div>
+                </div>
             </div>
             <div class="actions">
                 <div class="section-title">Acciones</div>

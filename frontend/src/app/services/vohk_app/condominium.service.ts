@@ -14,6 +14,9 @@ export class CondominiumService {
   getCondominiums() {
     return this.http.get<any>(`${this.URL}/api/condominiums/tree`);
   }
+  updateResidentCameraAccess(condominiumId: string, enabled: boolean) {
+    return this.http.put(`${this.URL}/api/condominiums/${condominiumId}/resident-camera-access`, { enabled });
+  }
   createCondominium(name: string, address: string, city: string) {
     return this.http.post(`${this.URL}/api/condominiums/`, { name, address, city });
   }

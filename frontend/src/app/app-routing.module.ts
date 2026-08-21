@@ -29,6 +29,7 @@ import { ResetPasswordComponent } from './components/vohk_app/reset-password/res
 import { DashboardComponent } from './components/vohk_app/dashboard/dashboard.component';
 import { UserComponent } from './components/vohk_app/user/user.component';
 import { ConserjeriaComponent } from './components/vohk_app/conserjeria/conserjeria.component';
+import { DeviceComponent } from './components/vohk_app/device/device.component';
 
 const routes: Routes = [
 
@@ -63,8 +64,9 @@ const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: DashboardComponent },
       { path: 'condominiums', component: CondominiumsComponent },
-      { path: 'unidades', component: UnitsComponent },
       { path: 'usuarios', component: UserComponent },
+      { path: 'unidades', component: UnitsComponent },
+      { path: 'dispositivos', component: DeviceComponent },
       { path: 'conserjeria', component: ConserjeriaComponent }
     ]
   }

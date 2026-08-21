@@ -6,8 +6,10 @@
 .concierge-page {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    min-height: 100%;
     gap: 18px;
+    padding-bottom: 32px;
+    box-sizing: border-box;
 }
 
 .page-header {
@@ -218,34 +220,49 @@ td {
 
 .incoming-call-backdrop {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.6);
+    inset: 0;
+    background: rgba(0, 0, 0, 0.78);
     display: flex;
     justify-content: center;
     align-items: center;
+    padding: 24px;
     z-index: 99999;
 }
 
 .incoming-call-card {
-    background: white;
-    padding: 30px;
-    border-radius: 12px;
-    width: 350px;
+    background: #18191D;
+    padding: 28px;
+    border: 1px solid #2E3038;
+    border-radius: 16px;
+    width: min(760px, 90vw);
+    max-height: 90vh;
+    overflow-y: auto;
     text-align: center;
+    color: white;
 }
 
 .incoming-call-card h2 {
-    margin-top: 0;
+    margin: 0 0 10px;
+    color: #F3F4F6;
+    font-size: 28px;
+}
+
+.incoming-call-card h3 {
+    margin: 18px 0 12px;
+    color: white;
+    font-size: 20px;
+}
+
+.incoming-call-card p {
+    color: #8C8D94;
+    margin-bottom: 18px;
 }
 
 .call-camera {
     width: 100%;
-    aspect-ratio: 16 / 9;
+    height: min(55vh, 460px);
     border: 0;
-    border-radius: 10px;
+    border-radius: 12px;
     overflow: hidden;
     background: #111;
 }
@@ -255,6 +272,75 @@ td {
     justify-content: center;
     gap: 15px;
     margin-top: 20px;
+}
+
+.activity-empty {
+    color: #8D9098;
+    padding: 24px 18px;
+    font-size: 13px;
+}
+
+.activity-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 16px;
+    padding: 12px 14px;
+    border-top: 1px solid #26282D;
+    color: #8D9098;
+    font-size: 12px;
+}
+
+.activity-page-size {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.activity-page-size select {
+    background: #1B1C20;
+    color: white;
+    border: 1px solid #2E3038;
+    border-radius: 7px;
+    padding: 5px 8px;
+    outline: none;
+}
+
+.activity-page-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.activity-page-buttons button {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 1px solid #2E3038;
+    border-radius: 7px;
+    background: #1B1C20;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.activity-page-buttons button:disabled {
+    opacity: .35;
+    cursor: default;
+}
+
+.activity-page-buttons mat-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+}
+
+.activity-failed {
+    color: #f87171 !important;
+    border-color: rgba(248, 113, 113, .25) !important;
+    background: rgba(248, 113, 113, .10) !important;
 }
 
 @media (max-width: 1100px) {

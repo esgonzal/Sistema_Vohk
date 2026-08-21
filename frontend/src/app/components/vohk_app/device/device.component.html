@@ -1,1 +1,98 @@
-<p>device works!</p>
+<div class="devices-page">
+    <div class="devices-header">
+        <div>
+            <div class="eyebrow">CONDOMINIO · {{ selectedCondominium?.name || 'SIN SELECCIONAR' }}</div>
+            <h1>Dispositivos</h1>
+            <p>Gestiona los dispositivos asociados al condominio seleccionado.</p>
+        </div>
+        <div class="header-actions">
+            <button *ngIf="isSuperAdmin" class="primary-btn" (click)="openCreateDevice()" [disabled]="!selectedCondominium">+ Nuevo
+                dispositivo</button>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Total dispositivos</div>
+            <div class="stat-value">{{ getTotalCount() }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Cámaras</div>
+            <div class="stat-value">{{ getCameraCount() }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Videoporteros</div>
+            <div class="stat-value">{{ getIntercomCount() }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Inactivos</div>
+            <div class="stat-value">{{ getInactiveCount() }}</div>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <div class="table-toolbar">
+            <input class="search" placeholder="Buscar dispositivo, IP o zona..." (input)="onSearch($event)">
+            <div class="filters">
+                <span class="filter" [class.active]="selectedType === 'Todos'"
+                    (click)="filterByType('Todos')">Todos</span>
+                <span class="filter" [class.active]="selectedType === 'camera'"
+                    (click)="filterByType('camera')">Cámaras</span>
+                <span class="filter" [class.active]="selectedType === 'intercom'"
+                    (click)="filterByType('intercom')">Videoporteros</span>
+            </div>
+        </div>
+
+        <div class="table-header">
+            <div>Dispositivo</div>
+            <div>Categoría</div>
+            <div>Zona</div>
+            <div>IP</div>
+            <div>Estado</div>
+            <div>Acciones</div>
+        </div>
+
+        <div class="device-row" *ngFor="let device of filteredDevices">
+            <div class="device-info">
+                <div class="avatar">
+                    <mat-icon>{{ device.type === 'intercom' ? 'doorbell' : 'videocam' }}</mat-icon>
+                </div>
+                <div>
+                    <div class="name">{{ device.name }}</div>
+                    <div class="device-id">{{ device.device_id }}</div>
+                </div>
+            </div>
+
+            <div>
+                <span class="type">{{ getTypeLabel(device.type) }}</span>
+            </div>
+
+            <div class="zone">{{ device.zone_name || '-' }}</div>
+
+            <div class="mono">
+                {{ device.ip_address || '-' }}
+                <span *ngIf="device.port">:{{ device.port }}</span>
+            </div>
+
+            <div>
+                <span class="status" [class.inactive]="!device.active">
+                    <span class="status-dot"></span>
+                    {{ device.active ? 'Activo' : 'Inactivo' }}
+                </span>
+            </div>
+
+            <div class="device-actions">
+                <button class="action-btn" (click)="editDevice(device)" title="Editar nombre y zona">
+                    <mat-icon>edit</mat-icon>
+                </button>
+                <button *ngIf="isSuperAdmin" class="action-btn danger" (click)="deleteDevice(device)" title="Eliminar">
+                    <mat-icon>delete</mat-icon>
+                </button>
+            </div>
+        </div>
+
+        <div class="empty" *ngIf="!loading && filteredDevices.length === 0">
+            No hay dispositivos registrados en este condominio.
+        </div>
+    </div>
+</div>

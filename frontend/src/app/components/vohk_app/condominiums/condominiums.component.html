@@ -24,7 +24,7 @@
                     <mat-icon>apartment</mat-icon>
                 </div>
                 <div class="condo-info">
-                 <div class="name">
+                    <div class="name">
                         {{ condo.name }}
                     </div>
                     <div class="direction-city">
@@ -52,6 +52,24 @@
             </button>
             <div class="condo-body" *ngIf="condo.expanded">
                 <div class="management-section">
+                    <div class="camera-access-setting">
+                        <div class="camera-access-info">
+                            <mat-icon>videocam</mat-icon>
+                            <div>
+                                <div class="setting-title">Acceso de residentes a cámaras</div>
+                                <div class="setting-description">Permite que los residentes de este condominio puedan
+                                    ver las cámaras desde la aplicación.</div>
+                            </div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" [checked]="condo.resident_camera_access"
+                                [disabled]="condo.cameraAccessSaving"
+                                (change)="updateResidentCameraAccess(condo, $event)">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="management-section">
                     <div class="section-header">
                         <div>
                             <mat-icon>domain</mat-icon>
@@ -69,7 +87,8 @@
                             <button class="icon-btn" matTooltip="Editar edificio" (click)="editBuilding(building)">
                                 <mat-icon>edit</mat-icon>
                             </button>
-                            <button class="icon-btn danger" matTooltip="Eliminar edificio" (click)="deleteBuilding(building)">
+                            <button class="icon-btn danger" matTooltip="Eliminar edificio"
+                                (click)="deleteBuilding(building)">
                                 <mat-icon>delete</mat-icon>
                             </button>
                         </div>

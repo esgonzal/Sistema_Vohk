@@ -283,8 +283,134 @@
     cursor: pointer;
 }
 
+.activity-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 18px;
+    padding-top: 14px;
+    margin-top: 4px;
+    border-top: 1px solid rgba(255, 255, 255, .05);
+    color: #8a8a90;
+    font-size: 12px;
+}
+
+.activity-page-size {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.activity-page-size select {
+    background: #1c1d21;
+    color: #e6e6e9;
+    border: 1px solid rgba(255, 255, 255, .09);
+    border-radius: 7px;
+    padding: 5px 8px;
+    outline: none;
+}
+
+.activity-page-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.activity-page-buttons button {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, .09);
+    border-radius: 7px;
+    background: #1c1d21;
+    color: #e6e6e9;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.activity-page-buttons button:hover:not(:disabled) {
+    background: #25262b;
+}
+
+.activity-page-buttons button:disabled {
+    opacity: .35;
+    cursor: default;
+}
+
+.activity-page-buttons mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+}
+
 .attention-button:hover {
     background: #212227;
+}
+
+.activity-panel {
+    background: #131418;
+    border: 1px solid rgba(255, 255, 255, .07);
+    border-radius: 16px;
+    padding: 20px 22px;
+}
+
+.activity-list {
+    margin-top: 12px;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, .05);
+}
+
+.activity-item:last-child {
+    border-bottom: 0;
+}
+
+.activity-item mat-icon {
+    color: #f5ce33;
+}
+
+.activity-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.activity-title {
+    color: #e6e6e9;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.activity-detail,
+.activity-empty {
+    color: #7c7c82;
+    font-size: 11px;
+    margin-top: 3px;
+}
+
+.activity-empty {
+    padding: 24px 0 4px;
+}
+
+.activity-status {
+    color: #4ade80;
+    background: rgba(74, 222, 128, .1);
+    border: 1px solid rgba(74, 222, 128, .2);
+    border-radius: 20px;
+    padding: 3px 9px;
+    font-size: 11px;
+}
+
+.activity-status.failed {
+    color: #f87171;
+    background: rgba(248, 113, 113, .1);
+    border-color: rgba(248, 113, 113, .2);
 }
 
 @media (max-width: 1100px) {
@@ -305,6 +431,11 @@
 
     .stats-grid {
         grid-template-columns: 1fr;
+    }
+
+    .activity-pagination {
+        flex-wrap: wrap;
+        justify-content: space-between;
     }
 
 }

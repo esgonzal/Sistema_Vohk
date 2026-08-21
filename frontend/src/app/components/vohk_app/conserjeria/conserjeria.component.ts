@@ -5,14 +5,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { TwilioService } from 'src/app/services/vohk_app/twilio.service';
 import { Call } from '@twilio/voice-sdk';
 import { ConserjeriaService } from 'src/app/services/vohk_app/conserjeria.service';
-
-interface Activity {
-  time: string;
-  condominium: string;
-  event: string;
-  zone: string;
-  classification: string;
-}
+import { DashboardService } from 'src/app/services/vohk_app/dashboard.service';
 
 @Component({
   selector: 'app-conserjeria',
@@ -27,12 +20,10 @@ export class ConserjeriaComponent implements OnInit, OnDestroy {
   incomingCall: Call | null = null;
   activeCall: Call | null = null;
   incomingDevice: any = null;
-
-  activities: Activity[] = [
-    { time: '12:43', condominium: 'Condominio', event: 'Movimiento detectado', zone: 'Entrada', classification: 'Normal' },
-    { time: '12:44', condominium: 'Condominio', event: 'Videoportero activo', zone: 'Hall', classification: 'Revisar' },
-    { time: '12:45', condominium: 'Condominio', event: 'Puerta abierta', zone: 'Entrada', classification: 'Urgente' }
-  ];
+  activities: any[] = [];
+  activityPage = 0;
+  activityPageSize = 5;
+  activityPageSizeOptions = [5, 10, 20];
 
   private destroy$ = new Subject<void>();
 
@@ -40,7 +31,8 @@ export class ConserjeriaComponent implements OnInit, OnDestroy {
     private consjerjeriaService: ConserjeriaService,
     private selectedCondominiumService: SelectedCondominiumService,
     private sanitizer: DomSanitizer,
-    private twilioService: TwilioService
+    private twilioService: TwilioService,
+    private dashboardService: DashboardService
   ) { }
 
   ngOnInit(): void {
@@ -53,32 +45,71 @@ export class ConserjeriaComponent implements OnInit, OnDestroy {
         return;
       }
       this.loadDevices(condo.condominium_id);
+      this.loadActivities(condo.condominium_id);
     });
     this.twilioService.incomingCall$.pipe(takeUntil(this.destroy$)).subscribe(call => {
       this.incomingCall = call;
-      if (call != null) {
-        const from = call.parameters['From'];
-        this.incomingDevice = this.devices.find(device => device.sip_address?.includes(from));
+      if (!call) {
+        this.incomingDevice = null;
+        return;
       }
+      const callType = call.customParameters.get('call_type');
+      const deviceId = call.customParameters.get('device_id');
+      console.log('Incoming Twilio call:', {
+        from: call.parameters['From'],
+        callType,
+        deviceId,
+        customParameters: Object.fromEntries(call.customParameters.entries())
+      });
+      if (callType === 'intercom' && deviceId) {
+        this.incomingDevice =
+          this.devices.find(device => device.device_id?.toString() === deviceId) ?? null;
+        if (!this.incomingDevice) {
+          console.warn('Incoming intercom device not found in loaded devices:', deviceId);
+        }
+        return;
+      }
+      this.incomingDevice = null;
     });
   }
 
   loadDevices(condominiumId: string): void {
     this.loading = true;
     this.consjerjeriaService.getDevices(condominiumId).subscribe({
-      next: devices => {
-        const preparedDevices = devices.map(device => {
+      next: data => {
+        console.log('Consejeria:', data);
+        const devices = (data.zones ?? []).flatMap((zone: any) => (zone.devices ?? []).map((device: any) => ({ ...device, zone_name: zone.name })));
+        const preparedDevices = devices.map((device: any) => {
           const separator = device.stream_url.includes('?') ? '&' : '?';
           const streamUrl = `${device.stream_url}${separator}controls=false&autoplay=true&muted=true&playsInline=true&disablepictureinpicture=true`;
           return { ...device, safeStreamUrl: this.sanitizer.bypassSecurityTrustResourceUrl(streamUrl) };
         });
         this.devices = preparedDevices;
-        this.cameraDevices = preparedDevices.filter(device => device.type === 'camera' || device.type === 'intercom');
+        this.cameraDevices = preparedDevices.filter((device: any) => device.type === 'camera' || device.type === 'intercom');
         this.loading = false;
       },
       error: err => {
         console.error('Unable to load concierge devices:', err);
+        this.devices = [];
+        this.cameraDevices = [];
         this.loading = false;
+      }
+    });
+  }
+
+  loadActivities(condominiumId: string): void {
+    this.dashboardService.getActivities().subscribe({
+      next: data => {
+        this.activities = (data ?? []).filter(
+          (activity: any) =>
+            activity.condominium_id?.toString() === condominiumId.toString()
+        );
+        this.activityPage = 0;
+      },
+      error: err => {
+        console.error('Unable to load concierge activities:', err);
+        this.activities = [];
+        this.activityPage = 0;
       }
     });
   }
@@ -119,28 +150,29 @@ export class ConserjeriaComponent implements OnInit, OnDestroy {
   }
 
   answerCall(): void {
-    if (!this.incomingCall) {
-      return;
-    }
+    if (!this.incomingCall) return;
     const call = this.incomingCall;
     call.accept();
     this.activeCall = call;
     this.incomingCall = null;
+    this.twilioService.clearIncomingCall();
     call.on('disconnect', () => {
       this.activeCall = null;
+      this.incomingDevice = null;
     });
     call.on('cancel', () => {
       this.activeCall = null;
       this.incomingCall = null;
+      this.incomingDevice = null;
     });
   }
 
   rejectCall(): void {
-    if (!this.incomingCall) {
-      return;
-    }
+    if (!this.incomingCall) return;
     this.incomingCall.reject();
+    this.twilioService.clearIncomingCall();
     this.incomingCall = null;
+    this.incomingDevice = null;
   }
 
   hangupCall(): void {
@@ -170,5 +202,88 @@ export class ConserjeriaComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  get pagedActivities(): any[] {
+    const start = this.activityPage * this.activityPageSize;
+    return this.activities.slice(start, start + this.activityPageSize);
+  }
+
+  get activityTotalPages(): number {
+    return Math.max(1, Math.ceil(this.activities.length / this.activityPageSize));
+  }
+
+  get activityStart(): number {
+    if (!this.activities.length) return 0;
+    return this.activityPage * this.activityPageSize + 1;
+  }
+
+  get activityEnd(): number {
+    return Math.min(
+      (this.activityPage + 1) * this.activityPageSize,
+      this.activities.length
+    );
+  }
+
+  previousActivityPage(): void {
+    if (this.activityPage > 0) {
+      this.activityPage--;
+    }
+  }
+
+  nextActivityPage(): void {
+    if (this.activityPage + 1 < this.activityTotalPages) {
+      this.activityPage++;
+    }
+  }
+
+  changeActivityPageSize(value: string): void {
+    this.activityPageSize = Number(value);
+    this.activityPage = 0;
+  }
+
+  activityTitle(activity: any): string {
+    if (activity.event_type === 'door_open') {
+      return `${activity.actor_name || 'Usuario'} abrió ${activity.device_name || 'un acceso'}`;
+    }
+
+    const participants = activity.participants ?? [];
+
+    const caller =
+      participants.find((item: any) => item.role === 'caller')?.name ||
+      activity.actor_name;
+
+    const recipient =
+      participants.find((item: any) => item.role === 'recipient')?.name;
+
+    if (caller && recipient) {
+      return `${caller} llamó a ${recipient}`;
+    }
+
+    if (caller && activity.device_name) {
+      return `${caller} llamó a ${activity.device_name}`;
+    }
+
+    if (recipient && activity.device_name) {
+      return `${activity.device_name} llamó a ${recipient}`;
+    }
+
+    return 'Llamada registrada';
+  }
+
+  activityStatus(status: string): string {
+    const labels: Record<string, string> = {
+      initiated: 'Iniciada',
+      ringing: 'Sonando',
+      answered: 'Contestada',
+      completed: 'Finalizada',
+      'no-answer': 'Sin respuesta',
+      busy: 'Ocupado',
+      failed: 'Fallida',
+      canceled: 'Cancelada',
+      succeeded: 'Realizado'
+    };
+
+    return labels[status] || status;
   }
 }

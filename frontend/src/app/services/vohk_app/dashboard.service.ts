@@ -16,4 +16,7 @@ export class DashboardService {
   getCondominiums() {
     return this.http.get<any>(`${this.URL}/api/condominiums/tree`);
   }
+  getActivities(limit = 20) {
+    return this.http.get<any[]>(`${this.URL}/api/activities`, { params: { limit } });
+  }
 }
