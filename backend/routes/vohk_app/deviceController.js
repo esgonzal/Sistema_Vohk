@@ -34,7 +34,7 @@ router.get('/location-mobile', async (req, res) => {
     try {
         const { userId, role } = req.user;
         const { condominiumId } = req.query;
-        if (!['admin', 'superadmin', 'resident'].includes(role)) {
+        if (!['admin', 'superadmin', 'resident', 'staff'].includes(role)) {
             return res.status(403).json({ error: 'Forbidden' });
         }
         if (typeof condominiumId !== 'string' || condominiumId.trim() === '') {

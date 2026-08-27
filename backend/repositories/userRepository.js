@@ -61,6 +61,15 @@ async function createResident(username, passwordHash, rut, sipIdentity, email, l
     return result.rows[0];
 }
 
+async function createManagementUser(username, passwordHash, rut, sipIdentity, email, legalName, role) {
+    const result = await pool.query(`
+        INSERT INTO app_user (username, password_hash, rut, sip_identity, email, legal_name, role)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING user_id, username, rut, sip_identity, email, legal_name, role, active, created_at
+    `, [username, passwordHash, rut, sipIdentity, email, legalName, role]);
+    return result.rows[0];
+}
+
 async function updateResident(userId, email, legalName) {
     const result = await pool.query(`
         UPDATE app_user 
@@ -157,6 +166,7 @@ async function findCallCondominium(callerUserId, recipientUserId) {
     return result.rows[0] || null;
 }
 
-module.exports = { 
-    findById, findByUsername, findByRut, findByIdentity, findByEmail, findByPasswordResetToken, 
-    createResident, updateResident, savePasswordResetToken, resetPassword, updateUsername, updateEmail, updatePassword, getUsersByCondominium, findCallCondominium };
+module.exports = {
+    findById, findByUsername, findByRut, findByIdentity, findByEmail, findByPasswordResetToken,
+    createResident, createManagementUser, updateResident, savePasswordResetToken, resetPassword, updateUsername, updateEmail, updatePassword, getUsersByCondominium, findCallCondominium
+};

@@ -69,11 +69,45 @@ router.put('/password', async (req, res) => {
         return sendServerError(res, error, 'Could not update password');
     }
 });
+router.post('/management', async (req, res) => {
+    try {
+        const { userId, role: creatorRole } = req.user;
+        const { legalName, rut, email, role, condominiumId } = req.body;
+        if (!isAdminRole(creatorRole)) {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        if (isBlank(legalName) || isBlank(rut) || isBlank(email) || isBlank(role)) {
+            return res.status(400).json({ error: 'Legal name, RUT, email and role are required' });
+        }
+        if (!isValidEmail(email)) {
+            return res.status(400).json({ error: 'A valid email is required' });
+        }
+        if (!['admin', 'staff'].includes(role)) {
+            return res.status(400).json({ error: 'Role must be admin or staff' });
+        }
+        if (role === 'admin' && creatorRole !== 'superadmin') {
+            return res.status(403).json({ error: 'Only superadmin can create administrators' });
+        }
+        if (role === 'staff' && isBlank(condominiumId)) {
+            return res.status(400).json({ error: 'Condominium ID is required for staff' });
+        }
+        const user = await userService.createManagementUser(userId, creatorRole, {
+            legalName: legalName.trim(),
+            rut: rut.trim(),
+            email: email.trim(),
+            role,
+            condominiumId: role === 'staff' ? condominiumId : null
+        });
+        return res.status(201).json(user);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not create user');
+    }
+});
 router.get('/:condominiumId', async (req, res) => {
     try {
         const { userId, role } = req.user;
         const { condominiumId } = req.params;
-        if (!isAdminRole(role)) {
+        if (!isAdminRole(role) && role !== 'staff') {
             return res.status(403).json({ error: 'Forbidden' });
         }
         if (isBlank(condominiumId)) {

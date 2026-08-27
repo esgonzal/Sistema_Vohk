@@ -6,6 +6,7 @@ async function findById(invitationId) {
         SELECT
             i.*,
             v.name AS visitor_name,
+            v.rut AS visitor_rut,
             v.email AS visitor_email,
             v.phone AS visitor_phone,
             v.vehicle_plate
@@ -17,12 +18,14 @@ async function findById(invitationId) {
     );
     return result.rows[0];
 }
+
 async function findByUnitId(unitId) {
     const result = await pool.query(
         `
         SELECT
             i.*,
             v.name AS visitor_name,
+            v.rut AS visitor_rut,
             v.email AS visitor_email,
             v.phone AS visitor_phone,
             v.vehicle_plate
@@ -35,6 +38,7 @@ async function findByUnitId(unitId) {
     );
     return result.rows;
 }
+
 async function findIntercoms(invitationId) {
     const result = await pool.query(
         `
@@ -49,10 +53,14 @@ async function findIntercoms(invitationId) {
             i.sip_address,
             d.username,
             d.password_encrypted,
-            i.door_id
+            i.door_id,
+            id.provision_status,
+            id.removal_status,
+            id.last_error,
+            id.last_attempt_at
         FROM invitation_device id
-        JOIN device d ON d.device_id = id.device_id
-        JOIN intercom i ON i.device_id = d.device_id
+        INNER JOIN device d ON d.device_id = id.device_id
+        INNER JOIN intercom i ON i.device_id = d.device_id
         WHERE id.invitation_id = $1
         ORDER BY d.name
         `,
@@ -60,30 +68,55 @@ async function findIntercoms(invitationId) {
     );
     return result.rows;
 }
-async function createWithDevices({ unitId, createdByUserId, validFrom, validUntil, type, deviceIds }) {
+
+async function getCondominiumSettings(condominiumId) {
+    const result = await pool.query(
+        `
+        SELECT
+            condominium_id,
+            max_temporary_duration_hours,
+            max_express_duration_hours
+        FROM condominium
+        WHERE condominium_id = $1
+        `,
+        [condominiumId]
+    );
+    return result.rows[0];
+}
+
+async function createInvitationWithDevices({ visitorId, unitId, createdByUserId, residentUserId, employeeNo, dynamicCode, hasFace, biometricConsentAt, type, validFrom, validUntil, deviceIds }) {
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
         const invitationResult = await client.query(
             `
             INSERT INTO invitation (
+                visitor_id,
                 unit_id,
                 created_by_user_id,
+                resident_user_id,
+                hikvision_employee_no,
+                dynamic_code,
+                has_face,
+                biometric_consent_at,
                 type,
                 status,
                 valid_from,
                 valid_until
             )
-            VALUES ($1, $2, $3, 'pending', $4, $5)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'active',$10,$11)
             RETURNING *
             `,
-            [unitId, createdByUserId, type, validFrom, validUntil]
+            [visitorId, unitId, createdByUserId, residentUserId, employeeNo, dynamicCode, hasFace, biometricConsentAt, type, validFrom, validUntil]
         );
         const invitation = invitationResult.rows[0];
         await client.query(
             `
-            INSERT INTO invitation_device (invitation_id, device_id)
-            SELECT $1, UNNEST($2::uuid[])
+            INSERT INTO invitation_device (invitation_id,device_id,provision_status)
+            SELECT
+                $1,
+                UNNEST($2::uuid[]),
+                'provisioned'
             `,
             [invitation.invitation_id, deviceIds]
         );
@@ -96,29 +129,14 @@ async function createWithDevices({ unitId, createdByUserId, validFrom, validUnti
         client.release();
     }
 }
-async function registerVisitor(invitationId, visitorId, hikvisionEmployeeNo, dynamicCode) {
+
+async function markRevoked(invitationId) {
     const result = await pool.query(
         `
         UPDATE invitation
-        SET
-            visitor_id = $2,
-            hikvision_employee_no = $3,
-            dynamic_code = $4,
-            status = 'registered'
+        SET status = 'revoked'
         WHERE invitation_id = $1
-          AND status = 'pending'
-          AND valid_until > NOW()
-        RETURNING *
-        `,
-        [invitationId, visitorId, hikvisionEmployeeNo, dynamicCode]
-    );
-    return result.rows[0];
-}
-async function deleteInvitation(invitationId) {
-    const result = await pool.query(
-        `
-        DELETE FROM invitation
-        WHERE invitation_id = $1
+          AND status <> 'revoked'
         RETURNING *
         `,
         [invitationId]
@@ -126,4 +144,50 @@ async function deleteInvitation(invitationId) {
     return result.rows[0];
 }
 
-module.exports = { findById, findByUnitId, findIntercoms, createWithDevices, registerVisitor, deleteInvitation };
+async function findExpiredActiveInvitations() {
+    const result = await pool.query(
+        `
+        SELECT *
+        FROM invitation
+        WHERE status = 'active'
+          AND valid_until IS NOT NULL
+          AND valid_until <= NOW()
+        ORDER BY valid_until
+        `
+    );
+    return result.rows;
+}
+
+async function markExpired(invitationId) {
+    const result = await pool.query(
+        `
+        UPDATE invitation
+        SET status = 'expired'
+        WHERE invitation_id = $1
+          AND status = 'active'
+        RETURNING *
+        `,
+        [invitationId]
+    );
+    return result.rows[0];
+}
+
+async function findActiveByResidentUnit(residentUserId, unitId) {
+    const result = await pool.query(
+        `
+        SELECT *
+        FROM invitation
+        WHERE resident_user_id = $1
+          AND unit_id = $2
+          AND status = 'active'
+        ORDER BY created_at
+        `,
+        [residentUserId, unitId]
+    );
+    return result.rows;
+}
+
+module.exports = {
+    findById, findByUnitId, findIntercoms, getCondominiumSettings, createInvitationWithDevices, markRevoked,
+    findExpiredActiveInvitations, markExpired, findActiveByResidentUnit,
+};

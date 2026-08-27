@@ -36,7 +36,7 @@ router.get('/tree', async (req, res) => {
 router.get('/mobile', async (req, res) => {
     try {
         const { userId, role } = req.user;
-        if (!isAdminRole(role)) {
+        if (!isAdminRole(role) && role !== 'staff') {
             return res.status(403).json({ error: 'Forbidden' });
         }
         const condominiums = await condominiumService.listAdminCondominiums(userId, role);
@@ -118,6 +118,48 @@ router.put('/:condominiumId/resident-camera-access', async (req, res) => {
         return res.status(200).json(condominium);
     } catch (error) {
         return sendServerError(res, error, 'Could not update camera access');
+    }
+});
+router.get('/:condominiumId/invitation-settings', async (req, res) => {
+    try {
+        const { userId, role } = req.user;
+        const { condominiumId } = req.params;
+        if (!isAdminRole(role)) {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        const settings = await condominiumService.getInvitationSettings(condominiumId, userId, role);
+        if (!settings) {
+            return res.status(404).json({ error: 'Condominium not found' });
+        }
+        return res.status(200).json(settings);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not retrieve invitation settings');
+    }
+});
+router.put('/:condominiumId/invitation-settings', async (req, res) => {
+    try {
+        const { userId, role } = req.user;
+        const { condominiumId } = req.params;
+        const { maxRecurrentInvitations, maxTemporaryDurationHours, maxExpressDurationHours } = req.body;
+        if (!isAdminRole(role)) {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        if (!Number.isInteger(maxRecurrentInvitations) || maxRecurrentInvitations < 0) {
+            return res.status(400).json({ error: 'maxRecurrentInvitations must be a non-negative integer' });
+        }
+        if (!Number.isInteger(maxTemporaryDurationHours) || maxTemporaryDurationHours <= 0) {
+            return res.status(400).json({ error: 'maxTemporaryDurationHours must be a positive integer' });
+        }
+        if (!Number.isInteger(maxExpressDurationHours) || maxExpressDurationHours <= 0) {
+            return res.status(400).json({ error: 'maxExpressDurationHours must be a positive integer' });
+        }
+        const settings = await condominiumService.updateInvitationSettings(condominiumId,userId,role,maxRecurrentInvitations,maxTemporaryDurationHours,maxExpressDurationHours);
+        if (!settings) {
+            return res.status(404).json({ error: 'Condominium not found' });
+        }
+        return res.status(200).json(settings);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not update invitation settings');
     }
 });
 router.post('/:condominiumId/buildings', async (req, res) => {

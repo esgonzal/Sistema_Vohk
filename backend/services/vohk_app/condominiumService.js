@@ -1,6 +1,7 @@
 const condominiumRepository = require('../../repositories/condominiumRepository');
 const zoneRepository = require('../../repositories/zoneRepository');
 const buildingRepository = require('../../repositories/buildingRepository');
+const staffCondominiumRepository = require('../../repositories/staffCondominiumRepository');
 
 async function getCondominiumTree(userId, role) {
     const adminUserId = role === 'superadmin' ? null : userId;
@@ -9,7 +10,20 @@ async function getCondominiumTree(userId, role) {
     for (const row of rows) {
         let condominium = condominiumMap.get(row.condominium_id);
         if (!condominium) {
-            condominium = { condominium_id: row.condominium_id, name: row.condominium_name, address: row.address, city: row.city, resident_camera_access: row.resident_camera_access, buildings: [], zones: [], _buildingMap: new Map(), _zoneMap: new Map() };
+            condominium = {
+                condominium_id: row.condominium_id,
+                name: row.condominium_name,
+                address: row.address,
+                city: row.city,
+                resident_camera_access: row.resident_camera_access,
+                max_recurrent_invitations: row.max_recurrent_invitations,
+                max_temporary_duration_hours: row.max_temporary_duration_hours,
+                max_express_duration_hours: row.max_express_duration_hours,
+                buildings: [],
+                zones: [],
+                _buildingMap: new Map(),
+                _zoneMap: new Map()
+            };
             condominiumMap.set(row.condominium_id, condominium);
         }
         if (row.building_id && !condominium._buildingMap.has(row.building_id)) {
@@ -33,6 +47,9 @@ async function getCondominiumTree(userId, role) {
 }
 
 async function listAdminCondominiums(userId, role) {
+    if (role === 'staff') {
+        return staffCondominiumRepository.findCondominiumsByStaff(userId);
+    }
     return condominiumRepository.findByAdminUserId(role === 'superadmin' ? null : userId);
 }
 
@@ -70,6 +87,14 @@ async function deleteCondominium(condominiumId, userId, role) {
 
 async function updateResidentCameraAccess(condominiumId, userId, role, enabled) {
     return condominiumRepository.updateResidentCameraAccess(condominiumId, role === 'superadmin' ? null : userId, enabled);
+}
+
+async function getInvitationSettings(condominiumId, userId, role) {
+    return condominiumRepository.getInvitationSettings(condominiumId, role === 'superadmin' ? null : userId);
+}
+
+async function updateInvitationSettings(condominiumId, userId, role, maxRecurrentInvitations, maxTemporaryDurationHours, maxExpressDurationHours) {
+    return condominiumRepository.updateInvitationSettings(condominiumId, role === 'superadmin' ? null : userId, maxRecurrentInvitations, maxTemporaryDurationHours, maxExpressDurationHours);
 }
 
 async function createBuilding(condominiumId, userId, role, name, floorCount) {
@@ -113,6 +138,7 @@ async function deleteZone(zoneId, userId, role) {
 module.exports = {
     getCondominiumTree, listAdminCondominiums,
     createCondominium, updateCondominium, deleteCondominium, updateResidentCameraAccess,
+    getInvitationSettings, updateInvitationSettings,
     createBuilding, updateBuilding, deleteBuilding,
     createZone, updateZone, deleteZone
 };

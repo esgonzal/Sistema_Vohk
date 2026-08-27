@@ -9,6 +9,7 @@ const visitorRepository = require('../../repositories/visitorRepository');
 const intercomUserRepository = require('../../repositories/intercomUserRepository');
 const intercomRepository = require('../../repositories/intercomRepository');
 const activityRepository = require('../../repositories/activityRepository');
+const staffCondominiumRepository = require('../../repositories/staffCondominiumRepository');
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function formatCardForHikvision(cardNumber) {
@@ -63,6 +64,14 @@ async function getMobileDevices({ userId, role, condominiumId }) {
             error.status = 404;
             throw error;
         }
+    } else if (role === 'staff') {
+        const assignment = await staffCondominiumRepository.findByUserAndCondominium(userId, condominiumId);
+        if (!assignment) {
+            const error = new Error('Condominium not found or not accessible');
+            error.status = 404;
+            throw error;
+        }
+        condominium = await condominiumRepository.findById(condominiumId);
     } else if (role === 'resident') {
         const residentUnit = await residentUnitRepository.findByUserAndCondominium(userId, condominiumId);
         if (!residentUnit) {
