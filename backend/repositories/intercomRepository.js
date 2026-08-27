@@ -56,6 +56,44 @@ async function findIntercomBySipAddress(sipAddress) {
     );
     return result.rows[0];
 }
+async function findIntercomBySipIdentity(sipIdentity) {
+    const result = await pool.query(
+        `
+        SELECT
+            d.device_id,
+            d.zone_id,
+            d.type,
+            d.name AS intercom_name,
+            d.ip_address,
+            d.port,
+            d.snapshot_url,
+            d.stream_url,
+            d.active,
+            i.intercom_id,
+            i.sip_address,
+            i.door_id,
+            d.username,
+            d.password_encrypted,
+            z.name AS zone_name,
+            z.condominium_id,
+            c.name AS condominium_name
+        FROM intercom i
+        JOIN device d ON d.device_id = i.device_id
+        JOIN zone z ON z.zone_id = d.zone_id
+        JOIN condominium c ON c.condominium_id = z.condominium_id
+        WHERE LOWER(
+            SPLIT_PART(
+                SPLIT_PART(i.sip_address, '@', 1),
+                ':',
+                2
+            )
+        ) = LOWER($1)
+        LIMIT 1
+        `,
+        [sipIdentity]
+    );
+    return result.rows[0];
+}
 async function createIntercom(deviceId, sipAddress, doorId) {
     const result = await pool.query(
         `
@@ -82,4 +120,4 @@ async function updateIntercom(deviceId, sipAddress, doorId) {
     return result.rows[0];
 }
 
-module.exports = { findIntercomByDeviceId, findIntercomBySipAddress, createIntercom, updateIntercom, };
+module.exports = { findIntercomByDeviceId, findIntercomBySipAddress, findIntercomBySipIdentity, createIntercom, updateIntercom, };

@@ -132,19 +132,12 @@ async function createIntercomVisitor({ deviceId, invitation, visitorName, employ
             userVerifyMode: 'cardOrPw',
         },
     };
-    console.log('[INVITATION HIKVISION CREATE]');
-    console.log('deviceId:', deviceId);
-    console.log('employeeNo:', employeeNo);
-    console.log('dynamicCode:', dynamicCode);
-    console.log('payload:', JSON.stringify(payload, null, 2));
     const response = await client.fetch(
         `http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/UserInfo/Record?format=json`,
         { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
     );
     const data = await response.json();
-    console.log('[INVITATION HIKVISION RESPONSE]');
-    console.log('HTTP:', response.status);
-    console.log('response:', JSON.stringify(data, null, 2));
+    
     if (!response.ok || data.statusCode !== 1) {
         throw createError(data.errorMsg || `Could not register visitor in ${intercom.name}`, 502);
     }

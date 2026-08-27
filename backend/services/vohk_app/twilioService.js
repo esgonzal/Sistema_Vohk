@@ -10,18 +10,27 @@ const OUTBOUND_CALLER_ID = process.env.TWILIO_CALLER_ID;
 const OUTBOUND_SIP_URI = process.env.TWILIO_OUTBOUND_SIP_URI;
 const STATUS_CALLBACK_URL = process.env.TWILIO_STATUS_CALLBACK_URL || 'https://api.vohk.cl/api/twilio/client-status';
 
+function extractSipIdentity(sipAddress) {
+    if (typeof sipAddress !== 'string') {
+        return null;
+    }
+    const match = sipAddress.trim().match(/^sips?:([^@;>\s]+)@/i);
+    return match?.[1]?.toLowerCase() || null;
+}
+
 async function handleIncomingCall(from, to, callSid = null) {
     const twiml = new twilio.twiml.VoiceResponse();
-    if (from.startsWith('sip:')) {
-        const match = to.match(/sip:(\d+)@/);
-        if (!match) {
+    if (/^sips?:/i.test(from)) {
+        const destinationMatch = to.match(/^sips?:(\d+)@/i);
+        if (!destinationMatch) {
             throw new Error('Invalid SIP destination');
         }
-        const apartmentIdentity = match[1];
-        const [resident, intercom] = await Promise.all([
-            userRepository.findByIdentity(apartmentIdentity),
-            intercomRepository.findIntercomBySipAddress(from),
-        ]);
+        const sipIdentity = extractSipIdentity(from);
+        if (!sipIdentity) {
+            throw new Error(`Invalid SIP caller address: ${from}`);
+        }
+        const apartmentIdentity = destinationMatch[1];
+        const [resident, intercom] = await Promise.all([userRepository.findByIdentity(apartmentIdentity), intercomRepository.findIntercomBySipIdentity(sipIdentity),]);
         const callerName = intercom ? `${intercom.intercom_name} - ${intercom.condominium_name}` : 'Citófono';
         if (resident) {
             const devices = await userDeviceRepository.findActiveByUserId(resident.user_id);
