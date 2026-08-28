@@ -7,6 +7,7 @@ const staffCondominiumRepository = require('../../repositories/staffCondominiumR
 const deviceRepository = require('../../repositories/deviceRepository');
 const intercomRepository = require('../../repositories/intercomRepository');
 const deviceService = require('./deviceService');
+const { getAdapterForIntercom } = require('./hikvision/adapterFactory');
 
 const INVITATION_TYPES = ['recurrent', 'temporary', 'express'];
 
@@ -111,32 +112,30 @@ async function validateIntercoms(unit, deviceIds) {
     return selectedIntercoms;
 }
 
-async function getIntercomClient(deviceId) {
+async function getIntercomAdapter(deviceId) {
     const intercom = await intercomRepository.findIntercomByDeviceId(deviceId);
     if (!intercom) throw createError(`Intercom not found: ${deviceId}`, 404);
-    const DigestFetch = (await import('digest-fetch')).default;
-    return { intercom, client: new DigestFetch(intercom.username, intercom.password_encrypted) };
+    return { intercom, adapter: await getAdapterForIntercom(intercom) };
 }
 
 async function createIntercomVisitor({ deviceId, invitation, visitorName, employeeNo, dynamicCode }) {
-    const { intercom, client } = await getIntercomClient(deviceId);
+    const { intercom, adapter } = await getIntercomAdapter(deviceId);
     const endDate = invitation.valid_until || getPermanentHikvisionEndDate();
-    const payload = {
-        UserInfo: {
-            employeeNo,
-            name: visitorName,
-            userType: 'visitor',
-            Valid: { enable: true, beginTime: formatHikvisionTime(invitation.valid_from), endTime: formatHikvisionTime(endDate), timeType: 'local' },
-            dynamicCode,
-            doorRight: String(intercom.door_id || 1),
-            userVerifyMode: 'cardOrPw',
+    const userInfo = adapter.buildVisitorUserInfo({
+        invitation: {
+            ...invitation,
+            valid: {
+                enable: true,
+                beginTime: formatHikvisionTime(invitation.valid_from),
+                endTime: formatHikvisionTime(endDate),
+                timeType: 'local',
+            },
         },
-    };
-    const response = await client.fetch(
-        `http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/UserInfo/Record?format=json`,
-        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
-    );
-    const data = await response.json();
+        visitorName,
+        employeeNo,
+        dynamicCode,
+    });
+    const { response, data } = await adapter.createUser(userInfo);
     
     if (!response.ok || data.statusCode !== 1) {
         throw createError(data.errorMsg || `Could not register visitor in ${intercom.name}`, 502);
@@ -144,13 +143,8 @@ async function createIntercomVisitor({ deviceId, invitation, visitorName, employ
 }
 
 async function deleteIntercomVisitor(deviceId, employeeNo) {
-    const { intercom, client } = await getIntercomClient(deviceId);
-    const payload = { UserInfoDelCond: { EmployeeNoList: [{ employeeNo }] } };
-    const response = await client.fetch(
-        `http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/UserInfo/Delete?format=json`,
-        { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
-    );
-    const data = await response.json();
+    const { intercom, adapter } = await getIntercomAdapter(deviceId);
+    const { response, data } = await adapter.deleteUser(employeeNo);
     if (!response.ok || data.statusCode !== 1) {
         throw createError(data.errorMsg || `Could not delete visitor from ${intercom.name}`, 502);
     }

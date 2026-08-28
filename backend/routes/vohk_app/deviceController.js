@@ -109,6 +109,44 @@ router.delete('/:deviceId', async (req, res) => {
         return sendServerError(res, error, 'Could not delete device');
     }
 });
+router.post('/:deviceId/identity/refresh', async (req, res) => {
+    try {
+        if (req.user.role !== 'superadmin') {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        const device = await deviceService.refreshDeviceIdentity(req.params.deviceId);
+        return res.status(200).json(device);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not refresh device identity');
+    }
+});
+router.post('/:deviceId/provision-residents', async (req, res) => {
+    try {
+        if (req.user.role !== 'superadmin') {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        const result = await deviceService.provisionExistingResidents(req.params.deviceId);
+        return res.status(result.ok ? 200 : 207).json(result);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not provision residents');
+    }
+});
+router.get('/:deviceId/access-events', async (req, res) => {
+    try {
+        const result = await deviceService.listIntercomAccessEvents(req.params.deviceId, {
+            position: req.query.position,
+            maxResults: req.query.maxResults,
+            major: req.query.major,
+            minor: req.query.minor,
+            startTime: req.query.startTime,
+            endTime: req.query.endTime,
+            picEnable: req.query.picEnable === 'true',
+        }, req.user);
+        return res.status(result.ok ? 200 : result.status || 502).json(result);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not retrieve access events');
+    }
+});
 router.post('/open-door/:deviceId', async (req, res) => {
     try {
         const result = await deviceService.openDoor(req.params.deviceId, req.user);

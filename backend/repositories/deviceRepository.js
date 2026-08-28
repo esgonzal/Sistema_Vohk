@@ -2,7 +2,7 @@ const pool = require('../database/db');
 
 async function findDeviceTreeRows(condominiumId) {
     const result = await pool.query(`
-        SELECT c.condominium_id, c.name AS condominium_name, c.address, c.city, z.zone_id, z.name AS zone_name, d.device_id, d.type, d.vendor, d.name AS device_name, d.ip_address, d.port, d.snapshot_url, d.stream_url, d.active, d.last_seen_at, d.created_at AS device_created_at, i.intercom_id, i.sip_address, i.door_id
+        SELECT c.condominium_id, c.name AS condominium_name, c.address, c.city, z.zone_id, z.name AS zone_name, d.device_id, d.type, d.vendor, d.name AS device_name, d.model, d.firmware_version, d.firmware_build, d.isapi_capabilities, d.identity_checked_at, d.ip_address, d.port, d.snapshot_url, d.stream_url, d.active, d.last_seen_at, d.created_at AS device_created_at, i.intercom_id, i.sip_address, i.door_id, i.dial_period_number, i.dial_building_number, i.dial_unit_number
         FROM condominium c
         LEFT JOIN zone z ON z.condominium_id = c.condominium_id
         LEFT JOIN device d ON d.zone_id = z.zone_id
@@ -15,7 +15,11 @@ async function findDeviceTreeRows(condominiumId) {
 
 async function findIntercomByDeviceId(deviceId) {
     const result = await pool.query(`
-        SELECT d.device_id, d.name, d.ip_address, d.port, d.username, d.password_encrypted, i.door_id, z.condominium_id
+        SELECT d.device_id, d.type, d.vendor, d.name, d.model, d.firmware_version,
+               d.firmware_build, d.isapi_capabilities, d.identity_checked_at,
+               d.ip_address, d.port, d.username, d.password_encrypted,
+               i.intercom_id, i.sip_address, i.door_id, i.dial_period_number,
+               i.dial_building_number, i.dial_unit_number, z.condominium_id
         FROM device d
         JOIN intercom i ON i.device_id = d.device_id
         JOIN zone z ON z.zone_id = d.zone_id
@@ -26,7 +30,8 @@ async function findIntercomByDeviceId(deviceId) {
 
 async function findDevicesByCondominium(condominiumId) {
     const result = await pool.query(`
-        SELECT d.*, z.name AS zone_name, i.intercom_id, i.sip_address, i.door_id
+        SELECT d.*, z.name AS zone_name, i.intercom_id, i.sip_address, i.door_id,
+               i.dial_period_number, i.dial_building_number, i.dial_unit_number
         FROM device d
         JOIN zone z ON z.zone_id = d.zone_id
         LEFT JOIN intercom i ON i.device_id = d.device_id
@@ -38,7 +43,10 @@ async function findDevicesByCondominium(condominiumId) {
 
 async function findMobileDevicesByCondominium(condominiumId) {
     const result = await pool.query(`
-        SELECT d.device_id, d.zone_id, d.type, d.name, d.snapshot_url, d.stream_url, d.active, d.last_seen_at, z.name AS zone_name, i.intercom_id, i.sip_address, i.door_id
+        SELECT d.device_id, d.zone_id, d.type, d.name, d.model, d.firmware_version,
+               d.firmware_build, d.snapshot_url, d.stream_url, d.active, d.last_seen_at,
+               z.name AS zone_name, i.intercom_id, i.sip_address, i.door_id,
+               i.dial_period_number, i.dial_building_number, i.dial_unit_number
         FROM device d
         INNER JOIN zone z ON z.zone_id = d.zone_id
         LEFT JOIN intercom i ON i.device_id = d.device_id
@@ -50,7 +58,9 @@ async function findMobileDevicesByCondominium(condominiumId) {
 
 async function findActiveDevices() {
     const result = await pool.query(`
-        SELECT device_id, type, vendor, name, ip_address, port, username, password_encrypted AS password 
+        SELECT device_id, type, vendor, name, model, firmware_version, firmware_build,
+               isapi_capabilities, identity_checked_at, ip_address, port, username,
+               password_encrypted, password_encrypted AS password
         FROM device 
         WHERE active = TRUE
     `);
@@ -111,6 +121,16 @@ async function moveDeviceToZone(deviceId, zoneId) {
     return result.rows[0];
 }
 
+async function findDeviceById(deviceId) {
+    const result = await pool.query(`
+        SELECT d.*, z.condominium_id
+        FROM device d
+        JOIN zone z ON z.zone_id = d.zone_id
+        WHERE d.device_id = $1
+    `, [deviceId]);
+    return result.rows[0];
+}
+
 async function findDeviceAndZoneCondominiums(deviceId, zoneId) {
     const result = await pool.query(`
         SELECT source_zone.condominium_id AS device_condominium_id,
@@ -131,7 +151,23 @@ async function updateLastSeen(deviceId) {
     `, [deviceId]);
 }
 
+async function updateDeviceIdentity(deviceId, { model, firmwareVersion, firmwareBuild, capabilities }) {
+    const result = await pool.query(`
+        UPDATE device
+        SET model = $2,
+            firmware_version = $3,
+            firmware_build = $4,
+            isapi_capabilities = $5::jsonb,
+            identity_checked_at = NOW()
+        WHERE device_id = $1
+        RETURNING device_id, zone_id, type, vendor, name, model, firmware_version,
+                  firmware_build, isapi_capabilities, identity_checked_at, ip_address,
+                  port, snapshot_url, stream_url, active, last_seen_at, created_at
+    `, [deviceId, model, firmwareVersion, firmwareBuild, JSON.stringify(capabilities || {})]);
+    return result.rows[0];
+}
+
 module.exports = { 
-    findDeviceTreeRows, findIntercomByDeviceId, findDevicesByCondominium, findMobileDevicesByCondominium, findActiveDevices, findDeviceByIdAndAdmin, 
-    createDevice, updateDeviceName, deleteDevice, moveDeviceToZone, findDeviceAndZoneCondominiums, updateLastSeen
+    findDeviceTreeRows, findIntercomByDeviceId, findDevicesByCondominium, findMobileDevicesByCondominium, findActiveDevices, findDeviceByIdAndAdmin, findDeviceById,
+    createDevice, updateDeviceName, deleteDevice, moveDeviceToZone, findDeviceAndZoneCondominiums, updateLastSeen, updateDeviceIdentity
 };

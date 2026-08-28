@@ -6,6 +6,10 @@ async function findIntercomByDeviceId(deviceId) {
         SELECT
             d.device_id,
             d.name,
+            d.model,
+            d.firmware_version,
+            d.firmware_build,
+            d.isapi_capabilities,
             d.ip_address,
             d.port,
             i.intercom_id,
@@ -13,6 +17,9 @@ async function findIntercomByDeviceId(deviceId) {
             d.username,
             d.password_encrypted,
             i.door_id,
+            i.dial_period_number,
+            i.dial_building_number,
+            i.dial_unit_number,
             z.condominium_id,
             c.name AS condominium_name
         FROM intercom i
@@ -94,28 +101,36 @@ async function findIntercomBySipIdentity(sipIdentity) {
     );
     return result.rows[0];
 }
-async function createIntercom(deviceId, sipAddress, doorId) {
+async function createIntercom(deviceId, sipAddress, doorId, dialing = {}) {
+    const { periodNumber = 1, buildingNumber = 1, unitNumber = 1 } = dialing;
     const result = await pool.query(
         `
-        INSERT INTO intercom (device_id, sip_address, door_id)
-        VALUES ($1, $2, $3)
+        INSERT INTO intercom (
+            device_id, sip_address, door_id,
+            dial_period_number, dial_building_number, dial_unit_number
+        )
+        VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING *
         `,
-        [deviceId, sipAddress, doorId]
+        [deviceId, sipAddress, doorId, periodNumber, buildingNumber, unitNumber]
     );
     return result.rows[0];
 }
-async function updateIntercom(deviceId, sipAddress, doorId) {
+async function updateIntercom(deviceId, sipAddress, doorId, dialing = {}) {
+    const { periodNumber = 1, buildingNumber = 1, unitNumber = 1 } = dialing;
     const result = await pool.query(
         `
         UPDATE intercom
         SET
             sip_address = $2,
-            door_id = $3
+            door_id = $3,
+            dial_period_number = $4,
+            dial_building_number = $5,
+            dial_unit_number = $6
         WHERE device_id = $1
         RETURNING *
         `,
-        [deviceId, sipAddress, doorId]
+        [deviceId, sipAddress, doorId, periodNumber, buildingNumber, unitNumber]
     );
     return result.rows[0];
 }

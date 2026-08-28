@@ -1,5 +1,4 @@
 const sharp = require('sharp');
-const { v4: uuid } = require('uuid');
 const FRONTEND_URL = "https://app.vohk.cl";
 const condominiumRepository = require('../../repositories/condominiumRepository');
 const residentUnitRepository = require('../../repositories/residentUnitRepository');
@@ -10,16 +9,23 @@ const intercomUserRepository = require('../../repositories/intercomUserRepositor
 const intercomRepository = require('../../repositories/intercomRepository');
 const activityRepository = require('../../repositories/activityRepository');
 const staffCondominiumRepository = require('../../repositories/staffCondominiumRepository');
+const userRepository = require('../../repositories/userRepository');
+const crypto = require('crypto');
+const { getAdapterForIntercom } = require('./hikvision/adapterFactory');
+const { fetchHikvisionIdentity } = require('./hikvision/identityService');
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function formatCardForHikvision(cardNumber) {
-    return cardNumber.padStart(10, '0');
+    return String(cardNumber).padStart(10, '0');
 }
-async function getIntercomClient(deviceId) {
+async function getIntercomAdapter(deviceId) {
     const intercom = await deviceRepository.findIntercomByDeviceId(deviceId);
-    if (!intercom) { throw new Error(`Device not found: ${deviceId}`); }
-    const DigestFetch = (await import('digest-fetch')).default;
-    return { intercom, client: new DigestFetch(intercom.username, intercom.password_encrypted) };
+    if (!intercom) {
+        const error = new Error(`Intercom not found: ${deviceId}`);
+        error.status = 404;
+        throw error;
+    }
+    return { intercom, adapter: await getAdapterForIntercom(intercom) };
 }
 function buildFaceMultipart(metadata, imageBuffer, imageType = 'image/jpeg') {
     const boundary = '----HikvisionBoundary' + Date.now();
@@ -111,13 +117,25 @@ async function getDevicesByCondominium(condominiumId, userId, role) {
             condominium.zones.push(zone);
         }
         if (!row.device_id) continue;
-        zone.devices.push({ device_id: row.device_id, type: row.type, vendor: row.vendor, name: row.device_name, ip_address: row.ip_address, port: row.port, snapshot_url: row.snapshot_url, stream_url: row.stream_url, active: row.active, last_seen_at: row.last_seen_at, created_at: row.device_created_at, intercom_id: row.intercom_id, sip_address: row.sip_address, door_id: row.door_id });
+        zone.devices.push({ device_id: row.device_id, type: row.type, vendor: row.vendor, name: row.device_name, model: row.model, firmware_version: row.firmware_version, firmware_build: row.firmware_build, isapi_capabilities: row.isapi_capabilities, identity_checked_at: row.identity_checked_at, ip_address: row.ip_address, port: row.port, snapshot_url: row.snapshot_url, stream_url: row.stream_url, active: row.active, last_seen_at: row.last_seen_at, created_at: row.device_created_at, intercom_id: row.intercom_id, sip_address: row.sip_address, door_id: row.door_id, dial_period_number: row.dial_period_number, dial_building_number: row.dial_building_number, dial_unit_number: row.dial_unit_number });
     }
     delete condominium._zoneMap;
     return condominium;
 }
 // ── Device management ─────────────────────────────────────────────────────────
 async function createDevice(deviceData, intercomData = null) {
+    if (deviceData.type === 'intercom') {
+        const periodNumber = Number(intercomData?.periodNumber ?? 1);
+        const buildingNumber = Number(intercomData?.buildingNumber ?? 1);
+        const unitNumber = Number(intercomData?.unitNumber ?? 1);
+        if (!Number.isInteger(periodNumber) || periodNumber < 1 || periodNumber > 9
+            || !Number.isInteger(buildingNumber) || buildingNumber < 1 || buildingNumber > 999
+            || !Number.isInteger(unitNumber) || unitNumber < 1 || unitNumber > 99) {
+            const error = new Error('Invalid intercom dialing hierarchy');
+            error.status = 400;
+            throw error;
+        }
+    }
     const device = await deviceRepository.createDevice({ zoneId: deviceData.zoneId, type: deviceData.type, vendor: deviceData.vendor, name: deviceData.name, ipAddress: deviceData.ipAddress, port: deviceData.port, username: deviceData.username, passwordEncrypted: deviceData.passwordEncrypted, snapshotUrl: deviceData.snapshotUrl, streamUrl: deviceData.streamUrl, active: deviceData.active ?? true });
     if (device.type === 'intercom') {
         if (!intercomData?.sipAddress) {
@@ -127,13 +145,112 @@ async function createDevice(deviceData, intercomData = null) {
             throw error;
         }
         try {
-            await intercomRepository.createIntercom(device.device_id, intercomData.sipAddress, intercomData.doorId);
+            await intercomRepository.createIntercom(device.device_id, intercomData.sipAddress, intercomData.doorId, {
+                periodNumber: intercomData.periodNumber,
+                buildingNumber: intercomData.buildingNumber,
+                unitNumber: intercomData.unitNumber,
+            });
         } catch (error) {
             await deviceRepository.deleteDevice(device.device_id);
             throw error;
         }
     }
+    if (String(device.vendor).toLowerCase() === 'hikvision') {
+        try {
+            const identity = await fetchHikvisionIdentity({ ...device, username: deviceData.username, password_encrypted: deviceData.passwordEncrypted });
+            return await deviceRepository.updateDeviceIdentity(device.device_id, identity);
+        } catch (error) {
+            console.warn(`Could not detect identity for new device ${device.device_id}: ${error.message}`);
+        }
+    }
     return device;
+}
+
+async function refreshDeviceIdentity(deviceId) {
+    const device = await deviceRepository.findDeviceById(deviceId);
+    if (!device) {
+        const error = new Error('Device not found');
+        error.status = 404;
+        throw error;
+    }
+    if (String(device.vendor).toLowerCase() !== 'hikvision') {
+        const error = new Error('Identity refresh is currently supported only for Hikvision devices');
+        error.status = 422;
+        throw error;
+    }
+    const identity = await fetchHikvisionIdentity(device);
+    return deviceRepository.updateDeviceIdentity(deviceId, identity);
+}
+
+async function provisionExistingResidents(deviceId) {
+    let context = await getIntercomAdapter(deviceId);
+    if (!context.intercom.model) {
+        await refreshDeviceIdentity(deviceId);
+        context = await getIntercomAdapter(deviceId);
+    }
+    const { intercom } = context;
+    const residents = await userRepository.getUsersByCondominium(intercom.condominium_id);
+    const results = [];
+
+    for (const resident of residents) {
+        const location = resident.locations?.[0];
+        if (!resident.sip_identity || !location) continue;
+        const existingAssignments = await intercomUserRepository.findIntercomUsersByUserAndCondominium(
+            resident.user_id,
+            intercom.condominium_id,
+        );
+        let dynamicCode = existingAssignments.find(item => /^\d{6}$/.test(item.dynamic_code || ''))?.dynamic_code
+            || crypto.randomInt(100000, 1000000).toString();
+        try {
+            const created = await createIntercomUser(deviceId, {
+                employeeNo: resident.sip_identity,
+                dynamicCode,
+                name: resident.legal_name,
+                roomNumber: location.roomNo,
+                floorNumber: location.floor ?? 1,
+            });
+            const duplicate = created.error === 'employeeNoAlreadyExist';
+            if (!created.ok && !duplicate) {
+                results.push({ userId: resident.user_id, success: false, error: created.error, response: created.raw });
+                continue;
+            }
+            if (duplicate) {
+                const existingPin = await getIntercomPin(deviceId, resident.sip_identity);
+                if (/^\d{6}$/.test(existingPin.data?.dynamicCode || '')) dynamicCode = existingPin.data.dynamicCode;
+            }
+            await intercomUserRepository.createIntercomUser(
+                resident.user_id,
+                intercom.intercom_id,
+                resident.sip_identity,
+                dynamicCode,
+            );
+            results.push({ userId: resident.user_id, success: true, existedOnDevice: duplicate });
+        } catch (error) {
+            results.push({ userId: resident.user_id, success: false, error: error.message });
+        }
+    }
+
+    const units = new Map();
+    for (const resident of residents) {
+        for (const location of resident.locations || []) {
+            if (!units.has(location.unitId)) units.set(location.unitId, location.roomNo);
+        }
+    }
+    for (const [unitId, roomNo] of units) {
+        const sipIdentities = await residentUnitRepository.findSipIdentitiesByUnit(unitId);
+        const phonebook = await syncIntercomRoomSipNumbers(deviceId, roomNo, sipIdentities);
+        if (!phonebook.ok) {
+            results.push({ unitId, success: false, operation: 'phonebook', response: phonebook });
+        }
+    }
+
+    const failures = results.filter(result => !result.success);
+    return {
+        ok: failures.length === 0,
+        residents: residents.length,
+        succeeded: results.filter(result => result.success && result.userId).length,
+        failures,
+    };
 }
 async function updateDeviceName(deviceId, userId, role, name) {
     if (role === 'admin') {
@@ -173,8 +290,7 @@ async function moveDeviceToZone(deviceId, zoneId, userId, role) {
 }
 // ── Open door ─────────────────────────────────────────────────────────────────
 async function openDoor(deviceId, user) {
-    const intercom = await deviceRepository.findIntercomByDeviceId(deviceId);
-    if (!intercom) { return null; }
+    const { intercom, adapter } = await getIntercomAdapter(deviceId);
 
     let allowed = user.role === 'superadmin';
     if (user.role === 'admin') {
@@ -188,18 +304,8 @@ async function openDoor(deviceId, user) {
         throw error;
     }
 
-    const DigestFetch = (await import('digest-fetch')).default;
-    const client = new DigestFetch(intercom.username, intercom.password_encrypted);
-    const path = `/ISAPI/AccessControl/RemoteControl/door/${intercom.door_id}`;
-    const url = `http://${intercom.ip_address}:${intercom.port}${path}`;
-    const xml =
-        `<?xml version="1.0" encoding="UTF-8"?>
-            <RemoteControlDoor>
-                <cmd>open</cmd>
-            </RemoteControlDoor>`;
     try {
-        const response = await client.fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/xml' }, body: xml });
-        const text = await response.text();
+        const { response, text } = await adapter.openDoor(intercom.door_id);
         await activityRepository.createActivity({
             condominiumId: intercom.condominium_id,
             deviceId,
@@ -227,59 +333,29 @@ async function openDoor(deviceId, user) {
 }
 // ── Intercom users (Hikvision ISAPI) ─────────────────────────────────────────
 async function listIntercomUsers(deviceId) {
-    const { intercom, client } = await getIntercomClient(deviceId);
-    const response = await client.fetch(
-        `http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/UserInfo/Search?format=json`,
-        {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ UserInfoSearchCond: { searchID: '1', searchResultPosition: 0, maxResults: 30 } }),
-        },
-    );
-    return { status: response.status, body: await response.text() };
+    const { adapter } = await getIntercomAdapter(deviceId);
+    const { response, text } = await adapter.searchUsers();
+    return { status: response.status, body: text };
 }
 async function createIntercomUser(deviceId, { employeeNo, dynamicCode, name, roomNumber, floorNumber = 1, }) {
-    const { intercom, client } = await getIntercomClient(deviceId);
-    const payload = {
-        UserInfo: {
-            employeeNo, dynamicCode, name, userType: 'normal',
-            Valid: { enable: true, beginTime: '2000-01-01T00:00:00', endTime: '2037-12-31T23:59:59', timeType: 'local' },
-            floorNumbers: [floorNumber], callNumbers: [`${roomNumber}`], roomNumber, floorNumber,
-        },
-    };
-    const response = await client.fetch(
-        `http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/UserInfo/Record?format=json`,
-        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) },
-    );
-    const data = await response.json();
+    const { adapter } = await getIntercomAdapter(deviceId);
+    const userInfo = adapter.buildResidentUserInfo({ employeeNo, dynamicCode, name, roomNumber, floorNumber });
+    const { data } = await adapter.createUser(userInfo);
     if (data.statusCode !== 1) {
         return { ok: false, error: data.errorMsg, raw: data };
     }
     return { ok: true, data };
 }
 async function updateIntercomUser(deviceId, employeeNo, { name, roomNumber, floorNumber = 1 }) {
-    const { intercom, client } = await getIntercomClient(deviceId);
-    const payload = {
-        UserInfo: {
-            employeeNo, name, userType: 'normal',
-            Valid: { enable: true, beginTime: '2000-01-01T00:00:00', endTime: '2037-12-31T23:59:59', timeType: 'local' },
-            floorNumbers: [floorNumber], callNumbers: [`1-1-1-${roomNumber}`], roomNumber, floorNumber,
-        },
-    };
-    const response = await client.fetch(
-        `http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/UserInfo/Modify?format=json`,
-        { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) },
-    );
-    return response.json();
+    const { adapter } = await getIntercomAdapter(deviceId);
+    const userInfo = adapter.buildResidentUserUpdate({ employeeNo, name, roomNumber, floorNumber });
+    const { data } = await adapter.updateUser(userInfo);
+    return data;
 }
 async function deleteIntercomUser(deviceId, employeeNo) {
-    const { intercom, client } = await getIntercomClient(deviceId);
-    const payload = { UserInfoDelCond: { EmployeeNoList: [{ employeeNo }] } };
-    const response = await client.fetch(
-        `http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/UserInfo/Delete?format=json`,
-        { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) },
-    );
-    return response.json();
+    const { adapter } = await getIntercomAdapter(deviceId);
+    const { data } = await adapter.deleteUser(employeeNo);
+    return data;
 }
 // GET ACCESS METHODS
 async function getAccessMethods(userId) {
@@ -295,7 +371,7 @@ async function getAccessMethods(userId) {
 }
 // ── Face enrollment ───────────────────────────────────────────────────────────
 async function enrollFace(deviceId, employeeNo, file, name) {
-    const { intercom, client } = await getIntercomClient(deviceId);
+    const { adapter } = await getIntercomAdapter(deviceId);
     const processedBuffer = await processImageForIntercom(file);
     const metadata = {
         faceLibType: 'blackFD',
@@ -304,20 +380,11 @@ async function enrollFace(deviceId, employeeNo, file, name) {
         name: name || `User ${employeeNo}`,
     };
     const { body, boundary } = buildFaceMultipart(metadata, processedBuffer, 'image/jpeg');
-    const response = await client.fetch(
-        `http://${intercom.ip_address}:${intercom.port}/ISAPI/Intelligent/FDLib/FaceDataRecord?format=json`,
-        { method: 'POST', headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}`, 'Content-Length': body.length }, body },
-    );
-    return response.json();
+    return adapter.enrollFace(body, boundary);
 }
 async function deleteFace(deviceId, employeeNo) {
-    const { intercom, client } = await getIntercomClient(deviceId);
-    const payload = JSON.stringify({ FPID: [{ value: employeeNo }] });
-    const response = await client.fetch(
-        `http://${intercom.ip_address}:${intercom.port}/ISAPI/Intelligent/FDLib/FDSearch/Delete?format=json&FDID=1&faceLibType=blackFD`,
-        { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) }, body: payload },
-    );
-    return response.json();
+    const { adapter } = await getIntercomAdapter(deviceId);
+    return adapter.deleteFace(employeeNo);
 }
 async function updateResidentFace(userId, file) {
     await processImageForIntercom(file);
@@ -428,16 +495,8 @@ async function deleteResidentFace(userId) {
 }
 // ── PINs ──────────────────────────────────────────────────────────────────────
 async function listIntercomPins(deviceId) {
-    const { intercom, client } = await getIntercomClient(deviceId);
-    const response = await client.fetch(
-        `http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/UserInfo/Search?format=json`,
-        {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ UserInfoSearchCond: { searchID: '1', searchResultPosition: 0, maxResults: 30 } }),
-        },
-    );
-    const data = await response.json();
+    const { adapter } = await getIntercomAdapter(deviceId);
+    const { data } = await adapter.searchUsers();
     // Filter to only users that actually have a dynamicCode set
     const users = data.UserInfoSearch?.UserInfo ?? [];
     const withPin = users
@@ -446,33 +505,15 @@ async function listIntercomPins(deviceId) {
     return { ok: true, data: withPin };
 }
 async function getIntercomPin(deviceId, employeeNo) {
-    const { intercom, client } = await getIntercomClient(deviceId);
-    const response = await client.fetch(
-        `http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/UserInfo/Search?format=json`,
-        {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                UserInfoSearchCond: {
-                    searchID: '1', searchResultPosition: 0, maxResults: 1,
-                    EmployeeNoList: [{ employeeNo }],
-                },
-            }),
-        },
-    );
-    const data = await response.json();
+    const { adapter } = await getIntercomAdapter(deviceId);
+    const { data } = await adapter.searchUsers({ employeeNo, maxResults: 1 });
     const user = data.UserInfoSearch?.UserInfo?.[0];
     if (!user) { return { ok: false, error: 'User not found' }; }
     return { ok: true, data: { employeeNo: user.employeeNo, name: user.name, dynamicCode: user.dynamicCode ?? null } };
 }
 async function setIntercomPin(deviceId, employeeNo, dynamicCode) {
-    const { intercom, client } = await getIntercomClient(deviceId);
-    const payload = { UserInfo: { employeeNo, dynamicCode } };
-    const response = await client.fetch(
-        `http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/UserInfo/Modify?format=json`,
-        { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) },
-    );
-    const data = await response.json();
+    const { adapter } = await getIntercomAdapter(deviceId);
+    const { data } = await adapter.setPin(employeeNo, dynamicCode);
     if (data.statusCode !== 1) {
         return data;
     }
@@ -521,106 +562,59 @@ async function updateResidentDynamicCode(userId, dynamicCode) {
 }
 // ── Cards ─────────────────────────────────────────────────────────────────────
 async function listCards(deviceId) {
-    const { intercom, client } = await getIntercomClient(deviceId);
-    const payload = { CardInfoSearchCond: { searchID: '1', searchResultPosition: 0, maxResults: 30 } };
-    const response = await client.fetch(
-        `http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/CardInfo/Search?format=json`,
-        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) },
-    );
-    return { status: response.status, body: await response.text() };
+    const { adapter } = await getIntercomAdapter(deviceId);
+    const { response, text } = await adapter.searchCards();
+    return { status: response.status, body: text };
 }
 async function assignCard(deviceId, employeeNo, cardNo) {
-    const { intercom, client } = await getIntercomClient(deviceId);
-    const payload = { CardInfo: { employeeNo, cardNo: formatCardForHikvision(cardNo), cardType: 'normalCard' } };
-    const response = await client.fetch(
-        `http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/CardInfo/Record?format=json`,
-        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) },
-    );
-    return response.json();
+    const { adapter } = await getIntercomAdapter(deviceId);
+    const { data } = await adapter.createCard(employeeNo, formatCardForHikvision(cardNo));
+    return data;
 }
 async function updateCard(deviceId, employeeNo, cardNo) {
-    const { intercom, client } = await getIntercomClient(deviceId);
-    const payload = { CardInfo: { employeeNo, cardNo: formatCardForHikvision(cardNo), cardType: 'normalCard' } };
-    const response = await client.fetch(
-        `http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/CardInfo/Modify?format=json`,
-        { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) },
-    );
-    return response.json();
+    const { adapter } = await getIntercomAdapter(deviceId);
+    const { data } = await adapter.updateCard(employeeNo, formatCardForHikvision(cardNo));
+    return data;
 }
 async function deleteCard(deviceId, cardNo) {
-    const { intercom, client } = await getIntercomClient(deviceId);
-    const payload = { CardInfoDelCond: { CardNoList: [{ cardNo: formatCardForHikvision(cardNo) }] } };
-    const response = await client.fetch(
-        `http://${intercom.ip_address}:${intercom.port}/ISAPI/AccessControl/CardInfo/Delete?format=json`,
-        { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) },
-    );
-    return response.json();
+    const { adapter } = await getIntercomAdapter(deviceId);
+    const { data } = await adapter.deleteCard(formatCardForHikvision(cardNo));
+    return data;
 }
 // ── SIP Numbers ───────────────────────────────────────────────────────────────
 async function searchIntercomPhoneRecords(deviceId) {
-    const { intercom, client } = await getIntercomClient(deviceId);
-    const payload = {
-        PhoneSearchDescription: {
-            searchID: uuid().replace(/-/g, ''),
-            maxResults: 20,
-            searchResultPosition: 0,
-            RoomNoList: []
-        }
-    };
-    const url = `http://${intercom.ip_address}:${intercom.port}/ISAPI/VideoIntercom/PhoneNumberRecords/phoneSearch?format=json`;
-    console.log('SEARCH SIP URL:', url);
-    console.log('SEARCH SIP PAYLOAD:', JSON.stringify(payload));
-    const response = await client.fetch(
-        url,
-        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) },
-    );
-    const data = await response.json();
-    console.log('SEARCH SIP RESPONSE:', response.status, data);
-    if (!response.ok || data.PhoneSearchResult?.responseStatusStrg !== 'OK') {
-        return { ok: false, status: response.status, data };
-    }
-    return { ok: true, records: data.PhoneSearchResult?.PhoneNumberRecords ?? [], data };
+    const { adapter } = await getIntercomAdapter(deviceId);
+    return adapter.searchPhoneRecords();
 }
 async function createIntercomPhoneRecord(deviceId, roomNo, phoneNumbers) {
-    const { intercom, client } = await getIntercomClient(deviceId);
-    const payload = {
-        PhoneNumberRecord: {
-            roomNo: String(roomNo),
-            PhoneNumbers: phoneNumbers.map(phoneNumber => ({ phoneNumber: String(phoneNumber) }))
-        }
-    };
-    const response = await client.fetch(
-        `http://${intercom.ip_address}:${intercom.port}/ISAPI/VideoIntercom/PhoneNumberRecords?format=json`,
-        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) },
-    );
-    const data = await response.json();
-    return { ok: response.ok && data.statusCode === 1, status: response.status, data };
+    const { adapter } = await getIntercomAdapter(deviceId);
+    return adapter.createPhoneRecord(roomNo, phoneNumbers);
 }
 async function updateIntercomPhoneRecord(deviceId, recordId, roomNo, phoneNumbers) {
-    const { intercom, client } = await getIntercomClient(deviceId);
-    const payload = {
-        PhoneNumberRecord: {
-            roomNo: String(roomNo),
-            PhoneNumbers: phoneNumbers.map(phoneNumber => ({ phoneNumber: String(phoneNumber) }))
-        }
-    };
-    console.log('UPDATE SIP RECORD:', recordId, JSON.stringify(payload));
-    const response = await client.fetch(
-        `http://${intercom.ip_address}:${intercom.port}/ISAPI/VideoIntercom/PhoneNumberRecords/${recordId}?format=json`,
-        { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) },
-    );
-    const data = await response.json();
-    console.log('UPDATE SIP RESPONSE:', response.status, data);
-    return { ok: response.ok && data.statusCode === 1, status: response.status, data };
+    const { adapter } = await getIntercomAdapter(deviceId);
+    return adapter.updatePhoneRecord(recordId, roomNo, phoneNumbers);
 }
 async function deleteIntercomPhoneRecord(deviceId, recordId) {
-    const { intercom, client } = await getIntercomClient(deviceId);
-    const response = await client.fetch(
-        `http://${intercom.ip_address}:${intercom.port}/ISAPI/VideoIntercom/PhoneNumberRecords/${recordId}?format=json`,
-        { method: 'DELETE' },
-    );
-    const data = await response.json();
-    return { ok: response.ok && data.statusCode === 1, status: response.status, data };
+    const { adapter } = await getIntercomAdapter(deviceId);
+    return adapter.deletePhoneRecord(recordId);
+}
+
+async function listIntercomAccessEvents(deviceId, filters = {}, user) {
+    if (!user || !['admin', 'superadmin'].includes(user.role)) {
+        const error = new Error('Forbidden');
+        error.status = 403;
+        throw error;
+    }
+    if (user.role === 'admin') {
+        const allowed = await deviceRepository.findDeviceByIdAndAdmin(deviceId, user.userId);
+        if (!allowed) {
+            const error = new Error('Device not found');
+            error.status = 404;
+            throw error;
+        }
+    }
+    const { adapter } = await getIntercomAdapter(deviceId);
+    return adapter.searchAccessEvents(filters);
 }
 async function syncIntercomRoomSipNumbers(deviceId, roomNo, phoneNumbers) {
     const normalizedPhoneNumbers = [...new Set(
@@ -666,5 +660,7 @@ module.exports = {
     // Cards
     listCards, assignCard, updateCard, deleteCard,
     // SIP Numbers
-    searchIntercomPhoneRecords, createIntercomPhoneRecord, updateIntercomPhoneRecord, deleteIntercomPhoneRecord, syncIntercomRoomSipNumbers
+    searchIntercomPhoneRecords, createIntercomPhoneRecord, updateIntercomPhoneRecord, deleteIntercomPhoneRecord, syncIntercomRoomSipNumbers,
+    // Device identity and stored access events
+    refreshDeviceIdentity, provisionExistingResidents, listIntercomAccessEvents
 };

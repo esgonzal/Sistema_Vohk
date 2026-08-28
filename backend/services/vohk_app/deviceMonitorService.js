@@ -1,4 +1,5 @@
 const deviceRepository = require('../../repositories/deviceRepository');
+const { fetchHikvisionIdentity } = require('./hikvision/identityService');
 
 async function checkDevices() {
     const devices = await deviceRepository.findActiveDevices();
@@ -29,11 +30,9 @@ async function checkHikvisionDevice(device) {
         console.error(`Missing credentials for ${device.name}`);
         return false;
     }
-    const DigestFetch = (await import('digest-fetch')).default;
-    const client = new DigestFetch(device.username, device.password);
-    const url = `http://${device.ip_address}:${device.port}/ISAPI/System/deviceInfo`;
-    const response = await client.fetch(url, {method: 'GET',headers: { Accept: 'application/xml' }});
-    return response.ok;
+    const identity = await fetchHikvisionIdentity(device);
+    await deviceRepository.updateDeviceIdentity(device.device_id, identity);
+    return true;
 }
 async function checkDahuaDevice(device) {
     if (!device.username || !device.password) {
