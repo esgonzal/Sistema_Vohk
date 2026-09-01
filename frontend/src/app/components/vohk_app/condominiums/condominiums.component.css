@@ -315,6 +315,36 @@
   opacity: .55;
 }
 
+/* Invitation settings modal */
+
+::ng-deep .invitation-settings-grid {
+  display: grid;
+  grid-template-columns: 130px 90px 110px;
+  column-gap: 20px;
+  row-gap: 14px;
+  align-items: center;
+  justify-content: center;
+}
+
+::ng-deep .invitation-settings-grid label {
+  margin: 0;
+  text-align: left;
+  font-size: 16px;
+}
+
+::ng-deep .invitation-settings-grid .swal2-input {
+  width: 90px;
+  height: 54px;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+::ng-deep .invitation-settings-unit {
+  text-align: left;
+  font-size: 16px;
+  white-space: nowrap;
+}
+
 @media(max-width:900px) {
   .page-header {
     flex-direction: column;

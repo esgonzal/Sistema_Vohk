@@ -5,9 +5,9 @@ import { HttpClient } from '@angular/common/http';
   providedIn: 'root'
 })
 export class ConserjeriaService {
+
   URL = 'https://api.vohk.cl';
   //URL = 'http://localhost:8080';
-
   constructor(private http: HttpClient) { }
 
   getDevices(condominiumId: string) {

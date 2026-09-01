@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Subject, takeUntil } from 'rxjs';
+import { forkJoin, Subject, takeUntil, timer } from 'rxjs';
 import { SelectedCondominium, SelectedCondominiumService } from 'src/app/services/vohk_app/selected-condominium.service';
 import { DomSanitizer } from '@angular/platform-browser';
 import { TwilioService } from 'src/app/services/vohk_app/twilio.service';
@@ -21,9 +21,11 @@ export class ConserjeriaComponent implements OnInit, OnDestroy {
   activeCall: Call | null = null;
   incomingDevice: any = null;
   activities: any[] = [];
+  accessActivities: any[] = [];
   activityPage = 0;
   activityPageSize = 5;
   activityPageSizeOptions = [5, 10, 20];
+  activityFilter: 'all' | 'access' = 'all';
 
   private destroy$ = new Subject<void>();
 
@@ -42,10 +44,17 @@ export class ConserjeriaComponent implements OnInit, OnDestroy {
         this.loading = false;
         this.devices = [];
         this.cameraDevices = [];
+        this.activities = [];
+        this.accessActivities = [];
         return;
       }
       this.loadDevices(condo.condominium_id);
       this.loadActivities(condo.condominium_id);
+    });
+    timer(30_000, 30_000).pipe(takeUntil(this.destroy$)).subscribe(() => {
+      if (this.selectedCondominium) {
+        this.loadActivities(this.selectedCondominium.condominium_id, false);
+      }
     });
     this.twilioService.incomingCall$.pipe(takeUntil(this.destroy$)).subscribe(call => {
       this.incomingCall = call;
@@ -97,18 +106,20 @@ export class ConserjeriaComponent implements OnInit, OnDestroy {
     });
   }
 
-  loadActivities(condominiumId: string): void {
-    this.dashboardService.getActivities().subscribe({
+  loadActivities(condominiumId: string, resetPage = true): void {
+    forkJoin({
+      all: this.dashboardService.getActivities(100, condominiumId),
+      access: this.dashboardService.getActivities(100, condominiumId, 'access')
+    }).pipe(takeUntil(this.destroy$)).subscribe({
       next: data => {
-        this.activities = (data ?? []).filter(
-          (activity: any) =>
-            activity.condominium_id?.toString() === condominiumId.toString()
-        );
-        this.activityPage = 0;
+        this.activities = data.all ?? [];
+        this.accessActivities = data.access ?? [];
+        if (resetPage) this.activityPage = 0;
       },
       error: err => {
         console.error('Unable to load concierge activities:', err);
         this.activities = [];
+        this.accessActivities = [];
         this.activityPage = 0;
       }
     });
@@ -206,22 +217,28 @@ export class ConserjeriaComponent implements OnInit, OnDestroy {
 
   get pagedActivities(): any[] {
     const start = this.activityPage * this.activityPageSize;
-    return this.activities.slice(start, start + this.activityPageSize);
+    return this.visibleActivities.slice(start, start + this.activityPageSize);
+  }
+
+  get visibleActivities(): any[] {
+    return this.activityFilter === 'access'
+      ? this.accessActivities
+      : this.activities;
   }
 
   get activityTotalPages(): number {
-    return Math.max(1, Math.ceil(this.activities.length / this.activityPageSize));
+    return Math.max(1, Math.ceil(this.visibleActivities.length / this.activityPageSize));
   }
 
   get activityStart(): number {
-    if (!this.activities.length) return 0;
+    if (!this.visibleActivities.length) return 0;
     return this.activityPage * this.activityPageSize + 1;
   }
 
   get activityEnd(): number {
     return Math.min(
       (this.activityPage + 1) * this.activityPageSize,
-      this.activities.length
+      this.visibleActivities.length
     );
   }
 
@@ -242,7 +259,17 @@ export class ConserjeriaComponent implements OnInit, OnDestroy {
     this.activityPage = 0;
   }
 
+  setActivityFilter(filter: 'all' | 'access'): void {
+    this.activityFilter = filter;
+    this.activityPage = 0;
+  }
+
   activityTitle(activity: any): string {
+    if (activity.event_type === 'access') {
+      const subject = activity.actor_name || activity.metadata?.subjectName || 'Persona no identificada';
+      const description = activity.metadata?.description;
+      return description ? `${subject}: ${description}` : `${subject} registró un intento de acceso`;
+    }
     if (activity.event_type === 'door_open') {
       return `${activity.actor_name || 'Usuario'} abrió ${activity.device_name || 'un acceso'}`;
     }
@@ -271,7 +298,19 @@ export class ConserjeriaComponent implements OnInit, OnDestroy {
     return 'Llamada registrada';
   }
 
-  activityStatus(status: string): string {
+  activityMethod(activity: any): string {
+    if (activity.event_type === 'door_open') return 'Remoto';
+    if (activity.event_type !== 'access') return '—';
+    return activity.metadata?.methodLabel || 'Desconocido';
+  }
+
+  activityStatus(activity: any): string {
+    const status = activity.status;
+    if (activity.event_type === 'access') {
+      if (status === 'succeeded') return 'Permitido';
+      if (status === 'failed') return 'Rechazado';
+      if (status === 'recorded') return 'Registrado';
+    }
     const labels: Record<string, string> = {
       initiated: 'Iniciada',
       ringing: 'Sonando',
@@ -281,7 +320,8 @@ export class ConserjeriaComponent implements OnInit, OnDestroy {
       busy: 'Ocupado',
       failed: 'Fallida',
       canceled: 'Cancelada',
-      succeeded: 'Realizado'
+      succeeded: 'Realizado',
+      recorded: 'Registrado'
     };
 
     return labels[status] || status;

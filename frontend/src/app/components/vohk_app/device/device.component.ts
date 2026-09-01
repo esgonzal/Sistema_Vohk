@@ -113,7 +113,6 @@ export class DeviceComponent implements OnInit, OnDestroy {
         ${device.name ?? ''}
         ${device.ip_address ?? ''}
         ${device.zone_name ?? ''}
-        ${device.device_id ?? ''}
       `.toLowerCase();
 
       return matchesType && text.includes(this.searchText);
@@ -126,6 +125,10 @@ export class DeviceComponent implements OnInit, OnDestroy {
 
   getCameraCount(): number {
     return this.devices.filter(device => device.type === 'camera').length;
+  }
+
+  supportsIdentityRefresh(device: any): boolean {
+    return String(device?.vendor || '').toLowerCase() === 'hikvision';
   }
 
   getIntercomCount(): number {
@@ -189,6 +192,9 @@ export class DeviceComponent implements OnInit, OnDestroy {
         <div id="intercomFields">
           <input id="sipAddress" class="swal2-input" placeholder="SIP address">
           <input id="doorId" type="number" class="swal2-input" value="1" placeholder="Door ID">
+          <input id="periodNumber" type="number" min="1" max="9" class="swal2-input" value="1" placeholder="Periodo de llamada">
+          <input id="buildingNumber" type="number" min="1" max="999" class="swal2-input" value="1" placeholder="Edificio de llamada">
+          <input id="unitNumber" type="number" min="1" max="99" class="swal2-input" value="1" placeholder="Unidad de llamada">
         </div>
       `,
       showCancelButton: true,
@@ -221,6 +227,9 @@ export class DeviceComponent implements OnInit, OnDestroy {
         const streamUrl = (document.getElementById('streamUrl') as HTMLInputElement).value.trim();
         const sipAddress = (document.getElementById('sipAddress') as HTMLInputElement).value.trim();
         const doorId = Number((document.getElementById('doorId') as HTMLInputElement).value);
+        const periodNumber = Number((document.getElementById('periodNumber') as HTMLInputElement).value);
+        const buildingNumber = Number((document.getElementById('buildingNumber') as HTMLInputElement).value);
+        const unitNumber = Number((document.getElementById('unitNumber') as HTMLInputElement).value);
 
         if (!zoneId || !type || !vendor || !name || !ipAddress || !port || !username || !passwordEncrypted) {
           Swal.showValidationMessage('Zona, tipo, fabricante, nombre, IP, puerto, usuario y contraseña son obligatorios');
@@ -229,6 +238,15 @@ export class DeviceComponent implements OnInit, OnDestroy {
 
         if (type === 'intercom' && !sipAddress) {
           Swal.showValidationMessage('El SIP address es obligatorio para un videoportero');
+          return;
+        }
+
+        if (type === 'intercom' && (
+          !Number.isInteger(periodNumber) || periodNumber < 1 || periodNumber > 9 ||
+          !Number.isInteger(buildingNumber) || buildingNumber < 1 || buildingNumber > 999 ||
+          !Number.isInteger(unitNumber) || unitNumber < 1 || unitNumber > 99
+        )) {
+          Swal.showValidationMessage('La jerarquia de llamada del videoportero no es valida');
           return;
         }
 
@@ -248,7 +266,10 @@ export class DeviceComponent implements OnInit, OnDestroy {
           },
           intercomData: type === 'intercom' ? {
             sipAddress,
-            doorId
+            doorId,
+            periodNumber,
+            buildingNumber,
+            unitNumber
           } : null
         };
       }
@@ -267,6 +288,36 @@ export class DeviceComponent implements OnInit, OnDestroy {
         console.error('Error creating device:', err);
         Swal.fire('Error', err.error?.error || 'No se pudo crear el dispositivo.', 'error');
       }
+    });
+  }
+
+  refreshIdentity(device: any): void {
+    this.deviceService.refreshIdentity(device.device_id).subscribe({
+      next: () => {
+        Swal.fire('Identidad actualizada', 'Se detectaron el modelo y firmware mediante ISAPI.', 'success');
+        this.reloadDevices();
+      },
+      error: err => Swal.fire('Error', err.error?.error || 'No se pudo detectar la identidad.', 'error')
+    });
+  }
+
+  async provisionResidents(device: any): Promise<void> {
+    const confirmation = await Swal.fire({
+      title: 'Provisionar residentes',
+      text: `Se sincronizaran los residentes y numeros SIP existentes con ${device.name}.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Provisionar',
+      cancelButtonText: 'Cancelar'
+    });
+    if (!confirmation.isConfirmed) return;
+    this.deviceService.provisionResidents(device.device_id).subscribe({
+      next: result => Swal.fire(
+        result.ok ? 'Provision completada' : 'Provision parcial',
+        `${result.succeeded} residentes sincronizados; ${result.failures?.length || 0} fallas.`,
+        result.ok ? 'success' : 'warning'
+      ),
+      error: err => Swal.fire('Error', err.error?.error || 'No se pudieron provisionar los residentes.', 'error')
     });
   }
 

@@ -358,3 +358,30 @@ td {
         grid-template-columns: 1fr;
     }
 }
+
+.activity-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.activity-filters {
+    display: flex;
+    gap: 6px;
+}
+
+.activity-filters button {
+    border: 1px solid #34363e;
+    border-radius: 7px;
+    background: #202126;
+    color: #a8aab2;
+    padding: 6px 11px;
+    cursor: pointer;
+}
+
+.activity-filters button.active {
+    border-color: #f5ce33;
+    color: #f5ce33;
+    background: rgba(245, 206, 51, .08);
+}

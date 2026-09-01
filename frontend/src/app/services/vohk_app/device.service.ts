@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
   providedIn: 'root'
 })
 export class DeviceService {
+
   URL = 'https://api.vohk.cl';
   //URL = 'http://localhost:8080';
 
@@ -24,6 +25,14 @@ export class DeviceService {
 
   updateDeviceZone(deviceId: string, zoneId: string) {
     return this.http.put(`${this.URL}/api/devices/${deviceId}/zone`, { zoneId });
+  }
+
+  refreshIdentity(deviceId: string) {
+    return this.http.post(`${this.URL}/api/devices/${deviceId}/identity/refresh`, {});
+  }
+
+  provisionResidents(deviceId: string) {
+    return this.http.post<any>(`${this.URL}/api/devices/${deviceId}/provision-residents`, {});
   }
 
   deleteDevice(deviceId: string) {

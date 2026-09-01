@@ -59,7 +59,9 @@
                 </div>
                 <div>
                     <div class="name">{{ device.name }}</div>
-                    <div class="device-id">{{ device.device_id }}</div>
+                    <div class="device-id" *ngIf="device.model">
+                        {{ device.model }}<span *ngIf="device.firmware_version"> - {{ device.firmware_version }}</span>
+                    </div>
                 </div>
             </div>
 
@@ -82,6 +84,14 @@
             </div>
 
             <div class="device-actions">
+                <button *ngIf="isSuperAdmin && supportsIdentityRefresh(device)" class="action-btn"
+                    (click)="refreshIdentity(device)" title="Actualizar modelo y firmware">
+                    <mat-icon>sync</mat-icon>
+                </button>
+                <button *ngIf="isSuperAdmin && device.type === 'intercom'" class="action-btn"
+                    (click)="provisionResidents(device)" title="Provisionar residentes y numeros SIP">
+                    <mat-icon>group_add</mat-icon>
+                </button>
                 <button class="action-btn" (click)="editDevice(device)" title="Editar nombre y zona">
                     <mat-icon>edit</mat-icon>
                 </button>

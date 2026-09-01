@@ -70,6 +70,22 @@
                     </div>
                 </div>
                 <div class="management-section">
+                    <div class="camera-access-setting">
+                        <div class="camera-access-info">
+                            <mat-icon>person_add</mat-icon>
+                            <div>
+                                <div class="setting-title">Invitaciones</div>
+                                <div class="setting-description">
+                                    {{ condo.max_recurrent_invitations }} recurrentes ·
+                                    {{ condo.max_temporary_duration_hours / 24 }} días temporal ·
+                                    {{ condo.max_express_duration_hours }} h express
+                                </div>
+                            </div>
+                        </div>
+                        <button class="small-btn" (click)="editInvitationSettings(condo)">Configurar</button>
+                    </div>
+                </div>
+                <div class="management-section">
                     <div class="section-header">
                         <div>
                             <mat-icon>domain</mat-icon>

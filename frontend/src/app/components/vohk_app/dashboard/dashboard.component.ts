@@ -44,6 +44,11 @@ export class DashboardComponent implements OnInit {
   }
 
   activityTitle(activity: any): string {
+    if (activity.event_type === 'access') {
+      const subject = activity.actor_name || activity.metadata?.subjectName || 'Persona no identificada';
+      const description = activity.metadata?.description;
+      return description ? `${subject}: ${description}` : `${subject} registró un intento de acceso`;
+    }
     if (activity.event_type === 'door_open') {
       return `${activity.actor_name || 'Usuario'} abrió ${activity.device_name || 'un acceso'}`;
     }
@@ -59,7 +64,8 @@ export class DashboardComponent implements OnInit {
   activityStatus(status: string): string {
     const labels: Record<string, string> = {
       initiated: 'Iniciada', ringing: 'Sonando', answered: 'Contestada', completed: 'Finalizada',
-      'no-answer': 'Sin respuesta', busy: 'Ocupado', failed: 'Fallida', canceled: 'Cancelada', succeeded: 'Realizado'
+      'no-answer': 'Sin respuesta', busy: 'Ocupado', failed: 'Fallida', canceled: 'Cancelada', succeeded: 'Realizado',
+      recorded: 'Registrado'
     };
     return labels[status] || status;
   }

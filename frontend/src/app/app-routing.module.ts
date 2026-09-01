@@ -15,7 +15,6 @@ import { MultipleEkeyComponent } from './components/access_methods/multiple-ekey
 /* =========================
    ADMIN COMPONENTS
 ========================= */
-import { InvitationComponent } from './components/vohk_app/invitation/invitation.component';
 import { CondominiumsComponent } from './components/vohk_app/condominiums/condominiums.component';
 import { UnitsComponent } from './components/vohk_app/units/units.component';
 
@@ -54,7 +53,6 @@ const routes: Routes = [
   ========================= */
   { path: 'admin/login', component: LoginComponent },
   { path: 'admin/reset-password/:token', component: ResetPasswordComponent },
-  { path: 'invite/:id', component: InvitationComponent },
   /* =========================
      ADMIN PRIVATE
   ========================= */

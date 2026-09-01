@@ -49,7 +49,6 @@ import { AccessModalComponent } from './components/access_methods/access-modal/a
 import { FunctionsModalComponent } from './components/functions/functions-modal/functions-modal.component';
 import { MultiplePasscodeComponent } from './components/access_methods/multiple-passcode/multiple-passcode/multiple-passcode.component';
 import { MultipleCardsComponent } from './components/access_methods/multiple-cards/multiple-cards.component';
-import { InvitationComponent } from './components/vohk_app/invitation/invitation.component';
 import { CondominiumsComponent } from './components/vohk_app/condominiums/condominiums.component';
 import { UnitsComponent } from './components/vohk_app/units/units.component';
 import { LoginComponent } from './components/vohk_app/login/login.component';
@@ -100,7 +99,6 @@ export const CUSTOM_DATE_FORMATS = {
     FunctionsModalComponent,
     MultiplePasscodeComponent,
     MultipleCardsComponent,
-    InvitationComponent,
     CondominiumsComponent,
     UnitsComponent,
     LoginComponent,

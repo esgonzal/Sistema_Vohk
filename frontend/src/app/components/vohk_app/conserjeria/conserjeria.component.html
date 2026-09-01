@@ -19,13 +19,22 @@
         </div>
         <div class="bottom-panel">
             <div class="activity">
-                <div class="section-title">Actividad Reciente</div>
+                <div class="section-title activity-heading">
+                    <span>Actividad Reciente</span>
+                    <div class="activity-filters">
+                        <button type="button" [class.active]="activityFilter === 'all'"
+                            (click)="setActivityFilter('all')">Todo</button>
+                        <button type="button" [class.active]="activityFilter === 'access'"
+                            (click)="setActivityFilter('access')">Accesos</button>
+                    </div>
+                </div>
 
-                <table *ngIf="activities.length; else noConciergeActivity">
+                <table *ngIf="visibleActivities.length; else noConciergeActivity">
                     <thead>
                         <tr>
                             <th>Hora</th>
                             <th>Evento</th>
+                            <th>Método</th>
                             <th>Dispositivo</th>
                             <th>Estado</th>
                         </tr>
@@ -42,6 +51,10 @@
                             </td>
 
                             <td>
+                                {{ activityMethod(activity) }}
+                            </td>
+
+                            <td>
                                 {{ activity.device_name || '—' }}
                             </td>
 
@@ -50,7 +63,7 @@
                             activity.status === 'failed' ||
                             activity.status === 'no-answer'
                         ">
-                                    {{ activityStatus(activity.status) }}
+                                    {{ activityStatus(activity) }}
                                 </span>
                             </td>
                         </tr>
@@ -63,7 +76,7 @@
                     </div>
                 </ng-template>
 
-                <div class="activity-pagination" *ngIf="activities.length">
+                <div class="activity-pagination" *ngIf="visibleActivities.length">
                     <div class="activity-page-size">
                         <span>Mostrar</span>
 
@@ -76,7 +89,7 @@
 
                     <div class="activity-page-info">
                         {{ activityStart }}–{{ activityEnd }}
-                        de {{ activities.length }}
+                        de {{ visibleActivities.length }}
                     </div>
 
                     <div class="activity-page-buttons">

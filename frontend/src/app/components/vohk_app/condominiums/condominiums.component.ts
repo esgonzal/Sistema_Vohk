@@ -8,6 +8,9 @@ interface Condominium {
   address: string;
   city: string;
   resident_camera_access: boolean;
+  max_recurrent_invitations: number;
+  max_temporary_duration_hours: number;
+  max_express_duration_hours: number;
   buildings: Building[];
   zones: Zone[];
   expanded?: boolean;
@@ -94,6 +97,58 @@ export class CondominiumsComponent implements OnInit {
         condo.cameraAccessSaving = false;
         Swal.fire('Error', err.error?.error || 'No se pudo actualizar el acceso a cámaras.', 'error');
       }
+    });
+  }
+  async editInvitationSettings(condo: Condominium) {
+    const result = await Swal.fire({
+      title: 'Configuración de invitaciones',
+      html: `
+        <div class="invitation-settings-grid">
+          <label>Recurrente</label>
+          <input id="max-recurrent" type="number" min="0" class="swal2-input" value="${condo.max_recurrent_invitations ?? 10}">
+          <span class="invitation-settings-unit">invitaciones</span>
+
+          <label>Temporal</label>
+          <input id="max-temporary" type="number" min="1" class="swal2-input" value="${(condo.max_temporary_duration_hours ?? 168) / 24}">
+          <span class="invitation-settings-unit">días</span>
+
+          <label>Express</label>
+          <input id="max-express" type="number" min="1" class="swal2-input" value="${condo.max_express_duration_hours ?? 3}">
+          <span class="invitation-settings-unit">horas</span>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Guardar',
+      preConfirm: () => {
+        const recurrent = Number((document.getElementById('max-recurrent') as HTMLInputElement).value);
+        const temporaryDays = Number((document.getElementById('max-temporary') as HTMLInputElement).value);
+        const expressHours = Number((document.getElementById('max-express') as HTMLInputElement).value);
+
+        if (!Number.isInteger(recurrent) || recurrent < 0 ||
+          !Number.isInteger(temporaryDays) || temporaryDays <= 0 ||
+          !Number.isInteger(expressHours) || expressHours <= 0) {
+          Swal.showValidationMessage('Ingresa valores enteros válidos.');
+          return;
+        }
+
+        return {
+          maxRecurrentInvitations: recurrent,
+          maxTemporaryDurationHours: temporaryDays * 24,
+          maxExpressDurationHours: expressHours
+        };
+      }
+    });
+
+    if (!result.isConfirmed) return;
+
+    this.condominiumService.updateInvitationSettings(condo.condominium_id, result.value).subscribe({
+      next: settings => {
+        condo.max_recurrent_invitations = settings.max_recurrent_invitations;
+        condo.max_temporary_duration_hours = settings.max_temporary_duration_hours;
+        condo.max_express_duration_hours = settings.max_express_duration_hours;
+        Swal.fire('Guardado', 'Configuración de invitaciones actualizada.', 'success');
+      },
+      error: err => Swal.fire('Error', err.error?.error || 'No se pudo actualizar la configuración.', 'error')
     });
   }
   async openCreateCondominium() {
