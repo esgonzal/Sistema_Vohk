@@ -108,9 +108,10 @@ class K1t343Adapter extends HikvisionAdapter {
         endTime,
         picEnable = false,
         timeReverseOrder = true,
+        searchID = uuid().replace(/-/g, ''),
     } = {}) {
         const condition = {
-            searchID: uuid().replace(/-/g, ''),
+            searchID,
             searchResultPosition: position,
             maxResults: Math.min(Math.max(Number(maxResults) || 30, 1), 30),
             major: Number(major),

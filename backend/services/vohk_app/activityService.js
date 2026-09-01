@@ -19,12 +19,19 @@ async function listActivities(user, query) {
         error.status = 400;
         throw error;
     }
+    const eventType = query.eventType || null;
+    if (eventType && !['door_open', 'call', 'access'].includes(eventType)) {
+        const error = new Error('Invalid event type');
+        error.status = 400;
+        throw error;
+    }
     return activityRepository.listActivities({
         userId: user.userId,
         role: user.role,
         condominiumId: query.condominiumId || null,
         limit,
         before: before?.toISOString() || null,
+        eventType,
     });
 }
 

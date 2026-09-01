@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { createAdapter, getProfileForModel } = require('../services/vohk_app/hikvision/adapterFactory');
+const { employeeNoFromEvent, eventStatus } = require('../services/vohk_app/accessEventSyncService');
 
 function response(data, { ok = true, status = 200 } = {}) {
     const text = typeof data === 'string' ? data : JSON.stringify(data);
@@ -105,8 +106,18 @@ test('K1T343 phonebook updates use delete then create', async () => {
 test('K1T343 exposes stored access events and blocks unvalidated PIN clearing', async () => {
     const client = recordingClient([response({ AcsEvent: { numOfMatches: 1, InfoList: [] } })]);
     const adapter = createAdapter({ ...commonIntercom, model: 'DS-K1T343MWX' }, client);
-    const events = await adapter.searchAccessEvents({ maxResults: 10 });
+    const events = await adapter.searchAccessEvents({ maxResults: 10, searchID: 'stable-search' });
     assert.equal(events.ok, true);
     assert.equal(client.calls[0].url.endsWith('/ISAPI/AccessControl/AcsEvent?format=json'), true);
+    assert.equal(client.calls[0].body.AcsEventCond.searchID, 'stable-search');
     assert.throws(() => adapter.setPin('resident-1', ''), /requires a validated device-specific method/);
+});
+
+test('access event helpers normalize K1 identities and outcomes', () => {
+    assert.equal(employeeNoFromEvent({ employeeNoString: '19489351' }), '19489351');
+    assert.equal(employeeNoFromEvent({ employeeNo: 42 }), 42);
+    assert.equal(eventStatus({ inductiveEventType: 1 }), 'succeeded');
+    assert.equal(eventStatus({ inductiveEventType: 2 }), 'failed');
+    assert.equal(eventStatus({ eventDescription: 'Invalid Duration' }), 'failed');
+    assert.equal(eventStatus({ eventDescription: 'Door Closed' }), 'recorded');
 });

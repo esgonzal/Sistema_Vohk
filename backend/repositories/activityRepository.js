@@ -55,7 +55,7 @@ async function findCallContext(correlationIds) {
     return result.rows[0] || null;
 }
 
-async function listActivities({ userId, role, condominiumId = null, limit = 30, before = null }) {
+async function listActivities({ userId, role, condominiumId = null, limit = 30, before = null, eventType = null }) {
     const result = await pool.query(`
         SELECT ae.activity_event_id, ae.condominium_id, c.name AS condominium_name,
                ae.device_id, d.name AS device_name, ae.actor_user_id,
@@ -76,6 +76,7 @@ async function listActivities({ userId, role, condominiumId = null, limit = 30, 
         LEFT JOIN app_user participant ON participant.user_id = ap.user_id
         WHERE ($3::uuid IS NULL OR ae.condominium_id = $3)
           AND ($4::timestamptz IS NULL OR ae.occurred_at < $4)
+          AND ($6::text IS NULL OR ae.event_type = $6)
           AND (
               ae.event_type <> 'call'
               OR ae.correlation_id IS NULL
@@ -101,7 +102,7 @@ async function listActivities({ userId, role, condominiumId = null, limit = 30, 
         GROUP BY ae.activity_event_id, c.name, d.name, actor.legal_name
         ORDER BY ae.occurred_at DESC, ae.activity_event_id DESC
         LIMIT $5
-    `, [userId, role, condominiumId, before, limit]);
+    `, [userId, role, condominiumId, before, limit, eventType]);
     return result.rows;
 }
 

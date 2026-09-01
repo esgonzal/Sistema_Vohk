@@ -40,8 +40,10 @@ app.use("/debug.jpg", (req, res) => {
 
 const { startDeviceHeartbeat } = require('./jobs/deviceHeartbeat');
 const { startInvitationExpiration } = require('./jobs/invitationExpiration');
+const { startAccessEventSync } = require('./jobs/accessEventSync');
 startDeviceHeartbeat();
 startInvitationExpiration();
+startAccessEventSync();
 
 // HTTP Configuration
 const httpPort = 8080;
