@@ -18,6 +18,32 @@ const { fetchHikvisionIdentity } = require('./hikvision/identityService');
 function formatCardForHikvision(cardNumber) {
     return String(cardNumber).padStart(10, '0');
 }
+function logIntercomAccessOperation(action, intercom, details, response, data) {
+    console.log('[INTERCOM ACCESS]', JSON.stringify({
+        action,
+        deviceId: intercom.device_id,
+        intercomId: intercom.intercom_id,
+        name: intercom.name,
+        model: intercom.model,
+        firmware: intercom.firmware_version,
+        employeeNo: details.employeeNo,
+        userType: details.userType,
+        validity: details.Valid,
+        doorRight: details.doorRight,
+        rightPlan: details.RightPlan,
+        roomNumber: details.roomNumber,
+        floorNumber: details.floorNumber,
+        callNumbers: details.callNumbers,
+        hasDynamicCode: typeof details.dynamicCode === 'string' && details.dynamicCode.length > 0,
+        httpStatus: response?.status,
+        ok: response?.ok,
+        statusCode: data?.statusCode,
+        statusString: data?.statusString,
+        subStatusCode: data?.subStatusCode,
+        errorCode: data?.errorCode,
+        errorMsg: data?.errorMsg,
+    }));
+}
 async function getIntercomAdapter(deviceId) {
     const intercom = await deviceRepository.findIntercomByDeviceId(deviceId);
     if (!intercom) {
@@ -217,6 +243,32 @@ async function provisionExistingResidents(deviceId) {
             if (duplicate) {
                 const existingPin = await getIntercomPin(deviceId, resident.sip_identity);
                 if (/^\d{6}$/.test(existingPin.data?.dynamicCode || '')) dynamicCode = existingPin.data.dynamicCode;
+                const updated = await updateIntercomUser(deviceId, resident.sip_identity, {
+                    name: resident.legal_name,
+                    roomNumber: location.roomNo,
+                    floorNumber: location.floor ?? 1,
+                });
+                if (updated.statusCode !== 1) {
+                    results.push({
+                        userId: resident.user_id,
+                        success: false,
+                        operation: 'repair-existing-user',
+                        error: updated.errorMsg || updated.subStatusCode || 'Could not update existing intercom user',
+                        response: updated,
+                    });
+                    continue;
+                }
+                const pinResult = await setIntercomPin(deviceId, resident.sip_identity, dynamicCode);
+                if (pinResult.statusCode !== 1) {
+                    results.push({
+                        userId: resident.user_id,
+                        success: false,
+                        operation: 'repair-existing-pin',
+                        error: pinResult.errorMsg || pinResult.subStatusCode || 'Could not update existing intercom PIN',
+                        response: pinResult,
+                    });
+                    continue;
+                }
             }
             await intercomUserRepository.createIntercomUser(
                 resident.user_id,
@@ -338,18 +390,20 @@ async function listIntercomUsers(deviceId) {
     return { status: response.status, body: text };
 }
 async function createIntercomUser(deviceId, { employeeNo, dynamicCode, name, roomNumber, floorNumber = 1, }) {
-    const { adapter } = await getIntercomAdapter(deviceId);
+    const { intercom, adapter } = await getIntercomAdapter(deviceId);
     const userInfo = adapter.buildResidentUserInfo({ employeeNo, dynamicCode, name, roomNumber, floorNumber });
-    const { data } = await adapter.createUser(userInfo);
+    const { response, data } = await adapter.createUser(userInfo);
+    logIntercomAccessOperation('create-user', intercom, userInfo, response, data);
     if (data.statusCode !== 1) {
         return { ok: false, error: data.errorMsg, raw: data };
     }
     return { ok: true, data };
 }
 async function updateIntercomUser(deviceId, employeeNo, { name, roomNumber, floorNumber = 1 }) {
-    const { adapter } = await getIntercomAdapter(deviceId);
+    const { intercom, adapter } = await getIntercomAdapter(deviceId);
     const userInfo = adapter.buildResidentUserUpdate({ employeeNo, name, roomNumber, floorNumber });
-    const { data } = await adapter.updateUser(userInfo);
+    const { response, data } = await adapter.updateUser(userInfo);
+    logIntercomAccessOperation('update-user', intercom, userInfo, response, data);
     return data;
 }
 async function deleteIntercomUser(deviceId, employeeNo) {
@@ -371,7 +425,7 @@ async function getAccessMethods(userId) {
 }
 // ── Face enrollment ───────────────────────────────────────────────────────────
 async function enrollFace(deviceId, employeeNo, file, name) {
-    const { adapter } = await getIntercomAdapter(deviceId);
+    const { intercom, adapter } = await getIntercomAdapter(deviceId);
     const processedBuffer = await processImageForIntercom(file);
     const metadata = {
         faceLibType: 'blackFD',
@@ -380,7 +434,9 @@ async function enrollFace(deviceId, employeeNo, file, name) {
         name: name || `User ${employeeNo}`,
     };
     const { body, boundary } = buildFaceMultipart(metadata, processedBuffer, 'image/jpeg');
-    return adapter.enrollFace(body, boundary);
+    const data = await adapter.enrollFace(body, boundary);
+    logIntercomAccessOperation('enroll-face', intercom, { employeeNo }, null, data);
+    return data;
 }
 async function deleteFace(deviceId, employeeNo) {
     const { adapter } = await getIntercomAdapter(deviceId);
@@ -512,8 +568,9 @@ async function getIntercomPin(deviceId, employeeNo) {
     return { ok: true, data: { employeeNo: user.employeeNo, name: user.name, dynamicCode: user.dynamicCode ?? null } };
 }
 async function setIntercomPin(deviceId, employeeNo, dynamicCode) {
-    const { adapter } = await getIntercomAdapter(deviceId);
-    const { data } = await adapter.setPin(employeeNo, dynamicCode);
+    const { intercom, adapter } = await getIntercomAdapter(deviceId);
+    const { response, data } = await adapter.setPin(employeeNo, dynamicCode);
+    logIntercomAccessOperation('set-pin', intercom, { employeeNo, dynamicCode }, response, data);
     if (data.statusCode !== 1) {
         return data;
     }

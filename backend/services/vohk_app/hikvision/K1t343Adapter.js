@@ -15,6 +15,15 @@ class K1t343Adapter extends HikvisionAdapter {
         return `${period}-${building}-${unit}-${roomNumber}`;
     }
 
+    buildDoorAuthorization() {
+        const doorNo = Number(this.intercom.door_id || 1);
+        return {
+            belongGroup: '',
+            doorRight: String(doorNo),
+            RightPlan: [{ doorNo, planTemplateNo: '1' }],
+        };
+    }
+
     buildResidentUserInfo({ employeeNo, dynamicCode, name, roomNumber, floorNumber = 1 }) {
         return {
             employeeNo,
@@ -27,7 +36,7 @@ class K1t343Adapter extends HikvisionAdapter {
                 endTime: '2037-12-31T23:59:59',
                 timeType: 'local',
             },
-            doorRight: String(this.intercom.door_id || 1),
+            ...this.buildDoorAuthorization(),
             roomNumber: Number(roomNumber),
             floorNumber: Number(floorNumber),
             floorNumbers: [Number(floorNumber)],
@@ -38,6 +47,7 @@ class K1t343Adapter extends HikvisionAdapter {
     buildVisitorUserInfo(options) {
         return {
             ...super.buildVisitorUserInfo(options),
+            ...this.buildDoorAuthorization(),
             userVerifyMode: 'faceOrPw',
         };
     }

@@ -71,6 +71,8 @@ test('K1T343 builds the model-specific resident, visitor and phonebook data', ()
     });
     assert.deepEqual(resident.callNumbers, ['1-1-1-101']);
     assert.deepEqual(resident.floorNumbers, [1]);
+    assert.equal(resident.doorRight, '1');
+    assert.deepEqual(resident.RightPlan, [{ doorNo: 1, planTemplateNo: '1' }]);
     const visitor = adapter.buildVisitorUserInfo({
         invitation: { valid: { enable: true } },
         visitorName: 'Visitor',
@@ -78,6 +80,8 @@ test('K1T343 builds the model-specific resident, visitor and phonebook data', ()
         dynamicCode: '654321',
     });
     assert.equal(visitor.userVerifyMode, 'faceOrPw');
+    assert.equal(visitor.doorRight, '1');
+    assert.deepEqual(visitor.RightPlan, [{ doorNo: 1, planTemplateNo: '1' }]);
     assert.deepEqual(adapter.buildPhoneRecord(101, ['sip:resident@example.com']), {
         PhoneNumberRecord: {
             periodNumber: 1,
