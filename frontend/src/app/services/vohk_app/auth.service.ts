@@ -49,6 +49,7 @@ export class AuthService {
     localStorage.removeItem('identity');
     localStorage.removeItem('selectedCondominiumId');
     localStorage.removeItem('legalName');
+    localStorage.removeItem('token');
   }
 
   getToken(): string | null {
