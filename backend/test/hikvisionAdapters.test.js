@@ -137,6 +137,13 @@ test('access event helpers normalize K1 identities and outcomes', () => {
     });
     assert.equal(eventStatus({ minor: 76 }), 'failed');
     assert.equal(accessEventDescriptor({ minor: 101 }).method, 'pin');
+    assert.deepEqual(accessEventDescriptor({ minor: 181 }), {
+        method: 'pin',
+        methodLabel: 'PIN',
+        description: 'Acceso mediante PIN',
+        status: 'succeeded',
+    });
+    assert.equal(eventStatus({ minor: 151 }), 'failed');
     assert.equal(shouldPersistAccessEvent({ minor: 21 }), false);
     assert.equal(shouldPersistAccessEvent({ minor: 22 }), false);
     assert.equal(shouldPersistAccessEvent({ minor: 75 }), true);
