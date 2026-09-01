@@ -1,7 +1,12 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { createAdapter, getProfileForModel } = require('../services/vohk_app/hikvision/adapterFactory');
-const { employeeNoFromEvent, eventStatus } = require('../services/vohk_app/accessEventSyncService');
+const {
+    accessEventDescriptor,
+    employeeNoFromEvent,
+    eventStatus,
+    shouldPersistAccessEvent,
+} = require('../services/vohk_app/accessEventSyncService');
 
 function response(data, { ok = true, status = 200 } = {}) {
     const text = typeof data === 'string' ? data : JSON.stringify(data);
@@ -124,4 +129,15 @@ test('access event helpers normalize K1 identities and outcomes', () => {
     assert.equal(eventStatus({ inductiveEventType: 2 }), 'failed');
     assert.equal(eventStatus({ eventDescription: 'Invalid Duration' }), 'failed');
     assert.equal(eventStatus({ eventDescription: 'Door Closed' }), 'recorded');
+    assert.deepEqual(accessEventDescriptor({ minor: 75 }), {
+        method: 'face',
+        methodLabel: 'Rostro',
+        description: 'Acceso mediante rostro',
+        status: 'succeeded',
+    });
+    assert.equal(eventStatus({ minor: 76 }), 'failed');
+    assert.equal(accessEventDescriptor({ minor: 101 }).method, 'pin');
+    assert.equal(shouldPersistAccessEvent({ minor: 21 }), false);
+    assert.equal(shouldPersistAccessEvent({ minor: 22 }), false);
+    assert.equal(shouldPersistAccessEvent({ minor: 75 }), true);
 });
