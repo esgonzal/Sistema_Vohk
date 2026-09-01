@@ -395,7 +395,15 @@ async function createIntercomUser(deviceId, { employeeNo, dynamicCode, name, roo
     const { response, data } = await adapter.createUser(userInfo);
     logIntercomAccessOperation('create-user', intercom, userInfo, response, data);
     if (data.statusCode !== 1) {
-        return { ok: false, error: data.errorMsg, raw: data };
+        // Hikvision models are inconsistent here: the KV9503 repeats
+        // employeeNoAlreadyExist in errorMsg, while the K1T343 returns the
+        // useful code in subStatusCode and only says "checkUser" in errorMsg.
+        return {
+            ok: false,
+            error: data.subStatusCode || data.errorMsg,
+            message: data.errorMsg,
+            raw: data,
+        };
     }
     return { ok: true, data };
 }
