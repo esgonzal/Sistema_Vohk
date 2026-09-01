@@ -110,6 +110,10 @@ class K1t343Adapter extends HikvisionAdapter {
         timeReverseOrder = true,
         searchID = uuid().replace(/-/g, ''),
     } = {}) {
+        // Some K1 firmware builds return a bare userCheck 401 for AcsEvent
+        // instead of a usable Digest challenge. Prime the same client on the
+        // reliable deviceInfo endpoint so this POST is sent pre-authenticated.
+        await this.primeDigestAuthentication();
         const condition = {
             searchID,
             searchResultPosition: position,

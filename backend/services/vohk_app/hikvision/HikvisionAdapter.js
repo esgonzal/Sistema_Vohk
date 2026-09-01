@@ -36,6 +36,22 @@ class HikvisionAdapter {
         return { response, data, text };
     }
 
+    async primeDigestAuthentication() {
+        if (this.digestAuthenticationPrimed) return;
+        const response = await this.fetch('/ISAPI/System/deviceInfo', {
+            method: 'GET',
+            headers: { Accept: 'application/xml' },
+        });
+        const text = await response.text();
+        if (!response.ok) {
+            const error = new Error(`Could not establish Hikvision Digest session (HTTP ${response.status})`);
+            error.status = 502;
+            error.deviceResponse = text;
+            throw error;
+        }
+        this.digestAuthenticationPrimed = true;
+    }
+
     async openDoor(doorId) {
         const xml = `<?xml version="1.0" encoding="UTF-8"?>\n` +
             `<RemoteControlDoor version="2.0" xmlns="http://www.isapi.org/ver20/XMLSchema">` +

@@ -104,12 +104,16 @@ test('K1T343 phonebook updates use delete then create', async () => {
 });
 
 test('K1T343 exposes stored access events and blocks unvalidated PIN clearing', async () => {
-    const client = recordingClient([response({ AcsEvent: { numOfMatches: 1, InfoList: [] } })]);
+    const client = recordingClient([
+        response('<DeviceInfo><model>DS-K1T343MWX</model></DeviceInfo>'),
+        response({ AcsEvent: { numOfMatches: 1, InfoList: [] } }),
+    ]);
     const adapter = createAdapter({ ...commonIntercom, model: 'DS-K1T343MWX' }, client);
     const events = await adapter.searchAccessEvents({ maxResults: 10, searchID: 'stable-search' });
     assert.equal(events.ok, true);
-    assert.equal(client.calls[0].url.endsWith('/ISAPI/AccessControl/AcsEvent?format=json'), true);
-    assert.equal(client.calls[0].body.AcsEventCond.searchID, 'stable-search');
+    assert.equal(client.calls[0].url.endsWith('/ISAPI/System/deviceInfo'), true);
+    assert.equal(client.calls[1].url.endsWith('/ISAPI/AccessControl/AcsEvent?format=json'), true);
+    assert.equal(client.calls[1].body.AcsEventCond.searchID, 'stable-search');
     assert.throws(() => adapter.setPin('resident-1', ''), /requires a validated device-specific method/);
 });
 
