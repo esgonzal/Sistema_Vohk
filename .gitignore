@@ -25,3 +25,6 @@ frontend/node_modules/
 # Build outputs
 frontend/dist/
 frontend/.angular/
+
+# Local Codex deployment and diagnostic scratch files
+.codex-*
