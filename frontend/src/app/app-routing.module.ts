@@ -29,8 +29,14 @@ import { DashboardComponent } from './components/vohk_app/dashboard/dashboard.co
 import { UserComponent } from './components/vohk_app/user/user.component';
 import { ConserjeriaComponent } from './components/vohk_app/conserjeria/conserjeria.component';
 import { DeviceComponent } from './components/vohk_app/device/device.component';
+import { PrivacyPolicyComponent } from './components/privacy-policy/privacy-policy.component';
 
 const routes: Routes = [
+
+  /* =========================
+     PUBLIC LEGAL PAGES
+  ========================= */
+  { path: 'politica-de-privacidad', component: PrivacyPolicyComponent },
 
   /* =========================
      TTLOCK SYSTEM (LEGACY)

@@ -69,6 +69,7 @@ import { UserComponent } from './components/vohk_app/user/user.component';
 import { MultipleEkeyComponent } from './components/access_methods/multiple-ekey/multiple-ekey.component';
 import { ConserjeriaComponent } from './components/vohk_app/conserjeria/conserjeria.component';
 import { DeviceComponent } from './components/vohk_app/device/device.component';
+import { PrivacyPolicyComponent } from './components/privacy-policy/privacy-policy.component';
 
 
 export const CUSTOM_DATE_FORMATS = {
@@ -117,6 +118,7 @@ export const CUSTOM_DATE_FORMATS = {
     MultipleEkeyComponent,
     ConserjeriaComponent,
     DeviceComponent,
+    PrivacyPolicyComponent,
   ],
   imports: [
     BrowserModule,
