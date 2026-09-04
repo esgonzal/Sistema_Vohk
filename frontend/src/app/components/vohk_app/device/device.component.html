@@ -107,7 +107,7 @@
                     (click)="refreshTtlock(device)" title="Actualizar estado TTLock">
                     <mat-icon>sync</mat-icon>
                 </button>
-                <button *ngIf="isSuperAdmin && (device.type === 'intercom' || isTtlockDevice(device))" class="action-btn"
+                <button *ngIf="isSuperAdmin && (device.type === 'intercom' || device.type === 'lock')" class="action-btn"
                     (click)="provisionResidents(device)"
                     [title]="isTtlockDevice(device) ? 'Provisionar códigos de residentes' : 'Provisionar residentes y números SIP'">
                     <mat-icon>group_add</mat-icon>

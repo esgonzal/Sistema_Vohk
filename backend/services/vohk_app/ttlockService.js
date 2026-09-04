@@ -33,6 +33,15 @@ function validatePasscode(value, required = true) {
     return normalized;
 }
 
+function assertPasscodeCapableLock(lock) {
+    if (lock.type !== 'lock') {
+        throw httpError('Gate devices do not support passcodes', 422);
+    }
+    if (Number(lock.keyboard_pwd_version) !== 4) {
+        throw httpError('This TTLock device does not support gateway-managed custom passcodes', 422);
+    }
+}
+
 async function requireTtlockDevice(deviceId) {
     const lock = await ttlockRepository.findByDeviceId(deviceId);
     if (!lock) throw httpError('TTLock device not found', 404);
@@ -145,15 +154,14 @@ async function openDoor(deviceId, user) {
 async function listPasscodes(deviceId, user, filters = {}) {
     const lock = await requireTtlockDevice(deviceId);
     await assertDeviceAccess(lock, user, { manage: true });
+    assertPasscodeCapableLock(lock);
     return ttlockClient.listPasscodes(lock.lock_id, filters);
 }
 
 async function createPasscode(deviceId, user, input) {
     const lock = await requireTtlockDevice(deviceId);
     await assertDeviceAccess(lock, user, { manage: true });
-    if (Number(lock.keyboard_pwd_version) !== 4) {
-        throw httpError('This TTLock device does not support gateway-managed custom passcodes', 422);
-    }
+    assertPasscodeCapableLock(lock);
     const keyboardPwd = validatePasscode(input.keyboardPwd);
     const startDate = asTimestamp(input.startDate, 0);
     const endDate = asTimestamp(input.endDate, 0);
@@ -197,6 +205,7 @@ async function createPasscode(deviceId, user, input) {
 async function changePasscode(deviceId, keyboardPwdId, user, input) {
     const lock = await requireTtlockDevice(deviceId);
     await assertDeviceAccess(lock, user, { manage: true });
+    assertPasscodeCapableLock(lock);
     const keyboardPwd = validatePasscode(input.keyboardPwd, false);
     const startDate = asTimestamp(input.startDate, undefined);
     const endDate = asTimestamp(input.endDate, undefined);
@@ -219,6 +228,7 @@ async function changePasscode(deviceId, keyboardPwdId, user, input) {
 async function deletePasscode(deviceId, keyboardPwdId, user) {
     const lock = await requireTtlockDevice(deviceId);
     await assertDeviceAccess(lock, user, { manage: true });
+    assertPasscodeCapableLock(lock);
     const response = await ttlockClient.deletePasscode(lock.lock_id, keyboardPwdId);
     await ttlockRepository.markPasscodeDeleted(keyboardPwdId, lock.ttlock_lock_id);
     return response;
@@ -284,6 +294,7 @@ async function updateResidentDynamicCode(userId, dynamicCode) {
 
 async function provisionResidents(deviceId, createdByUserId) {
     const lock = await requireTtlockDevice(deviceId);
+    assertPasscodeCapableLock(lock);
     const residents = await userRepository.getUsersByCondominium(lock.condominium_id);
     const results = [];
     for (const resident of residents) {
@@ -324,5 +335,5 @@ module.exports = {
     listUnlockRecords,
     updateResidentDynamicCode,
     provisionResidents,
-    _private: { publicLock, validatePasscode, asTimestamp },
+    _private: { publicLock, validatePasscode, asTimestamp, assertPasscodeCapableLock },
 };

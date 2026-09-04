@@ -1,5 +1,6 @@
 const cron = require('node-cron');
 const { syncAllAccessEvents } = require('../services/vohk_app/accessEventSyncService');
+const { syncAllTtlockPasscodeRecords } = require('../services/vohk_app/ttlockPasscodeRecordSyncService');
 
 let running = false;
 
@@ -8,6 +9,7 @@ async function runAccessEventSync() {
     running = true;
     try {
         await syncAllAccessEvents();
+        await syncAllTtlockPasscodeRecords();
     } finally {
         running = false;
     }

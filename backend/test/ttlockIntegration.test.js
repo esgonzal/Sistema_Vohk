@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 
 const ttlockService = require('../services/vohk_app/ttlockService');
 const ttlockClient = require('../integrations/ttlock/ttlockClient');
+const ttlockPasscodeRecordSyncService = require('../services/vohk_app/ttlockPasscodeRecordSyncService');
 
 test('TTLock discovery exposes only operational metadata', () => {
     const lock = ttlockService._private.publicLock({
@@ -41,6 +42,35 @@ test('TTLock scene 2 is suggested as a gate module', () => {
 test('resident passcodes require numeric values and accept six digits', () => {
     assert.equal(ttlockService._private.validatePasscode('123456'), '123456');
     assert.throws(() => ttlockService._private.validatePasscode('12A456'), /digits/);
+});
+
+test('gate modules reject passcode operations', () => {
+    assert.throws(
+        () => ttlockService._private.assertPasscodeCapableLock({ type: 'gate', keyboard_pwd_version: 4 }),
+        /Gate devices do not support passcodes/,
+    );
+});
+
+test('TTLock record sync accepts passcode events only for lock devices', () => {
+    const occurred = { recordType: 4, success: 1, lockDate: 1759511294000 };
+    assert.equal(ttlockPasscodeRecordSyncService.shouldPersistRecord({ type: 'lock' }, occurred), true);
+    assert.equal(ttlockPasscodeRecordSyncService.shouldPersistRecord({ type: 'gate' }, occurred), false);
+    assert.equal(ttlockPasscodeRecordSyncService.shouldPersistRecord(
+        { type: 'lock' },
+        { recordType: 3, success: 1, lockDate: 1759511294000 },
+    ), false);
+});
+
+test('TTLock passcode activity metadata never exposes the raw passcode', () => {
+    const metadata = ttlockPasscodeRecordSyncService.recordMetadata(
+        { lock_id: 3101840, type: 'lock' },
+        { recordType: 4, success: 1, keyboardPwd: '3180512', serverDate: 1759511295000 },
+        { subject_name: 'Resident', purpose: 'resident_dynamic', keyboard_pwd_name: 'Resident PIN' },
+    );
+    assert.equal(metadata.method, 'pin');
+    assert.equal(metadata.subjectName, 'Resident');
+    assert.equal('keyboardPwd' in metadata, false);
+    assert.equal(JSON.stringify(metadata).includes('3180512'), false);
 });
 
 test('TTLock form data omits undefined optional values', () => {

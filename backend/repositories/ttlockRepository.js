@@ -42,6 +42,57 @@ async function findByDeviceId(deviceId) {
     return result.rows[0];
 }
 
+async function findSyncablePasscodeLocks() {
+    const result = await pool.query(`
+        SELECT tl.ttlock_lock_id, tl.lock_id, tl.device_id, tl.records_synced_at,
+               d.type, d.name AS device_name, z.condominium_id
+        FROM ttlock_lock tl
+        INNER JOIN device d ON d.device_id = tl.device_id
+        INNER JOIN zone z ON z.zone_id = d.zone_id
+        WHERE d.active = TRUE
+          AND d.type = 'lock'
+        ORDER BY d.device_id
+    `);
+    return result.rows;
+}
+
+async function markPasscodeRecordsSynced(deviceId, syncedAt) {
+    const result = await pool.query(`
+        UPDATE ttlock_lock
+        SET records_synced_at = $2,
+            updated_at = NOW()
+        WHERE device_id = $1
+        RETURNING records_synced_at
+    `, [deviceId, syncedAt]);
+    return result.rows[0]?.records_synced_at || null;
+}
+
+async function resolvePasscodeSubject(deviceId, keyboardPwd, keyboardPwdName, occurredAt) {
+    if (!keyboardPwd && !keyboardPwdName) return null;
+    const result = await pool.query(`
+        SELECT tp.assigned_user_id AS actor_user_id,
+               au.legal_name AS subject_name,
+               tp.purpose,
+               tp.keyboard_pwd_name
+        FROM ttlock_passcode tp
+        INNER JOIN ttlock_lock tl ON tl.ttlock_lock_id = tp.ttlock_lock_id
+        LEFT JOIN app_user au ON au.user_id = tp.assigned_user_id
+        WHERE tl.device_id = $1
+          AND (
+              ($2::text IS NOT NULL AND tp.keyboard_pwd = $2)
+              OR ($3::text IS NOT NULL AND tp.keyboard_pwd_name = $3)
+          )
+          AND (tp.status <> 'deleted' OR tp.updated_at >= $4)
+          AND (tp.valid_from IS NULL OR tp.valid_from <= $4)
+          AND (tp.valid_until IS NULL OR tp.valid_until >= $4)
+        ORDER BY (tp.keyboard_pwd = $2) DESC,
+                 (tp.assigned_user_id IS NOT NULL) DESC,
+                 tp.updated_at DESC
+        LIMIT 1
+    `, [deviceId, keyboardPwd ? String(keyboardPwd) : null, keyboardPwdName || null, occurredAt]);
+    return result.rows[0] || null;
+}
+
 async function updateLockFromAccount(deviceId, lock) {
     const result = await pool.query(`
         UPDATE ttlock_lock
@@ -81,7 +132,9 @@ async function findByResident(userId) {
         INNER JOIN building b ON b.condominium_id = z.condominium_id
         INNER JOIN unit u ON u.building_id = b.building_id
         INNER JOIN resident_unit ru ON ru.unit_id = u.unit_id
-        WHERE ru.user_id = $1 AND d.active = TRUE
+        WHERE ru.user_id = $1
+          AND d.active = TRUE
+          AND d.type = 'lock'
         ORDER BY d.name
     `, [userId]);
     return result.rows;
@@ -184,6 +237,9 @@ module.exports = {
     findRegisteredLockIds,
     createLock,
     findByDeviceId,
+    findSyncablePasscodeLocks,
+    markPasscodeRecordsSynced,
+    resolvePasscodeSubject,
     updateLockFromAccount,
     findByResident,
     findResidentPasscode,
