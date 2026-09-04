@@ -89,8 +89,12 @@ export class ConserjeriaComponent implements OnInit, OnDestroy {
         console.log('Consejeria:', data);
         const devices = (data.zones ?? []).flatMap((zone: any) => (zone.devices ?? []).map((device: any) => ({ ...device, zone_name: zone.name })));
         const preparedDevices = devices.map((device: any) => {
-          const separator = device.stream_url.includes('?') ? '&' : '?';
-          const streamUrl = `${device.stream_url}${separator}controls=false&autoplay=true&muted=true&playsInline=true&disablepictureinpicture=true`;
+          const rawStreamUrl = typeof device.stream_url === 'string' ? device.stream_url.trim() : '';
+          if (!rawStreamUrl) {
+            return { ...device, safeStreamUrl: null };
+          }
+          const separator = rawStreamUrl.includes('?') ? '&' : '?';
+          const streamUrl = `${rawStreamUrl}${separator}controls=false&autoplay=true&muted=true&playsInline=true&disablepictureinpicture=true`;
           return { ...device, safeStreamUrl: this.sanitizer.bypassSecurityTrustResourceUrl(streamUrl) };
         });
         this.devices = preparedDevices;

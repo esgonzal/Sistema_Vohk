@@ -20,6 +20,8 @@ async function checkDevice(device) {
             return checkHikvisionDevice(device);
         case 'dahua':
             return checkDahuaDevice(device);
+        case 'ttlock':
+            return false;
         default:
             console.error(`Unsupported device vendor: ${device.vendor}`);
             return false;

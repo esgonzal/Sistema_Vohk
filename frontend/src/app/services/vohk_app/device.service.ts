@@ -1,6 +1,21 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
+export interface AvailableTtlockDevice {
+  lockId: number;
+  keyId?: number;
+  lockAlias?: string;
+  lockName?: string;
+  lockMac?: string;
+  electricQuantity?: number;
+  keyboardPwdVersion?: number;
+  hasGateway: boolean;
+  remoteEnabled: boolean;
+  keyRight?: number;
+  userType?: string;
+  suggestedDeviceType: 'lock' | 'gate';
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -15,8 +30,12 @@ export class DeviceService {
     return this.http.get<any>(`${this.URL}/api/devices/condominium/${condominiumId}`);
   }
 
-  createDevice(deviceData: any, intercomData: any = null) {
-    return this.http.post(`${this.URL}/api/devices/`, { deviceData, intercomData });
+  getAvailableTtlockDevices() {
+    return this.http.get<AvailableTtlockDevice[]>(`${this.URL}/api/devices/ttlock/available`);
+  }
+
+  createDevice(deviceData: any, intercomData: any = null, ttlockData: any = null) {
+    return this.http.post<any>(`${this.URL}/api/devices/`, { deviceData, intercomData, ttlockData });
   }
 
   updateDeviceName(deviceId: string, name: string) {
@@ -29,6 +48,10 @@ export class DeviceService {
 
   refreshIdentity(deviceId: string) {
     return this.http.post(`${this.URL}/api/devices/${deviceId}/identity/refresh`, {});
+  }
+
+  refreshTtlock(deviceId: string) {
+    return this.http.post(`${this.URL}/api/devices/${deviceId}/ttlock-refresh`, {});
   }
 
   provisionResidents(deviceId: string) {

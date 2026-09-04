@@ -25,6 +25,10 @@
             <div class="stat-value">{{ getIntercomCount() }}</div>
         </div>
         <div class="stat-card">
+            <div class="stat-label">Accesos TTLock</div>
+            <div class="stat-value">{{ getTtlockCount() }}</div>
+        </div>
+        <div class="stat-card">
             <div class="stat-label">Inactivos</div>
             <div class="stat-value">{{ getInactiveCount() }}</div>
         </div>
@@ -32,7 +36,7 @@
 
     <div class="table-container">
         <div class="table-toolbar">
-            <input class="search" placeholder="Buscar dispositivo, IP o zona..." (input)="onSearch($event)">
+            <input class="search" placeholder="Buscar dispositivo, IP, Lock ID o zona..." (input)="onSearch($event)">
             <div class="filters">
                 <span class="filter" [class.active]="selectedType === 'Todos'"
                     (click)="filterByType('Todos')">Todos</span>
@@ -40,6 +44,10 @@
                     (click)="filterByType('camera')">Cámaras</span>
                 <span class="filter" [class.active]="selectedType === 'intercom'"
                     (click)="filterByType('intercom')">Videoporteros</span>
+                <span class="filter" [class.active]="selectedType === 'lock'"
+                    (click)="filterByType('lock')">Cerraduras</span>
+                <span class="filter" [class.active]="selectedType === 'gate'"
+                    (click)="filterByType('gate')">Portones</span>
             </div>
         </div>
 
@@ -47,7 +55,7 @@
             <div>Dispositivo</div>
             <div>Categoría</div>
             <div>Zona</div>
-            <div>IP</div>
+            <div>Conexión</div>
             <div>Estado</div>
             <div>Acciones</div>
         </div>
@@ -55,12 +63,15 @@
         <div class="device-row" *ngFor="let device of filteredDevices">
             <div class="device-info">
                 <div class="avatar">
-                    <mat-icon>{{ device.type === 'intercom' ? 'doorbell' : 'videocam' }}</mat-icon>
+                    <mat-icon>{{ getDeviceIcon(device.type) }}</mat-icon>
                 </div>
                 <div>
                     <div class="name">{{ device.name }}</div>
                     <div class="device-id" *ngIf="device.model">
                         {{ device.model }}<span *ngIf="device.firmware_version"> - {{ device.firmware_version }}</span>
+                    </div>
+                    <div class="device-id" *ngIf="isTtlockDevice(device)">
+                        {{ device.ttlock_lock_alias || 'TTLock' }}
                     </div>
                 </div>
             </div>
@@ -72,8 +83,12 @@
             <div class="zone">{{ device.zone_name || '-' }}</div>
 
             <div class="mono">
-                {{ device.ip_address || '-' }}
-                <span *ngIf="device.port">:{{ device.port }}</span>
+                <ng-container *ngIf="isTtlockDevice(device); else networkAddress">
+                    Lock ID {{ device.ttlock_external_lock_id || '-' }}
+                </ng-container>
+                <ng-template #networkAddress>
+                    {{ device.ip_address || '-' }}<span *ngIf="device.port">:{{ device.port }}</span>
+                </ng-template>
             </div>
 
             <div>
@@ -88,8 +103,13 @@
                     (click)="refreshIdentity(device)" title="Actualizar modelo y firmware">
                     <mat-icon>sync</mat-icon>
                 </button>
-                <button *ngIf="isSuperAdmin && device.type === 'intercom'" class="action-btn"
-                    (click)="provisionResidents(device)" title="Provisionar residentes y numeros SIP">
+                <button *ngIf="isSuperAdmin && isTtlockDevice(device)" class="action-btn"
+                    (click)="refreshTtlock(device)" title="Actualizar estado TTLock">
+                    <mat-icon>sync</mat-icon>
+                </button>
+                <button *ngIf="isSuperAdmin && (device.type === 'intercom' || isTtlockDevice(device))" class="action-btn"
+                    (click)="provisionResidents(device)"
+                    [title]="isTtlockDevice(device) ? 'Provisionar códigos de residentes' : 'Provisionar residentes y números SIP'">
                     <mat-icon>group_add</mat-icon>
                 </button>
                 <button class="action-btn" (click)="editDevice(device)" title="Editar nombre y zona">

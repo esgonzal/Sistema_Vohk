@@ -53,7 +53,7 @@ button {
 
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 16px;
     margin-bottom: 18px;
 }
@@ -299,4 +299,19 @@ button {
         width: 100%;
         box-sizing: border-box;
     }
+}
+
+:host ::ng-deep .ttlock-form-note,
+:host ::ng-deep .ttlock-form-error {
+    margin: 8px 2.5em 0;
+    text-align: left;
+    font-size: 13px;
+}
+
+:host ::ng-deep .ttlock-form-note {
+    color: #8a8d96;
+}
+
+:host ::ng-deep .ttlock-form-error {
+    color: #ff6b6b;
 }

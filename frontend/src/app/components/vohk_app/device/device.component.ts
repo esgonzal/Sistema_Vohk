@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { forkJoin, Subject, takeUntil } from 'rxjs';
+import { firstValueFrom, forkJoin, Subject, takeUntil } from 'rxjs';
 import Swal from 'sweetalert2';
-import { DeviceService } from 'src/app/services/vohk_app/device.service';
+import { AvailableTtlockDevice, DeviceService } from 'src/app/services/vohk_app/device.service';
 import { SelectedCondominium, SelectedCondominiumService } from 'src/app/services/vohk_app/selected-condominium.service';
 
 @Component({
@@ -112,6 +112,9 @@ export class DeviceComponent implements OnInit, OnDestroy {
       const text = `
         ${device.name ?? ''}
         ${device.ip_address ?? ''}
+        ${device.ttlock_external_lock_id ?? ''}
+        ${device.ttlock_lock_alias ?? ''}
+        ${device.ttlock_lock_mac ?? ''}
         ${device.zone_name ?? ''}
       `.toLowerCase();
 
@@ -135,6 +138,10 @@ export class DeviceComponent implements OnInit, OnDestroy {
     return this.devices.filter(device => device.type === 'intercom').length;
   }
 
+  getTtlockCount(): number {
+    return this.devices.filter(device => device.type === 'lock' || device.type === 'gate').length;
+  }
+
   getInactiveCount(): number {
     return this.devices.filter(device => device.active !== true).length;
   }
@@ -145,9 +152,30 @@ export class DeviceComponent implements OnInit, OnDestroy {
         return 'Cámara';
       case 'intercom':
         return 'Videoportero';
+      case 'lock':
+        return 'Cerradura';
+      case 'gate':
+        return 'Portón';
       default:
         return type || '-';
     }
+  }
+
+  getDeviceIcon(type: string): string {
+    switch (type) {
+      case 'intercom':
+        return 'doorbell';
+      case 'lock':
+        return 'lock';
+      case 'gate':
+        return 'garage';
+      default:
+        return 'videocam';
+    }
+  }
+
+  isTtlockDevice(device: any): boolean {
+    return device?.type === 'lock' || device?.type === 'gate';
   }
 
   async openCreateDevice(): Promise<void> {
@@ -162,9 +190,27 @@ export class DeviceComponent implements OnInit, OnDestroy {
     }
 
     const zoneOptions = this.zones.map(zone => `<option value="${this.escapeHtml(zone.zone_id)}">${this.escapeHtml(zone.name)}</option>`).join('');
+    let availableTtlockDevices: AvailableTtlockDevice[] = [];
+    let ttlockLoadError = '';
+    try {
+      availableTtlockDevices = await firstValueFrom(this.deviceService.getAvailableTtlockDevices());
+    } catch (error: any) {
+      console.error('Error loading available TTLock devices:', error);
+      ttlockLoadError = error?.error?.error || 'No se pudo consultar la cuenta maestra de TTLock.';
+    }
+    const ttlockOptions = availableTtlockDevices.map(lock => {
+      const label = lock.lockAlias || lock.lockName || `TTLock ${lock.lockId}`;
+      const category = lock.suggestedDeviceType === 'gate' ? 'Portón' : 'Cerradura';
+      const connection = lock.hasGateway && lock.remoteEnabled ? 'Remoto habilitado' : 'Revisar gateway';
+      return `<option value="${this.escapeHtml(lock.lockId)}">${this.escapeHtml(label)} · ${this.escapeHtml(lock.lockId)} · ${category} · ${connection}</option>`;
+    }).join('');
 
     const result = await Swal.fire({
       title: 'Nuevo dispositivo',
+      customClass: {
+        popup: 'device-form-popup',
+        htmlContainer: 'device-form-container'
+      },
       html: `
         <select id="zoneId" class="swal2-select">
           <option value="">Seleccionar zona</option>
@@ -174,20 +220,34 @@ export class DeviceComponent implements OnInit, OnDestroy {
         <select id="type" class="swal2-select">
           <option value="camera">Cámara</option>
           <option value="intercom">Videoportero</option>
-        </select>
-
-        <select id="vendor" class="swal2-select">
-          <option value="hikvision">Hikvision</option>
-          <option value="dahua">Dahua</option>
+          <option value="lock">Cerradura TTLock</option>
+          <option value="gate">Portón TTLock</option>
         </select>
 
         <input id="name" class="swal2-input" placeholder="Nombre">
-        <input id="ipAddress" class="swal2-input" placeholder="Dirección IP">
-        <input id="port" type="number" class="swal2-input" value="80" placeholder="Puerto">
-        <input id="username" class="swal2-input" placeholder="Usuario">
-        <input id="password" type="password" class="swal2-input" placeholder="Contraseña">
-        <input id="snapshotUrl" class="swal2-input" placeholder="Snapshot URL">
-        <input id="streamUrl" class="swal2-input" placeholder="Stream URL">
+
+        <div id="networkFields">
+          <select id="vendor" class="swal2-select">
+            <option value="hikvision">Hikvision</option>
+            <option value="dahua">Dahua</option>
+          </select>
+          <input id="ipAddress" class="swal2-input" placeholder="Dirección IP">
+          <input id="port" type="number" class="swal2-input" value="80" placeholder="Puerto">
+          <input id="username" class="swal2-input" placeholder="Usuario">
+          <input id="password" type="password" class="swal2-input" placeholder="Contraseña">
+          <input id="snapshotUrl" class="swal2-input" placeholder="Snapshot URL">
+          <input id="streamUrl" class="swal2-input" placeholder="Stream URL">
+        </div>
+
+        <div id="ttlockFields" style="display:none">
+          <label for="ttlockLockId" class="swal2-input-label">Dispositivo de la cuenta maestra TTLock</label>
+          <select id="ttlockLockId" class="swal2-select">
+            <option value="">Seleccionar dispositivo</option>
+            ${ttlockOptions}
+          </select>
+          ${ttlockLoadError ? `<div class="ttlock-form-error">${this.escapeHtml(ttlockLoadError)}</div>` : ''}
+          ${!ttlockLoadError && availableTtlockDevices.length === 0 ? '<div class="ttlock-form-note">No hay dispositivos TTLock disponibles sin asociar.</div>' : ''}
+        </div>
 
         <div id="intercomFields">
           <input id="sipAddress" class="swal2-input" placeholder="SIP address">
@@ -205,18 +265,30 @@ export class DeviceComponent implements OnInit, OnDestroy {
       didOpen: () => {
         const type = document.getElementById('type') as HTMLSelectElement;
         const intercomFields = document.getElementById('intercomFields') as HTMLElement;
+        const networkFields = document.getElementById('networkFields') as HTMLElement;
+        const ttlockFields = document.getElementById('ttlockFields') as HTMLElement;
+        const ttlockLockId = document.getElementById('ttlockLockId') as HTMLSelectElement;
+        const name = document.getElementById('name') as HTMLInputElement;
 
-        const updateIntercomFields = () => {
+        const updateFields = () => {
+          const isTtlock = type.value === 'lock' || type.value === 'gate';
           intercomFields.style.display = type.value === 'intercom' ? 'block' : 'none';
+          networkFields.style.display = isTtlock ? 'none' : 'block';
+          ttlockFields.style.display = isTtlock ? 'block' : 'none';
         };
 
-        type.addEventListener('change', updateIntercomFields);
-        updateIntercomFields();
+        type.addEventListener('change', updateFields);
+        ttlockLockId.addEventListener('change', () => {
+          const lock = availableTtlockDevices.find(item => String(item.lockId) === ttlockLockId.value);
+          if (lock && !name.value.trim()) name.value = lock.lockAlias || lock.lockName || `TTLock ${lock.lockId}`;
+        });
+        updateFields();
       },
 
       preConfirm: () => {
         const zoneId = (document.getElementById('zoneId') as HTMLSelectElement).value;
         const type = (document.getElementById('type') as HTMLSelectElement).value;
+        const isTtlock = type === 'lock' || type === 'gate';
         const vendor = (document.getElementById('vendor') as HTMLSelectElement).value;
         const name = (document.getElementById('name') as HTMLInputElement).value.trim();
         const ipAddress = (document.getElementById('ipAddress') as HTMLInputElement).value.trim();
@@ -230,8 +302,19 @@ export class DeviceComponent implements OnInit, OnDestroy {
         const periodNumber = Number((document.getElementById('periodNumber') as HTMLInputElement).value);
         const buildingNumber = Number((document.getElementById('buildingNumber') as HTMLInputElement).value);
         const unitNumber = Number((document.getElementById('unitNumber') as HTMLInputElement).value);
+        const ttlockLockId = (document.getElementById('ttlockLockId') as HTMLSelectElement).value;
 
-        if (!zoneId || !type || !vendor || !name || !ipAddress || !port || !username || !passwordEncrypted) {
+        if (!zoneId || !type || !name) {
+          Swal.showValidationMessage('Zona, tipo y nombre son obligatorios');
+          return;
+        }
+
+        if (isTtlock && !ttlockLockId) {
+          Swal.showValidationMessage('Selecciona un dispositivo de la cuenta maestra TTLock');
+          return;
+        }
+
+        if (!isTtlock && (!vendor || !ipAddress || !port || !username || !passwordEncrypted)) {
           Swal.showValidationMessage('Zona, tipo, fabricante, nombre, IP, puerto, usuario y contraseña son obligatorios');
           return;
         }
@@ -254,14 +337,14 @@ export class DeviceComponent implements OnInit, OnDestroy {
           deviceData: {
             zoneId,
             type,
-            vendor,
+            vendor: isTtlock ? 'ttlock' : vendor,
             name,
-            ipAddress,
-            port,
-            username,
-            passwordEncrypted,
-            snapshotUrl: snapshotUrl || null,
-            streamUrl: streamUrl || null,
+            ipAddress: isTtlock ? null : ipAddress,
+            port: isTtlock ? null : port,
+            username: isTtlock ? null : username,
+            passwordEncrypted: isTtlock ? null : passwordEncrypted,
+            snapshotUrl: isTtlock ? null : snapshotUrl || null,
+            streamUrl: isTtlock ? null : streamUrl || null,
             active: true
           },
           intercomData: type === 'intercom' ? {
@@ -270,7 +353,8 @@ export class DeviceComponent implements OnInit, OnDestroy {
             periodNumber,
             buildingNumber,
             unitNumber
-          } : null
+          } : null,
+          ttlockData: isTtlock ? { lockId: Number(ttlockLockId) } : null
         };
       }
     });
@@ -279,7 +363,7 @@ export class DeviceComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.deviceService.createDevice(result.value.deviceData, result.value.intercomData).subscribe({
+    this.deviceService.createDevice(result.value.deviceData, result.value.intercomData, result.value.ttlockData).subscribe({
       next: () => {
         Swal.fire('Dispositivo creado', 'El dispositivo fue registrado correctamente.', 'success');
         this.reloadDevices();
@@ -301,10 +385,22 @@ export class DeviceComponent implements OnInit, OnDestroy {
     });
   }
 
+  refreshTtlock(device: any): void {
+    this.deviceService.refreshTtlock(device.device_id).subscribe({
+      next: () => {
+        Swal.fire('TTLock actualizado', 'Se actualizaron el gateway y los permisos remotos.', 'success');
+        this.reloadDevices();
+      },
+      error: err => Swal.fire('Error', err.error?.error || 'No se pudo actualizar el dispositivo TTLock.', 'error')
+    });
+  }
+
   async provisionResidents(device: any): Promise<void> {
     const confirmation = await Swal.fire({
       title: 'Provisionar residentes',
-      text: `Se sincronizaran los residentes y numeros SIP existentes con ${device.name}.`,
+      text: this.isTtlockDevice(device)
+        ? `Se copiarán a ${device.name} los códigos dinámicos existentes de los residentes.`
+        : `Se sincronizarán los residentes y números SIP existentes con ${device.name}.`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Provisionar',
