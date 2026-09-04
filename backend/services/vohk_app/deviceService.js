@@ -13,6 +13,8 @@ const userRepository = require('../../repositories/userRepository');
 const crypto = require('crypto');
 const { getAdapterForIntercom } = require('./hikvision/adapterFactory');
 const { fetchHikvisionIdentity } = require('./hikvision/identityService');
+const ttlockRepository = require('../../repositories/ttlockRepository');
+const ttlockService = require('./ttlockService');
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function formatCardForHikvision(cardNumber) {
@@ -143,13 +145,14 @@ async function getDevicesByCondominium(condominiumId, userId, role) {
             condominium.zones.push(zone);
         }
         if (!row.device_id) continue;
-        zone.devices.push({ device_id: row.device_id, type: row.type, vendor: row.vendor, name: row.device_name, model: row.model, firmware_version: row.firmware_version, firmware_build: row.firmware_build, isapi_capabilities: row.isapi_capabilities, identity_checked_at: row.identity_checked_at, ip_address: row.ip_address, port: row.port, snapshot_url: row.snapshot_url, stream_url: row.stream_url, active: row.active, last_seen_at: row.last_seen_at, created_at: row.device_created_at, intercom_id: row.intercom_id, sip_address: row.sip_address, door_id: row.door_id, dial_period_number: row.dial_period_number, dial_building_number: row.dial_building_number, dial_unit_number: row.dial_unit_number });
+        zone.devices.push({ device_id: row.device_id, type: row.type, vendor: row.vendor, name: row.device_name, model: row.model, firmware_version: row.firmware_version, firmware_build: row.firmware_build, isapi_capabilities: row.isapi_capabilities, identity_checked_at: row.identity_checked_at, ip_address: row.ip_address, port: row.port, snapshot_url: row.snapshot_url, stream_url: row.stream_url, active: row.active, last_seen_at: row.last_seen_at, created_at: row.device_created_at, intercom_id: row.intercom_id, sip_address: row.sip_address, door_id: row.door_id, dial_period_number: row.dial_period_number, dial_building_number: row.dial_building_number, dial_unit_number: row.dial_unit_number, ttlock_lock_id: row.ttlock_lock_id, ttlock_external_lock_id: row.ttlock_external_lock_id, ttlock_key_id: row.ttlock_key_id, ttlock_lock_alias: row.ttlock_lock_alias, ttlock_lock_mac: row.ttlock_lock_mac, keyboard_pwd_version: row.keyboard_pwd_version, has_gateway: row.has_gateway, remote_enabled: row.remote_enabled, ttlock_last_synced_at: row.ttlock_last_synced_at });
     }
     delete condominium._zoneMap;
     return condominium;
 }
 // ── Device management ─────────────────────────────────────────────────────────
-async function createDevice(deviceData, intercomData = null) {
+async function createDevice(deviceData, intercomData = null, ttlockData = null) {
+    let resolvedTtlockData = ttlockData;
     if (deviceData.type === 'intercom') {
         const periodNumber = Number(intercomData?.periodNumber ?? 1);
         const buildingNumber = Number(intercomData?.buildingNumber ?? 1);
@@ -161,6 +164,19 @@ async function createDevice(deviceData, intercomData = null) {
             error.status = 400;
             throw error;
         }
+    }
+    if (['lock', 'gate'].includes(deviceData.type)) {
+        if (String(deviceData.vendor).toLowerCase() !== 'ttlock') {
+            const error = new Error('Lock and gate devices currently require the TTLock vendor');
+            error.status = 400;
+            throw error;
+        }
+        if (!ttlockData?.lockId) {
+            const error = new Error('TTLock lockId is required');
+            error.status = 400;
+            throw error;
+        }
+        resolvedTtlockData = await ttlockService.resolveAccountLock(ttlockData.lockId);
     }
     const device = await deviceRepository.createDevice({ zoneId: deviceData.zoneId, type: deviceData.type, vendor: deviceData.vendor, name: deviceData.name, ipAddress: deviceData.ipAddress, port: deviceData.port, username: deviceData.username, passwordEncrypted: deviceData.passwordEncrypted, snapshotUrl: deviceData.snapshotUrl, streamUrl: deviceData.streamUrl, active: deviceData.active ?? true });
     if (device.type === 'intercom') {
@@ -189,6 +205,15 @@ async function createDevice(deviceData, intercomData = null) {
             console.warn(`Could not detect identity for new device ${device.device_id}: ${error.message}`);
         }
     }
+    if (['lock', 'gate'].includes(device.type)) {
+        try {
+            const ttlock = await ttlockRepository.createLock(device.device_id, resolvedTtlockData);
+            return { ...device, ttlock };
+        } catch (error) {
+            await deviceRepository.deleteDevice(device.device_id);
+            throw error;
+        }
+    }
     return device;
 }
 
@@ -208,7 +233,16 @@ async function refreshDeviceIdentity(deviceId) {
     return deviceRepository.updateDeviceIdentity(deviceId, identity);
 }
 
-async function provisionExistingResidents(deviceId) {
+async function provisionExistingResidents(deviceId, requestedByUserId = null) {
+    const device = await deviceRepository.findDeviceById(deviceId);
+    if (!device) {
+        const error = new Error('Device not found');
+        error.status = 404;
+        throw error;
+    }
+    if (['lock', 'gate'].includes(device.type)) {
+        return ttlockService.provisionResidents(deviceId, requestedByUserId);
+    }
     let context = await getIntercomAdapter(deviceId);
     if (!context.intercom.model) {
         await refreshDeviceIdentity(deviceId);
@@ -342,6 +376,15 @@ async function moveDeviceToZone(deviceId, zoneId, userId, role) {
 }
 // ── Open door ─────────────────────────────────────────────────────────────────
 async function openDoor(deviceId, user) {
+    const device = await deviceRepository.findDeviceById(deviceId);
+    if (!device) {
+        const error = new Error('Device not found');
+        error.status = 404;
+        throw error;
+    }
+    if (['lock', 'gate'].includes(device.type)) {
+        return ttlockService.openDoor(deviceId, user);
+    }
     const { intercom, adapter } = await getIntercomAdapter(deviceId);
 
     let allowed = user.role === 'superadmin';
@@ -421,13 +464,23 @@ async function deleteIntercomUser(deviceId, employeeNo) {
 }
 // GET ACCESS METHODS
 async function getAccessMethods(userId) {
-    const accessRows = await intercomUserRepository.findAccessMethods(userId);
-    if (accessRows.length === 0) {
+    const [accessRows, ttlockPasscodes, ttlockDevices] = await Promise.all([
+        intercomUserRepository.findAccessMethods(userId),
+        ttlockRepository.findResidentPasscodes(userId),
+        ttlockRepository.findByResident(userId),
+    ]);
+    const dynamicCodes = [
+        ...accessRows.map(row => row.dynamic_code),
+        ...ttlockPasscodes.map(row => row.keyboard_pwd),
+    ].filter(code => typeof code === 'string' && /^\d{6}$/.test(code));
+    if (accessRows.length === 0 && ttlockDevices.length === 0) {
         return { hasFace: false, hasDynamicCode: false, hasCard: false, dynamicCode: null, faceUpdatedAt: null };
     }
-    const firstCode = accessRows[0].dynamic_code;
-    const dynamicCodeIsSynchronized = typeof firstCode === 'string' && /^\d{6}$/.test(firstCode) && accessRows.every(row => row.dynamic_code === firstCode);
-    const hasFace = accessRows.every(row => row.has_face === true);
+    const firstCode = dynamicCodes[0];
+    const expectedCodeCount = accessRows.length + ttlockDevices.length;
+    const dynamicCodeIsSynchronized = dynamicCodes.length === expectedCodeCount
+        && dynamicCodes.every(code => code === firstCode);
+    const hasFace = accessRows.length > 0 && accessRows.every(row => row.has_face === true);
     const faceUpdatedAt = hasFace ? accessRows.map(row => row.face_updated_at).filter(Boolean).sort().at(-1) ?? null : null;
     return { hasFace, hasDynamicCode: dynamicCodeIsSynchronized, hasCard: false, dynamicCode: dynamicCodeIsSynchronized ? firstCode : null, faceUpdatedAt };
 }
@@ -602,8 +655,9 @@ async function updateResidentDynamicCode(userId, dynamicCode) {
         throw error;
     }
     const intercomUsers = await intercomUserRepository.findIntercomUsersWithDeviceByUserId(userId);
-    if (intercomUsers.length === 0) {
-        const error = new Error('User has no intercom assignments');
+    const ttlockDevices = await ttlockRepository.findByResident(userId);
+    if (intercomUsers.length === 0 && ttlockDevices.length === 0) {
+        const error = new Error('User has no access-device assignments');
         error.status = 404;
         throw error;
     }
@@ -617,13 +671,21 @@ async function updateResidentDynamicCode(userId, dynamicCode) {
             results.push({ intercomId: intercomUser.intercom_id, deviceId: intercomUser.device_id, success: false, error: error.message });
         }
     }
+    const ttlockResults = await ttlockService.updateResidentDynamicCode(userId, dynamicCode);
+    results.push(...ttlockResults.map(result => ({ ...result, provider: 'ttlock' })));
     const failedResults = results.filter(result => !result.success);
     if (failedResults.length > 0) {
-        const error = new Error('Could not update the dynamic code on all intercoms');
+        const error = new Error('Could not update the dynamic code on all access devices');
         error.status = 502;
+        error.details = { results };
         throw error;
     }
-    return { success: true, dynamicCode, updatedIntercoms: results.length };
+    return {
+        success: true,
+        dynamicCode,
+        updatedIntercoms: intercomUsers.length,
+        updatedTtlockDevices: ttlockResults.length,
+    };
 }
 // ── Cards ─────────────────────────────────────────────────────────────────────
 async function listCards(deviceId) {

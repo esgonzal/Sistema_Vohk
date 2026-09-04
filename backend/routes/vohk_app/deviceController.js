@@ -2,14 +2,19 @@ const express = require('express');
 const multer = require('multer');
 const authenticate = require('../../middleware/authMiddleware');
 const deviceService = require('../../services/vohk_app/deviceService');
+const ttlockService = require('../../services/vohk_app/ttlockService');
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 router.use(authenticate);
 
 function sendServerError(res, error, message) {
     console.error(error);
-    if (error.status && error.status >= 400 && error.status < 500) {
-        return res.status(error.status).json({ error: error.message });
+    if (error.status && error.status >= 400 && error.status < 600) {
+        return res.status(error.status).json({
+            error: error.message,
+            ...(error.code !== undefined ? { code: error.code } : {}),
+            ...(error.details ? { details: error.details } : {}),
+        });
     }
     return res.status(500).json({ error: message });
 }
@@ -46,17 +51,28 @@ router.get('/location-mobile', async (req, res) => {
         return sendServerError(res, error, 'Could not retrieve devices');
     }
 });
+router.get('/ttlock/available', async (req, res) => {
+    try {
+        if (req.user.role !== 'superadmin') {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        const locks = await ttlockService.listAvailableLocks();
+        return res.status(200).json(locks);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not retrieve TTLock devices');
+    }
+});
 router.post('/', async (req, res) => {
     try {
         const { role } = req.user;
-        const { deviceData, intercomData } = req.body;
+        const { deviceData, intercomData, ttlockData } = req.body;
         if (role !== 'superadmin') {
             return res.status(403).json({ error: 'Forbidden' });
         }
         if (!deviceData) {
             return res.status(400).json({ error: 'Device data is required' });
         }
-        const created = await deviceService.createDevice(deviceData, intercomData);
+        const created = await deviceService.createDevice(deviceData, intercomData, ttlockData);
         return res.status(201).json(created);
     } catch (error) {
         return sendServerError(res, error, 'Could not create device');
@@ -125,7 +141,7 @@ router.post('/:deviceId/provision-residents', async (req, res) => {
         if (req.user.role !== 'superadmin') {
             return res.status(403).json({ error: 'Forbidden' });
         }
-        const result = await deviceService.provisionExistingResidents(req.params.deviceId);
+        const result = await deviceService.provisionExistingResidents(req.params.deviceId, req.user.userId);
         return res.status(result.ok ? 200 : 207).json(result);
     } catch (error) {
         return sendServerError(res, error, 'Could not provision residents');
@@ -133,18 +149,77 @@ router.post('/:deviceId/provision-residents', async (req, res) => {
 });
 router.get('/:deviceId/access-events', async (req, res) => {
     try {
-        const result = await deviceService.listIntercomAccessEvents(req.params.deviceId, {
-            position: req.query.position,
-            maxResults: req.query.maxResults,
-            major: req.query.major,
-            minor: req.query.minor,
-            startTime: req.query.startTime,
-            endTime: req.query.endTime,
-            picEnable: req.query.picEnable === 'true',
-        }, req.user);
+        const result = await deviceService.listIntercomAccessEvents(
+            req.params.deviceId, { position: req.query.position, maxResults: req.query.maxResults, major: req.query.major, minor: req.query.minor, startTime: req.query.startTime, endTime: req.query.endTime, picEnable: req.query.picEnable === 'true', }, req.user);
         return res.status(result.ok ? 200 : result.status || 502).json(result);
     } catch (error) {
         return sendServerError(res, error, 'Could not retrieve access events');
+    }
+});
+router.get('/:deviceId/passcodes', async (req, res) => {
+    try {
+        if (!isAdminRole(req.user.role)) {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        const result = await ttlockService.listPasscodes(req.params.deviceId, req.user, { pageNo: req.query.pageNo, pageSize: req.query.pageSize, });
+        return res.status(200).json(result);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not retrieve TTLock passcodes');
+    }
+});
+router.post('/:deviceId/passcodes', async (req, res) => {
+    try {
+        if (!isAdminRole(req.user.role)) {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        const result = await ttlockService.createPasscode(req.params.deviceId, req.user, req.body);
+        return res.status(201).json(result);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not create TTLock passcode');
+    }
+});
+router.put('/:deviceId/passcodes/:keyboardPwdId', async (req, res) => {
+    try {
+        if (!isAdminRole(req.user.role)) {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        const result = await ttlockService.changePasscode(req.params.deviceId, req.params.keyboardPwdId, req.user, req.body);
+        return res.status(200).json(result);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not update TTLock passcode');
+    }
+});
+router.delete('/:deviceId/passcodes/:keyboardPwdId', async (req, res) => {
+    try {
+        if (!isAdminRole(req.user.role)) {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        const result = await ttlockService.deletePasscode(req.params.deviceId, req.params.keyboardPwdId, req.user);
+        return res.status(200).json(result);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not delete TTLock passcode');
+    }
+});
+router.get('/:deviceId/ttlock-records', async (req, res) => {
+    try {
+        if (!isAdminRole(req.user.role)) {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        const result = await ttlockService.listUnlockRecords(req.params.deviceId, req.user, { startDate: req.query.startDate, endDate: req.query.endDate, pageNo: req.query.pageNo, pageSize: req.query.pageSize, });
+        return res.status(200).json(result);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not retrieve TTLock records');
+    }
+});
+router.post('/:deviceId/ttlock-refresh', async (req, res) => {
+    try {
+        if (!isAdminRole(req.user.role)) {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        const result = await ttlockService.refreshDevice(req.params.deviceId, req.user);
+        return res.status(200).json(result);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not refresh TTLock device');
     }
 });
 router.post('/open-door/:deviceId', async (req, res) => {
