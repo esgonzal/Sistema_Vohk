@@ -662,6 +662,21 @@ async function updateResidentDynamicCode(userId, dynamicCode) {
         throw error;
     }
     const results = [];
+    // TTLock applies stricter passcode rules than Hikvision. Run it first so a
+    // TTLock rejection cannot leave the intercom with a different code.
+    const ttlockResults = await ttlockService.updateResidentDynamicCode(userId, dynamicCode);
+    results.push(...ttlockResults.map(result => ({ ...result, provider: 'ttlock' })));
+    const failedTtlockResults = results.filter(result => !result.success);
+    if (failedTtlockResults.length > 0) {
+        console.error('[DYNAMIC CODE SYNC]', JSON.stringify({ userId, failedResults: failedTtlockResults }));
+        const simplePasscodeFailure = failedTtlockResults.some(result => Number(result.code) === -2032);
+        const error = new Error(simplePasscodeFailure
+            ? 'TTLock does not allow passcodes with consecutive or repeated digit patterns'
+            : 'Could not update the dynamic code on all TTLock devices');
+        error.status = simplePasscodeFailure ? 400 : 502;
+        error.details = { results };
+        throw error;
+    }
     for (const intercomUser of intercomUsers) {
         try {
             const response = await setIntercomPin(intercomUser.device_id, intercomUser.employee_no, dynamicCode);
@@ -671,8 +686,6 @@ async function updateResidentDynamicCode(userId, dynamicCode) {
             results.push({ intercomId: intercomUser.intercom_id, deviceId: intercomUser.device_id, success: false, error: error.message });
         }
     }
-    const ttlockResults = await ttlockService.updateResidentDynamicCode(userId, dynamicCode);
-    results.push(...ttlockResults.map(result => ({ ...result, provider: 'ttlock' })));
     const failedResults = results.filter(result => !result.success);
     if (failedResults.length > 0) {
         console.error('[DYNAMIC CODE SYNC]', JSON.stringify({ userId, failedResults }));

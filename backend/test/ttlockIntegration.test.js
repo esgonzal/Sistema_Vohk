@@ -44,6 +44,14 @@ test('resident passcodes require numeric values and accept six digits', () => {
     assert.throws(() => ttlockService._private.validatePasscode('12A456'), /digits/);
 });
 
+test('TTLock passcodes reject simple consecutive and repeated patterns', () => {
+    assert.equal(ttlockService._private.validateTtlockPasscode('194835'), '194835');
+    assert.throws(() => ttlockService._private.validateTtlockPasscode('123456'), /consecutive or repeated/);
+    assert.throws(() => ttlockService._private.validateTtlockPasscode('654321'), /consecutive or repeated/);
+    assert.throws(() => ttlockService._private.validateTtlockPasscode('111111'), /consecutive or repeated/);
+    assert.throws(() => ttlockService._private.validateTtlockPasscode('121212'), /consecutive or repeated/);
+});
+
 test('gate modules reject passcode operations', () => {
     assert.throws(
         () => ttlockService._private.assertPasscodeCapableLock({ type: 'gate', keyboard_pwd_version: 4 }),

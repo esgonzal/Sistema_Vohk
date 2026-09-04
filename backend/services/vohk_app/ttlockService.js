@@ -33,6 +33,26 @@ function validatePasscode(value, required = true) {
     return normalized;
 }
 
+function validateTtlockPasscode(value) {
+    const normalized = validatePasscode(value);
+    const digits = [...normalized].map(Number);
+    const isRepeatedDigit = new Set(digits).size === 1;
+    const isAscending = digits.every((digit, index) => index === 0 || digit === (digits[index - 1] + 1) % 10);
+    const isDescending = digits.every((digit, index) => index === 0 || digit === (digits[index - 1] + 9) % 10);
+    const isRepeatedPattern = Array.from(
+        { length: Math.floor(normalized.length / 2) },
+        (_, index) => index + 1,
+    ).some(patternLength => (
+        normalized.length % patternLength === 0
+        && normalized.slice(0, patternLength).repeat(normalized.length / patternLength) === normalized
+    ));
+
+    if (isRepeatedDigit || isAscending || isDescending || isRepeatedPattern) {
+        throw httpError('TTLock does not allow passcodes with consecutive or repeated digit patterns', 400);
+    }
+    return normalized;
+}
+
 function assertPasscodeCapableLock(lock) {
     if (lock.type !== 'lock') {
         throw httpError('Gate devices do not support passcodes', 422);
@@ -277,6 +297,7 @@ async function setResidentDynamicCodeOnLock(lock, userId, dynamicCode, createdBy
 
 async function updateResidentDynamicCode(userId, dynamicCode) {
     const locks = await ttlockRepository.findByResident(userId);
+    if (locks.length > 0) validateTtlockPasscode(dynamicCode);
     const results = [];
     for (const lock of locks) {
         try {
@@ -335,5 +356,5 @@ module.exports = {
     listUnlockRecords,
     updateResidentDynamicCode,
     provisionResidents,
-    _private: { publicLock, validatePasscode, asTimestamp, assertPasscodeCapableLock },
+    _private: { publicLock, validatePasscode, validateTtlockPasscode, asTimestamp, assertPasscodeCapableLock },
 };
