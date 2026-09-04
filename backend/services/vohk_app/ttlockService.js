@@ -258,7 +258,7 @@ async function setResidentDynamicCodeOnLock(lock, userId, dynamicCode, createdBy
     const response = await ttlockClient.addPasscode(lock.lock_id, {
         keyboardPwd: dynamicCode,
         keyboardPwdName,
-        startDate: 0,
+        startDate: Date.now(),
         endDate: 0,
     });
     if (!response.keyboardPwdId) throw httpError('TTLock did not return a passcode ID', 502);

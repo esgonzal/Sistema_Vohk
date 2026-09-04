@@ -675,6 +675,7 @@ async function updateResidentDynamicCode(userId, dynamicCode) {
     results.push(...ttlockResults.map(result => ({ ...result, provider: 'ttlock' })));
     const failedResults = results.filter(result => !result.success);
     if (failedResults.length > 0) {
+        console.error('[DYNAMIC CODE SYNC]', JSON.stringify({ userId, failedResults }));
         const error = new Error('Could not update the dynamic code on all access devices');
         error.status = 502;
         error.details = { results };
