@@ -260,21 +260,7 @@ async function listUnlockRecords(deviceId, user, filters = {}) {
     return ttlockClient.listUnlockRecords(lock.lock_id, filters);
 }
 
-async function setResidentDynamicCodeOnLock(lock, userId, dynamicCode, createdByUserId = userId) {
-    const existing = await ttlockRepository.findResidentPasscode(lock.ttlock_lock_id, userId);
-    const keyboardPwdName = `Vohk resident ${userId}`;
-    if (existing) {
-        await ttlockClient.changePasscode(lock.lock_id, existing.keyboard_pwd_id, {
-            keyboardPwd: dynamicCode,
-            keyboardPwdName,
-        });
-        await ttlockRepository.updatePasscode(existing.keyboard_pwd_id, lock.ttlock_lock_id, {
-            keyboardPwd: dynamicCode,
-            keyboardPwdName,
-            status: 'active',
-        });
-        return { deviceId: lock.device_id, keyboardPwdId: existing.keyboard_pwd_id, created: false };
-    }
+async function createResidentDynamicCodeOnLock(lock, userId, dynamicCode, createdByUserId, keyboardPwdName) {
     const response = await ttlockClient.addPasscode(lock.lock_id, {
         keyboardPwd: dynamicCode,
         keyboardPwdName,
@@ -295,8 +281,37 @@ async function setResidentDynamicCodeOnLock(lock, userId, dynamicCode, createdBy
     return { deviceId: lock.device_id, keyboardPwdId: response.keyboardPwdId, created: true };
 }
 
+async function setResidentDynamicCodeOnLock(lock, userId, dynamicCode, createdByUserId = userId) {
+    const existing = await ttlockRepository.findResidentPasscode(lock.ttlock_lock_id, userId);
+    const keyboardPwdName = `${userId}`;
+    if (existing) {
+        try {
+            await ttlockClient.changePasscode(lock.lock_id, existing.keyboard_pwd_id, {
+                keyboardPwd: dynamicCode,
+                keyboardPwdName,
+            });
+        } catch (error) {
+            if (Number(error.code) !== -3008) throw error;
+
+            // TTLock will not change a newly-created passcode until it has been
+            // used at the keypad. Replace that pending entry instead.
+            await ttlockClient.deletePasscode(lock.lock_id, existing.keyboard_pwd_id);
+            await ttlockRepository.markPasscodeDeleted(existing.keyboard_pwd_id, lock.ttlock_lock_id);
+            return createResidentDynamicCodeOnLock(lock, userId, dynamicCode, createdByUserId, keyboardPwdName);
+        }
+        await ttlockRepository.updatePasscode(existing.keyboard_pwd_id, lock.ttlock_lock_id, {
+            keyboardPwd: dynamicCode,
+            keyboardPwdName,
+            status: 'active',
+        });
+        return { deviceId: lock.device_id, keyboardPwdId: existing.keyboard_pwd_id, created: false };
+    }
+    return createResidentDynamicCodeOnLock(lock, userId, dynamicCode, createdByUserId, keyboardPwdName);
+}
+
 async function updateResidentDynamicCode(userId, dynamicCode) {
     const locks = await ttlockRepository.findByResident(userId);
+    console.log(locks)
     if (locks.length > 0) validateTtlockPasscode(dynamicCode);
     const results = [];
     for (const lock of locks) {
@@ -356,5 +371,12 @@ module.exports = {
     listUnlockRecords,
     updateResidentDynamicCode,
     provisionResidents,
-    _private: { publicLock, validatePasscode, validateTtlockPasscode, asTimestamp, assertPasscodeCapableLock },
+    _private: {
+        publicLock,
+        validatePasscode,
+        validateTtlockPasscode,
+        asTimestamp,
+        assertPasscodeCapableLock,
+        setResidentDynamicCodeOnLock,
+    },
 };

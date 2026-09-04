@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 
 const ttlockService = require('../services/vohk_app/ttlockService');
 const ttlockClient = require('../integrations/ttlock/ttlockClient');
+const ttlockRepository = require('../repositories/ttlockRepository');
 const ttlockPasscodeRecordSyncService = require('../services/vohk_app/ttlockPasscodeRecordSyncService');
 
 test('TTLock discovery exposes only operational metadata', () => {
@@ -50,6 +51,48 @@ test('TTLock passcodes reject simple consecutive and repeated patterns', () => {
     assert.throws(() => ttlockService._private.validateTtlockPasscode('654321'), /consecutive or repeated/);
     assert.throws(() => ttlockService._private.validateTtlockPasscode('111111'), /consecutive or repeated/);
     assert.throws(() => ttlockService._private.validateTtlockPasscode('121212'), /consecutive or repeated/);
+});
+
+test('an unused resident passcode is deleted and recreated when TTLock rejects changing it', async () => {
+    const original = {
+        findResidentPasscode: ttlockRepository.findResidentPasscode,
+        changePasscode: ttlockClient.changePasscode,
+        deletePasscode: ttlockClient.deletePasscode,
+        addPasscode: ttlockClient.addPasscode,
+        markPasscodeDeleted: ttlockRepository.markPasscodeDeleted,
+        upsertPasscode: ttlockRepository.upsertPasscode,
+    };
+    const calls = [];
+    ttlockRepository.findResidentPasscode = async () => ({ keyboard_pwd_id: 41 });
+    ttlockClient.changePasscode = async () => {
+        const error = new Error('unused');
+        error.code = -3008;
+        throw error;
+    };
+    ttlockClient.deletePasscode = async () => calls.push('delete');
+    ttlockRepository.markPasscodeDeleted = async () => calls.push('mark-deleted');
+    ttlockClient.addPasscode = async () => {
+        calls.push('add');
+        return { keyboardPwdId: 42 };
+    };
+    ttlockRepository.upsertPasscode = async () => calls.push('upsert');
+
+    try {
+        const result = await ttlockService._private.setResidentDynamicCodeOnLock(
+            { device_id: 'device-1', lock_id: 3101840, ttlock_lock_id: 'local-lock-1' },
+            'resident-1',
+            '194835',
+        );
+        assert.deepEqual(calls, ['delete', 'mark-deleted', 'add', 'upsert']);
+        assert.deepEqual(result, { deviceId: 'device-1', keyboardPwdId: 42, created: true });
+    } finally {
+        ttlockRepository.findResidentPasscode = original.findResidentPasscode;
+        ttlockClient.changePasscode = original.changePasscode;
+        ttlockClient.deletePasscode = original.deletePasscode;
+        ttlockClient.addPasscode = original.addPasscode;
+        ttlockRepository.markPasscodeDeleted = original.markPasscodeDeleted;
+        ttlockRepository.upsertPasscode = original.upsertPasscode;
+    }
 });
 
 test('gate modules reject passcode operations', () => {
