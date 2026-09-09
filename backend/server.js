@@ -1,3 +1,6 @@
+// Combined entry point retained for migration rollback / existing Docker users.
+// Normal split deployment uses backend-pm2.config.js. Do not run this alongside
+// vohk-worker: both start the same scheduled jobs. See deploy/README.md.
 const express = require('express');
 const http = require('http');
 const bodyParser = require('body-parser');
@@ -13,7 +16,6 @@ app.use(cors({
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
-    if (/\.base44\.app$/.test(new URL(origin).hostname)) return callback(null, true);
     callback(new Error(`CORS not allowed for this origin: ${origin}`));
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

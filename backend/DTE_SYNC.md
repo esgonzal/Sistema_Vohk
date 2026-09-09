@@ -1,7 +1,8 @@
 # Relbase to Monday DTE synchronization
 
-The DTE automation runs as a standalone PM2 process named `dte-sync`. Express
-only hosts the existing `/monday/consult` and `/monday/update` webhooks.
+The DTE automation runs as a standalone PM2 process named `dte-sync`. After the
+split deployment described in [deploy/README.md](deploy/README.md), the separate
+`integrations-api` process hosts `/monday/consult` and `/monday/update`.
 
 ## Required environment
 
@@ -26,7 +27,7 @@ not reload either process. Restart explicitly when a deployment should take
 effect:
 
 ```sh
-pm2 restart server --update-env
+pm2 restart integrations-api --update-env
 pm2 restart dte-sync --update-env
 ```
 

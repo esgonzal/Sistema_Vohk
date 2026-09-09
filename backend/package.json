@@ -5,7 +5,12 @@
     "main": "index.js",
     "scripts": {
         "test": "node --test test/*.test.js",
-        "worker:dte": "node workers/dteSyncWorker.js"
+        "worker:dte": "node workers/dteSyncWorker.js",
+        "worker:vohk": "node workers/vohkWorker.js",
+        "start:university": "node server-university.js",
+        "start:legacy": "node server-legacy.js",
+        "start:vohk": "node server-vohk.js",
+        "start:integrations": "node server-integrations.js"
     },
     "keywords": [],
     "author": "",
