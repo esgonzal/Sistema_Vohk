@@ -339,13 +339,19 @@ async function provisionExistingResidents(deviceId, requestedByUserId = null) {
     };
 }
 async function updateDeviceName(deviceId, userId, role, name) {
-    if (role === 'admin') {
-        const existingDevice = await deviceRepository.findDeviceByIdAndAdmin(deviceId, userId);
-        if (!existingDevice) {
-            const error = new Error('Device not found');
-            error.status = 404;
-            throw error;
-        }
+    const existingDevice = role === 'admin'
+        ? await deviceRepository.findDeviceByIdAndAdmin(deviceId, userId)
+        : await deviceRepository.findDeviceById(deviceId);
+    if (!existingDevice) {
+        const error = new Error('Device not found');
+        error.status = 404;
+        throw error;
+    }
+    const isTtlockDevice = ['lock', 'gate'].includes(existingDevice.type)
+        && String(existingDevice.vendor).toLowerCase() === 'ttlock';
+    if (isTtlockDevice) {
+        await ttlockService.renameDevice(deviceId, { userId, role }, name);
+        return deviceRepository.updateTtlockDeviceName(deviceId, name);
     }
     return deviceRepository.updateDeviceName(deviceId, name);
 }

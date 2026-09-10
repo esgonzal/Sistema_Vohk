@@ -103,6 +103,45 @@ async function updateDeviceName(deviceId, name) {
     return result.rows[0];
 }
 
+async function updateTtlockDeviceName(deviceId, name) {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        const deviceResult = await client.query(`
+            UPDATE device
+            SET name = $2
+            WHERE device_id = $1
+            RETURNING device_id, zone_id, type, vendor, name, ip_address, port,
+                      snapshot_url, stream_url, active, last_seen_at, created_at
+        `, [deviceId, name]);
+        if (!deviceResult.rows[0]) {
+            const error = new Error('Device not found');
+            error.status = 404;
+            throw error;
+        }
+        const ttlockResult = await client.query(`
+            UPDATE ttlock_lock
+            SET lock_alias = $2,
+                last_synced_at = NOW(),
+                updated_at = NOW()
+            WHERE device_id = $1
+            RETURNING ttlock_lock_id
+        `, [deviceId, name]);
+        if (!ttlockResult.rows[0]) {
+            const error = new Error('TTLock device not found');
+            error.status = 404;
+            throw error;
+        }
+        await client.query('COMMIT');
+        return deviceResult.rows[0];
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
+}
+
 async function deleteDevice(deviceId) {
     const result = await pool.query(`
         DELETE 
@@ -173,5 +212,5 @@ async function updateDeviceIdentity(deviceId, { model, firmwareVersion, firmware
 
 module.exports = { 
     findDeviceTreeRows, findIntercomByDeviceId, findDevicesByCondominium, findMobileDevicesByCondominium, findActiveDevices, findDeviceByIdAndAdmin, findDeviceById,
-    createDevice, updateDeviceName, deleteDevice, moveDeviceToZone, findDeviceAndZoneCondominiums, updateLastSeen, updateDeviceIdentity
+    createDevice, updateDeviceName, updateTtlockDeviceName, deleteDevice, moveDeviceToZone, findDeviceAndZoneCondominiums, updateLastSeen, updateDeviceIdentity
 };

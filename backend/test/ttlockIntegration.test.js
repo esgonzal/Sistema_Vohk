@@ -5,6 +5,8 @@ const ttlockService = require('../services/vohk_app/ttlockService');
 const ttlockClient = require('../integrations/ttlock/ttlockClient');
 const ttlockRepository = require('../repositories/ttlockRepository');
 const ttlockPasscodeRecordSyncService = require('../services/vohk_app/ttlockPasscodeRecordSyncService');
+const deviceRepository = require('../repositories/deviceRepository');
+const deviceService = require('../services/vohk_app/deviceService');
 
 test('TTLock discovery exposes only operational metadata', () => {
     const lock = ttlockService._private.publicLock({
@@ -133,4 +135,63 @@ test('TTLock form data omits undefined optional values', () => {
     assert.equal(params.get('lockId'), '123');
     assert.equal(params.has('keyboardPwdName'), false);
     assert.equal(params.get('startDate'), '0');
+});
+
+test('TTLock device rename updates the database only after TTLock succeeds', async () => {
+    const original = {
+        findDeviceById: deviceRepository.findDeviceById,
+        renameDevice: ttlockService.renameDevice,
+        updateTtlockDeviceName: deviceRepository.updateTtlockDeviceName,
+    };
+    const calls = [];
+    deviceRepository.findDeviceById = async () => ({ type: 'lock', vendor: 'ttlock' });
+    ttlockService.renameDevice = async (deviceId, user, name) => {
+        calls.push(['ttlock', deviceId, user, name]);
+        return { errcode: 0 };
+    };
+    deviceRepository.updateTtlockDeviceName = async (deviceId, name) => {
+        calls.push(['database', deviceId, name]);
+        return { device_id: deviceId, name };
+    };
+
+    try {
+        const result = await deviceService.updateDeviceName('device-1', 'user-1', 'superadmin', 'Entrada Norte');
+        assert.equal(result.name, 'Entrada Norte');
+        assert.deepEqual(calls, [
+            ['ttlock', 'device-1', { userId: 'user-1', role: 'superadmin' }, 'Entrada Norte'],
+            ['database', 'device-1', 'Entrada Norte'],
+        ]);
+    } finally {
+        deviceRepository.findDeviceById = original.findDeviceById;
+        ttlockService.renameDevice = original.renameDevice;
+        deviceRepository.updateTtlockDeviceName = original.updateTtlockDeviceName;
+    }
+});
+
+test('TTLock device rename leaves the database unchanged when TTLock fails', async () => {
+    const original = {
+        findDeviceById: deviceRepository.findDeviceById,
+        renameDevice: ttlockService.renameDevice,
+        updateTtlockDeviceName: deviceRepository.updateTtlockDeviceName,
+    };
+    let databaseUpdated = false;
+    deviceRepository.findDeviceById = async () => ({ type: 'gate', vendor: 'TTLock' });
+    ttlockService.renameDevice = async () => {
+        throw new Error('TTLock unavailable');
+    };
+    deviceRepository.updateTtlockDeviceName = async () => {
+        databaseUpdated = true;
+    };
+
+    try {
+        await assert.rejects(
+            deviceService.updateDeviceName('device-1', 'user-1', 'superadmin', 'Porton Principal'),
+            /TTLock unavailable/,
+        );
+        assert.equal(databaseUpdated, false);
+    } finally {
+        deviceRepository.findDeviceById = original.findDeviceById;
+        ttlockService.renameDevice = original.renameDevice;
+        deviceRepository.updateTtlockDeviceName = original.updateTtlockDeviceName;
+    }
 });

@@ -140,6 +140,13 @@ async function refreshDevice(deviceId, user) {
     return ttlockRepository.updateLockFromAccount(deviceId, accountLock);
 }
 
+async function renameDevice(deviceId, user, lockAlias) {
+    const lock = await ttlockRepository.findByDeviceId(deviceId);
+    if (!lock) throw httpError('TTLock device not found', 404);
+    await assertDeviceAccess(lock, user, { manage: true });
+    return ttlockClient.renameLock(lock.lock_id, lockAlias);
+}
+
 async function openDoor(deviceId, user) {
     const lock = await requireTtlockDevice(deviceId);
     await assertDeviceAccess(lock, user);
@@ -363,6 +370,7 @@ module.exports = {
     listAvailableLocks,
     resolveAccountLock,
     refreshDevice,
+    renameDevice,
     openDoor,
     listPasscodes,
     createPasscode,

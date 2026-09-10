@@ -134,6 +134,10 @@ async function unlock(lockId) {
     return post('/lock/unlock', { lockId });
 }
 
+async function renameLock(lockId, lockAlias) {
+    return post('/lock/rename', { lockId, lockAlias });
+}
+
 async function listPasscodes(lockId, { pageNo = 1, pageSize = 100 } = {}) {
     return get('/lock/listKeyboardPwd', { lockId, pageNo, pageSize });
 }
@@ -172,6 +176,7 @@ async function listUnlockRecords(lockId, { startDate, endDate, pageNo = 1, pageS
 module.exports = {
     listAccountLocks,
     unlock,
+    renameLock,
     listPasscodes,
     addPasscode,
     changePasscode,
