@@ -7,7 +7,9 @@
         </div>
         <div class="header-actions">
             <button class="secondary-btn">Carga masiva</button>
-            <button class="primary-btn">+ Nuevo usuario</button>
+            <button class="primary-btn" *ngIf="canCreateAdministrators" (click)="openCreateUser()">
+                + Nuevo usuario
+            </button>
         </div>
     </div>
     <div class="stats-grid">

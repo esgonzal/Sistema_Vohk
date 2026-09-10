@@ -10,31 +10,7 @@ const invitationService = require('./invitationService');
 const emailService = require('../vohk_app/emailService');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
-
-function normalizeRut(rut) {
-    return String(rut || '').replace(/\./g, '').replace(/-/g, '').replace(/\s/g, '').toUpperCase();
-}
-
-function isValidRut(rut) {
-    const normalized = normalizeRut(rut);
-    if (!/^\d{7,8}[0-9K]$/.test(normalized)) return false;
-    const body = normalized.slice(0, -1);
-    const suppliedDv = normalized.slice(-1);
-    let sum = 0;
-    let multiplier = 2;
-    for (let i = body.length - 1; i >= 0; i--) {
-        sum += Number(body[i]) * multiplier;
-        multiplier = multiplier === 7 ? 2 : multiplier + 1;
-    }
-    const remainder = 11 - (sum % 11);
-    const expectedDv = remainder === 11 ? '0' : remainder === 10 ? 'K' : String(remainder);
-    return suppliedDv === expectedDv;
-}
-
-function formatRut(rut) {
-    const normalized = normalizeRut(rut);
-    return `${normalized.slice(0, -1)}-${normalized.slice(-1)}`;
-}
+const { normalizeRut, isValidRut, formatRut } = require('../../utils/rut');
 
 async function getUsersByCondominium(userId, role, condominiumId) {
     if (role === 'admin') {
@@ -132,16 +108,10 @@ async function createManagementUser(creatorUserId, creatorRole, { legalName, rut
             throw error;
         }
     }
-    try {
-        await emailService.sendResidentWelcomeEmail({
-            toEmail: normalizedEmail,
-            legalName: normalizedLegalName,
-            temporaryPassword
-        });
-    } catch (error) {
-        console.error(`Could not send welcome email to ${normalizedEmail}:`, error.message);
-    }
-    return user;
+    // Management welcome emails are intentionally disabled while this flow is
+    // being tested. Return the generated password only to the authorized
+    // creator so the credentials can be handed over manually.
+    return { user, temporaryPassword };
 }
 async function createResident(unitId, userId, role, { legalName, rut, email, isPrimary }) {
     const unit = role === 'superadmin' ? await unitRepository.findUnitHierarchy(unitId) : await unitRepository.findUnitByIdAndAdmin(unitId, userId);
@@ -150,11 +120,21 @@ async function createResident(unitId, userId, role, { legalName, rut, email, isP
         error.status = 404;
         throw error;
     }
-    const formattedRut = rut.trim();
+    if (!isValidRut(rut)) {
+        const error = new Error('Invalid RUT');
+        error.status = 400;
+        throw error;
+    }
+    const formattedRut = formatRut(rut);
     const normalizedEmail = email.trim().toLowerCase();
     const normalizedLegalName = legalName.trim();
     const sipIdentity = formattedRut.replace(/[.-]/g, '').slice(0, -1);
     let resident = await userRepository.findByRut(formattedRut);
+    if (resident && resident.role !== 'resident') {
+        const error = new Error('RUT is already registered as a non-resident user');
+        error.status = 409;
+        throw error;
+    }
     let isNewUser = false;
     let temporaryPassword = null;
     if (!resident) {

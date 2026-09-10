@@ -5,6 +5,7 @@ import { UnitService } from 'src/app/services/vohk_app/unit.service';
 import { UserService } from 'src/app/services/vohk_app/user.service';
 import { TwilioService } from 'src/app/services/vohk_app/twilio.service';
 import Swal from 'sweetalert2';
+import { formatRut, formatRutInput, isValidRut } from 'src/app/utils/rut';
 
 @Component({
   selector: 'app-units',
@@ -200,7 +201,7 @@ export class UnitsComponent implements OnInit, OnDestroy {
       title: `Agregar residente · ${unit.name}`,
       html: `
       <input id="legalName" class="swal2-input" placeholder="Nombre completo">
-      <input id="rut" class="swal2-input" placeholder="RUT">
+      <input id="rut" class="swal2-input" placeholder="12.345.678-5" maxlength="12" autocomplete="off">
       <input id="email" type="email" class="swal2-input" placeholder="Correo electrónico">
       <label class="swal-resident-checkbox">
         <input id="isPrimary" type="checkbox">
@@ -211,6 +212,10 @@ export class UnitsComponent implements OnInit, OnDestroy {
       showCancelButton: true,
       confirmButtonText: 'Agregar',
       cancelButtonText: 'Cancelar',
+      didOpen: () => {
+        const input = document.getElementById('rut') as HTMLInputElement;
+        input.addEventListener('input', () => formatRutInput(input));
+      },
       preConfirm: () => {
         const legalName = (document.getElementById('legalName') as HTMLInputElement).value.trim();
         const rut = (document.getElementById('rut') as HTMLInputElement).value.trim();
@@ -220,7 +225,11 @@ export class UnitsComponent implements OnInit, OnDestroy {
           Swal.showValidationMessage('Nombre, RUT y correo son obligatorios');
           return;
         }
-        return { legalName, rut, email, isPrimary };
+        if (!isValidRut(rut)) {
+          Swal.showValidationMessage('Ingresa un RUT válido');
+          return;
+        }
+        return { legalName, rut: formatRut(rut), email, isPrimary };
       }
     });
     if (!result.isConfirmed || !result.value) {
@@ -235,7 +244,10 @@ export class UnitsComponent implements OnInit, OnDestroy {
       error: err => {
         console.error('Error creating resident:', err);
         if (err.status === 409) {
-          Swal.fire('No se pudo agregar', err.error?.error, 'warning');
+          const message = err.error?.error === 'RUT is already registered as a non-resident user'
+            ? 'El RUT pertenece a una cuenta que no es residente y no puede vincularse a una unidad.'
+            : err.error?.error;
+          Swal.fire('No se pudo agregar', message, 'warning');
           return;
         }
         Swal.fire('Error', err.error?.error || 'No se pudo agregar el residente.', 'error');

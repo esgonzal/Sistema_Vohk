@@ -8,6 +8,7 @@ const deviceRepository = require('../../repositories/deviceRepository');
 const intercomRepository = require('../../repositories/intercomRepository');
 const deviceService = require('./deviceService');
 const { getAdapterForIntercom } = require('./hikvision/adapterFactory');
+const { isValidRut, formatRut } = require('../../utils/rut');
 
 const INVITATION_TYPES = ['recurrent', 'temporary', 'express'];
 
@@ -15,34 +16,6 @@ function createError(message, status) {
     const error = new Error(message);
     error.status = status;
     return error;
-}
-
-function normalizeRut(rut) {
-    return String(rut || '').replace(/\./g, '').replace(/-/g, '').replace(/\s/g, '').toUpperCase();
-}
-
-function isValidRut(rut) {
-    const normalized = normalizeRut(rut);
-    if (!/^\d{7,8}[0-9K]$/.test(normalized)) return false;
-    const body = normalized.slice(0, -1);
-    const suppliedDv = normalized.slice(-1);
-    let sum = 0;
-    let multiplier = 2;
-    for (let i = body.length - 1; i >= 0; i--) {
-        sum += Number(body[i]) * multiplier;
-        multiplier = multiplier === 7 ? 2 : multiplier + 1;
-    }
-    const remainder = 11 - (sum % 11);
-    let expectedDv;
-    if (remainder === 11) expectedDv = '0';
-    else if (remainder === 10) expectedDv = 'K';
-    else expectedDv = String(remainder);
-    return suppliedDv === expectedDv;
-}
-
-function formatRut(rut) {
-    const normalized = normalizeRut(rut);
-    return `${normalized.slice(0, -1)}-${normalized.slice(-1)}`;
 }
 
 function formatHikvisionTime(date) {

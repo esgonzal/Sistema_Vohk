@@ -1,4 +1,5 @@
 const pool = require('../database/db');
+const { normalizeRut } = require('../utils/rut');
 
 async function findById(userId) {
     const result = await pool.query(`
@@ -22,8 +23,9 @@ async function findByRut(rut) {
     const result = await pool.query(`
         SELECT * 
         FROM app_user 
-        WHERE rut = $1
-    `, [rut]);
+        WHERE REGEXP_REPLACE(UPPER(rut), '[^0-9K]', '', 'g') = $1
+        LIMIT 1
+    `, [normalizeRut(rut)]);
     return result.rows[0];
 }
 

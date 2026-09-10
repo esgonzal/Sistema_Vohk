@@ -14,6 +14,12 @@ export class UserService {
   getUsers(condominiumId: string) {
     return this.http.get<any[]>(`${this.URL}/api/users/${condominiumId}`);
   }
+  createAdministrator(legalName: string, rut: string, email: string) {
+    return this.http.post<{
+      user: { user_id: string; username: string; legal_name: string; email: string; role: string };
+      temporaryPassword: string;
+    }>(`${this.URL}/api/users/management`, { legalName, rut, email, role: 'admin' });
+  }
   createResident(unitId: string, legalName: string, rut: string, email: string, isPrimary: boolean) {
     return this.http.post(`${this.URL}/api/users/${unitId}`, { legalName, rut, email, isPrimary });
   }
