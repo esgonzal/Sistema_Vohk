@@ -33,6 +33,10 @@ const ACCESS_EVENT_DESCRIPTORS = new Map([
     [101, { method: 'pin', methodLabel: 'PIN', description: 'Acceso mediante PIN', status: 'succeeded' }],
     [102, { method: 'pin', methodLabel: 'PIN', description: 'PIN rechazado', status: 'failed' }],
     [151, { method: 'pin', methodLabel: 'PIN', description: 'PIN rechazado', status: 'failed' }],
+    [149, { method: 'pin', methodLabel: 'PIN', description: 'Acceso mediante PIN', status: 'succeeded' }],
+    [150, { method: 'pin', methodLabel: 'PIN', description: 'PIN rechazado', status: 'failed' }],
+    [179, { method: 'pin', methodLabel: 'PIN', description: 'Acceso mediante código dinámico', status: 'succeeded' }],
+    [180, { method: 'pin', methodLabel: 'PIN', description: 'Código dinámico rechazado', status: 'failed' }],
     [153, { method: 'combined', methodLabel: 'Autenticación combinada', description: 'Acceso mediante autenticación combinada', status: 'succeeded' }],
     // MinMoe V4 reports a successful device-set personal PIN with this code.
     [181, { method: 'pin', methodLabel: 'PIN', description: 'Acceso mediante PIN', status: 'succeeded' }],

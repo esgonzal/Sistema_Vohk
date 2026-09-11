@@ -32,15 +32,38 @@ test('multipart parser handles split headers, UTF-8, binary boundary-like data a
 test('oversized JSON and malformed lengths fail with bounded memory', async () => {
     const header = Buffer.from('--test-boundary\r\nContent-Type: application/json\r\nContent-Length: 999999\r\n\r\n');
     await assert.rejects(collect(header, header.length), /JSON too large/);
-    const missing = Buffer.from('--test-boundary\r\nContent-Type: image/jpeg\r\n\r\nx');
+    const missing = Buffer.from('--test-boundary\r\nContent-Type: image/jpeg\r\nContent-Length: invalid\r\n\r\nx');
     await assert.rejects(collect(missing, missing.length), /Invalid event part length/);
     const image = Buffer.alloc(1024 * 1024, 255);
     assert.deepEqual(await collect(Buffer.concat([part('image/jpeg', image), part('application/json', JSON.stringify(message()))]), 4096), [message()]);
 });
 
+test('lengthless multipart JSON, heartbeats and images use boundaries across chunk splits', async () => {
+    const data = Buffer.concat([
+        Buffer.from('--test-boundary\r\nContent-Type: application/xml\r\n\r\n<heartbeat/>\r\n'),
+        Buffer.from('--test-boundary\r\nContent-Type: image/jpeg\r\n\r\n'), Buffer.alloc(100000, 255), Buffer.from('\r\n'),
+        Buffer.from('--test-boundary\r\nContent-Type: application/json\r\n\r\n'), Buffer.from(JSON.stringify(message(181))),
+        Buffer.from('\r\n--test-boundary--\r\n'),
+    ]);
+    for (const size of [1, 31, 4096, data.length]) assert.deepEqual(await collect(data, size), [message(181)]);
+});
+
+test('firmware image headers with LF or mixed CRLF line endings do not disconnect or hide the next PIN event', async () => {
+    for (const newline of ['\n', '\r\n']) {
+        const image = Buffer.alloc(79246, 255);
+        const data = Buffer.concat([
+            Buffer.from(`--test-boundary\r\nContent-Disposition: form-data; name="Picture"${newline}Content-Type: image/jpeg\nContent-Length: 79246\r\n\r\n`),
+            image, Buffer.from('\r\n'),
+            Buffer.from('--test-boundary\nContent-Type: application/json\n\n'),
+            Buffer.from(JSON.stringify(message(181))), Buffer.from('\n--test-boundary--\n'),
+        ]);
+        for (const size of [7, 1024, data.length]) assert.deepEqual(await collect(data, size), [message(181)]);
+    }
+});
+
 test('only direct face/PIN outcomes pass; relay, card, ambiguous and invalid-time messages do not', () => {
-    for (const minor of [75, 76, 101, 102, 151, 181]) assert.equal(normalizeKv9503Event(message(minor)).minor, minor);
-    for (const minor of [0, 1, 21, 22, 38, 148, 999]) assert.equal(normalizeKv9503Event(message(minor)), null);
+    for (const minor of [75, 76, 101, 102, 149, 150, 151, 179, 180, 181]) assert.equal(normalizeKv9503Event(message(minor)).minor, minor);
+    for (const minor of [0, 1, 21, 22, 38, 148, 214, 215, 216, 999]) assert.equal(normalizeKv9503Event(message(minor)), null);
     assert.equal(normalizeKv9503Event(message(75, { majorEventType: 3 })), null);
     assert.equal(normalizeKv9503Event({ ...message(), eventState: 'inactive' }), null);
     assert.equal(normalizeKv9503Event({ ...message(), eventType: 'videoloss' }), null);
@@ -156,11 +179,16 @@ test('accepted KV events use existing recent-activity metadata and visitor visib
         await s.accept(device, message(75));
         await s.accept(device, message(181));
         await s.accept(device, message(76));
-        assert.equal(rows.length, 3);
+        for (const minor of [149, 150, 179, 180]) await s.accept(device, message(minor));
+        assert.equal(rows.length, 7);
         assert.deepEqual(rows.map(r => [r.eventType, r.source, r.status, r.metadata.method]), [
             ['access', 'hikvision_access', 'succeeded', 'face'],
             ['access', 'hikvision_access', 'succeeded', 'pin'],
             ['access', 'hikvision_access', 'failed', 'face'],
+            ['access', 'hikvision_access', 'succeeded', 'pin'],
+            ['access', 'hikvision_access', 'failed', 'pin'],
+            ['access', 'hikvision_access', 'succeeded', 'pin'],
+            ['access', 'hikvision_access', 'failed', 'pin'],
         ]);
         assert.equal(rows[0].condominiumId, 'condo');
         assert.equal(rows[0].metadata.offlineReplay, true);

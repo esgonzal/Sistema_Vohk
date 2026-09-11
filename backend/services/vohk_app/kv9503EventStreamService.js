@@ -75,6 +75,7 @@ class Kv9503EventStreamService {
             let idle;
             const touch = () => { clearTimeout(idle); idle = setTimeout(abort, this.idleMs); };
             let response;
+            const observedCodes = new Set();
             try {
                 touch();
                 const adapter = await this.getAdapter(device);
@@ -92,11 +93,25 @@ class Kv9503EventStreamService {
                 }
                 for await (const message of jsonEventParts(chunks(), response.headers.get('content-type'))) {
                     if (signal.aborted) break;
+                    const details = message.AccessControllerEvent;
+                    if (message.eventType === 'AccessControllerEvent' && details) {
+                        const code = `${Number(details.majorEventType)}/${Number(details.subEventType)}`;
+                        if (!observedCodes.has(code) && observedCodes.size < 16) {
+                            observedCodes.add(code);
+                            this.logger.log(`[KV9503 EVENTS ${device.device_id}] Received ${code}; accepted=${Boolean(normalizeKv9503Event(message))}; offline=${details.currentEvent === false}; metadata=${JSON.stringify({
+                                time: message.dateTime, unlockType: details.unlockType,
+                                fields: Object.keys(details), hasEmployee: Boolean(details.employeeNoString || details.employeeNo),
+                            })}`);
+                        }
+                    }
                     // Await database writes: bounded memory and natural backpressure.
                     let attempts = 0;
                     while (!signal.aborted) {
                         try {
-                            await this.accept(device, message);
+                            const saved = await this.accept(device, message);
+                            if (saved) {
+                                this.logger.log(`[KV9503 EVENTS ${device.device_id}] Stored authentication minor=${Number(details.subEventType)} at ${message.dateTime}`);
+                            }
                             break;
                         } catch {
                             attempts++;
@@ -105,8 +120,10 @@ class Kv9503EventStreamService {
                         }
                     }
                 }
-            } catch {
-                if (!signal.aborted) this.logger.warn(`[KV9503 EVENTS ${device.device_id}] Connection or persistence failed; reconnecting`);
+            } catch (error) {
+                const reason = /^(Invalid event|Event stream headers|Event JSON|HTTP \d)/.test(error.message || '')
+                    ? error.message : `${error.name || 'Error'} (${error.code || 'no code'})`;
+                if (!signal.aborted) this.logger.warn(`[KV9503 EVENTS ${device.device_id}] ${reason}; reconnecting`);
             } finally {
                 clearTimeout(idle);
                 session.abort();
