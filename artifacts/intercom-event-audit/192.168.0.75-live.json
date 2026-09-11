@@ -1,0 +1,659 @@
+{
+  "checkedAt": "2026-09-11T01:36:24.636Z",
+  "results": [
+    {
+      "endpoint": "/ISAPI/System/deviceInfo",
+      "method": "GET",
+      "status": 200,
+      "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<DeviceInfo version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\r\n<deviceName>DS-KV9503-WBE1</deviceName>\r\n<deviceID>[redacted]</deviceID>\r\n<deviceDescription>VIS</deviceDescription>\r\n<deviceLocation>STD-CGI</deviceLocation>\r\n<systemContact>STD-CGI</systemContact>\r\n<model>DS-KV9503-WBE1</model>\r\n<serialNumber>[redacted]</serialNumber>\r\n<macAddress>[redacted]</macAddress>\r\n<firmwareVersion>V2.3.13</firmwareVersion>\r\n<firmwareReleasedDate>build 250407</firmwareReleasedDate>\r\n<bootVersion>33751053</bootVersion>\r\n<bootReleasedDate>1639431</bootReleasedDate>\r\n<hardwareVersion>0x10101</hardwareVersion>\r\n<deviceType>VIS</deviceType>\r\n<subDeviceType>doorStation</subDeviceType>\r\n<telecontrolID>88</telecontrolID>\r\n<supportBeep>true</supportBeep>\r\n<supportVideoLoss>true</supportVideoLoss>\r\n<alarmOutNum>2</alarmOutNum>\r\n<RS485Num>1</RS485Num>\r\n<OEMCode>1</OEMCode>\r\n<touchScreenVersionInfo>4</touchScreenVersionInfo>\r\n<alarmInNum>4</alarmInNum>\r\n<encryptionModel>e255</encryptionModel>\r\n</DeviceInfo>\r\n"
+    },
+    {
+      "endpoint": "/ISAPI/Event/notification/alertStream",
+      "status": 200,
+      "contentType": "multipart/mixed; boundary=MIME_boundary",
+      "durationMs": 20021,
+      "bytes": 11398,
+      "error": "TimeoutError",
+      "eventTypes": [
+        "videoloss",
+        "AccessControllerEvent",
+        "AccessControllerEvent",
+        "AccessControllerEvent",
+        "AccessControllerEvent",
+        "AccessControllerEvent",
+        "AccessControllerEvent",
+        "AccessControllerEvent",
+        "AccessControllerEvent",
+        "AccessControllerEvent",
+        "videoloss",
+        "AccessControllerEvent",
+        "AccessControllerEvent",
+        "AccessControllerEvent",
+        "AccessControllerEvent",
+        "AccessControllerEvent",
+        "AccessControllerEvent",
+        "AccessControllerEvent",
+        "AccessControllerEvent",
+        "AccessControllerEvent",
+        "videoloss",
+        "AccessControllerEvent"
+      ],
+      "fields": [
+        {
+          "field": "dateTime",
+          "value": "\"2026-09-10T21:36:04-04:00\""
+        },
+        {
+          "field": "eventState",
+          "value": "\"inactive\""
+        },
+        {
+          "field": "dateTime",
+          "value": "\"2026-09-10T20:22:47-04:00\""
+        },
+        {
+          "field": "eventState",
+          "value": "\"active\""
+        },
+        {
+          "field": "majorEventType",
+          "value": "0"
+        },
+        {
+          "field": "subEventType",
+          "value": "0"
+        },
+        {
+          "field": "dateTime",
+          "value": "\"2026-09-10T20:22:42-04:00\""
+        },
+        {
+          "field": "eventState",
+          "value": "\"active\""
+        },
+        {
+          "field": "majorEventType",
+          "value": "0"
+        },
+        {
+          "field": "subEventType",
+          "value": "0"
+        },
+        {
+          "field": "dateTime",
+          "value": "\"2026-09-10T20:12:36-04:00\""
+        },
+        {
+          "field": "eventState",
+          "value": "\"active\""
+        },
+        {
+          "field": "majorEventType",
+          "value": "0"
+        },
+        {
+          "field": "subEventType",
+          "value": "0"
+        },
+        {
+          "field": "dateTime",
+          "value": "\"2026-09-10T20:09:28-04:00\""
+        },
+        {
+          "field": "eventState",
+          "value": "\"active\""
+        },
+        {
+          "field": "majorEventType",
+          "value": "0"
+        },
+        {
+          "field": "subEventType",
+          "value": "0"
+        },
+        {
+          "field": "dateTime",
+          "value": "\"2026-09-10T20:09:06-04:00\""
+        },
+        {
+          "field": "eventState",
+          "value": "\"active\""
+        },
+        {
+          "field": "majorEventType",
+          "value": "0"
+        },
+        {
+          "field": "subEventType",
+          "value": "0"
+        },
+        {
+          "field": "dateTime",
+          "value": "\"2026-09-10T20:08:54-04:00\""
+        },
+        {
+          "field": "eventState",
+          "value": "\"active\""
+        },
+        {
+          "field": "majorEventType",
+          "value": "0"
+        },
+        {
+          "field": "subEventType",
+          "value": "0"
+        },
+        {
+          "field": "dateTime",
+          "value": "\"2026-09-10T20:08:52-04:00\""
+        },
+        {
+          "field": "eventState",
+          "value": "\"active\""
+        },
+        {
+          "field": "majorEventType",
+          "value": "0"
+        },
+        {
+          "field": "subEventType",
+          "value": "0"
+        },
+        {
+          "field": "dateTime",
+          "value": "\"2026-09-10T20:06:43-04:00\""
+        },
+        {
+          "field": "eventState",
+          "value": "\"active\""
+        },
+        {
+          "field": "majorEventType",
+          "value": "0"
+        },
+        {
+          "field": "subEventType",
+          "value": "0"
+        },
+        {
+          "field": "dateTime",
+          "value": "\"2026-09-10T20:06:41-04:00\""
+        },
+        {
+          "field": "eventState",
+          "value": "\"active\""
+        },
+        {
+          "field": "majorEventType",
+          "value": "0"
+        },
+        {
+          "field": "subEventType",
+          "value": "0"
+        },
+        {
+          "field": "dateTime",
+          "value": "\"2026-09-10T21:36:13-04:00\""
+        },
+        {
+          "field": "eventState",
+          "value": "\"inactive\""
+        },
+        {
+          "field": "dateTime",
+          "value": "\"2026-09-10T20:04:32-04:00\""
+        },
+        {
+          "field": "eventState",
+          "value": "\"active\""
+        },
+        {
+          "field": "majorEventType",
+          "value": "0"
+        },
+        {
+          "field": "subEventType",
+          "value": "0"
+        },
+        {
+          "field": "dateTime",
+          "value": "\"2026-09-10T20:04:26-04:00\""
+        },
+        {
+          "field": "eventState",
+          "value": "\"active\""
+        },
+        {
+          "field": "majorEventType",
+          "value": "0"
+        },
+        {
+          "field": "subEventType",
+          "value": "0"
+        },
+        {
+          "field": "dateTime",
+          "value": "\"2026-09-10T20:04:24-04:00\""
+        },
+        {
+          "field": "eventState",
+          "value": "\"active\""
+        },
+        {
+          "field": "majorEventType",
+          "value": "0"
+        },
+        {
+          "field": "subEventType",
+          "value": "0"
+        },
+        {
+          "field": "dateTime",
+          "value": "\"2026-09-10T20:00:36-04:00\""
+        },
+        {
+          "field": "eventState",
+          "value": "\"active\""
+        },
+        {
+          "field": "majorEventType",
+          "value": "0"
+        },
+        {
+          "field": "subEventType",
+          "value": "0"
+        },
+        {
+          "field": "dateTime",
+          "value": "\"2026-09-10T20:00:01-04:00\""
+        },
+        {
+          "field": "eventState",
+          "value": "\"active\""
+        },
+        {
+          "field": "majorEventType",
+          "value": "0"
+        },
+        {
+          "field": "subEventType",
+          "value": "0"
+        },
+        {
+          "field": "dateTime",
+          "value": "\"2026-09-10T19:27:17-04:00\""
+        },
+        {
+          "field": "eventState",
+          "value": "\"active\""
+        },
+        {
+          "field": "majorEventType",
+          "value": "0"
+        },
+        {
+          "field": "subEventType",
+          "value": "0"
+        },
+        {
+          "field": "dateTime",
+          "value": "\"2026-09-10T19:04:20-04:00\""
+        },
+        {
+          "field": "eventState",
+          "value": "\"active\""
+        },
+        {
+          "field": "majorEventType",
+          "value": "0"
+        },
+        {
+          "field": "subEventType",
+          "value": "0"
+        },
+        {
+          "field": "dateTime",
+          "value": "\"2026-09-10T18:38:54-04:00\""
+        },
+        {
+          "field": "eventState",
+          "value": "\"active\""
+        },
+        {
+          "field": "majorEventType",
+          "value": "0"
+        },
+        {
+          "field": "subEventType",
+          "value": "0"
+        },
+        {
+          "field": "dateTime",
+          "value": "\"2026-09-10T18:38:34-04:00\""
+        },
+        {
+          "field": "eventState",
+          "value": "\"active\""
+        },
+        {
+          "field": "majorEventType",
+          "value": "0"
+        },
+        {
+          "field": "subEventType",
+          "value": "0"
+        },
+        {
+          "field": "dateTime",
+          "value": "\"2026-09-10T21:36:23-04:00\""
+        },
+        {
+          "field": "eventState",
+          "value": "\"inactive\""
+        },
+        {
+          "field": "dateTime",
+          "value": "\"2026-09-10T18:37:11-04:00\""
+        },
+        {
+          "field": "eventState",
+          "value": "\"active\""
+        },
+        {
+          "field": "majorEventType",
+          "value": "0"
+        },
+        {
+          "field": "subEventType",
+          "value": "0"
+        }
+      ],
+      "events": [
+        {
+          "dateTime": "2026-09-10T21:36:04-04:00",
+          "eventType": "videoloss",
+          "eventState": "inactive",
+          "availableFields": []
+        },
+        {
+          "dateTime": "2026-09-10T20:22:47-04:00",
+          "eventType": "AccessControllerEvent",
+          "eventState": "active",
+          "availableFields": [
+            "deviceName",
+            "majorEventType",
+            "subEventType",
+            "deviceNo",
+            "currentEvent"
+          ],
+          "majorEventType": 0,
+          "subEventType": 0
+        },
+        {
+          "dateTime": "2026-09-10T20:22:42-04:00",
+          "eventType": "AccessControllerEvent",
+          "eventState": "active",
+          "availableFields": [
+            "deviceName",
+            "majorEventType",
+            "subEventType",
+            "deviceNo",
+            "currentEvent"
+          ],
+          "majorEventType": 0,
+          "subEventType": 0
+        },
+        {
+          "dateTime": "2026-09-10T20:12:36-04:00",
+          "eventType": "AccessControllerEvent",
+          "eventState": "active",
+          "availableFields": [
+            "deviceName",
+            "majorEventType",
+            "subEventType",
+            "deviceNo",
+            "currentEvent"
+          ],
+          "majorEventType": 0,
+          "subEventType": 0
+        },
+        {
+          "dateTime": "2026-09-10T20:09:28-04:00",
+          "eventType": "AccessControllerEvent",
+          "eventState": "active",
+          "availableFields": [
+            "deviceName",
+            "majorEventType",
+            "subEventType",
+            "deviceNo",
+            "currentEvent"
+          ],
+          "majorEventType": 0,
+          "subEventType": 0
+        },
+        {
+          "dateTime": "2026-09-10T20:09:06-04:00",
+          "eventType": "AccessControllerEvent",
+          "eventState": "active",
+          "availableFields": [
+            "deviceName",
+            "majorEventType",
+            "subEventType",
+            "deviceNo",
+            "currentEvent"
+          ],
+          "majorEventType": 0,
+          "subEventType": 0
+        },
+        {
+          "dateTime": "2026-09-10T20:08:54-04:00",
+          "eventType": "AccessControllerEvent",
+          "eventState": "active",
+          "availableFields": [
+            "deviceName",
+            "majorEventType",
+            "subEventType",
+            "deviceNo",
+            "currentEvent"
+          ],
+          "majorEventType": 0,
+          "subEventType": 0
+        },
+        {
+          "dateTime": "2026-09-10T20:08:52-04:00",
+          "eventType": "AccessControllerEvent",
+          "eventState": "active",
+          "availableFields": [
+            "deviceName",
+            "majorEventType",
+            "subEventType",
+            "deviceNo",
+            "currentEvent"
+          ],
+          "majorEventType": 0,
+          "subEventType": 0
+        },
+        {
+          "dateTime": "2026-09-10T20:06:43-04:00",
+          "eventType": "AccessControllerEvent",
+          "eventState": "active",
+          "availableFields": [
+            "deviceName",
+            "majorEventType",
+            "subEventType",
+            "deviceNo",
+            "currentEvent"
+          ],
+          "majorEventType": 0,
+          "subEventType": 0
+        },
+        {
+          "dateTime": "2026-09-10T20:06:41-04:00",
+          "eventType": "AccessControllerEvent",
+          "eventState": "active",
+          "availableFields": [
+            "deviceName",
+            "majorEventType",
+            "subEventType",
+            "deviceNo",
+            "currentEvent"
+          ],
+          "majorEventType": 0,
+          "subEventType": 0
+        },
+        {
+          "dateTime": "2026-09-10T21:36:13-04:00",
+          "eventType": "videoloss",
+          "eventState": "inactive",
+          "availableFields": []
+        },
+        {
+          "dateTime": "2026-09-10T20:04:32-04:00",
+          "eventType": "AccessControllerEvent",
+          "eventState": "active",
+          "availableFields": [
+            "deviceName",
+            "majorEventType",
+            "subEventType",
+            "deviceNo",
+            "currentEvent"
+          ],
+          "majorEventType": 0,
+          "subEventType": 0
+        },
+        {
+          "dateTime": "2026-09-10T20:04:26-04:00",
+          "eventType": "AccessControllerEvent",
+          "eventState": "active",
+          "availableFields": [
+            "deviceName",
+            "majorEventType",
+            "subEventType",
+            "deviceNo",
+            "currentEvent"
+          ],
+          "majorEventType": 0,
+          "subEventType": 0
+        },
+        {
+          "dateTime": "2026-09-10T20:04:24-04:00",
+          "eventType": "AccessControllerEvent",
+          "eventState": "active",
+          "availableFields": [
+            "deviceName",
+            "majorEventType",
+            "subEventType",
+            "deviceNo",
+            "currentEvent"
+          ],
+          "majorEventType": 0,
+          "subEventType": 0
+        },
+        {
+          "dateTime": "2026-09-10T20:00:36-04:00",
+          "eventType": "AccessControllerEvent",
+          "eventState": "active",
+          "availableFields": [
+            "deviceName",
+            "majorEventType",
+            "subEventType",
+            "deviceNo",
+            "currentEvent"
+          ],
+          "majorEventType": 0,
+          "subEventType": 0
+        },
+        {
+          "dateTime": "2026-09-10T20:00:01-04:00",
+          "eventType": "AccessControllerEvent",
+          "eventState": "active",
+          "availableFields": [
+            "deviceName",
+            "majorEventType",
+            "subEventType",
+            "deviceNo",
+            "currentEvent"
+          ],
+          "majorEventType": 0,
+          "subEventType": 0
+        },
+        {
+          "dateTime": "2026-09-10T19:27:17-04:00",
+          "eventType": "AccessControllerEvent",
+          "eventState": "active",
+          "availableFields": [
+            "deviceName",
+            "majorEventType",
+            "subEventType",
+            "deviceNo",
+            "currentEvent"
+          ],
+          "majorEventType": 0,
+          "subEventType": 0
+        },
+        {
+          "dateTime": "2026-09-10T19:04:20-04:00",
+          "eventType": "AccessControllerEvent",
+          "eventState": "active",
+          "availableFields": [
+            "deviceName",
+            "majorEventType",
+            "subEventType",
+            "deviceNo",
+            "currentEvent"
+          ],
+          "majorEventType": 0,
+          "subEventType": 0
+        },
+        {
+          "dateTime": "2026-09-10T18:38:54-04:00",
+          "eventType": "AccessControllerEvent",
+          "eventState": "active",
+          "availableFields": [
+            "deviceName",
+            "majorEventType",
+            "subEventType",
+            "deviceNo",
+            "currentEvent"
+          ],
+          "majorEventType": 0,
+          "subEventType": 0
+        },
+        {
+          "dateTime": "2026-09-10T18:38:34-04:00",
+          "eventType": "AccessControllerEvent",
+          "eventState": "active",
+          "availableFields": [
+            "deviceName",
+            "majorEventType",
+            "subEventType",
+            "deviceNo",
+            "currentEvent"
+          ],
+          "majorEventType": 0,
+          "subEventType": 0
+        },
+        {
+          "dateTime": "2026-09-10T21:36:23-04:00",
+          "eventType": "videoloss",
+          "eventState": "inactive",
+          "availableFields": []
+        },
+        {
+          "dateTime": "2026-09-10T18:37:11-04:00",
+          "eventType": "AccessControllerEvent",
+          "eventState": "active",
+          "availableFields": [
+            "deviceName",
+            "majorEventType",
+            "subEventType",
+            "deviceNo",
+            "currentEvent"
+          ],
+          "majorEventType": 0,
+          "subEventType": 0
+        }
+      ]
+    }
+  ]
+}

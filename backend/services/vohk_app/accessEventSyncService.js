@@ -117,6 +117,7 @@ function eventMetadata(event, subject) {
         configuredVerifyMode: event.currentVerifyMode || event.verifyMode || null,
         attendanceStatus: event.attendanceStatus || null,
         serialNo: event.serialNo ?? null,
+        ...(typeof event.currentEvent === 'boolean' ? { offlineReplay: !event.currentEvent } : {}),
     };
 }
 
@@ -198,6 +199,8 @@ async function syncAllAccessEvents() {
 }
 
 module.exports = {
+    persistDeviceEvent,
+    correlationId,
     accessEventDescriptor,
     employeeNoFromEvent,
     eventStatus,

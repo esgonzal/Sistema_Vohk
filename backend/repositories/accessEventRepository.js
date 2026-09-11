@@ -1,6 +1,6 @@
 const pool = require('../database/db');
 
-async function findSyncableIntercoms() {
+async function findSyncableIntercoms(streamOnly = false) {
     const result = await pool.query(`
         SELECT d.device_id, d.name, d.model, d.firmware_version, d.ip_address,
                d.port, d.username, d.password_encrypted, i.intercom_id,
@@ -11,9 +11,10 @@ async function findSyncableIntercoms() {
         INNER JOIN zone z ON z.zone_id = d.zone_id
         WHERE d.active = TRUE
           AND LOWER(d.vendor) = 'hikvision'
-          AND UPPER(COALESCE(d.model, '')) LIKE 'DS-K1T343%'
+          AND (($1 = FALSE AND UPPER(COALESCE(d.model, '')) LIKE 'DS-K1T343%')
+               OR ($1 = TRUE AND UPPER(TRIM(COALESCE(d.model, ''))) = 'DS-KV9503-WBE1'))
         ORDER BY d.device_id
-    `);
+    `, [streamOnly]);
     return result.rows;
 }
 

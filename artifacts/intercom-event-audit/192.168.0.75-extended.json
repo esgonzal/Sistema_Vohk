@@ -1,0 +1,51 @@
+{
+  "checkedAt": "2026-09-10T19:20:39.067Z",
+  "model": "DS-KV9503-WBE1",
+  "ip": "192.168.0.75",
+  "results": [
+    {
+      "endpoint": "/ISAPI/System/deviceInfo",
+      "method": "GET",
+      "status": 200,
+      "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<DeviceInfo version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\r\n<deviceName>DS-KV9503-WBE1</deviceName>\r\n<deviceID>[redacted]</deviceID>\r\n<deviceDescription>VIS</deviceDescription>\r\n<deviceLocation>STD-CGI</deviceLocation>\r\n<systemContact>STD-CGI</systemContact>\r\n<model>DS-KV9503-WBE1</model>\r\n<serialNumber>[redacted]</serialNumber>\r\n<macAddress>[redacted]</macAddress>\r\n<firmwareVersion>V2.3.13</firmwareVersion>\r\n<firmwareReleasedDate>build 250407</firmwareReleasedDate>\r\n<bootVersion>33751053</bootVersion>\r\n<bootReleasedDate>1639431</bootReleasedDate>\r\n<hardwareVersion>0x10101</hardwareVersion>\r\n<deviceType>VIS</deviceType>\r\n<subDeviceType>doorStation</subDeviceType>\r\n<telecontrolID>88</telecontrolID>\r\n<supportBeep>true</supportBeep>\r\n<supportVideoLoss>true</supportVideoLoss>\r\n<alarmOutNum>2</alarmOutNum>\r\n<RS485Num>1</RS485Num>\r\n<OEMCode>1</OEMCode>\r\n<touchScreenVersionInfo>4</touchScreenVersionInfo>\r\n<alarmInNum>4</alarmInNum>\r\n<encryptionModel>e255</encryptionModel>\r\n</DeviceInfo>\r\n"
+    },
+    {
+      "endpoint": "/ISAPI/AccessControl/AcsEvent/StorageCfg/capabilities?format=json",
+      "method": "GET",
+      "status": 404,
+      "body": "{\n\t\"statusCode\":\t4,\n\t\"statusString\":\t\"Invalid Operation\",\n\t\"subStatusCode\":\t\"notSupport\",\n\t\"errorCode\":\t1073741825,\n\t\"errorMsg\":\t\"notSupport\"\n}"
+    },
+    {
+      "endpoint": "/ISAPI/Event/notification/subscribeEventCap",
+      "method": "GET",
+      "status": 200,
+      "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<SubscribeEventCap version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\r\n<heartbeat min=\"1\" max=\"30\">10</heartbeat>\r\n<eventMode opt=\"all,list\">all</eventMode>\r\n<EventList>\r\n<Event>\r\n<type>AccessControllerEvent</type>\r\n<minorAlarm opt=\"0x404,0x40a,0x40f,0x443,0x417,0x1048,0x1049\">0x404,0x40a,0x40f,0x443,0x417,0x1048,0x1049</minorAlarm>\r\n<minorException opt=\"0x27\">0x27</minorException>\r\n<minorOperation opt=\"0x400\">0x400</minorOperation>\r\n<minorEvent opt=\"0x1,0x9,0x26,0x27,0x4b,0x4c,0x94,0xb5,0x96,0x9c,0x9d,0x9e,0x9f,0xa0,0xb3,0xb4,0x15,0x16,0x17,0x18,0x19,0x1a,0x5c,0xd6,0xd7,0xd8\">0x1,0x9,0x26,0x27,0x4b,0x4c,0x94,0xb5,0x96,0x9c,0x9d,0x9e,0x9f,0xa0,0xb3,0xb4,0x15,0x16,0x17,0x18,0x19,0x1a,0x5c,0xd6,0xd7,0xd8</minorEvent>\r\n<pictureURLType opt=\"binary\" def=\"binary\">binary</pictureURLType>\r\n</Event>\r\n</EventList>\r\n<isSupportModifySubscribeEvent>true</isSupportModifySubscribeEvent>\r\n</SubscribeEventCap>\r\n"
+    },
+    {
+      "endpoint": "/ISAPI/Event/notification/httpHosts/capabilities",
+      "method": "GET",
+      "status": 404,
+      "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<ResponseStatus version=\"1.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\n<requestURL></requestURL>\n<statusCode>4</statusCode>\n<statusString>Invalid Operation</statusString>\n<subStatusCode>notSupport</subStatusCode>\n<errorCode>1073741825</errorCode>\n<errorMsg>notSupport</errorMsg>\n</ResponseStatus>\n"
+    },
+    {
+      "endpoint": "/ISAPI/ContentMgmt/security/logSearch",
+      "method": "POST",
+      "status": 400,
+      "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<ResponseStatus version=\"1.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\n<requestURL></requestURL>\n<statusCode>4</statusCode>\n<statusString>Invalid Operation</statusString>\n<subStatusCode>notSupport</subStatusCode>\n<errorCode>1073741825</errorCode>\n<errorMsg>notSupport</errorMsg>\n</ResponseStatus>\n"
+    },
+    {
+      "endpoint": "/ISAPI/ContentMgmt/logSearch",
+      "method": "POST",
+      "status": 400,
+      "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<ResponseStatus version=\"1.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\n<requestURL></requestURL>\n<statusCode>4</statusCode>\n<statusString>Invalid Operation</statusString>\n<subStatusCode>notSupport</subStatusCode>\n<errorCode>1073741825</errorCode>\n<errorMsg>notSupport</errorMsg>\n</ResponseStatus>\n"
+    },
+    {
+      "endpoint": "/ISAPI/Event/notification/alertStream",
+      "status": 404,
+      "durationMs": 15,
+      "bytes": 347,
+      "eventTypes": [],
+      "fields": []
+    }
+  ]
+}

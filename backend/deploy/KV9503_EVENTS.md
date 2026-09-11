@@ -1,0 +1,17 @@
+# KV9503 PIN and face activity listener
+
+The existing access-event job now starts a singleton KV9503 listener alongside K1T343/TTLock polling. It runs in `vohk-worker`, or in the combined `server.js` when using the legacy deployment. Run only one of these job owners.
+
+No database migration or frontend change is required. Events use the existing `activity_event` flow (`event_type=access`, `source=hikvision_access`) and subject/visitor resolution. Existing activity permissions still apply: unattributed failures are visible to authorized administrators, not automatically to all residents.
+
+Enabled by default; set `KV9503_EVENT_STREAM_ENABLED=false` and restart the job owner to disable. Active Hikvision DS-KV9503-WBE1 devices are discovered once per minute. IP, credentials, condominium changes and device deactivation are reconciled automatically.
+
+One Digest-authenticated HTTP connection stays open per device. No frequent history polling, image processing, new inbound port, or syslog receiver is involved. Multipart images are discarded by byte count; only JSON payloads up to 64 KiB are decoded. Database writes are sequential per device, providing backpressure. A 2,048-entry cache avoids repeated writes for recently received duplicates; the existing database conflict key also deduplicates replays across process restarts. Silent connections time out after 90 seconds and reconnect with backoff, capped around one minute.
+
+Only major 5 and minor 75/76 (face), 101/102, 151 and 181 (PIN mapping shared with existing backend) are accepted. Both success and failure are recorded. Card, relay, call, heartbeat, and unknown 0/0 messages are dropped before any database query. Configured verification mode is not used to infer the method. Device timestamps are retained; offline replay does not become a new event at ingestion time. PIN values, face images, and biometric data are never saved by this listener.
+
+Validated against the audit: this KV9503 firmware advertises face codes and 181, emits JSON AccessControllerEvent messages over alertStream, and replays offline failed-face records. A successful KV9503 PIN/face physical unlock still needs an office test; in particular the PIN 181 interpretation is inherited from the established MinMoe integration. Unknown event codes are intentionally skipped rather than shown as successful access.
+
+Before activation in production, deploy the changed backend files and restart only the actual job-owning process. Check for `[KV9503 EVENTS <device-id>] Connected`, then test one valid PIN and one valid face at the device. Verify timestamps, labels, actor attribution and a single recent-activity row per authentication. Reconnect and verify no duplicate rows. The device's observed clock/offset inconsistency must be resolved separately if displayed times are wrong; this feature does not change device time settings.
+
+An event whose database write fails stays in memory and retries with backoff while the service runs, applying backpressure instead of building an unbounded queue. Retention/replay guarantees are undocumented: a process restart or network outage can still lose events, and no complete historical recovery is promised. Without a serial number, identical same-second method/person/door events share a fallback deduplication key. Successful authentication is recorded as authentication success; it is not independent proof that the door physically opened.

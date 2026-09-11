@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const Module = require('module');
 
-test('VOHK worker owns all three schedules and the initial access sync', async () => {
+test('VOHK worker owns all three schedules, the KV stream and initial access sync', async () => {
     const schedules = [];
     const calls = [];
     const originalLoad = Module._load;
@@ -22,6 +22,9 @@ test('VOHK worker owns all three schedules and the initial access sync', async (
         if (request === '../services/vohk_app/ttlockPasscodeRecordSyncService') return {
             syncAllTtlockPasscodeRecords: async () => calls.push('ttlock'),
         };
+        if (request === '../services/vohk_app/kv9503EventStreamService') return {
+            startKv9503EventStreams: () => calls.push('kv-stream'),
+        };
         return originalLoad.call(this, request, parent, isMain);
     };
     try {
@@ -32,7 +35,7 @@ test('VOHK worker owns all three schedules and the initial access sync', async (
             '*/5 * * * *', '* * * * *', '* * * * *',
         ]);
         await new Promise(resolve => setImmediate(resolve));
-        assert.deepEqual(calls, ['access', 'ttlock']);
+        assert.deepEqual(calls, ['kv-stream', 'access', 'ttlock']);
         calls.length = 0;
         for (const { callback } of schedules) await callback();
         await new Promise(resolve => setImmediate(resolve));

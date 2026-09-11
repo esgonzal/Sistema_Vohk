@@ -16,6 +16,7 @@ async function runAccessEventSync() {
 }
 
 function startAccessEventSync() {
+    require('../services/vohk_app/kv9503EventStreamService').startKv9503EventStreams();
     setImmediate(() => runAccessEventSync().catch(error => console.error('[ACCESS EVENT SYNC]', error)));
     cron.schedule('* * * * *', () => {
         runAccessEventSync().catch(error => console.error('[ACCESS EVENT SYNC]', error));
