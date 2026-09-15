@@ -190,7 +190,6 @@ router.delete('/:deviceId/cards/:cardNo', async (req, res) => {
     }
 });
 
-
 router.post('/test-sip', async (req, res) => {
     try {
         const { ip, port, username, password, roomNo, phoneNumber } = req.body;

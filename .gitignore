@@ -28,3 +28,8 @@ frontend/.angular/
 
 # Local Codex deployment and diagnostic scratch files
 .codex-*
+
+# Local Hikvision investigation archives, device captures and QR credentials.
+artifacts/intercom-event-audit/
+artifacts/hikvision-qr-lab/
+artifacts/hikvision-experiment-archive/

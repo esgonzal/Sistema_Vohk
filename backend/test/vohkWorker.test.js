@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const Module = require('module');
 
-test('VOHK worker owns all three schedules, the KV stream and initial access sync', async () => {
+test('VOHK worker owns all four schedules, the KV stream and initial access sync', async () => {
     const schedules = [];
     const calls = [];
     const originalLoad = Module._load;
@@ -19,6 +19,9 @@ test('VOHK worker owns all three schedules, the KV stream and initial access syn
         if (request === '../services/vohk_app/accessEventSyncService') return {
             syncAllAccessEvents: async () => calls.push('access'),
         };
+        if (request === '../services/vohk_app/encomiendaService') return {
+            processReminders: async () => calls.push('encomienda'),
+        };
         if (request === '../services/vohk_app/ttlockPasscodeRecordSyncService') return {
             syncAllTtlockPasscodeRecords: async () => calls.push('ttlock'),
         };
@@ -32,14 +35,14 @@ test('VOHK worker owns all three schedules, the KV stream and initial access syn
         assert.equal(schedules.length, 0, 'import alone must not start the worker');
         startVohkWorker();
         assert.deepEqual(schedules.map(item => item.expression), [
-            '*/5 * * * *', '* * * * *', '* * * * *',
+            '*/5 * * * *', '* * * * *', '* * * * *', '0 * * * *',
         ]);
         await new Promise(resolve => setImmediate(resolve));
         assert.deepEqual(calls, ['kv-stream', 'access', 'ttlock']);
         calls.length = 0;
         for (const { callback } of schedules) await callback();
         await new Promise(resolve => setImmediate(resolve));
-        assert.deepEqual(calls, ['heartbeat', 'expiration', 'access', 'ttlock']);
+        assert.deepEqual(calls, ['heartbeat', 'expiration', 'access', 'ttlock', 'encomienda']);
     } finally {
         Module._load = originalLoad;
     }

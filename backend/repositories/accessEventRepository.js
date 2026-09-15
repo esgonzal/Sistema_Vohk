@@ -71,4 +71,16 @@ async function resolveEventSubject(deviceId, employeeNo, occurredAt) {
     return result.rows[0] || null;
 }
 
-module.exports = { findSyncableIntercoms, findLatestEventTime, resolveEventSubject };
+async function findRecentDeviceActivities(deviceId) {
+    const { rows } = await pool.query(`
+        SELECT event_type, status, source, occurred_at, created_at,
+               metadata->>'major' AS major, metadata->>'minor' AS minor,
+               metadata->>'method' AS method, metadata->>'offlineReplay' AS offline,
+               (actor_user_id IS NOT NULL) AS identified
+        FROM activity_event WHERE device_id = $1 AND source = 'hikvision_access'
+        ORDER BY created_at DESC LIMIT 20
+    `, [deviceId]);
+    return rows;
+}
+
+module.exports = { findSyncableIntercoms, findLatestEventTime, resolveEventSubject, findRecentDeviceActivities };

@@ -7,12 +7,14 @@ router.use('/twilio', require('./twilioAPI'));
 
 router.use('/activities', require('./activityController'));
 router.use('/invitation', require('./invitationController'));
+router.use('/encomiendas', require('./encomiendaController'));
 
 // ANGULAR TABS
 router.use('/dashboard', require('./dashboardController'));
 router.use('/condominiums', require('./condominiumController'));
 router.use('/users', require('./userController'));
 router.use('/units', require('./unitController'));
+router.use('/devices', require('./hikvisionQrController'));
 router.use('/devices', require('./deviceController'));
 //router.use('/devices', require('./deviceAPI'));
 router.use('/concierge', require('./conciergeController'));

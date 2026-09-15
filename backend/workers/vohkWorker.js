@@ -5,9 +5,11 @@ function startVohkWorker() {
     const { startDeviceHeartbeat } = require('../jobs/deviceHeartbeat');
     const { startInvitationExpiration } = require('../jobs/invitationExpiration');
     const { startAccessEventSync } = require('../jobs/accessEventSync');
+    const { startEncomiendaReminder } = require('../jobs/encomiendaReminder');
     startDeviceHeartbeat();
     startInvitationExpiration();
     startAccessEventSync();
+    startEncomiendaReminder();
     console.log('[vohk-worker] Scheduled jobs started');
 }
 
