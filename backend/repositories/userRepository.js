@@ -153,6 +153,12 @@ async function findCallCondominium(callerUserId, recipientUserId) {
           AND (
               caller.role = 'superadmin'
               OR (caller.role = 'admin' AND c.admin_user_id = caller.user_id)
+              OR (caller.role = 'staff' AND EXISTS (
+                  SELECT 1
+                  FROM staff_condominium sc
+                  WHERE sc.user_id = caller.user_id
+                    AND sc.condominium_id = c.condominium_id
+              ))
               OR (caller.role = 'resident' AND EXISTS (
                   SELECT 1
                   FROM resident_unit caller_ru
@@ -168,7 +174,48 @@ async function findCallCondominium(callerUserId, recipientUserId) {
     return result.rows[0] || null;
 }
 
+async function findCallableUnit(callerUserId, unitId) {
+    const result = await pool.query(`
+        SELECT un.unit_id, un.name AS unit_name, b.name AS building_name,
+               c.condominium_id, c.name AS condominium_name
+        FROM unit un
+        INNER JOIN building b ON b.building_id = un.building_id
+        INNER JOIN condominium c ON c.condominium_id = b.condominium_id
+        INNER JOIN app_user caller ON caller.user_id = $1 AND caller.active = TRUE
+        WHERE un.unit_id = $2
+          AND (
+              caller.role = 'superadmin'
+              OR (caller.role = 'admin' AND c.admin_user_id = caller.user_id)
+              OR (caller.role = 'staff' AND EXISTS (
+                  SELECT 1
+                  FROM staff_condominium sc
+                  WHERE sc.user_id = caller.user_id
+                    AND sc.condominium_id = c.condominium_id
+              ))
+          )
+        LIMIT 1
+    `, [callerUserId, unitId]);
+    return result.rows[0] || null;
+}
+
+async function findActiveResidentsByUnit(unitId) {
+    const result = await pool.query(`
+        SELECT u.user_id, u.legal_name, u.sip_identity
+        FROM resident_unit ru
+        INNER JOIN app_user u ON u.user_id = ru.user_id
+        WHERE ru.unit_id = $1
+          AND u.role = 'resident'
+          AND u.active = TRUE
+          AND u.sip_identity IS NOT NULL
+          AND BTRIM(u.sip_identity) <> ''
+        ORDER BY ru.is_primary DESC, u.legal_name
+        LIMIT 11
+    `, [unitId]);
+    return result.rows;
+}
+
 module.exports = {
     findById, findByUsername, findByRut, findByIdentity, findByEmail, findByPasswordResetToken,
-    createResident, createManagementUser, updateResident, savePasswordResetToken, resetPassword, updateUsername, updateEmail, updatePassword, getUsersByCondominium, findCallCondominium
+    createResident, createManagementUser, updateResident, savePasswordResetToken, resetPassword, updateUsername, updateEmail, updatePassword,
+    getUsersByCondominium, findCallCondominium, findCallableUnit, findActiveResidentsByUnit
 };

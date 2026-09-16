@@ -150,6 +150,61 @@ async function handleOutgoingCall(from, to, callSid = null) {
         dial.sip({ statusCallback: STATUS_CALLBACK_URL, statusCallbackMethod: 'POST', statusCallbackEvent: 'initiated ringing answered completed' }, intercom.sip_address);
         return twiml.toString();
     }
+    // ADMIN / STAFF APP -> EVERY RESIDENT APP IN A UNIT.
+    // Twilio rings all Client identities in parallel and connects only the first answer.
+    if (to.startsWith('unit:')) {
+        const unitId = to.substring('unit:'.length);
+        if (!unitId) {
+            throw new Error('Invalid unit destination');
+        }
+        const callerIdentity = from.replace('client:', '');
+        const caller = await userRepository.findByIdentity(callerIdentity);
+        if (!caller || !['admin', 'staff', 'superadmin'].includes(caller.role)) {
+            const error = new Error('Caller cannot reach this unit');
+            error.status = 403;
+            throw error;
+        }
+        const unit = await userRepository.findCallableUnit(caller.user_id, unitId);
+        if (!unit) {
+            const error = new Error('Unit not found or not accessible');
+            error.status = 404;
+            throw error;
+        }
+        const residents = await userRepository.findActiveResidentsByUnit(unitId);
+        if (!residents.length) {
+            const error = new Error('Unit has no callable residents');
+            error.status = 409;
+            throw error;
+        }
+        if (residents.length > 10) {
+            const error = new Error('Unit has more than 10 callable residents');
+            error.status = 409;
+            throw error;
+        }
+        await activityRepository.createActivity({
+            condominiumId: unit.condominium_id,
+            actorUserId: caller.user_id,
+            eventType: 'call',
+            status: 'initiated',
+            source: 'twilio',
+            correlationId: callSid,
+            participants: [
+                { userId: caller.user_id, role: 'caller' },
+                ...residents.map(resident => ({ userId: resident.user_id, role: 'recipient' })),
+            ],
+            metadata: { direction: 'user_to_unit', from, to, unitId },
+        }).catch(error => console.error('Could not record outgoing unit call activity:', error));
+        const dial = twiml.dial({ answerOnBridge: true, timeout: 30 });
+        for (const resident of residents) {
+            const client = dial.client({ statusCallback: STATUS_CALLBACK_URL, statusCallbackMethod: 'POST', statusCallbackEvent: 'initiated ringing answered completed' });
+            client.identity(resident.sip_identity);
+            client.parameter({ name: 'call_type', value: 'admin' });
+            client.parameter({ name: 'caller_identity', value: callerIdentity });
+            client.parameter({ name: 'caller_name', value: caller.legal_name || 'Administración' });
+            client.parameter({ name: 'unit_id', value: unitId });
+        }
+        return twiml.toString();
+    }
     // APP -> APP / RESIDENT
     const resident = await userRepository.findByIdentity(to);
     if (!resident) {
