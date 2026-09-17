@@ -22,7 +22,7 @@ router.get('/tree/:condominiumId', async (req, res) => {
     try {
         const { userId, role } = req.user;
         const { condominiumId } = req.params;
-        if (!isAdminRole(role)) {
+        if (!isAdminRole(role) && role !== 'staff') {
             return res.status(403).json({ error: 'Forbidden' });
         }
         if (isBlank(condominiumId)) {

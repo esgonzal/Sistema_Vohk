@@ -1,7 +1,7 @@
 const activityRepository = require('../../repositories/activityRepository');
 
 async function listActivities(user, query) {
-    if (!['admin', 'superadmin', 'resident'].includes(user.role)) {
+    if (!['admin', 'superadmin', 'resident', 'staff'].includes(user.role)) {
         const error = new Error('Forbidden');
         error.status = 403;
         throw error;

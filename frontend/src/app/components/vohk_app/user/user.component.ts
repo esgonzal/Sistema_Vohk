@@ -18,7 +18,9 @@ export class UserComponent implements OnInit, OnDestroy {
   searchText = '';
   selectedRole = 'Todos';
   selectedCondominium: SelectedCondominium | null = null;
-  readonly canCreateAdministrators = localStorage.getItem('role') === 'superadmin';
+  readonly currentRole = localStorage.getItem('role');
+  readonly canCreateAdministrators = this.currentRole === 'superadmin';
+  readonly canCreateManagementUsers = this.currentRole === 'admin' || this.currentRole === 'superadmin';
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -101,26 +103,35 @@ export class UserComponent implements OnInit, OnDestroy {
     }
   }
   getBuildingNames(user: any): string {
+    if (user.role === 'staff') {
+      return 'Todo el condominio';
+    }
     if (!user.locations?.length) {
       return '-';
     }
     return [...new Set(user.locations.map((l: any) => l.building))].join(', ');
   }
   getUnitNames(user: any): string {
+    if (user.role === 'staff') {
+      return 'Todas las unidades';
+    }
     if (!user.locations?.length) {
       return '-';
     }
     return user.locations.map((l: any) => l.unit).join(', ');
   }
   async openCreateUser(): Promise<void> {
-    if (!this.canCreateAdministrators) {
+    if (!this.canCreateManagementUsers || !this.selectedCondominium) {
       return;
     }
+    const roleOptions = this.canCreateAdministrators
+      ? '<option value="staff">Personal</option><option value="admin">Administrador</option>'
+      : '<option value="staff">Personal</option>';
     const result = await Swal.fire({
       title: 'Nuevo usuario',
       html: `
         <select id="newUserRole" class="swal2-select" aria-label="Tipo de usuario">
-          <option value="admin">Administrador</option>
+          ${roleOptions}
         </select>
         <input id="newUserLegalName" class="swal2-input" placeholder="Nombre completo" autocomplete="name">
         <input id="newUserRut" class="swal2-input" placeholder="12.345.678-5" maxlength="12" autocomplete="off">
@@ -139,7 +150,7 @@ export class UserComponent implements OnInit, OnDestroy {
         const legalName = (document.getElementById('newUserLegalName') as HTMLInputElement).value.trim();
         const rut = (document.getElementById('newUserRut') as HTMLInputElement).value.trim();
         const email = (document.getElementById('newUserEmail') as HTMLInputElement).value.trim();
-        if (role !== 'admin') {
+        if (!['admin', 'staff'].includes(role) || (role === 'admin' && !this.canCreateAdministrators)) {
           Swal.showValidationMessage('El tipo de usuario no es válido');
           return;
         }
@@ -155,22 +166,26 @@ export class UserComponent implements OnInit, OnDestroy {
           Swal.showValidationMessage('Ingresa un correo electrónico válido');
           return;
         }
-        return { legalName, rut: formatRut(rut), email };
+        return { legalName, rut: formatRut(rut), email, role };
       }
     });
     if (!result.isConfirmed || !result.value) {
       return;
     }
-    this.userService.createAdministrator(
+    const selectedRole = result.value.role as 'admin' | 'staff';
+    this.userService.createManagementUser(
       result.value.legalName,
       result.value.rut,
-      result.value.email
+      result.value.email,
+      selectedRole,
+      selectedRole === 'staff' ? this.selectedCondominium.condominium_id : undefined
     ).subscribe({
       next: response => {
         const username = this.escapeHtml(response.user.username);
         const temporaryPassword = this.escapeHtml(response.temporaryPassword);
+        const roleLabel = selectedRole === 'staff' ? 'Personal' : 'Administrador';
         Swal.fire({
-          title: 'Administrador creado',
+          title: `${roleLabel} creado`,
           icon: 'success',
           html: `
             <p>La cuenta fue creada. Guarda estas credenciales antes de cerrar esta ventana.</p>
@@ -178,11 +193,11 @@ export class UserComponent implements OnInit, OnDestroy {
               <div style="margin-bottom:10px"><strong>Usuario</strong><br><code>${username}</code></div>
               <div><strong>Contraseña temporal</strong><br><code>${temporaryPassword}</code></div>
             </div>
-            <small>No se envió ningún correo. Al ingresar, el administrador podrá crear sus condominios.</small>
+            <small>No se envió ningún correo.${selectedRole === 'staff' ? ' La cuenta quedó asignada al condominio seleccionado.' : ' Al ingresar, el administrador podrá crear sus condominios.'}</small>
           `,
           confirmButtonText: 'Entendido',
           allowOutsideClick: false
-        });
+        }).then(() => this.loadUsers(this.selectedCondominium!.condominium_id));
       },
       error: err => {
         console.error('Error creating administrator:', err);
@@ -192,12 +207,14 @@ export class UserComponent implements OnInit, OnDestroy {
           'Email is already registered': 'El correo electrónico ya está registrado.',
           'SIP identity is already registered': 'La identidad asociada al RUT ya está registrada.',
           'RUT is already registered as a non-resident user': 'El RUT pertenece a una cuenta que no es residente.',
-          'Only superadmin can create administrators': 'Solo el superadministrador puede crear administradores.'
+          'Only superadmin can create administrators': 'Solo el superadministrador puede crear administradores.',
+          'Only administrators or superadmin can create staff': 'Solo un administrador puede crear personal.',
+          'Condominium not found': 'No tienes acceso al condominio seleccionado.'
         };
         const backendMessage = err.error?.error;
         Swal.fire(
           err.status === 409 ? 'No se pudo crear' : 'Error',
-          messages[backendMessage] || backendMessage || 'No se pudo crear el administrador.',
+          messages[backendMessage] || backendMessage || 'No se pudo crear el usuario.',
           err.status === 409 ? 'warning' : 'error'
         );
       }

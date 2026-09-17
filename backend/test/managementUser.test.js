@@ -2,6 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const Module = require('module');
 let existingRut = null;
+const staffAssignments = [];
 
 test('superadmin creates an administrator without sending email and receives one-time credentials', async () => {
     const created = [];
@@ -13,7 +14,17 @@ test('superadmin creates an administrator without sending email and receives one
             findByIdentity: async () => null,
             createManagementUser: async (...args) => {
                 created.push(args);
-                return { user_id: 'admin-1', username: args[0], legal_name: args[5], role: args[6] };
+                return { user_id: `${args[6]}-1`, username: args[0], legal_name: args[5], role: args[6] };
+            },
+        };
+        if (request === '../../repositories/condominiumRepository') return {
+            findById: async condominiumId => ({ condominium_id: condominiumId }),
+            findByIdAndAdmin: async condominiumId => ({ condominium_id: condominiumId }),
+        };
+        if (request === '../../repositories/staffCondominiumRepository') return {
+            assignStaff: async (userId, condominiumId) => {
+                staffAssignments.push({ userId, condominiumId });
+                return { user_id: userId, condominium_id: condominiumId };
             },
         };
         if (request === '../vohk_app/emailService') return {
@@ -55,6 +66,21 @@ test('superadmin creates an administrator without sending email and receives one
         existingRut = null;
         Module._load = originalLoad;
     }
+});
+
+test('administrator creates staff assigned to the selected condominium', async () => {
+    const userService = require('../services/vohk_app/userService');
+    staffAssignments.length = 0;
+    const result = await userService.createManagementUser('admin-1', 'admin', {
+        legalName: 'Personal Prueba',
+        rut: '12.345.678-5',
+        email: 'staff@example.com',
+        role: 'staff',
+        condominiumId: 'condominium-1',
+    });
+
+    assert.equal(result.user.role, 'staff');
+    assert.deepEqual(staffAssignments, [{ userId: 'staff-1', condominiumId: 'condominium-1' }]);
 });
 
 test('an administrator RUT cannot be linked as a resident', async () => {

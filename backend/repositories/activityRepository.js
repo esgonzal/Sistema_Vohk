@@ -91,6 +91,12 @@ async function listActivities({ userId, role, condominiumId = null, limit = 30, 
           AND (
               $2 = 'superadmin'
               OR ($2 = 'admin' AND c.admin_user_id = $1)
+              OR ($2 = 'staff' AND EXISTS (
+                  SELECT 1
+                  FROM staff_condominium sc
+                  WHERE sc.user_id = $1
+                    AND sc.condominium_id = ae.condominium_id
+              ))
               OR ($2 = 'resident' AND (
                   ae.actor_user_id = $1 OR EXISTS (
                       SELECT 1 FROM activity_participant visible

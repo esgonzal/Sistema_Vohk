@@ -128,13 +128,36 @@ async function updatePassword(userId, passwordHash) {
 
 async function getUsersByCondominium(condominiumId) {
     const result = await pool.query(`
-        SELECT u.user_id, u.legal_name, u.username, u.rut, u.sip_identity, u.role, u.email, u.active, u.created_at, JSON_AGG(JSON_BUILD_OBJECT('buildingId', b.building_id, 'building', b.name, 'unitId', un.unit_id, 'unit', un.name, 'roomNo', un.room_no, 'floor', un.floor, 'isPrimary', ru.is_primary) ORDER BY ru.is_primary DESC, b.name, un.floor, un.room_no) AS locations
-        FROM app_user u
-        INNER JOIN resident_unit ru ON ru.user_id = u.user_id
-        INNER JOIN unit un ON un.unit_id = ru.unit_id
-        INNER JOIN building b ON b.building_id = un.building_id
-        INNER JOIN condominium c ON c.condominium_id = b.condominium_id
-        WHERE c.condominium_id = $1
+        WITH resident_locations AS (
+            SELECT ru.user_id, ru.is_primary, un.unit_id, un.name AS unit_name,
+                   un.room_no, un.floor, b.building_id, b.name AS building_name
+            FROM resident_unit ru
+            INNER JOIN unit un ON un.unit_id = ru.unit_id
+            INNER JOIN building b ON b.building_id = un.building_id
+            WHERE b.condominium_id = $1
+        ), condominium_users AS (
+            SELECT user_id FROM resident_locations
+            UNION
+            SELECT user_id FROM staff_condominium WHERE condominium_id = $1
+        )
+        SELECT u.user_id, u.legal_name, u.username, u.rut, u.sip_identity,
+               u.role, u.email, u.active, u.created_at,
+               COALESCE(
+                   JSON_AGG(JSON_BUILD_OBJECT(
+                       'buildingId', rl.building_id,
+                       'building', rl.building_name,
+                       'unitId', rl.unit_id,
+                       'unit', rl.unit_name,
+                       'roomNo', rl.room_no,
+                       'floor', rl.floor,
+                       'isPrimary', rl.is_primary
+                   ) ORDER BY rl.is_primary DESC, rl.building_name, rl.floor, rl.room_no)
+                   FILTER (WHERE rl.unit_id IS NOT NULL),
+                   '[]'::json
+               ) AS locations
+        FROM condominium_users cu
+        INNER JOIN app_user u ON u.user_id = cu.user_id
+        LEFT JOIN resident_locations rl ON rl.user_id = u.user_id
         GROUP BY u.user_id, u.legal_name, u.username, u.rut, u.sip_identity, u.role, u.email, u.active, u.created_at
         ORDER BY u.legal_name
     `, [condominiumId]);

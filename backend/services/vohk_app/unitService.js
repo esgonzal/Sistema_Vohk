@@ -1,11 +1,19 @@
 const condominiumRepository = require('../../repositories/condominiumRepository');
 const buildingRepository = require('../../repositories/buildingRepository');
 const unitRepository = require('../../repositories/unitRepository');
+const staffCondominiumRepository = require('../../repositories/staffCondominiumRepository');
 
 async function getUnitTree(condominiumId, userId, role) {
     if (role === 'admin') {
         const condominium = await condominiumRepository.findByIdAndAdmin(condominiumId, userId);
         if (!condominium) {
+            const error = new Error('Condominium not found or not accessible');
+            error.status = 404;
+            throw error;
+        }
+    } else if (role === 'staff') {
+        const assignment = await staffCondominiumRepository.findByUserAndCondominium(userId, condominiumId);
+        if (!assignment) {
             const error = new Error('Condominium not found or not accessible');
             error.status = 404;
             throw error;

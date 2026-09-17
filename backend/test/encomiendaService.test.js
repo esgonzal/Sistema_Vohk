@@ -3,6 +3,25 @@ const assert = require('node:assert/strict');
 const Module = require('module');
 const jwt = require('jsonwebtoken');
 
+test('package photos are identified from their bytes instead of trusting multipart MIME metadata', async () => {
+    const servicePath = require.resolve('../services/vohk_app/encomiendaService');
+    try {
+        const service = require(servicePath);
+        const onePixelPng = Buffer.from(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+            'base64',
+        );
+
+        assert.equal(await service.detectPhotoMimeType(onePixelPng), 'image/png');
+        await assert.rejects(
+            service.detectPhotoMimeType(Buffer.from('not an image')),
+            error => error.status === 400 && error.message === 'Photo must be JPEG, PNG or WebP',
+        );
+    } finally {
+        delete require.cache[servicePath];
+    }
+});
+
 test('resident claim identifies the resident and an authorized staff scan records both parties', async () => {
     const originalLoad = Module._load;
     const packageId = '11111111-1111-4111-8111-111111111111';

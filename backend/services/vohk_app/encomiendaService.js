@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const sharp = require('sharp');
 const encomiendaRepository = require('../../repositories/encomiendaRepository');
 const unitRepository = require('../../repositories/unitRepository');
 const residentUnitRepository = require('../../repositories/residentUnitRepository');
@@ -6,6 +7,11 @@ const staffCondominiumRepository = require('../../repositories/staffCondominiumR
 const pushNotificationService = require('./pushNotificationService');
 
 const STAFF_ROLES = ['staff', 'admin', 'superadmin'];
+const PHOTO_MIME_TYPES = {
+    jpeg: 'image/jpeg',
+    png: 'image/png',
+    webp: 'image/webp',
+};
 
 function createError(message, status) {
     const error = new Error(message);
@@ -42,6 +48,21 @@ function cleanOptional(value, maxLength) {
     return cleaned;
 }
 
+async function detectPhotoMimeType(buffer) {
+    if (!Buffer.isBuffer(buffer) || buffer.length === 0) {
+        throw createError('Photo must be JPEG, PNG or WebP', 400);
+    }
+    try {
+        const metadata = await sharp(buffer, { limitInputPixels: 40_000_000 }).metadata();
+        const mimeType = PHOTO_MIME_TYPES[metadata.format];
+        if (!mimeType) throw createError('Photo must be JPEG, PNG or WebP', 400);
+        return mimeType;
+    } catch (error) {
+        if (error?.status === 400) throw error;
+        throw createError('Photo must be JPEG, PNG or WebP', 400);
+    }
+}
+
 async function notifyResidents(encomienda, reminder = false) {
     const residents = await encomiendaRepository.findResidentsByUnit(encomienda.unit_id);
     if (!residents.length) return;
@@ -62,7 +83,7 @@ async function notifyResidents(encomienda, reminder = false) {
 async function createEncomienda({ userId, role, unitId, recipientName, courierName, notes, photo }) {
     if (!STAFF_ROLES.includes(role)) throw createError('Only staff can register packages', 403);
     if (!photo) throw createError('A package photo is required', 400);
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(photo.mimetype)) throw createError('Photo must be JPEG, PNG or WebP', 400);
+    const photoMimeType = await detectPhotoMimeType(photo.buffer);
     const unit = await assertUnitAccess(userId, role, unitId);
     const residents = await encomiendaRepository.findResidentsByUnit(unitId);
     if (!residents.length) throw createError('The selected unit has no active residents', 400);
@@ -73,7 +94,7 @@ async function createEncomienda({ userId, role, unitId, recipientName, courierNa
         courierName: cleanOptional(courierName, 120),
         notes: cleanOptional(notes, 1000),
         photoBytes: photo.buffer,
-        photoMimeType: photo.mimetype,
+        photoMimeType,
     });
     const result = { ...created, unit_name: unit.name, building_name: unit.building_name, condominium_id: unit.condominium_id };
     await notifyResidents(result, false);
@@ -131,10 +152,10 @@ async function cancelEncomienda({ userId, role, encomiendaId, reason }) {
 async function processReminders() {
     const hour = Number(new Intl.DateTimeFormat('en-US', { timeZone: 'America/Santiago', hour: '2-digit', hourCycle: 'h23' }).format(new Date()));
     if (hour < 8 || hour >= 22) return 0;
-    const intervalHours = Math.max(1, Number.parseInt(process.env.ENCOMIENDA_REMINDER_HOURS || '3', 10) || 3);
+    const intervalHours = Math.max(1, Number.parseInt(process.env.ENCOMIENDA_REMINDER_HOURS || '1', 10) || 1);
     const pending = await encomiendaRepository.findDueReminders(intervalHours);
     for (const encomienda of pending) await notifyResidents(encomienda, true);
     return pending.length;
 }
 
-module.exports = { createEncomienda, listEncomiendas, getPhoto, deliverEncomienda, cancelEncomienda, processReminders };
+module.exports = { createEncomienda, listEncomiendas, getPhoto, deliverEncomienda, cancelEncomienda, processReminders, detectPhotoMimeType };
