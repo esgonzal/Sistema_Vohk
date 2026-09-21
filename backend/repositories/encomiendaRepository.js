@@ -54,6 +54,15 @@ async function listByUnit(unitId, includeHistory) {
     return result.rows;
 }
 
+async function listByCondominium(condominiumId, includeHistory) {
+    const statusClause = includeHistory ? '' : `AND e.status = 'pending'`;
+    const result = await pool.query(
+        `${SUMMARY_SELECT} WHERE c.condominium_id = $1 ${statusClause} ORDER BY e.created_at DESC`,
+        [condominiumId],
+    );
+    return result.rows;
+}
+
 async function getPhoto(encomiendaId) {
     const result = await pool.query(`SELECT photo_bytes, photo_mime_type FROM encomienda WHERE encomienda_id = $1`, [encomiendaId]);
     return result.rows[0] || null;
@@ -170,4 +179,4 @@ async function markNotified(encomiendaId, actorUserId, residentIds, reminder) {
     }
 }
 
-module.exports = { create, findById, listByUnit, getPhoto, deliver, cancel, findResidentsByUnit, findDueReminders, markNotified };
+module.exports = { create, findById, listByUnit, listByCondominium, getPhoto, deliver, cancel, findResidentsByUnit, findDueReminders, markNotified };

@@ -18,10 +18,15 @@ function sendError(res, error, fallback) {
 
 router.get('/', authenticate, async (req, res) => {
     try {
-        if (isBlank(req.query.unitId)) return res.status(400).json({ error: 'Unit ID is required' });
+        const hasUnitId = !isBlank(req.query.unitId);
+        const hasCondominiumId = !isBlank(req.query.condominiumId);
+        if (hasUnitId === hasCondominiumId) {
+            return res.status(400).json({ error: 'Provide either a unit ID or a condominium ID' });
+        }
         const result = await encomiendaService.listEncomiendas({
             ...req.user,
-            unitId: req.query.unitId,
+            unitId: hasUnitId ? req.query.unitId : undefined,
+            condominiumId: hasCondominiumId ? req.query.condominiumId : undefined,
             includeHistory: req.query.includeHistory === 'true',
         });
         return res.json(result);

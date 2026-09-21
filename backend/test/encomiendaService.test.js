@@ -83,3 +83,56 @@ test('resident claim identifies the resident and an authorized staff scan record
         delete require.cache[require.resolve('../services/vohk_app/encomiendaService')];
     }
 });
+
+test('staff can list all packages only for an assigned condominium', async () => {
+    const originalLoad = Module._load;
+    const staffId = '11111111-1111-4111-8111-111111111111';
+    const condominiumId = '22222222-2222-4222-8222-222222222222';
+    const listedRows = [{ encomienda_id: '33333333-3333-4333-8333-333333333333' }];
+    const requested = [];
+
+    Module._load = function (request, parent, isMain) {
+        if (request === '../../repositories/encomiendaRepository') return {
+            listByCondominium: async (id, includeHistory) => {
+                requested.push({ id, includeHistory });
+                return listedRows;
+            },
+        };
+        if (request === '../../repositories/condominiumRepository') return {
+            findById: async () => null,
+            findByIdAndAdmin: async () => null,
+        };
+        if (request === '../../repositories/staffCondominiumRepository') return {
+            findByUserAndCondominium: async (userId, id) => userId === staffId && id === condominiumId ? {} : null,
+        };
+        if (request === '../../repositories/unitRepository') return {};
+        if (request === '../../repositories/residentUnitRepository') return {};
+        if (request === './pushNotificationService') return { sendToUsers: async () => ({ sent: 0 }) };
+        return originalLoad.call(this, request, parent, isMain);
+    };
+
+    const servicePath = require.resolve('../services/vohk_app/encomiendaService');
+    try {
+        const service = require(servicePath);
+        const rows = await service.listEncomiendas({
+            userId: staffId,
+            role: 'staff',
+            condominiumId,
+            includeHistory: true,
+        });
+        assert.equal(rows, listedRows);
+        assert.deepEqual(requested, [{ id: condominiumId, includeHistory: true }]);
+
+        await assert.rejects(
+            service.listEncomiendas({ userId: '44444444-4444-4444-8444-444444444444', role: 'staff', condominiumId }),
+            error => error.status === 404,
+        );
+        await assert.rejects(
+            service.listEncomiendas({ userId: staffId, role: 'resident', condominiumId }),
+            error => error.status === 403,
+        );
+    } finally {
+        Module._load = originalLoad;
+        delete require.cache[servicePath];
+    }
+});

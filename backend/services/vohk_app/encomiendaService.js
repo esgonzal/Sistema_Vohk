@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const sharp = require('sharp');
 const encomiendaRepository = require('../../repositories/encomiendaRepository');
+const condominiumRepository = require('../../repositories/condominiumRepository');
 const unitRepository = require('../../repositories/unitRepository');
 const residentUnitRepository = require('../../repositories/residentUnitRepository');
 const staffCondominiumRepository = require('../../repositories/staffCondominiumRepository');
@@ -39,6 +40,23 @@ async function assertUnitAccess(userId, role, unitId) {
         return unit;
     }
     throw createError('Forbidden', 403);
+}
+
+async function assertCondominiumStaffAccess(userId, role, condominiumId) {
+    if (!STAFF_ROLES.includes(role)) throw createError('Forbidden', 403);
+    if (role === 'superadmin') {
+        const condominium = await condominiumRepository.findById(condominiumId);
+        if (!condominium) throw createError('Condominium not found', 404);
+        return condominium;
+    }
+    if (role === 'admin') {
+        const condominium = await condominiumRepository.findByIdAndAdmin(condominiumId, userId);
+        if (!condominium) throw createError('Condominium not found or not accessible', 404);
+        return condominium;
+    }
+    const assignment = await staffCondominiumRepository.findByUserAndCondominium(userId, condominiumId);
+    if (!assignment) throw createError('Condominium not found or not accessible', 404);
+    return assignment;
 }
 
 function cleanOptional(value, maxLength) {
@@ -101,7 +119,11 @@ async function createEncomienda({ userId, role, unitId, recipientName, courierNa
     return result;
 }
 
-async function listEncomiendas({ userId, role, unitId, includeHistory }) {
+async function listEncomiendas({ userId, role, unitId, condominiumId, includeHistory }) {
+    if (condominiumId) {
+        await assertCondominiumStaffAccess(userId, role, condominiumId);
+        return encomiendaRepository.listByCondominium(condominiumId, includeHistory);
+    }
     await assertUnitAccess(userId, role, unitId);
     const rows = await encomiendaRepository.listByUnit(unitId, includeHistory && role !== 'resident');
     if (role !== 'resident') return rows;
