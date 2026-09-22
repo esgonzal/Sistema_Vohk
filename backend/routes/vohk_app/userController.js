@@ -103,6 +103,36 @@ router.post('/management', async (req, res) => {
         return sendServerError(res, error, 'Could not create user');
     }
 });
+router.post('/residents/bulk', async (req, res) => {
+    try {
+        const { userId, role } = req.user;
+        const { condominiumId, residents } = req.body;
+        if (!isAdminRole(role)) {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        if (isBlank(condominiumId)) {
+            return res.status(400).json({ error: 'Condominium ID is required' });
+        }
+        if (!Array.isArray(residents) || residents.length === 0) {
+            return res.status(400).json({ error: 'At least one resident is required' });
+        }
+        if (residents.length > 500) {
+            return res.status(400).json({ error: 'A maximum of 500 residents can be imported at once' });
+        }
+        const result = await userService.createResidentsBulk(condominiumId, userId, role, residents.map((resident = {}) => ({
+            row: resident.row,
+            legalName: typeof resident.legalName === 'string' ? resident.legalName.trim() : '',
+            rut: typeof resident.rut === 'string' ? resident.rut.trim() : '',
+            email: typeof resident.email === 'string' ? resident.email.trim() : '',
+            building: typeof resident.building === 'string' ? resident.building.trim() : '',
+            unit: typeof resident.unit === 'string' ? resident.unit.trim() : '',
+            isPrimary: resident.isPrimary
+        })));
+        return res.status(200).json(result);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not import residents');
+    }
+});
 router.get('/:condominiumId', async (req, res) => {
     try {
         const { userId, role } = req.user;

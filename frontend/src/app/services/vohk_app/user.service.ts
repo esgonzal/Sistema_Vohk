@@ -23,6 +23,22 @@ export class UserService {
   createResident(unitId: string, legalName: string, rut: string, email: string, isPrimary: boolean) {
     return this.http.post(`${this.URL}/api/users/${unitId}`, { legalName, rut, email, isPrimary });
   }
+  createResidentsBulk(condominiumId: string, residents: Array<{
+    row: number;
+    legalName: string;
+    rut: string;
+    email: string;
+    building: string;
+    unit: string;
+    isPrimary: boolean;
+  }>) {
+    return this.http.post<{
+      total: number;
+      succeeded: number;
+      failed: number;
+      results: Array<{ row: number; legalName: string; success: boolean; building?: string; unit?: string; error?: string }>;
+    }>(`${this.URL}/api/users/residents/bulk`, { condominiumId, residents });
+  }
   updateResident(residentId: string, unitId: string, legalName: string, email: string, isPrimary: boolean) {
     return this.http.put(`${this.URL}/api/users/residents/${residentId}`, { unitId, legalName, email, isPrimary });
   }

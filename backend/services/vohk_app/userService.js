@@ -138,6 +138,18 @@ async function createResident(unitId, userId, role, { legalName, rut, email, isP
     let isNewUser = false;
     let temporaryPassword = null;
     if (!resident) {
+        const existingEmail = await userRepository.findByEmail(normalizedEmail);
+        if (existingEmail) {
+            const error = new Error('Email is already registered');
+            error.status = 409;
+            throw error;
+        }
+        const existingIdentity = await userRepository.findByIdentity(sipIdentity);
+        if (existingIdentity) {
+            const error = new Error('SIP identity is already registered');
+            error.status = 409;
+            throw error;
+        }
         isNewUser = true;
         temporaryPassword = crypto.randomInt(100000, 1000000).toString();
         const passwordHash = await bcrypt.hash(temporaryPassword, 10);
@@ -172,6 +184,94 @@ async function createResident(unitId, userId, role, { legalName, rut, email, isP
         }
     }
     return resident;
+}
+
+function normalizeLocation(value) {
+    return String(value ?? '')
+        .trim()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase();
+}
+
+async function createResidentsBulk(condominiumId, userId, role, residents) {
+    const condominium = role === 'superadmin'
+        ? await condominiumRepository.findById(condominiumId)
+        : await condominiumRepository.findByIdAndAdmin(condominiumId, userId);
+    if (!condominium) {
+        const error = new Error('Condominium not found');
+        error.status = 404;
+        throw error;
+    }
+
+    const units = await unitRepository.findUnitsByCondominium(condominiumId);
+    const results = [];
+    const rowsSeen = new Set();
+
+    for (const [index, item] of residents.entries()) {
+        const row = Number.isInteger(item.row) ? item.row : index + 2;
+        if (!item.legalName || !item.rut || !item.email || !item.building || !item.unit) {
+            results.push({ row, legalName: item.legalName, success: false, error: 'Missing required fields' });
+            continue;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(item.email)) {
+            results.push({ row, legalName: item.legalName, success: false, error: 'Invalid email' });
+            continue;
+        }
+        if (!isValidRut(item.rut)) {
+            results.push({ row, legalName: item.legalName, success: false, error: 'Invalid RUT' });
+            continue;
+        }
+        if (item.isPrimary !== undefined && typeof item.isPrimary !== 'boolean') {
+            results.push({ row, legalName: item.legalName, success: false, error: 'Invalid primary resident value' });
+            continue;
+        }
+        item.isPrimary = item.isPrimary ?? false;
+        const buildingKey = normalizeLocation(item.building);
+        const unitKey = normalizeLocation(item.unit);
+        const matchingUnits = units.filter(unit =>
+            normalizeLocation(unit.building_name) === buildingKey
+            && (normalizeLocation(unit.name) === unitKey || normalizeLocation(unit.room_no) === unitKey)
+        );
+
+        if (matchingUnits.length !== 1) {
+            results.push({
+                row,
+                legalName: item.legalName,
+                success: false,
+                error: matchingUnits.length === 0 ? 'Unit not found in condominium' : 'Unit reference is ambiguous'
+            });
+            continue;
+        }
+
+        const unit = matchingUnits[0];
+        const rowKey = `${normalizeRut(item.rut)}:${unit.unit_id}`;
+        if (rowsSeen.has(rowKey)) {
+            results.push({ row, legalName: item.legalName, success: false, error: 'Duplicate resident and unit in file' });
+            continue;
+        }
+        rowsSeen.add(rowKey);
+
+        try {
+            const resident = await createResident(unit.unit_id, userId, role, item);
+            results.push({
+                row,
+                legalName: resident.legal_name,
+                unit: unit.name,
+                building: unit.building_name,
+                success: true
+            });
+        } catch (error) {
+            results.push({ row, legalName: item.legalName, success: false, error: error.message || 'Could not create resident' });
+        }
+    }
+
+    return {
+        total: results.length,
+        succeeded: results.filter(result => result.success).length,
+        failed: results.filter(result => !result.success).length,
+        results
+    };
 }
 async function updateResident(residentId, userId, role, { unitId, legalName, email, isPrimary }) {
     const unit = role === 'superadmin' ? await unitRepository.findUnitHierarchy(unitId) : await unitRepository.findUnitByIdAndAdmin(unitId, userId);
@@ -277,5 +377,5 @@ async function syncUnitSipNumbers(unit, intercoms) {
 
 module.exports = {
     getUsersByCondominium, createResident, updateResident, deleteResident,
-    updateUsername, updateEmail, updatePassword, createManagementUser
+    updateUsername, updateEmail, updatePassword, createManagementUser, createResidentsBulk
 };

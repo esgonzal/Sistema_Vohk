@@ -6,7 +6,9 @@
             <p>Usuarios vinculados al condominio seleccionado.</p>
         </div>
         <div class="header-actions">
-            <button class="secondary-btn">Carga masiva</button>
+            <button class="secondary-btn" *ngIf="canCreateManagementUsers" (click)="openBulkResidentImport()">
+                Carga masiva
+            </button>
             <button class="primary-btn" *ngIf="canCreateManagementUsers" (click)="openCreateUser()">
                 + Nuevo usuario
             </button>

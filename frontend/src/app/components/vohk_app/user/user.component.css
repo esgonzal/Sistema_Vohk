@@ -232,3 +232,64 @@ button {
         grid-template-columns: 1fr;
     }
 }
+
+::ng-deep .bulk-import-copy {
+    color: #4a4a4a;
+    text-align: left;
+}
+
+::ng-deep .bulk-template-btn,
+::ng-deep .bulk-file-picker {
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    margin: 14px 0;
+    padding: 12px 14px;
+    border-radius: 9px;
+    text-align: center;
+    font-weight: 600;
+}
+
+::ng-deep .bulk-template-btn {
+    border: 1px solid #c5a51f;
+    background: #fff9df;
+    color: #665100;
+}
+
+::ng-deep .bulk-file-picker {
+    border: 1px dashed #9a9a9a;
+    cursor: pointer;
+}
+
+::ng-deep .bulk-file-picker small {
+    display: block;
+    margin-top: 5px;
+    color: #777;
+    font-weight: 400;
+}
+
+::ng-deep .bulk-import-help,
+::ng-deep .bulk-more-errors {
+    color: #777;
+    font-size: 13px;
+}
+
+::ng-deep .bulk-results-wrap {
+    max-height: 300px;
+    overflow: auto;
+    margin-top: 14px;
+}
+
+::ng-deep .bulk-results-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    text-align: left;
+}
+
+::ng-deep .bulk-results-table th,
+::ng-deep .bulk-results-table td {
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+    vertical-align: top;
+}
