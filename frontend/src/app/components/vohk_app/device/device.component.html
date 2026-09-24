@@ -29,8 +29,8 @@
             <div class="stat-value">{{ getTtlockCount() }}</div>
         </div>
         <div class="stat-card">
-            <div class="stat-label">Inactivos</div>
-            <div class="stat-value">{{ getInactiveCount() }}</div>
+            <div class="stat-label">Sin conexión</div>
+            <div class="stat-value">{{ getOfflineCount() }}</div>
         </div>
     </div>
 
@@ -92,9 +92,9 @@
             </div>
 
             <div>
-                <span class="status" [class.inactive]="!device.active">
+                <span class="status" [class.inactive]="!isDeviceOnline(device)">
                     <span class="status-dot"></span>
-                    {{ device.active ? 'Activo' : 'Inactivo' }}
+                    {{ getDeviceStatus(device) }}
                 </span>
             </div>
 

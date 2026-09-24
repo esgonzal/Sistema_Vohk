@@ -13,4 +13,8 @@ export class ConserjeriaService {
   getDevices(condominiumId: string) {
     return this.http.get<any>(`${this.URL}/api/concierge/location?condominiumId=${condominiumId}`);
   }
+
+  openDoor(deviceId: string) {
+    return this.http.post<{ ok: boolean; message?: string }>(`${this.URL}/api/devices/open-door/${deviceId}`, {});
+  }
 }

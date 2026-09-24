@@ -1,11 +1,12 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { forkJoin, Subject, takeUntil, timer } from 'rxjs';
+import { firstValueFrom, forkJoin, Subject, takeUntil, timer } from 'rxjs';
 import { SelectedCondominium, SelectedCondominiumService } from 'src/app/services/vohk_app/selected-condominium.service';
 import { DomSanitizer } from '@angular/platform-browser';
 import { TwilioService } from 'src/app/services/vohk_app/twilio.service';
 import { Call } from '@twilio/voice-sdk';
 import { ConserjeriaService } from 'src/app/services/vohk_app/conserjeria.service';
 import { DashboardService } from 'src/app/services/vohk_app/dashboard.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-conserjeria',
@@ -16,6 +17,8 @@ export class ConserjeriaComponent implements OnInit, OnDestroy {
   loading = true;
   devices: any[] = [];
   cameraDevices: any[] = [];
+  doorDevices: any[] = [];
+  openingDoor = false;
   selectedCondominium: SelectedCondominium | null = null;
   incomingCall: Call | null = null;
   activeCall: Call | null = null;
@@ -44,6 +47,7 @@ export class ConserjeriaComponent implements OnInit, OnDestroy {
         this.loading = false;
         this.devices = [];
         this.cameraDevices = [];
+        this.doorDevices = [];
         this.activities = [];
         this.accessActivities = [];
         return;
@@ -99,12 +103,14 @@ export class ConserjeriaComponent implements OnInit, OnDestroy {
         });
         this.devices = preparedDevices;
         this.cameraDevices = preparedDevices.filter((device: any) => device.type === 'camera' || device.type === 'intercom');
+        this.doorDevices = preparedDevices.filter((device: any) => ['intercom', 'lock', 'gate'].includes(device.type));
         this.loading = false;
       },
       error: err => {
         console.error('Unable to load concierge devices:', err);
         this.devices = [];
         this.cameraDevices = [];
+        this.doorDevices = [];
         this.loading = false;
       }
     });
@@ -153,11 +159,11 @@ export class ConserjeriaComponent implements OnInit, OnDestroy {
   }
 
   getStatus(device: any): string {
-    return device.active ? 'ONLINE' : 'OFFLINE';
+    return device.active === true && device.online === true ? 'ONLINE' : 'OFFLINE';
   }
 
   getStatusColor(device: any): string {
-    return device.active ? '#2ECC71' : '#E74C3C';
+    return device.active === true && device.online === true ? '#2ECC71' : '#E74C3C';
   }
 
   simulateCall(): void {
@@ -198,8 +204,54 @@ export class ConserjeriaComponent implements OnInit, OnDestroy {
     this.activeCall = null;
   }
 
-  openDoor(): void {
-    console.log('Open Door');
+  async openDoor(): Promise<void> {
+    if (this.openingDoor) return;
+    if (!this.doorDevices.length) {
+      await Swal.fire('Sin accesos', 'Este condominio no tiene puertas disponibles para apertura remota.', 'info');
+      return;
+    }
+
+    let device = this.doorDevices[0];
+    if (this.doorDevices.length > 1) {
+      const inputOptions = Object.fromEntries(
+        this.doorDevices.map(item => [item.device_id, `${item.name}${item.zone_name ? ` · ${item.zone_name}` : ''}`])
+      );
+      const selection = await Swal.fire({
+        title: 'Abrir puerta',
+        input: 'select',
+        inputOptions,
+        inputPlaceholder: 'Selecciona un acceso',
+        showCancelButton: true,
+        confirmButtonText: 'Abrir',
+        cancelButtonText: 'Cancelar',
+        inputValidator: value => value ? null : 'Selecciona un acceso'
+      });
+      if (!selection.isConfirmed) return;
+      device = this.doorDevices.find(item => item.device_id === selection.value);
+    } else {
+      const confirmation = await Swal.fire({
+        title: `¿Abrir ${device.name}?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Abrir',
+        cancelButtonText: 'Cancelar'
+      });
+      if (!confirmation.isConfirmed) return;
+    }
+    if (!device?.device_id) return;
+
+    this.openingDoor = true;
+    try {
+      await firstValueFrom(this.consjerjeriaService.openDoor(device.device_id));
+      await Swal.fire('Puerta abierta', `${device.name} recibió la orden de apertura.`, 'success');
+      if (this.selectedCondominium) {
+        this.loadActivities(this.selectedCondominium.condominium_id);
+      }
+    } catch (error: any) {
+      await Swal.fire('No se pudo abrir', error?.error?.error || 'No se pudo abrir la puerta.', 'error');
+    } finally {
+      this.openingDoor = false;
+    }
   }
 
   registerVisit(): void {

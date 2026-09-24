@@ -111,7 +111,9 @@
             <div class="actions">
                 <div class="section-title">Acciones</div>
                 <button mat-raised-button color="primary" (click)="simulateCall()">Simular llamada</button>
-                <button mat-stroked-button (click)="openDoor()">Abrir puerta</button>
+                <button mat-stroked-button (click)="openDoor()" [disabled]="openingDoor || !doorDevices.length">
+                    {{ openingDoor ? 'Abriendo…' : 'Abrir puerta' }}
+                </button>
                 <button mat-stroked-button (click)="callResident()">Llamar residente</button>
                 <button mat-stroked-button (click)="registerVisit()">Registrar visita</button>
                 <button mat-raised-button color="warn" (click)="emergency()">SOS</button>

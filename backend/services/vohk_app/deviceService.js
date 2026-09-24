@@ -133,6 +133,13 @@ async function getDevicesByCondominium(condominiumId, userId, role) {
             error.status = 404;
             throw error;
         }
+    } else if (role === 'staff') {
+        const allowed = await staffCondominiumRepository.findByUserAndCondominium(userId, condominiumId);
+        if (!allowed) {
+            const error = new Error('Condominium not found or not accessible');
+            error.status = 404;
+            throw error;
+        }
     }
     const rows = await deviceRepository.findDeviceTreeRows(condominiumId);
     const condominium = { condominium_id: condominiumId, name: rows[0]?.condominium_name, address: rows[0]?.address, city: rows[0]?.city, zones: [], _zoneMap: new Map() };
@@ -145,7 +152,7 @@ async function getDevicesByCondominium(condominiumId, userId, role) {
             condominium.zones.push(zone);
         }
         if (!row.device_id) continue;
-        zone.devices.push({ device_id: row.device_id, type: row.type, vendor: row.vendor, name: row.device_name, model: row.model, firmware_version: row.firmware_version, firmware_build: row.firmware_build, isapi_capabilities: row.isapi_capabilities, identity_checked_at: row.identity_checked_at, ip_address: row.ip_address, port: row.port, snapshot_url: row.snapshot_url, stream_url: row.stream_url, active: row.active, last_seen_at: row.last_seen_at, created_at: row.device_created_at, intercom_id: row.intercom_id, sip_address: row.sip_address, door_id: row.door_id, dial_period_number: row.dial_period_number, dial_building_number: row.dial_building_number, dial_unit_number: row.dial_unit_number, ttlock_lock_id: row.ttlock_lock_id, ttlock_external_lock_id: row.ttlock_external_lock_id, ttlock_key_id: row.ttlock_key_id, ttlock_lock_alias: row.ttlock_lock_alias, ttlock_lock_mac: row.ttlock_lock_mac, keyboard_pwd_version: row.keyboard_pwd_version, has_gateway: row.has_gateway, remote_enabled: row.remote_enabled, ttlock_last_synced_at: row.ttlock_last_synced_at });
+        zone.devices.push({ device_id: row.device_id, type: row.type, vendor: row.vendor, name: row.device_name, model: row.model, firmware_version: row.firmware_version, firmware_build: row.firmware_build, isapi_capabilities: row.isapi_capabilities, identity_checked_at: row.identity_checked_at, ip_address: row.ip_address, port: row.port, snapshot_url: row.snapshot_url, stream_url: row.stream_url, active: row.active, online: row.online, last_seen_at: row.last_seen_at, created_at: row.device_created_at, intercom_id: row.intercom_id, sip_address: row.sip_address, door_id: row.door_id, dial_period_number: row.dial_period_number, dial_building_number: row.dial_building_number, dial_unit_number: row.dial_unit_number, ttlock_lock_id: row.ttlock_lock_id, ttlock_external_lock_id: row.ttlock_external_lock_id, ttlock_key_id: row.ttlock_key_id, ttlock_lock_alias: row.ttlock_lock_alias, ttlock_lock_mac: row.ttlock_lock_mac, keyboard_pwd_version: row.keyboard_pwd_version, has_gateway: row.has_gateway, remote_enabled: row.remote_enabled, ttlock_last_synced_at: row.ttlock_last_synced_at });
     }
     delete condominium._zoneMap;
     return condominium;

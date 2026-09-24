@@ -4,8 +4,9 @@ const buildingRepository = require('../../repositories/buildingRepository');
 const staffCondominiumRepository = require('../../repositories/staffCondominiumRepository');
 
 async function getCondominiumTree(userId, role) {
-    const adminUserId = role === 'superadmin' ? null : userId;
-    const rows = await condominiumRepository.findCondominiumTreeRows(adminUserId);
+    const adminUserId = role === 'admin' ? userId : null;
+    const staffUserId = role === 'staff' ? userId : null;
+    const rows = await condominiumRepository.findCondominiumTreeRows(adminUserId, staffUserId);
     const condominiumMap = new Map();
     for (const row of rows) {
         let condominium = condominiumMap.get(row.condominium_id);

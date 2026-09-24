@@ -142,8 +142,17 @@ export class DeviceComponent implements OnInit, OnDestroy {
     return this.devices.filter(device => device.type === 'lock' || device.type === 'gate').length;
   }
 
-  getInactiveCount(): number {
-    return this.devices.filter(device => device.active !== true).length;
+  getOfflineCount(): number {
+    return this.devices.filter(device => device.active === true && device.online !== true).length;
+  }
+
+  getDeviceStatus(device: any): string {
+    if (device.active !== true) return 'Deshabilitado';
+    return device.online === true ? 'Online' : 'Offline';
+  }
+
+  isDeviceOnline(device: any): boolean {
+    return device.active === true && device.online === true;
   }
 
   getTypeLabel(type: string): string {

@@ -134,6 +134,10 @@ async function unlock(lockId) {
     return post('/lock/unlock', { lockId });
 }
 
+async function queryOpenState(lockId) {
+    return get('/lock/queryOpenState', { lockId });
+}
+
 async function renameLock(lockId, lockAlias) {
     return post('/lock/rename', { lockId, lockAlias });
 }
@@ -175,6 +179,7 @@ async function listUnlockRecords(lockId, { startDate, endDate, pageNo = 1, pageS
 
 module.exports = {
     listAccountLocks,
+    queryOpenState,
     unlock,
     renameLock,
     listPasscodes,

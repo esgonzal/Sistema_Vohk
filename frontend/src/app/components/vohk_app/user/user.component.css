@@ -130,7 +130,7 @@ button {
 .table-header,
 .user-row {
     display: grid;
-    grid-template-columns: 1.8fr 1fr 1fr 1.3fr .8fr .8fr;
+    grid-template-columns: 1.8fr 1fr 1fr 1.3fr .8fr;
     gap: 12px;
     padding: 14px 20px;
     align-items: center;

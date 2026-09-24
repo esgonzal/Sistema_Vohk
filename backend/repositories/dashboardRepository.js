@@ -1,6 +1,6 @@
 const pool = require('../database/db');
 
-async function getSummary(adminUserId) {
+async function getSummary(adminUserId, staffUserId = null) {
     const result = await pool.query(`
         SELECT COUNT(DISTINCT c.condominium_id)::int AS condominiums, COUNT(DISTINCT b.building_id)::int AS buildings, COUNT(DISTINCT u.unit_id)::int AS units, COUNT(DISTINCT ru.user_id)::int AS residents, COUNT(DISTINCT d.device_id)::int AS devices, COUNT(DISTINCT i.intercom_id)::int AS intercoms, COUNT(DISTINCT CASE WHEN d.type = 'camera' THEN d.device_id END)::int AS cameras
         FROM condominium c
@@ -10,12 +10,17 @@ async function getSummary(adminUserId) {
         LEFT JOIN zone z ON z.condominium_id = c.condominium_id
         LEFT JOIN device d ON d.zone_id = z.zone_id
         LEFT JOIN intercom i ON i.device_id = d.device_id
-        WHERE ($1::uuid IS NULL OR c.admin_user_id = $1)
-    `, [adminUserId]);
+        WHERE (($1::uuid IS NULL AND $2::uuid IS NULL)
+            OR ($1::uuid IS NOT NULL AND c.admin_user_id = $1)
+            OR ($2::uuid IS NOT NULL AND EXISTS (
+                SELECT 1 FROM staff_condominium sc
+                WHERE sc.user_id = $2 AND sc.condominium_id = c.condominium_id
+            )))
+    `, [adminUserId, staffUserId]);
     return result.rows[0];
 }
 
-async function getCondominiums(adminUserId) {
+async function getCondominiums(adminUserId, staffUserId = null) {
     const result = await pool.query(`
         SELECT c.condominium_id, c.name, c.address, c.city, c.resident_camera_access, COUNT(DISTINCT b.building_id)::int AS buildings, COUNT(DISTINCT u.unit_id)::int AS units, COUNT(DISTINCT ru.user_id)::int AS residents, COUNT(DISTINCT d.device_id)::int AS devices
         FROM condominium c
@@ -24,25 +29,35 @@ async function getCondominiums(adminUserId) {
         LEFT JOIN resident_unit ru ON ru.unit_id = u.unit_id
         LEFT JOIN zone z ON z.condominium_id = c.condominium_id
         LEFT JOIN device d ON d.zone_id = z.zone_id
-        WHERE ($1::uuid IS NULL OR c.admin_user_id = $1)
+        WHERE (($1::uuid IS NULL AND $2::uuid IS NULL)
+            OR ($1::uuid IS NOT NULL AND c.admin_user_id = $1)
+            OR ($2::uuid IS NOT NULL AND EXISTS (
+                SELECT 1 FROM staff_condominium sc
+                WHERE sc.user_id = $2 AND sc.condominium_id = c.condominium_id
+            )))
         GROUP BY c.condominium_id, c.name, c.address, c.city, c.resident_camera_access
         ORDER BY c.name
-    `, [adminUserId]);
+    `, [adminUserId, staffUserId]);
     return result.rows;
 }
 
-async function getDeviceSummary(adminUserId) {
+async function getDeviceSummary(adminUserId, staffUserId = null) {
     const result = await pool.query(`
-        SELECT COUNT(DISTINCT d.device_id)::int AS total, COUNT(DISTINCT d.device_id) FILTER (WHERE d.last_seen_at >= NOW() - INTERVAL '5 minutes')::int AS online, COUNT(DISTINCT d.device_id) FILTER (WHERE d.last_seen_at < NOW() - INTERVAL '5 minutes' OR d.last_seen_at IS NULL)::int AS offline, COUNT(DISTINCT d.device_id) FILTER (WHERE d.type = 'camera')::int AS cameras, COUNT(DISTINCT d.device_id) FILTER (WHERE d.type = 'camera' AND d.last_seen_at >= NOW() - INTERVAL '5 minutes')::int AS cameras_online, COUNT(DISTINCT d.device_id) FILTER (WHERE d.type = 'intercom')::int AS intercoms, COUNT(DISTINCT d.device_id) FILTER (WHERE d.type = 'intercom' AND d.last_seen_at >= NOW() - INTERVAL '5 minutes')::int AS intercoms_online
+        SELECT COUNT(DISTINCT d.device_id) FILTER (WHERE d.active = TRUE)::int AS total, COUNT(DISTINCT d.device_id) FILTER (WHERE d.active = TRUE AND d.last_seen_at >= NOW() - INTERVAL '10 minutes')::int AS online, COUNT(DISTINCT d.device_id) FILTER (WHERE d.active = TRUE AND (d.last_seen_at < NOW() - INTERVAL '10 minutes' OR d.last_seen_at IS NULL))::int AS offline, COUNT(DISTINCT d.device_id) FILTER (WHERE d.active = TRUE AND d.type = 'camera')::int AS cameras, COUNT(DISTINCT d.device_id) FILTER (WHERE d.active = TRUE AND d.type = 'camera' AND d.last_seen_at >= NOW() - INTERVAL '10 minutes')::int AS cameras_online, COUNT(DISTINCT d.device_id) FILTER (WHERE d.active = TRUE AND d.type = 'intercom')::int AS intercoms, COUNT(DISTINCT d.device_id) FILTER (WHERE d.active = TRUE AND d.type = 'intercom' AND d.last_seen_at >= NOW() - INTERVAL '10 minutes')::int AS intercoms_online
         FROM device d
         INNER JOIN zone z ON z.zone_id = d.zone_id
         INNER JOIN condominium c ON c.condominium_id = z.condominium_id
-        WHERE ($1::uuid IS NULL OR c.admin_user_id = $1)
-    `, [adminUserId]);
+        WHERE (($1::uuid IS NULL AND $2::uuid IS NULL)
+            OR ($1::uuid IS NOT NULL AND c.admin_user_id = $1)
+            OR ($2::uuid IS NOT NULL AND EXISTS (
+                SELECT 1 FROM staff_condominium sc
+                WHERE sc.user_id = $2 AND sc.condominium_id = c.condominium_id
+            )))
+    `, [adminUserId, staffUserId]);
     return result.rows[0];
 }
 
-async function getRecentResidents(adminUserId) {
+async function getRecentResidents(adminUserId, staffUserId = null) {
     const result = await pool.query(`
         SELECT recent.user_id, recent.legal_name, recent.email, recent.condominium, recent.created_at
         FROM (
@@ -52,23 +67,33 @@ async function getRecentResidents(adminUserId) {
             INNER JOIN unit un ON un.unit_id = ru.unit_id
             INNER JOIN building b ON b.building_id = un.building_id
             INNER JOIN condominium c ON c.condominium_id = b.condominium_id
-            WHERE ($1::uuid IS NULL OR c.admin_user_id = $1)
+            WHERE (($1::uuid IS NULL AND $2::uuid IS NULL)
+                OR ($1::uuid IS NOT NULL AND c.admin_user_id = $1)
+                OR ($2::uuid IS NOT NULL AND EXISTS (
+                    SELECT 1 FROM staff_condominium sc
+                    WHERE sc.user_id = $2 AND sc.condominium_id = c.condominium_id
+                )))
             ORDER BY u.user_id, u.created_at DESC
         ) recent
         ORDER BY recent.created_at DESC
         LIMIT 5
-    `, [adminUserId]);
+    `, [adminUserId, staffUserId]);
     return result.rows;
 }
 
-async function getRecentCondominiums(adminUserId) {
+async function getRecentCondominiums(adminUserId, staffUserId = null) {
     const result = await pool.query(`
         SELECT condominium_id, name, city, created_at
-        FROM condominium
-        WHERE ($1::uuid IS NULL OR admin_user_id = $1)
+        FROM condominium c
+        WHERE (($1::uuid IS NULL AND $2::uuid IS NULL)
+            OR ($1::uuid IS NOT NULL AND c.admin_user_id = $1)
+            OR ($2::uuid IS NOT NULL AND EXISTS (
+                SELECT 1 FROM staff_condominium sc
+                WHERE sc.user_id = $2 AND sc.condominium_id = c.condominium_id
+            )))
         ORDER BY created_at DESC
         LIMIT 5
-    `, [adminUserId]);
+    `, [adminUserId, staffUserId]);
     return result.rows;
 }
 

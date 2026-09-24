@@ -2,7 +2,7 @@ const pool = require('../database/db');
 
 async function findDeviceTreeRows(condominiumId) {
     const result = await pool.query(`
-        SELECT c.condominium_id, c.name AS condominium_name, c.address, c.city, z.zone_id, z.name AS zone_name, d.device_id, d.type, d.vendor, d.name AS device_name, d.model, d.firmware_version, d.firmware_build, d.isapi_capabilities, d.identity_checked_at, d.ip_address, d.port, d.snapshot_url, d.stream_url, d.active, d.last_seen_at, d.created_at AS device_created_at, i.intercom_id, i.sip_address, i.door_id, i.dial_period_number, i.dial_building_number, i.dial_unit_number, tl.ttlock_lock_id, tl.lock_id AS ttlock_external_lock_id, tl.key_id AS ttlock_key_id, tl.lock_alias AS ttlock_lock_alias, tl.lock_mac AS ttlock_lock_mac, tl.keyboard_pwd_version, tl.has_gateway, tl.remote_enabled, tl.last_synced_at AS ttlock_last_synced_at
+        SELECT c.condominium_id, c.name AS condominium_name, c.address, c.city, z.zone_id, z.name AS zone_name, d.device_id, d.type, d.vendor, d.name AS device_name, d.model, d.firmware_version, d.firmware_build, d.isapi_capabilities, d.identity_checked_at, d.ip_address, d.port, d.snapshot_url, d.stream_url, d.active, d.last_seen_at, (d.active = TRUE AND d.last_seen_at >= NOW() - INTERVAL '10 minutes') AS online, d.created_at AS device_created_at, i.intercom_id, i.sip_address, i.door_id, i.dial_period_number, i.dial_building_number, i.dial_unit_number, tl.ttlock_lock_id, tl.lock_id AS ttlock_external_lock_id, tl.key_id AS ttlock_key_id, tl.lock_alias AS ttlock_lock_alias, tl.lock_mac AS ttlock_lock_mac, tl.keyboard_pwd_version, tl.has_gateway, tl.remote_enabled, tl.last_synced_at AS ttlock_last_synced_at
         FROM condominium c
         LEFT JOIN zone z ON z.condominium_id = c.condominium_id
         LEFT JOIN device d ON d.zone_id = z.zone_id
@@ -46,6 +46,7 @@ async function findMobileDevicesByCondominium(condominiumId) {
     const result = await pool.query(`
         SELECT d.device_id, d.zone_id, d.type, d.name, d.model, d.firmware_version,
                d.firmware_build, d.snapshot_url, d.stream_url, d.active, d.last_seen_at,
+               (d.active = TRUE AND d.last_seen_at >= NOW() - INTERVAL '10 minutes') AS online,
                z.name AS zone_name, i.intercom_id, i.sip_address, i.door_id,
                i.dial_period_number, i.dial_building_number, i.dial_unit_number,
                tl.ttlock_lock_id, tl.lock_id AS ttlock_external_lock_id,
@@ -62,11 +63,13 @@ async function findMobileDevicesByCondominium(condominiumId) {
 
 async function findActiveDevices() {
     const result = await pool.query(`
-        SELECT device_id, type, vendor, name, model, firmware_version, firmware_build,
-               isapi_capabilities, identity_checked_at, ip_address, port, username,
-               password_encrypted, password_encrypted AS password
-        FROM device 
-        WHERE active = TRUE
+        SELECT d.device_id, d.type, d.vendor, d.name, d.model, d.firmware_version, d.firmware_build,
+               d.isapi_capabilities, d.identity_checked_at, d.ip_address, d.port, d.username,
+               d.password_encrypted, d.password_encrypted AS password,
+               tl.lock_id AS ttlock_external_lock_id
+        FROM device d
+        LEFT JOIN ttlock_lock tl ON tl.device_id = d.device_id
+        WHERE d.active = TRUE
     `);
     return result.rows;
 }

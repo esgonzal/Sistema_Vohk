@@ -58,13 +58,62 @@ test('staff can read the unit tree only for an assigned condominium', async () =
     }
 });
 
-test('staff can open an intercom door only in an assigned condominium', async () => {
+test('staff condominium tree and dashboard are scoped to staff assignments', async () => {
+    const originalLoad = Module._load;
+    const calls = [];
+    Module._load = function (request, parent, isMain) {
+        if (request === '../../repositories/condominiumRepository') return {
+            findCondominiumTreeRows: async (...args) => {
+                calls.push(['tree', ...args]);
+                return [];
+            },
+        };
+        if (request === '../../repositories/dashboardRepository') return {
+            getSummary: async (...args) => { calls.push(['summary', ...args]); return {}; },
+            getCondominiums: async (...args) => { calls.push(['condominiums', ...args]); return []; },
+            getDeviceSummary: async (...args) => { calls.push(['devices', ...args]); return {}; },
+            getRecentResidents: async (...args) => { calls.push(['residents', ...args]); return []; },
+            getRecentCondominiums: async (...args) => { calls.push(['recent-condominiums', ...args]); return []; },
+        };
+        if (request.startsWith('../../repositories/')) return {};
+        return originalLoad.call(this, request, parent, isMain);
+    };
+    try {
+        const condominiumService = require('../services/vohk_app/condominiumService');
+        const dashboardService = require('../services/vohk_app/dashboardService');
+        await condominiumService.getCondominiumTree('staff-1', 'staff');
+        await dashboardService.getDashboard('staff-1', 'staff');
+
+        assert.deepEqual(calls, [
+            ['tree', null, 'staff-1'],
+            ['summary', null, 'staff-1'],
+            ['condominiums', null, 'staff-1'],
+            ['devices', null, 'staff-1'],
+            ['residents', null, 'staff-1'],
+            ['recent-condominiums', null, 'staff-1'],
+        ]);
+    } finally {
+        Module._load = originalLoad;
+        delete require.cache[require.resolve('../services/vohk_app/condominiumService')];
+        delete require.cache[require.resolve('../services/vohk_app/dashboardService')];
+    }
+});
+
+test('staff can load concierge devices and open doors only in an assigned condominium', async () => {
     const originalLoad = Module._load;
     let assigned = true;
     let openCount = 0;
     Module._load = function (request, parent, isMain) {
         if (request === '../../repositories/deviceRepository') return {
             findDeviceById: async () => ({ device_id: 'device-1', type: 'intercom' }),
+            findDeviceTreeRows: async () => [{
+                condominium_name: 'Condominio',
+                zone_id: 'zone-1',
+                zone_name: 'Accesos',
+                device_id: 'device-1',
+                device_name: 'Entrada',
+                type: 'intercom',
+            }],
             findIntercomByDeviceId: async () => ({
                 device_id: 'device-1',
                 condominium_id: 'condominium-1',
@@ -94,11 +143,18 @@ test('staff can open an intercom door only in an assigned condominium', async ()
     };
     try {
         const service = require('../services/vohk_app/deviceService');
+        const tree = await service.getDevicesByCondominium('condominium-1', 'staff-1', 'staff');
+        assert.equal(tree.zones[0].devices[0].name, 'Entrada');
+
         const result = await service.openDoor('device-1', { userId: 'staff-1', role: 'staff' });
         assert.equal(result.ok, true);
         assert.equal(openCount, 1);
 
         assigned = false;
+        await assert.rejects(
+            service.getDevicesByCondominium('condominium-1', 'staff-1', 'staff'),
+            error => error.status === 404,
+        );
         await assert.rejects(
             service.openDoor('device-1', { userId: 'staff-1', role: 'staff' }),
             error => error.status === 403,

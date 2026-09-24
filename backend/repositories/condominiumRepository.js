@@ -99,7 +99,7 @@ async function updateInvitationSettings(condominiumId, adminUserId, maxRecurrent
     return result.rows[0];
 }
 
-async function findCondominiumTreeRows(adminUserId = null) {
+async function findCondominiumTreeRows(adminUserId = null, staffUserId = null) {
     const result = await pool.query(`
         SELECT c.condominium_id, c.name AS condominium_name, c.address, c.city, c.resident_camera_access,
                c.max_recurrent_invitations, c.max_temporary_duration_hours, c.max_express_duration_hours,
@@ -108,9 +108,14 @@ async function findCondominiumTreeRows(adminUserId = null) {
         FROM condominium c
         LEFT JOIN building b ON b.condominium_id = c.condominium_id
         LEFT JOIN zone z ON z.condominium_id = c.condominium_id
-        WHERE ($1::uuid IS NULL OR c.admin_user_id = $1)
+        WHERE (($1::uuid IS NULL AND $2::uuid IS NULL)
+            OR ($1::uuid IS NOT NULL AND c.admin_user_id = $1)
+            OR ($2::uuid IS NOT NULL AND EXISTS (
+                SELECT 1 FROM staff_condominium sc
+                WHERE sc.user_id = $2 AND sc.condominium_id = c.condominium_id
+            )))
         ORDER BY c.name, b.name, z.name
-    `, [adminUserId]);
+    `, [adminUserId, staffUserId]);
     return result.rows;
 }
 

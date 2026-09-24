@@ -42,10 +42,12 @@
                     (click)="filterByRole('resident')">Residentes</span>
                 <span class="filter" [class.active]="selectedRole === 'staff'"
                     (click)="filterByRole('staff')">Personal</span>
+                <!--
                 <span class="filter" [class.active]="selectedRole === 'guard'"
                     (click)="filterByRole('guard')">Guardias</span>
                 <span class="filter" [class.active]="selectedRole === 'admin'"
                     (click)="filterByRole('admin')">Administradores</span>
+                    -->
             </div>
         </div>
         <div class="table-header">
@@ -53,7 +55,6 @@
             <div>RUT</div>
             <div>Rol</div>
             <div>Ubicación</div>
-            <div>Acceso</div>
             <div>Estado</div>
         </div>
         <div class="user-row" *ngFor="let user of filteredUsers">
@@ -73,9 +74,6 @@
                 <div class="unit">
                     {{ getUnitNames(user) }}
                 </div>
-            </div>
-            <div class="methods">
-                <span class="method">APP</span>
             </div>
             <div>
                 <span class="status" [class.inactive]="!user.active">
