@@ -396,6 +396,8 @@ async function openDoor(deviceId, user) {
     let allowed = user.role === 'superadmin';
     if (user.role === 'admin') {
         allowed = Boolean(await condominiumRepository.findByIdAndAdmin(intercom.condominium_id, user.userId));
+    } else if (user.role === 'staff') {
+        allowed = Boolean(await staffCondominiumRepository.findByUserAndCondominium(user.userId, intercom.condominium_id));
     } else if (user.role === 'resident') {
         allowed = Boolean(await intercomUserRepository.findIntercomUserByUserAndDevice(user.userId, deviceId));
     }

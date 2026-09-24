@@ -2,6 +2,7 @@ const ttlockClient = require('../../integrations/ttlock/ttlockClient');
 const ttlockRepository = require('../../repositories/ttlockRepository');
 const condominiumRepository = require('../../repositories/condominiumRepository');
 const residentUnitRepository = require('../../repositories/residentUnitRepository');
+const staffCondominiumRepository = require('../../repositories/staffCondominiumRepository');
 const intercomUserRepository = require('../../repositories/intercomUserRepository');
 const userRepository = require('../../repositories/userRepository');
 const activityRepository = require('../../repositories/activityRepository');
@@ -74,6 +75,10 @@ async function assertDeviceAccess(lock, user, { manage = false } = {}) {
     if (user.role === 'admin') {
         const condominium = await condominiumRepository.findByIdAndAdmin(lock.condominium_id, user.userId);
         if (condominium) return;
+    }
+    if (!manage && user.role === 'staff') {
+        const assignment = await staffCondominiumRepository.findByUserAndCondominium(user.userId, lock.condominium_id);
+        if (assignment) return;
     }
     if (!manage && user.role === 'resident') {
         const assignment = await residentUnitRepository.findByUserAndCondominium(user.userId, lock.condominium_id);
@@ -384,6 +389,7 @@ module.exports = {
         validatePasscode,
         validateTtlockPasscode,
         asTimestamp,
+        assertDeviceAccess,
         assertPasscodeCapableLock,
         setResidentDynamicCodeOnLock,
     },
