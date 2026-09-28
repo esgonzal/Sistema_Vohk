@@ -10,7 +10,7 @@ const pool = require('../backend/database/db.js');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-const allowedOrigins = ['http://localhost:4200', 'https://app.vohk.cl'];
+const allowedOrigins = ['http://localhost:4200', 'https://app.vohk.cl','http://localhost:4201', 'https://one.vohk.cl'];
 
 app.use(cors({
   origin: function (origin, callback) {
