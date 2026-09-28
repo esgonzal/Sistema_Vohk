@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const Module = require('module');
 
-test('TTLock heartbeat queries the lock through its gateway and updates last seen', async () => {
+test('TTLock devices are skipped by the heartbeat', async () => {
     const originalLoad = Module._load;
     const checkedLocks = [];
     const seenDevices = [];
@@ -29,15 +29,15 @@ test('TTLock heartbeat queries the lock through its gateway and updates last see
     try {
         const monitor = require('../services/vohk_app/deviceMonitorService');
         await monitor.checkDevices();
-        assert.deepEqual(checkedLocks, [34739974]);
-        assert.deepEqual(seenDevices, ['device-1']);
+        assert.deepEqual(checkedLocks, []);
+        assert.deepEqual(seenDevices, []);
     } finally {
         Module._load = originalLoad;
         delete require.cache[require.resolve('../services/vohk_app/deviceMonitorService')];
     }
 });
 
-test('failed TTLock heartbeat leaves last seen unchanged', async () => {
+test('TTLock heartbeat does not require the TTLock API client', async () => {
     const originalLoad = Module._load;
     const originalConsoleError = console.error;
     const seenDevices = [];
@@ -52,9 +52,7 @@ test('failed TTLock heartbeat leaves last seen unchanged', async () => {
             }],
             updateLastSeen: async deviceId => seenDevices.push(deviceId),
         };
-        if (request === '../../integrations/ttlock/ttlockClient') return {
-            queryOpenState: async () => { throw new Error('Gateway offline'); },
-        };
+        if (request === '../../integrations/ttlock/ttlockClient') throw new Error('TTLock client should not be loaded');
         if (request === './hikvision/identityService') return {
             fetchHikvisionIdentity: async () => ({}),
         };

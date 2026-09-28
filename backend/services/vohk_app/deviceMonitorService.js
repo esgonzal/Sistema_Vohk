@@ -1,6 +1,5 @@
 const deviceRepository = require('../../repositories/deviceRepository');
 const { fetchHikvisionIdentity } = require('./hikvision/identityService');
-const ttlockClient = require('../../integrations/ttlock/ttlockClient');
 
 async function checkDevices() {
     const devices = await deviceRepository.findActiveDevices();
@@ -22,7 +21,7 @@ async function checkDevice(device) {
         case 'dahua':
             return checkDahuaDevice(device);
         case 'ttlock':
-            return checkTtlockDevice(device);
+            return false;
         default:
             console.error(`Unsupported device vendor: ${device.vendor}`);
             return false;
@@ -47,15 +46,6 @@ async function checkDahuaDevice(device) {
     const url = `http://${device.ip_address}:${device.port}/cgi-bin/magicBox.cgi?action=getSystemInfo`;
     const response = await client.fetch(url, {method: 'GET'});
     return response.ok;
-}
-
-async function checkTtlockDevice(device) {
-    if (!device.ttlock_external_lock_id) {
-        console.error(`Missing TTLock ID for ${device.name}`);
-        return false;
-    }
-    await ttlockClient.queryOpenState(device.ttlock_external_lock_id);
-    return true;
 }
 
 module.exports = { checkDevices, _private: { checkDevice } };
