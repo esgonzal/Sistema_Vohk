@@ -9,7 +9,7 @@ function createApp(service) {
     const app = express();
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({ extended: true }));
-    const allowedOrigins = ['http://localhost:4200', 'https://app.vohk.cl'];
+    const allowedOrigins = ['http://localhost:4200', 'https://app.vohk.cl','http://localhost:4201', 'https://one.vohk.cl'];
     app.use(cors({
         origin(origin, callback) {
             if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
