@@ -9,9 +9,14 @@ function ensureFirebase() {
 
 async function sendToUsers(userIds, message) {
     ensureFirebase();
-    const devices = (await Promise.all([...new Set(userIds)].map(id => userDeviceRepository.findActiveByUserId(id)))).flat();
-    if (!devices.length) return { sent: 0 };
+    const uniqueUserIds = [...new Set(userIds)];
+    const devices = (await Promise.all(uniqueUserIds.map(id => userDeviceRepository.findActiveByUserId(id)))).flat();
+    if (!devices.length) {
+        return { sent: 0, failed: 0, devices: 0, users: uniqueUserIds.length, errors: {} };
+    }
     let sent = 0;
+    let failed = 0;
+    const errors = {};
     for (let offset = 0; offset < devices.length; offset += 500) {
         const batch = devices.slice(offset, offset + 500);
         const response = await admin.messaging().sendEachForMulticast({
@@ -24,13 +29,17 @@ async function sendToUsers(userIds, message) {
         sent += response.successCount;
         await Promise.all(response.responses.map(async (item, index) => {
             if (item.success) return;
-            const code = item.error?.code;
+            failed += 1;
+            const code = item.error?.code || 'unknown';
+            errors[code] = (errors[code] || 0) + 1;
+            const device = batch[index];
+            console.warn(`[PUSH] Firebase rejected device ${device.user_device_id} (${device.platform || 'unknown'}): ${code}`);
             if (code === 'messaging/registration-token-not-registered' || code === 'messaging/invalid-registration-token') {
-                await userDeviceRepository.deactivateDeviceById(batch[index].user_device_id);
+                await userDeviceRepository.deactivateDeviceById(device.user_device_id);
             }
         }));
     }
-    return { sent };
+    return { sent, failed, devices: devices.length, users: uniqueUserIds.length, errors };
 }
 
 module.exports = { sendToUsers };

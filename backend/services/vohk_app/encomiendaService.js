@@ -94,7 +94,14 @@ async function notifyResidents(encomienda, reminder = false, knownResidents = nu
             data: { type: 'encomienda', encomiendaId: encomienda.encomienda_id, unitId: encomienda.unit_id },
         });
         await encomiendaRepository.markNotified(encomienda.encomienda_id, encomienda.created_by_user_id, residents.map(item => item.user_id), reminder);
-        if (!delivery.sent) console.warn(`[ENCOMIENDA NOTIFICATION ${encomienda.encomienda_id}] No active device accepted the push.`);
+        if (!delivery.sent) {
+            console.warn(
+                `[ENCOMIENDA NOTIFICATION ${encomienda.encomienda_id}] No active device accepted the push. ` +
+                `residents=${residents.length} users=${delivery.users ?? residents.length} ` +
+                `devices=${delivery.devices ?? 0} failed=${delivery.failed ?? 0} ` +
+                `errors=${JSON.stringify(delivery.errors || {})}`,
+            );
+        }
         return delivery.sent;
     } catch (error) {
         console.error(`[ENCOMIENDA NOTIFICATION ${encomienda.encomienda_id}]`, error);
