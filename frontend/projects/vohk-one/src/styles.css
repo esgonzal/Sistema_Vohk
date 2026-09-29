@@ -1,0 +1,88 @@
+@import '~@angular/material/prebuilt-themes/deeppurple-amber.css';
+
+:root {
+    --one-black: #080a09;
+    --one-surface: #101413;
+    --one-surface-raised: #151a18;
+    --one-warm-white: #f3f1eb;
+    --one-muted: #969d99;
+    --one-blue: #2e6bff;
+    --one-blue-light: #648fff;
+    --one-yellow: #ffcc00;
+    --one-border: rgba(243, 241, 235, .1);
+}
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: var(--one-black);
+    color: var(--one-warm-white);
+    font-family: Inter, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+::selection {
+    color: var(--one-black);
+    background: var(--one-yellow);
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+button,
+a {
+    -webkit-tap-highlight-color: transparent;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: rgba(100, 143, 255, .35);
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.device-form-popup {
+    width: min(34rem, calc(100vw - 2rem));
+    max-height: calc(100vh - 2rem);
+    overflow: hidden;
+}
+
+.device-form-popup .device-form-container {
+    max-height: calc(100vh - 14rem);
+    margin: 1em 1.5em 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.device-form-popup .swal2-input,
+.device-form-popup .swal2-select {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    margin: 1em 0 0;
+    box-sizing: border-box;
+}
+
+@media (max-width: 480px) {
+    .device-form-popup .device-form-container {
+        margin-right: 1em;
+        margin-left: 1em;
+    }
+}

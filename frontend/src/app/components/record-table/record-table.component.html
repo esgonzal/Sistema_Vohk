@@ -2,10 +2,14 @@
 <div class="contenido">
     <div class="button-container">
         <input type="text" [(ngModel)]="searchText" placeholder="Buscar registros..." (input)="searchRecords()">
-        <div>
-            <button (click)="refresh()">Actualizar</button>
+        <div class="record-actions">
+            <button (click)="exportAllRecords()" [disabled]="isExporting || totalRecords === 0">
+                {{ isExporting ? 'Exportando ' + exportProgress : 'Exportar Excel' }}
+            </button>
+            <button (click)="refresh()" [disabled]="isExporting">Actualizar</button>
         </div>
     </div>
+    <p class="export-error" *ngIf="exportError">{{ exportError }}</p>
     <table mat-table [dataSource]="dataSource" matSort class="table">
         <ng-container matColumnDef="Fecha">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>

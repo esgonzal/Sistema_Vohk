@@ -1,0 +1,253 @@
+<div class="concierge-page">
+    <ng-container *ngIf="!loading">
+        <div class="concierge-workspace" [class.operations-collapsed]="!operationsExpanded">
+            <section class="camera-wall">
+                <div class="camera-toolbar">
+                    <div>
+                        <strong>Videowall</strong>
+                        <span>Arrastra las cámaras para cambiar su posición</span>
+                    </div>
+                    <div class="grid-presets" aria-label="Distribución de cámaras">
+                        <button type="button" *ngFor="let preset of gridPresets"
+                            [class.active]="selectedGridPreset === preset.id" (click)="setGridPreset(preset)">
+                            {{ preset.label }}
+                        </button>
+                    </div>
+                </div>
+
+                <div class="camera-grid" [style.grid-template-columns]="'repeat(' + gridColumns + ', minmax(0, 1fr))'">
+                    <div class="camera-card" *ngFor="let device of cameraDevices; trackBy: cameraTrackBy"
+                        (dragover)="$event.preventDefault()" (drop)="onCameraDrop($event, device)">
+                        <div class="camera-player">
+                            <iframe #cameraFrame class="camera-frame" [src]="device.safeStreamUrl" [title]="device.name"
+                                frameborder="0" allow="autoplay; fullscreen" loading="lazy"></iframe>
+                            <button class="drag-handle" type="button" draggable="true"
+                                (dragstart)="onCameraDragStart($event, device)" (dragend)="onCameraDragEnd()"
+                                title="Arrastrar cámara">
+                                <mat-icon>drag_indicator</mat-icon>
+                            </button>
+                            <button class="fullscreen-button" type="button" (click)="openFullscreen($event)">
+                                <mat-icon>fullscreen</mat-icon>
+                            </button>
+                            <div class="camera-info">
+                                <div>
+                                    <strong>{{device.name}}</strong>
+                                    <span>{{device.zone_name}}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="camera-empty" *ngIf="!cameraDevices.length">
+                    Este condominio no tiene cámaras configuradas.
+                </div>
+            </section>
+
+            <aside class="operations-panel" [class.collapsed]="!operationsExpanded">
+                <button *ngIf="!operationsExpanded" type="button" class="operations-toggle"
+                    (click)="toggleOperations()" title="Abrir acciones">
+                    <mat-icon>tune</mat-icon>
+                    <span>Acciones</span>
+                    <mat-icon>chevron_left</mat-icon>
+                </button>
+
+                <ng-container *ngIf="operationsExpanded">
+                <div class="operations-header">
+                    <button *ngIf="actionPanel !== 'menu'" type="button" class="panel-back"
+                        (click)="showActionPanel('menu')" aria-label="Volver">
+                        <mat-icon>arrow_back</mat-icon>
+                    </button>
+                    <div>
+                        <strong>{{ actionPanel === 'doors' ? 'Abrir puerta' : actionPanel === 'residents' ? 'Llamar residente' : 'Acciones' }}</strong>
+                        <span>{{ selectedCondominium?.name }}</span>
+                    </div>
+                    <button type="button" class="panel-close" (click)="toggleOperations()" aria-label="Cerrar acciones">
+                        <mat-icon>chevron_right</mat-icon>
+                    </button>
+                </div>
+
+                <div class="action-menu" *ngIf="actionPanel === 'menu'">
+                    <button type="button" class="primary-action" (click)="showActionPanel('doors')">
+                        <mat-icon>lock_open</mat-icon>
+                        <span><strong>Abrir puerta</strong><small>Intercoms, cerraduras y portones</small></span>
+                        <mat-icon>chevron_right</mat-icon>
+                    </button>
+                    <button type="button" class="primary-action" (click)="showActionPanel('residents')">
+                        <mat-icon>phone</mat-icon>
+                        <span><strong>Llamar residente</strong><small>Buscar por nombre o unidad</small></span>
+                        <mat-icon>chevron_right</mat-icon>
+                    </button>
+                </div>
+
+                <div class="panel-content" *ngIf="actionPanel === 'doors'">
+                    <p class="panel-help">Selecciona el acceso que quieres abrir.</p>
+                    <div class="selection-list" *ngIf="doorDevices.length; else noDoors">
+                        <button type="button" class="selection-item" *ngFor="let device of doorDevices"
+                            [class.selected]="selectedDoorId === device.device_id"
+                            (click)="selectedDoorId = device.device_id; doorMessage = ''; doorError = ''">
+                            <mat-icon>{{ device.type === 'intercom' ? 'doorbell' : device.type === 'gate' ? 'garage' : 'lock' }}</mat-icon>
+                            <span><strong>{{ device.name }}</strong><small>{{ device.zone_name || 'Sin zona' }}</small></span>
+                            <mat-icon class="selection-check">{{ selectedDoorId === device.device_id ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+                        </button>
+                    </div>
+                    <ng-template #noDoors><div class="panel-empty">No hay accesos disponibles.</div></ng-template>
+                    <button type="button" class="execute-action" [disabled]="!selectedDoorId || openingDoor"
+                        (click)="openSelectedDoor()">
+                        <mat-icon>lock_open</mat-icon>{{ openingDoor ? 'Abriendo…' : 'Abrir acceso seleccionado' }}
+                    </button>
+                    <div class="panel-message success" *ngIf="doorMessage">{{ doorMessage }}</div>
+                    <div class="panel-message error" *ngIf="doorError">{{ doorError }}</div>
+                </div>
+
+                <div class="panel-content residents-panel" *ngIf="actionPanel === 'residents'">
+                    <ng-container *ngIf="outgoingResident && (outgoingCall || outgoingCallStatus); else residentDirectory">
+                        <div class="call-state">
+                            <div class="call-avatar">{{ outgoingResident.legal_name?.charAt(0) }}</div>
+                            <strong>{{ outgoingResident.legal_name }}</strong>
+                            <span>{{ residentLocation(outgoingResident) }}</span>
+                            <div class="call-status"><span class="pulse" *ngIf="outgoingCall"></span>{{ outgoingCallStatus }}</div>
+                            <button type="button" class="hangup-action" *ngIf="outgoingCall" (click)="endOutgoingCall()">
+                                <mat-icon>call_end</mat-icon>Colgar
+                            </button>
+                            <button type="button" class="secondary-action" *ngIf="!outgoingCall"
+                                (click)="outgoingResident = null; outgoingCallStatus = ''">Volver al directorio</button>
+                        </div>
+                    </ng-container>
+                    <ng-template #residentDirectory>
+                        <input class="panel-search" type="search" [(ngModel)]="residentSearch"
+                            placeholder="Buscar residente, torre o unidad…">
+                        <div class="selection-list resident-list" *ngIf="!loadingResidents && filteredResidents.length">
+                            <button type="button" class="selection-item" *ngFor="let resident of filteredResidents"
+                                [disabled]="placingCall" (click)="callResident(resident)">
+                                <div class="resident-avatar">{{ resident.legal_name?.charAt(0) }}</div>
+                                <span><strong>{{ resident.legal_name }}</strong><small>{{ residentLocation(resident) }}</small></span>
+                                <mat-icon>call</mat-icon>
+                            </button>
+                        </div>
+                        <div class="panel-empty" *ngIf="loadingResidents">Cargando residentes…</div>
+                        <div class="panel-empty" *ngIf="!loadingResidents && !filteredResidents.length">No se encontraron residentes disponibles.</div>
+                    </ng-template>
+                    <div class="panel-message error" *ngIf="outgoingCallError">{{ outgoingCallError }}</div>
+                </div>
+                </ng-container>
+            </aside>
+        </div>
+
+        <div class="activity">
+            <div class="section-title activity-heading">
+                <span>Actividad Reciente</span>
+                <div class="activity-filters">
+                    <button type="button" [class.active]="activityFilter === 'all'"
+                        (click)="setActivityFilter('all')">Todo</button>
+                    <button type="button" [class.active]="activityFilter === 'access'"
+                        (click)="setActivityFilter('access')">Accesos</button>
+                </div>
+            </div>
+
+            <table *ngIf="visibleActivities.length; else noConciergeActivity">
+                    <thead>
+                        <tr>
+                            <th>Hora</th>
+                            <th>Evento</th>
+                            <th>Método</th>
+                            <th>Dispositivo</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr *ngFor="let activity of pagedActivities">
+                            <td>
+                                {{ activity.occurred_at | date:'dd/MM HH:mm' }}
+                            </td>
+
+                            <td>
+                                {{ activityTitle(activity) }}
+                            </td>
+
+                            <td>
+                                {{ activityMethod(activity) }}
+                            </td>
+
+                            <td>
+                                {{ activity.device_name || '—' }}
+                            </td>
+
+                            <td>
+                                <span class="badge" [class.activity-failed]="
+                            activity.status === 'failed' ||
+                            activity.status === 'no-answer'
+                        ">
+                                    {{ activityStatus(activity) }}
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+            </table>
+
+            <ng-template #noConciergeActivity>
+                <div class="activity-empty">Aún no hay actividad registrada.</div>
+            </ng-template>
+
+            <div class="activity-pagination" *ngIf="visibleActivities.length">
+                    <div class="activity-page-size">
+                        <span>Mostrar</span>
+
+                        <select [value]="activityPageSize" (change)="changeActivityPageSize($any($event.target).value)">
+                            <option *ngFor="let option of activityPageSizeOptions" [value]="option">
+                                {{ option }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="activity-page-info">
+                        {{ activityStart }}–{{ activityEnd }}
+                        de {{ visibleActivities.length }}
+                    </div>
+
+                    <div class="activity-page-buttons">
+                        <button type="button" (click)="previousActivityPage()" [disabled]="activityPage === 0">
+                            <mat-icon>chevron_left</mat-icon>
+                        </button>
+
+                        <span>
+                            {{ activityPage + 1 }} / {{ activityTotalPages }}
+                        </span>
+
+                        <button type="button" (click)="nextActivityPage()"
+                            [disabled]="activityPage + 1 >= activityTotalPages">
+                            <mat-icon>chevron_right</mat-icon>
+                        </button>
+                    </div>
+            </div>
+        </div>
+    </ng-container>
+</div>
+<div class="incoming-call-backdrop" *ngIf="incomingCall || activeCall">
+    <div class="incoming-call-card">
+        <h2 *ngIf="incomingCall">Llamada entrante</h2>
+        <h2 *ngIf="activeCall">Llamada en curso</h2>
+        <p *ngIf="incomingCall">Llamada recibida desde Twilio</p>
+        <p *ngIf="activeCall">Comunicación activa</p>
+        <div *ngIf="incomingDevice">
+            <h3>{{incomingDevice.name}}</h3>
+            <iframe class="call-camera" [src]="incomingDevice.safeStreamUrl" frameborder="0">
+            </iframe>
+        </div>
+        <div class="buttons">
+            <ng-container *ngIf="incomingCall">
+                <button mat-raised-button color="primary" (click)="answerCall()">
+                    Contestar
+                </button>
+
+                <button mat-raised-button color="warn" (click)="rejectCall()">
+                    Rechazar
+                </button>
+            </ng-container>
+
+            <button *ngIf="activeCall" mat-raised-button color="warn" (click)="hangupCall()">
+                Colgar
+            </button>
+        </div>
+    </div>
+</div>

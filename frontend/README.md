@@ -1,10 +1,14 @@
-# Vohk
+# VÖHK Angular workspace
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 13.3.3.
+This workspace contains two independent Angular applications:
+
+- `vohk`: the original TTLock administration site in `src/`.
+- `vohk-one`: the new condominium administration site in `projects/vohk-one/`.
 
 ## Development server
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+- Run `npm run start:legacy` for the original site at `http://localhost:4200/`.
+- Run `npm run start:one` for the new site at `http://localhost:4201/`.
 
 ## Code scaffolding
 
@@ -12,7 +16,9 @@ Run `ng generate component component-name` to generate a new component. You can 
 
 ## Build
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+- `npm run build:legacy` outputs to `dist/vohk/`.
+- `npm run build:one` outputs to `dist/vohk-one/`.
+- `npm run build:all` builds both applications.
 
 ## Running unit tests
 

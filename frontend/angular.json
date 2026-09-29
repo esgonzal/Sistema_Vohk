@@ -29,14 +29,18 @@
             "styles": [
               "src/styles.css"
             ],
-            "scripts": [
-              "src/assets/hik-sdk/dist/jsPlugin-3.0.0.min.js",
-              "src/assets/hik-sdk/dist/timeBar.js",
-              "src/assets/hik-sdk/dist/talkEzui/ezuikit-talk.js"
-            ]
+            "scripts": []
           },
           "configurations": {
             "production": {
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": true
+                },
+                "fonts": false
+              },
               "budgets": [
                 {
                   "type": "initial",
@@ -45,8 +49,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "6kb",
-                  "maximumError": "10kb"
+                  "maximumWarning": "11kb",
+                  "maximumError": "12kb"
                 }
               ],
               "fileReplacements": [
@@ -99,6 +103,138 @@
             ],
             "styles": [
               "src/styles.css"
+            ],
+            "scripts": []
+          }
+        }
+      }
+    },
+    "vohk-one": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:class": {
+          "skipTests": true
+        },
+        "@schematics/angular:component": {
+          "skipTests": true
+        },
+        "@schematics/angular:directive": {
+          "skipTests": true
+        },
+        "@schematics/angular:guard": {
+          "skipTests": true
+        },
+        "@schematics/angular:interceptor": {
+          "skipTests": true
+        },
+        "@schematics/angular:pipe": {
+          "skipTests": true
+        },
+        "@schematics/angular:resolver": {
+          "skipTests": true
+        },
+        "@schematics/angular:service": {
+          "skipTests": true
+        }
+      },
+      "root": "projects/vohk-one",
+      "sourceRoot": "projects/vohk-one/src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:browser",
+          "options": {
+            "outputPath": "dist/vohk-one",
+            "index": "projects/vohk-one/src/index.html",
+            "main": "projects/vohk-one/src/main.ts",
+            "polyfills": [
+              "zone.js"
+            ],
+            "tsConfig": "projects/vohk-one/tsconfig.app.json",
+            "assets": [
+              "projects/vohk-one/src/favicon.ico",
+              "projects/vohk-one/src/favicon.svg",
+              "projects/vohk-one/src/favicon-one.png",
+              "projects/vohk-one/src/assets"
+            ],
+            "styles": [
+              "projects/vohk-one/src/styles.css"
+            ],
+            "scripts": [
+              "projects/vohk-one/src/assets/hik-sdk/dist/jsPlugin-3.0.0.min.js",
+              "projects/vohk-one/src/assets/hik-sdk/dist/timeBar.js",
+              "projects/vohk-one/src/assets/hik-sdk/dist/talkEzui/ezuikit-talk.js"
+            ]
+          },
+          "configurations": {
+            "production": {
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": true
+                },
+                "fonts": false
+              },
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "5mb",
+                  "maximumError": "7mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "11kb",
+                  "maximumError": "12kb"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "buildOptimizer": false,
+              "optimization": false,
+              "vendorChunk": true,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "namedChunks": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "configurations": {
+            "production": {
+              "browserTarget": "vohk-one:build:production"
+            },
+            "development": {
+              "browserTarget": "vohk-one:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "extract-i18n": {
+          "builder": "@angular-devkit/build-angular:extract-i18n",
+          "options": {
+            "browserTarget": "vohk-one:build"
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ],
+            "tsConfig": "projects/vohk-one/tsconfig.spec.json",
+            "assets": [
+              "projects/vohk-one/src/favicon.ico",
+              "projects/vohk-one/src/favicon.svg",
+              "projects/vohk-one/src/favicon-one.png",
+              "projects/vohk-one/src/assets"
+            ],
+            "styles": [
+              "projects/vohk-one/src/styles.css"
             ],
             "scripts": []
           }

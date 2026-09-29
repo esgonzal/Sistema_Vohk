@@ -3,8 +3,13 @@
     "version": "0.0.0",
     "scripts": {
         "ng": "ng",
-        "start": "ng serve --proxy-config src/proxy.conf.json",
-        "build": "ng build",
+        "start": "ng serve vohk --proxy-config src/proxy.conf.json",
+        "start:legacy": "ng serve vohk --proxy-config src/proxy.conf.json",
+        "start:one": "ng serve vohk-one --port 4201",
+        "build": "ng build vohk",
+        "build:legacy": "ng build vohk",
+        "build:one": "ng build vohk-one",
+        "build:all": "ng build vohk && ng build vohk-one",
         "watch": "ng build --watch --configuration development",
         "test": "ng test"
     },

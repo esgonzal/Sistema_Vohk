@@ -110,7 +110,8 @@
                         <!-- RECORDS -->
                         <mat-tab label="Records">
                             <ng-template matTabContent>
-                                <app-record-table [lockId]="lockId" [accessToken]="accessToken">
+                                <app-record-table [lockId]="lockId" [accessToken]="accessToken"
+                                    [lockName]="Alias" [communityName]="lockGroup">
                                 </app-record-table>
                             </ng-template>
                         </mat-tab>

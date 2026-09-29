@@ -8,6 +8,7 @@ const staffCondominiumRepository = require('../../repositories/staffCondominiumR
 const pushNotificationService = require('./pushNotificationService');
 
 const STAFF_ROLES = ['staff', 'admin', 'superadmin'];
+const REMINDER_INTERVAL_HOURS = 1;
 const PHOTO_MIME_TYPES = {
     jpeg: 'image/jpeg',
     png: 'image/png',
@@ -81,11 +82,11 @@ async function detectPhotoMimeType(buffer) {
     }
 }
 
-async function notifyResidents(encomienda, reminder = false) {
-    const residents = await encomiendaRepository.findResidentsByUnit(encomienda.unit_id);
-    if (!residents.length) return;
+async function notifyResidents(encomienda, reminder = false, knownResidents = null) {
+    const residents = knownResidents || await encomiendaRepository.findResidentsByUnit(encomienda.unit_id);
+    if (!residents.length) return 0;
     try {
-        await pushNotificationService.sendToUsers(residents.map(item => item.user_id), {
+        const delivery = await pushNotificationService.sendToUsers(residents.map(item => item.user_id), {
             notification: {
                 title: reminder ? 'Tienes una encomienda pendiente' : 'Llegó una encomienda',
                 body: reminder ? 'Recuerda retirarla en conserjería.' : `Hay una encomienda para tu unidad${encomienda.unit_name ? ` ${encomienda.unit_name}` : ''}.`,
@@ -93,8 +94,11 @@ async function notifyResidents(encomienda, reminder = false) {
             data: { type: 'encomienda', encomiendaId: encomienda.encomienda_id, unitId: encomienda.unit_id },
         });
         await encomiendaRepository.markNotified(encomienda.encomienda_id, encomienda.created_by_user_id, residents.map(item => item.user_id), reminder);
+        if (!delivery.sent) console.warn(`[ENCOMIENDA NOTIFICATION ${encomienda.encomienda_id}] No active device accepted the push.`);
+        return delivery.sent;
     } catch (error) {
         console.error(`[ENCOMIENDA NOTIFICATION ${encomienda.encomienda_id}]`, error);
+        return 0;
     }
 }
 
@@ -115,7 +119,9 @@ async function createEncomienda({ userId, role, unitId, recipientName, courierNa
         photoMimeType,
     });
     const result = { ...created, unit_name: unit.name, building_name: unit.building_name, condominium_id: unit.condominium_id };
-    await notifyResidents(result, false);
+    // Use the residents validated above and perform the first push before the
+    // registration request returns to the concierge device.
+    await notifyResidents(result, false, residents);
     return result;
 }
 
@@ -171,13 +177,21 @@ async function cancelEncomienda({ userId, role, encomiendaId, reason }) {
     return result;
 }
 
-async function processReminders() {
-    const hour = Number(new Intl.DateTimeFormat('en-US', { timeZone: 'America/Santiago', hour: '2-digit', hourCycle: 'h23' }).format(new Date()));
+async function processReminders(now = new Date()) {
+    const hour = Number(new Intl.DateTimeFormat('en-US', { timeZone: 'America/Santiago', hour: '2-digit', hourCycle: 'h23' }).format(now));
     if (hour < 8 || hour >= 22) return 0;
-    const intervalHours = Math.max(1, Number.parseInt(process.env.ENCOMIENDA_REMINDER_HOURS || '1', 10) || 1);
-    const pending = await encomiendaRepository.findDueReminders(intervalHours);
+    const pending = await encomiendaRepository.findDueReminders(REMINDER_INTERVAL_HOURS);
     for (const encomienda of pending) await notifyResidents(encomienda, true);
     return pending.length;
 }
 
-module.exports = { createEncomienda, listEncomiendas, getPhoto, deliverEncomienda, cancelEncomienda, processReminders, detectPhotoMimeType };
+module.exports = {
+    createEncomienda,
+    listEncomiendas,
+    getPhoto,
+    deliverEncomienda,
+    cancelEncomienda,
+    processReminders,
+    detectPhotoMimeType,
+    REMINDER_INTERVAL_HOURS,
+};

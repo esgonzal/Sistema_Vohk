@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { authGuard, authChildGuard } from './guards/auth.guard';
 
 /* =========================
    TTLOCK COMPONENTS
@@ -13,30 +12,11 @@ import { MultipleCardsComponent } from './components/access_methods/multiple-car
 import { MultipleEkeyComponent } from './components/access_methods/multiple-ekey/multiple-ekey.component';
 
 /* =========================
-   ADMIN COMPONENTS
-========================= */
-import { CondominiumsComponent } from './components/vohk_app/condominiums/condominiums.component';
-import { UnitsComponent } from './components/vohk_app/units/units.component';
-
-/* =========================
    LAYOUTS
 ========================= */
 import { TTLockComponent } from './layouts/ttlock/ttlock.component';
-import { AdminComponent } from './layouts/admin/admin.component';
-import { LoginComponent } from './components/vohk_app/login/login.component';
-import { ResetPasswordComponent } from './components/vohk_app/reset-password/reset-password.component';
-import { DashboardComponent } from './components/vohk_app/dashboard/dashboard.component';
-import { UserComponent } from './components/vohk_app/user/user.component';
-import { ConserjeriaComponent } from './components/vohk_app/conserjeria/conserjeria.component';
-import { DeviceComponent } from './components/vohk_app/device/device.component';
-import { PrivacyPolicyComponent } from './components/privacy-policy/privacy-policy.component';
 
 const routes: Routes = [
-
-  /* =========================
-     PUBLIC LEGAL PAGES
-  ========================= */
-  { path: 'politica-de-privacidad', component: PrivacyPolicyComponent },
 
   /* =========================
      TTLOCK SYSTEM (LEGACY)
@@ -53,27 +33,9 @@ const routes: Routes = [
       { path: 'lock/:id/card/multiple', component: MultipleCardsComponent },
     ]
   },
-
-  /* =========================
-     ADMIN PUBLIC
-  ========================= */
-  { path: 'admin/login', component: LoginComponent },
-  { path: 'admin/reset-password/:token', component: ResetPasswordComponent },
-  /* =========================
-     ADMIN PRIVATE
-  ========================= */
-  {
-    path: 'admin', component: AdminComponent, canActivate: [authGuard], canActivateChild: [authGuard],
-    children: [
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', component: DashboardComponent },
-      { path: 'condominiums', component: CondominiumsComponent },
-      { path: 'usuarios', component: UserComponent },
-      { path: 'unidades', component: UnitsComponent },
-      { path: 'dispositivos', component: DeviceComponent },
-      { path: 'conserjeria', component: ConserjeriaComponent }
-    ]
-  }
+  // Old ONE URLs can remain in bookmarks and browser history after the split.
+  // Keep app.vohk.cl inside the legacy site instead of leaving an unmatched route.
+  { path: '**', redirectTo: '' }
 
 ];
 

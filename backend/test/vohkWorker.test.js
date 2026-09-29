@@ -35,7 +35,7 @@ test('VOHK worker owns all four schedules, the KV stream and initial access sync
         assert.equal(schedules.length, 0, 'import alone must not start the worker');
         startVohkWorker();
         assert.deepEqual(schedules.map(item => item.expression), [
-            '*/5 * * * *', '* * * * *', '* * * * *', '0 * * * *',
+            '*/5 * * * *', '* * * * *', '* * * * *', '*/5 * * * *',
         ]);
         await new Promise(resolve => setImmediate(resolve));
         assert.deepEqual(calls, ['kv-stream', 'access', 'ttlock']);

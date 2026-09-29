@@ -1,0 +1,45 @@
+<div class="login-page">
+    <div class="ambient-ring" aria-hidden="true"></div>
+    <section class="brand-panel">
+        <div class="one-lockup one-lockup--hero" aria-label="ONE by VÖHK">
+            <span class="one-mark" aria-hidden="true"><span class="one-dot"></span></span>
+            <span class="one-word">ONE</span>
+            <span class="one-by">by <strong>VÖHK</strong></span>
+        </div>
+        <div class="brand-copy">
+            <span class="eyebrow">PLATAFORMA INTEGRAL DE CONDOMINIOS</span>
+            <h1>Todo tu edificio.<br>Una sola plataforma.</h1>
+            <p>Accesos, residentes y operación conectados en un mismo lugar.</p>
+        </div>
+    </section>
+    <div class="login-card">
+        <div class="mobile-brand one-lockup" aria-label="ONE by VÖHK">
+            <span class="one-mark" aria-hidden="true"><span class="one-dot"></span></span>
+            <span class="one-word">ONE</span>
+            <span class="one-by">by <strong>VÖHK</strong></span>
+        </div>
+        <span class="card-kicker">ACCESO ADMINISTRATIVO</span>
+        <h2>Bienvenido.</h2>
+        <p class="subtitle">
+            Ingresa a tu espacio ONE.
+        </p>
+        <form (ngSubmit)="login()">
+            <div class="field">
+                <label>Correo electrónico</label>
+                <input type="text" [(ngModel)]="username" name="username" autocomplete="username"
+                    placeholder="correo@empresa.cl">
+            </div>
+            <div class="field">
+                <label>Contraseña</label>
+                <input type="password" [(ngModel)]="password" name="password" autocomplete="current-password"
+                    placeholder="••••••••">
+            </div>
+            <button class="login-button" type="submit" [disabled]="isLoading">
+                {{ isLoading ? 'Ingresando...' : 'Ingresar' }}
+            </button>
+        </form>
+        <div class="error" *ngIf="error">
+            {{ error }}
+        </div>
+    </div>
+</div>

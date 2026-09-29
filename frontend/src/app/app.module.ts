@@ -49,27 +49,13 @@ import { AccessModalComponent } from './components/access_methods/access-modal/a
 import { FunctionsModalComponent } from './components/functions/functions-modal/functions-modal.component';
 import { MultiplePasscodeComponent } from './components/access_methods/multiple-passcode/multiple-passcode/multiple-passcode.component';
 import { MultipleCardsComponent } from './components/access_methods/multiple-cards/multiple-cards.component';
-import { CondominiumsComponent } from './components/vohk_app/condominiums/condominiums.component';
-import { UnitsComponent } from './components/vohk_app/units/units.component';
-import { LoginComponent } from './components/vohk_app/login/login.component';
 import { TTLockComponent } from './layouts/ttlock/ttlock.component';
-import { AdminComponent } from './layouts/admin/admin.component';
-import { HTTP_INTERCEPTORS } from '@angular/common/http';
-import { AuthInterceptor } from './services/vohk_app/auth.interceptor';
 import { EkeyTableComponent } from './components/ekey-table/ekey-table.component';
 import { RecordTableComponent } from './components/record-table/record-table.component';
 import { PasscodeTableComponent } from './components/passcode-table/passcode-table.component';
 import { CardTableComponent } from './components/card-table/card-table.component';
 import { FingerprintTableComponent } from './components/fingerprint-table/fingerprint-table.component';
-import { ResetPasswordComponent } from './components/vohk_app/reset-password/reset-password.component';
-import { SidebarComponent } from './layouts/admin/sidebar/sidebar.component';
-import { TopbarComponent } from './layouts/admin/topbar/topbar.component';
-import { DashboardComponent } from './components/vohk_app/dashboard/dashboard.component';
-import { UserComponent } from './components/vohk_app/user/user.component';
 import { MultipleEkeyComponent } from './components/access_methods/multiple-ekey/multiple-ekey.component';
-import { ConserjeriaComponent } from './components/vohk_app/conserjeria/conserjeria.component';
-import { DeviceComponent } from './components/vohk_app/device/device.component';
-import { PrivacyPolicyComponent } from './components/privacy-policy/privacy-policy.component';
 
 
 export const CUSTOM_DATE_FORMATS = {
@@ -100,25 +86,13 @@ export const CUSTOM_DATE_FORMATS = {
     FunctionsModalComponent,
     MultiplePasscodeComponent,
     MultipleCardsComponent,
-    CondominiumsComponent,
-    UnitsComponent,
-    LoginComponent,
     TTLockComponent,
-    AdminComponent,
     EkeyTableComponent,
     RecordTableComponent,
     PasscodeTableComponent,
     CardTableComponent,
     FingerprintTableComponent,
-    ResetPasswordComponent,
-    SidebarComponent,
-    TopbarComponent,
-    DashboardComponent,
-    UserComponent,
     MultipleEkeyComponent,
-    ConserjeriaComponent,
-    DeviceComponent,
-    PrivacyPolicyComponent,
   ],
   imports: [
     BrowserModule,
@@ -152,7 +126,6 @@ export const CUSTOM_DATE_FORMATS = {
     GroupService,
     { provide: MAT_DATE_LOCALE, useValue: 'es-ES' }, // Configuración regional
     { provide: MAT_DATE_FORMATS, useValue: CUSTOM_DATE_FORMATS }, // Formato DD/MM/YYYY
-    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
   ],
   bootstrap: [AppComponent]
 })

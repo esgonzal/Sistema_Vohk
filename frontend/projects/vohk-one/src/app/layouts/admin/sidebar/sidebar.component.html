@@ -1,0 +1,38 @@
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <div class="one-lockup" aria-label="ONE by VÖHK">
+            <span class="one-mark" aria-hidden="true"><span class="one-dot"></span></span>
+            <span class="one-word">ONE</span>
+            <span class="one-by">by <strong>VÖHK</strong></span>
+        </div>
+    </div>
+    <nav class="sidebar-nav">
+        <div class="section-title">GENERAL</div>
+        <a *ngFor="let item of generalItems" [routerLink]="item.route" routerLinkActive="active" class="nav-item">
+            <mat-icon>{{ item.icon }}</mat-icon>
+            <span>{{ item.label }}</span>
+        </a>
+        <div class="section-title">OPERACIÓN</div>
+        <a *ngFor="let item of operationItems" [routerLink]="item.route" routerLinkActive="active" class="nav-item">
+            <mat-icon>{{ item.icon }}</mat-icon>
+            <span>{{ item.label }}</span>
+        </a>
+        <div class="section-title">INTELIGENCIA</div>
+        <a *ngFor="let item of intelligenceItems" [routerLink]="item.disabled ? null : item.route"
+            routerLinkActive="active" class="nav-item" [class.disabled]="item.disabled">
+            <mat-icon>{{ item.icon }}</mat-icon>
+            <span>{{ item.label }}</span>
+        </a>
+
+        <div class="section-title">SISTEMA</div>
+        <a *ngFor="let item of systemItems" [routerLink]="item.disabled ? null : item.route" routerLinkActive="active"
+            class="nav-item" [class.disabled]="item.disabled">
+            <mat-icon>{{ item.icon }}</mat-icon>
+            <span>{{ item.label }}</span>
+        </a>
+    </nav>
+    <div class="sidebar-footer">
+        <span class="footer-dot" aria-hidden="true"></span>
+        <span>Todo tu edificio.<br><strong>Una sola app.</strong></span>
+    </div>
+</aside>

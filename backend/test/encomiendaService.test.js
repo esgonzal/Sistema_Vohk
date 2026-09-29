@@ -22,6 +22,107 @@ test('package photos are identified from their bytes instead of trusting multipa
     }
 });
 
+test('registering a package immediately notifies every active resident in its unit', async () => {
+    const originalLoad = Module._load;
+    const unitId = '11111111-1111-4111-8111-111111111111';
+    const packageId = '22222222-2222-4222-8222-222222222222';
+    const creatorId = '33333333-3333-4333-8333-333333333333';
+    const residentIds = [
+        '44444444-4444-4444-8444-444444444444',
+        '55555555-5555-4555-8555-555555555555',
+    ];
+    const notifications = [];
+    const marked = [];
+    const repository = {
+        findResidentsByUnit: async () => residentIds.map(user_id => ({ user_id })),
+        create: async () => ({ encomienda_id: packageId, unit_id: unitId, created_by_user_id: creatorId }),
+        markNotified: async (...args) => marked.push(args),
+    };
+
+    Module._load = function (request, parent, isMain) {
+        if (request === '../../repositories/encomiendaRepository') return repository;
+        if (request === '../../repositories/unitRepository') return {
+            findUnitHierarchy: async () => ({
+                unit_id: unitId,
+                condominium_id: '66666666-6666-4666-8666-666666666666',
+                name: '101',
+                building_name: 'Edificio Uno',
+            }),
+        };
+        if (request === '../../repositories/residentUnitRepository') return {};
+        if (request === '../../repositories/staffCondominiumRepository') return {};
+        if (request === './pushNotificationService') return {
+            sendToUsers: async (userIds, message) => {
+                notifications.push({ userIds, message });
+                return { sent: userIds.length };
+            },
+        };
+        if (request === 'sharp') return () => ({ metadata: async () => ({ format: 'jpeg' }) });
+        return originalLoad.call(this, request, parent, isMain);
+    };
+
+    const servicePath = require.resolve('../services/vohk_app/encomiendaService');
+    try {
+        const service = require(servicePath);
+        await service.createEncomienda({
+            userId: creatorId,
+            role: 'superadmin',
+            unitId,
+            recipientName: 'Residente',
+            courierName: 'Courier',
+            notes: null,
+            photo: { buffer: Buffer.from('jpeg bytes') },
+        });
+
+        assert.equal(notifications.length, 1);
+        assert.deepEqual(notifications[0].userIds, residentIds);
+        assert.equal(notifications[0].message.data.type, 'encomienda');
+        assert.equal(notifications[0].message.data.encomiendaId, packageId);
+        assert.equal(notifications[0].message.notification.title, 'Llegó una encomienda');
+        assert.deepEqual(marked, [[packageId, creatorId, residentIds, false]]);
+    } finally {
+        Module._load = originalLoad;
+        delete require.cache[servicePath];
+    }
+});
+
+test('package reminders use a fixed one-hour interval', async () => {
+    const originalLoad = Module._load;
+    const intervals = [];
+    const repository = {
+        findDueReminders: async hours => {
+            intervals.push(hours);
+            return [];
+        },
+    };
+
+    Module._load = function (request, parent, isMain) {
+        if (request === '../../repositories/encomiendaRepository') return repository;
+        if (request === '../../repositories/condominiumRepository') return {};
+        if (request === '../../repositories/unitRepository') return {};
+        if (request === '../../repositories/residentUnitRepository') return {};
+        if (request === '../../repositories/staffCondominiumRepository') return {};
+        if (request === './pushNotificationService') return { sendToUsers: async () => ({ sent: 0 }) };
+        return originalLoad.call(this, request, parent, isMain);
+    };
+
+    const servicePath = require.resolve('../services/vohk_app/encomiendaService');
+    const previousInterval = process.env.ENCOMIENDA_REMINDER_HOURS;
+    process.env.ENCOMIENDA_REMINDER_HOURS = '3';
+    try {
+        const service = require(servicePath);
+        const processed = await service.processReminders(new Date('2026-01-15T15:00:00.000Z'));
+        assert.equal(processed, 0);
+        assert.equal(service.REMINDER_INTERVAL_HOURS, 1);
+        assert.deepEqual(intervals, [1]);
+    } finally {
+        Module._load = originalLoad;
+        if (previousInterval === undefined) delete process.env.ENCOMIENDA_REMINDER_HOURS;
+        else process.env.ENCOMIENDA_REMINDER_HOURS = previousInterval;
+        delete require.cache[servicePath];
+    }
+});
+
 test('resident claim identifies the resident and an authorized staff scan records both parties', async () => {
     const originalLoad = Module._load;
     const packageId = '11111111-1111-4111-8111-111111111111';

@@ -4,8 +4,14 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { lastValueFrom } from 'rxjs';
 import moment from 'moment';
+import * as XLSX from 'xlsx';
 import { RecordServiceService } from 'src/app/services/record-service.service';
 import { Record } from 'src/app/Interfaces/Elements';
+
+type DisplayRecord = Record & {
+  displaySuccess: { text: string; color: string };
+  metodo: string;
+};
 
 @Component({
   selector: 'app-record-table',
@@ -16,18 +22,24 @@ export class RecordTableComponent implements OnInit, AfterViewInit {
 
   @Input() lockId!: number;
   @Input() accessToken!: string;
+  @Input() lockName = '';
+  @Input() communityName = '';
   displayedColumns = ['Fecha', 'Usuario', 'Tipo', 'Descripcion'];
-  records: Record[] = [];
-  dataSource = new MatTableDataSource<Record>();
+  records: DisplayRecord[] = [];
+  dataSource = new MatTableDataSource<DisplayRecord>();
   searchText = '';
   totalRecords = 0;
   currentPage = 0;
   readonly pageSize = 200;
+  private pageCache = new Map<number, DisplayRecord[]>();
   @ViewChild(MatPaginator)
   paginator!: MatPaginator;
   @ViewChild(MatSort)
   sort!: MatSort;
   isLoading: boolean = false;
+  isExporting = false;
+  exportProgress = '';
+  exportError = '';
 
   constructor(
     private recordService: RecordServiceService) { }
@@ -57,11 +69,8 @@ export class RecordTableComponent implements OnInit, AfterViewInit {
     try {
       const response = await lastValueFrom(this.recordService.getRecords(this.accessToken, this.lockId, page, this.pageSize));
       console.log(response)
-      this.records = (response.list ?? []).map(record => ({
-        ...record,
-        displaySuccess: this.consultarSuccess(record.success),
-        metodo: this.consultarMetodo(record.recordType, record.keyName || record.username || record.keyboardPwd || '')
-      }));
+      this.records = this.prepareRecords(response.list ?? []);
+      this.pageCache.set(page, this.records);
       this.totalRecords = response.total;
       this.currentPage = page - 1;
       this.dataSource.data = this.records;
@@ -77,10 +86,87 @@ export class RecordTableComponent implements OnInit, AfterViewInit {
     }
   }
   async refresh() {
+    this.pageCache.delete(this.currentPage + 1);
     await this.loadPage(this.currentPage + 1);
+  }
+
+  async exportAllRecords() {
+    if (this.isExporting || this.totalRecords === 0) return;
+
+    this.isExporting = true;
+    this.exportError = '';
+    const totalPages = Math.ceil(this.totalRecords / this.pageSize);
+    const allRecords: DisplayRecord[] = [];
+
+    try {
+      for (let page = 1; page <= totalPages; page += 1) {
+        this.exportProgress = `${page}/${totalPages}`;
+        let pageRecords = this.pageCache.get(page);
+        if (!pageRecords) {
+          const response = await lastValueFrom(
+            this.recordService.getRecords(this.accessToken, this.lockId, page, this.pageSize)
+          );
+          pageRecords = this.prepareRecords(response.list ?? []);
+          this.pageCache.set(page, pageRecords);
+        }
+        allRecords.push(...pageRecords);
+      }
+
+      if (allRecords.length < this.totalRecords) {
+        throw new Error(`Expected ${this.totalRecords} records, received ${allRecords.length}`);
+      }
+
+      const rows = allRecords.map(record => ({
+        Comunidad: this.communityName || '-',
+        Cerradura: this.lockName || '-',
+        ID_Cerradura: this.lockId,
+        Fecha: this.formatTimestamp(Number(record.lockDate)),
+        Timestamp: Number(record.lockDate),
+        Usuario: record.keyName || record.username || record.keyboardPwd || '-',
+        Metodo: record.metodo,
+        Resultado: record.displaySuccess.text,
+        Tipo_Registro: record.recordType,
+        ID_Registro: record.recordId,
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      worksheet['!cols'] = [
+        { wch: 28 }, { wch: 36 }, { wch: 14 }, { wch: 18 }, { wch: 15 },
+        { wch: 28 }, { wch: 42 }, { wch: 12 }, { wch: 14 }, { wch: 22 },
+      ];
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Registros');
+      XLSX.writeFile(workbook, this.exportFileName());
+    } catch (error) {
+      console.error('Could not export lock records', error);
+      this.exportError = 'No se pudieron descargar todos los registros. Intente nuevamente.';
+    } finally {
+      this.isExporting = false;
+      this.exportProgress = '';
+    }
   }
   searchRecords() {
     this.dataSource.filter = this.searchText.trim().toLowerCase();
+  }
+  private prepareRecords(records: Record[]): DisplayRecord[] {
+    return records.map(record => ({
+      ...record,
+      displaySuccess: this.consultarSuccess(record.success),
+      metodo: this.consultarMetodo(
+        record.recordType,
+        record.keyName || record.username || record.keyboardPwd || ''
+      )
+    }));
+  }
+  private exportFileName(): string {
+    const name = `${this.communityName}_${this.lockName}_registros_${moment().format('YYYY-MM-DD')}`;
+    const safeName = name
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[<>:"/\\|?*]+/g, '_')
+      .replace(/\s+/g, '_')
+      .replace(/^_+|_+$/g, '');
+    return `${safeName || `cerradura_${this.lockId}_registros`}.xlsx`;
   }
   formatTimestamp(timestamp: number): string {
     return moment(timestamp).format('DD/MM/YYYY HH:mm');
