@@ -1,5 +1,6 @@
 const HikvisionAdapter = require('./HikvisionAdapter');
 const K1t343Adapter = require('./K1t343Adapter');
+const K1t673Adapter = require('./K1t673Adapter');
 
 const KV9503_MODELS = new Set(['DS-KV9503-WBE1']);
 const K1T343_MODELS = new Set([
@@ -11,6 +12,9 @@ const K1T343_MODELS = new Set([
     'DS-K1T343EWX',
     'DS-K1T343EFX',
     'DS-K1T343EFWX',
+]);
+const K1T673_MODELS = new Set([
+    'DS-K1T673DWX',
 ]);
 
 function normalizeModel(model) {
@@ -24,6 +28,9 @@ function createAdapter(intercom, client) {
     }
     if (K1T343_MODELS.has(model)) {
         return new K1t343Adapter(intercom, client);
+    }
+    if (K1T673_MODELS.has(model)) {
+        return new K1t673Adapter(intercom, client);
     }
     const error = new Error(`Unsupported Hikvision intercom model: ${intercom.model}`);
     error.status = 422;
@@ -41,7 +48,9 @@ function getProfileForModel(model) {
     if (!normalized) {
         return { profile: null, storedAccessEvents: false, supported: false };
     }
-    if (!KV9503_MODELS.has(normalized) && !K1T343_MODELS.has(normalized)) {
+    if (!KV9503_MODELS.has(normalized)
+        && !K1T343_MODELS.has(normalized)
+        && !K1T673_MODELS.has(normalized)) {
         return { profile: null, storedAccessEvents: false, supported: false };
     }
     const adapter = createAdapter({ model }, null);

@@ -38,10 +38,18 @@ const commonIntercom = {
     dial_unit_number: 1,
 };
 
-test('factory selects the K1T343 profile and rejects unknown intercom models', () => {
+test('factory selects the supported MinMoe profiles and rejects unknown intercom models', () => {
     const k1 = createAdapter({ ...commonIntercom, model: 'DS-K1T343MWX' }, recordingClient());
     assert.equal(k1.profile, 'hikvision-minmoe-k1t343-v4');
     assert.equal(k1.supportsStoredAccessEvents, true);
+    const k1t673 = createAdapter({ ...commonIntercom, model: 'ds-k1t673dwx' }, recordingClient());
+    assert.equal(k1t673.profile, 'hikvision-minmoe-k1t673-v4');
+    assert.equal(k1t673.supportsStoredAccessEvents, true);
+    assert.deepEqual(getProfileForModel('DS-K1T673DWX'), {
+        profile: 'hikvision-minmoe-k1t673-v4',
+        storedAccessEvents: true,
+        supported: true,
+    });
     assert.throws(
         () => createAdapter({ ...commonIntercom, model: 'UNSUPPORTED' }, recordingClient()),
         /Unsupported Hikvision intercom model/,
@@ -99,6 +107,35 @@ test('K1T343 builds the model-specific resident, visitor and phonebook data', ()
     });
 });
 
+test('K1T673 uses the validated MinMoe resident, visitor and phonebook payloads', () => {
+    const adapter = createAdapter({ ...commonIntercom, model: 'DS-K1T673DWX' }, recordingClient());
+    const resident = adapter.buildResidentUserInfo({
+        employeeNo: 'resident-673',
+        dynamicCode: '123456',
+        name: 'Resident 673',
+        roomNumber: 101,
+        floorNumber: 1,
+    });
+    assert.deepEqual(resident.callNumbers, ['1-1-1-101']);
+    assert.equal(resident.doorRight, '1');
+    assert.deepEqual(resident.RightPlan, [{ doorNo: 1, planTemplateNo: '1' }]);
+    assert.equal(adapter.buildVisitorUserInfo({
+        invitation: { valid: { enable: true } },
+        visitorName: 'Visitor 673',
+        employeeNo: 'visitor-673',
+        dynamicCode: '654321',
+    }).userVerifyMode, 'faceOrPw');
+    assert.deepEqual(adapter.buildPhoneRecord(101, ['sip:resident@example.com']), {
+        PhoneNumberRecord: {
+            periodNumber: 1,
+            buildingNumber: 1,
+            unitNumber: 1,
+            roomNo: '101',
+            PhoneNumbers: [{ phoneNumber: 'sip:resident@example.com' }],
+        },
+    });
+});
+
 test('K1T343 phonebook updates use delete then create', async () => {
     const client = recordingClient([response({ statusCode: 1 }), response({ statusCode: 1 })]);
     const adapter = createAdapter({ ...commonIntercom, model: 'DS-K1T343MWX' }, client);
@@ -108,18 +145,20 @@ test('K1T343 phonebook updates use delete then create', async () => {
     assert.equal(client.calls[1].options.method, 'POST');
 });
 
-test('K1T343 exposes stored access events and blocks unvalidated PIN clearing', async () => {
-    const client = recordingClient([
-        response('<DeviceInfo><model>DS-K1T343MWX</model></DeviceInfo>'),
-        response({ AcsEvent: { numOfMatches: 1, InfoList: [] } }),
-    ]);
-    const adapter = createAdapter({ ...commonIntercom, model: 'DS-K1T343MWX' }, client);
-    const events = await adapter.searchAccessEvents({ maxResults: 10, searchID: 'stable-search' });
-    assert.equal(events.ok, true);
-    assert.equal(client.calls[0].url.endsWith('/ISAPI/System/deviceInfo'), true);
-    assert.equal(client.calls[1].url.endsWith('/ISAPI/AccessControl/AcsEvent?format=json'), true);
-    assert.equal(client.calls[1].body.AcsEventCond.searchID, 'stable-search');
-    assert.throws(() => adapter.setPin('resident-1', ''), /requires a validated device-specific method/);
+test('MinMoe adapters expose stored access events and block unvalidated PIN clearing', async () => {
+    for (const model of ['DS-K1T343MWX', 'DS-K1T673DWX']) {
+        const client = recordingClient([
+            response(`<DeviceInfo><model>${model}</model></DeviceInfo>`),
+            response({ AcsEvent: { numOfMatches: 1, InfoList: [] } }),
+        ]);
+        const adapter = createAdapter({ ...commonIntercom, model }, client);
+        const events = await adapter.searchAccessEvents({ maxResults: 10, searchID: 'stable-search' });
+        assert.equal(events.ok, true);
+        assert.equal(client.calls[0].url.endsWith('/ISAPI/System/deviceInfo'), true);
+        assert.equal(client.calls[1].url.endsWith('/ISAPI/AccessControl/AcsEvent?format=json'), true);
+        assert.equal(client.calls[1].body.AcsEventCond.searchID, 'stable-search');
+        assert.throws(() => adapter.setPin('resident-1', ''), /requires a validated device-specific method/);
+    }
 });
 
 test('access event helpers normalize K1 identities and outcomes', () => {
