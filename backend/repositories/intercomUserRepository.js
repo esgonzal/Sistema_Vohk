@@ -76,6 +76,34 @@ async function findIntercomUsersWithDeviceByUserId(userId) {
     );
     return result.rows;
 }
+async function findCallableResidentsByDevice(deviceId) {
+    const result = await pool.query(
+        `
+        SELECT DISTINCT
+            au.user_id,
+            au.legal_name,
+            un.unit_id,
+            un.room_no,
+            b.name AS building_name
+        FROM device d
+        INNER JOIN zone z ON z.zone_id = d.zone_id
+        INNER JOIN intercom i ON i.device_id = d.device_id
+        INNER JOIN intercom_user iu ON iu.intercom_id = i.intercom_id
+        INNER JOIN app_user au ON au.user_id = iu.user_id
+        INNER JOIN resident_unit ru ON ru.user_id = au.user_id
+        INNER JOIN unit un ON un.unit_id = ru.unit_id
+        INNER JOIN building b ON b.building_id = un.building_id
+        WHERE d.device_id = $1
+          AND d.active = TRUE
+          AND au.active = TRUE
+          AND au.role = 'resident'
+          AND b.condominium_id = z.condominium_id
+        ORDER BY au.legal_name, b.name, un.room_no
+        `,
+        [deviceId]
+    );
+    return result.rows;
+}
 async function createIntercomUser(userId, intercomId, employeeNo, dynamic_code) {
     const result = await pool.query(
         `
@@ -134,5 +162,5 @@ async function updateDynamicCode(intercomUserId, dynamicCode) {
 
 module.exports = {
     findIntercomUsersByUserAndCondominium, findIntercomUserByDeviceAndEmployeeNo, findIntercomUserByUserAndDevice, findAccessMethods, findIntercomUsersWithDeviceByUserId,
-    createIntercomUser, deleteIntercomUserByUserAndIntercom, updateFaceStatus, updateDynamicCode,
+    findCallableResidentsByDevice, createIntercomUser, deleteIntercomUserByUserAndIntercom, updateFaceStatus, updateDynamicCode,
 };

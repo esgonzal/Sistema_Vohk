@@ -4,6 +4,7 @@ const router = express.Router();
 
 router.use('/auth', require('./authAPI'));
 router.use('/twilio', require('./twilioAPI'));
+router.use('/alma', require('./almaController'));
 
 router.use('/activities', require('./activityController'));
 router.use('/invitation', require('./invitationController'));
