@@ -38,7 +38,8 @@ async function forgotPassword(email) {
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
     const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
     await userRepository.savePasswordResetToken(user.user_id, tokenHash, expiresAt);
-    const resetUrl = `https://app.vohk.cl/admin/reset-password/${token}`;
+    const frontendUrl = process.env.FRONTEND_URL || 'https://one.vohk.cl';
+    const resetUrl = `${frontendUrl.replace(/\/$/, '')}/admin/reset-password/${token}`;
     try {
         await emailService.sendPasswordResetEmail({ toEmail: user.email, legalName: user.legal_name, resetUrl });
     } catch (error) {

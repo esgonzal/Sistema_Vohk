@@ -1,5 +1,4 @@
 const sharp = require('sharp');
-const FRONTEND_URL = "https://app.vohk.cl";
 const condominiumRepository = require('../../repositories/condominiumRepository');
 const residentUnitRepository = require('../../repositories/residentUnitRepository');
 const deviceRepository = require('../../repositories/deviceRepository');
