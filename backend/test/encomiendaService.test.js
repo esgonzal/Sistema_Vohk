@@ -54,7 +54,7 @@ test('registering a package immediately notifies every active resident in its un
         if (request === './pushNotificationService') return {
             sendToUsers: async (userIds, message) => {
                 notifications.push({ userIds, message });
-                return { sent: userIds.length };
+                return { sent: userIds.length, failed: 0, devices: userIds.length, users: userIds.length, errors: {} };
             },
         };
         if (request === 'sharp') return () => ({ metadata: async () => ({ format: 'jpeg' }) });
@@ -79,7 +79,13 @@ test('registering a package immediately notifies every active resident in its un
         assert.equal(notifications[0].message.data.type, 'encomienda');
         assert.equal(notifications[0].message.data.encomiendaId, packageId);
         assert.equal(notifications[0].message.notification.title, 'Llegó una encomienda');
-        assert.deepEqual(marked, [[packageId, creatorId, residentIds, false]]);
+        assert.deepEqual(marked, [[
+            packageId,
+            creatorId,
+            residentIds,
+            false,
+            { sent: residentIds.length, failed: 0, devices: residentIds.length, users: residentIds.length, errors: {} },
+        ]]);
     } finally {
         Module._load = originalLoad;
         delete require.cache[servicePath];

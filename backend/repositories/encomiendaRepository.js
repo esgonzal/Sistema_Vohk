@@ -161,15 +161,26 @@ async function findDueReminders(hours) {
     return result.rows;
 }
 
-async function markNotified(encomiendaId, actorUserId, residentIds, reminder) {
+async function markNotified(encomiendaId, actorUserId, residentIds, reminder, delivery = {}) {
+    const deliverySummary = {
+        sent: Number(delivery.sent) || 0,
+        failed: Number(delivery.failed) || 0,
+        devices: Number(delivery.devices) || 0,
+        users: Number(delivery.users) || residentIds.length,
+        errors: delivery.errors && typeof delivery.errors === 'object' ? delivery.errors : {},
+    };
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
         await client.query(`UPDATE encomienda SET last_notified_at = NOW(), updated_at = NOW() WHERE encomienda_id = $1 AND status = 'pending'`, [encomiendaId]);
         await client.query(`
             INSERT INTO encomienda_event (encomienda_id, event_type, actor_user_id, metadata)
-            VALUES ($1, 'notified', $2, jsonb_build_object('residentIds', $3::jsonb, 'reminder', $4::boolean))
-        `, [encomiendaId, actorUserId, JSON.stringify(residentIds), reminder]);
+            VALUES ($1, 'notified', $2, jsonb_build_object(
+                'residentIds', $3::jsonb,
+                'reminder', $4::boolean,
+                'delivery', $5::jsonb
+            ))
+        `, [encomiendaId, actorUserId, JSON.stringify(residentIds), reminder, JSON.stringify(deliverySummary)]);
         await client.query('COMMIT');
     } catch (error) {
         await client.query('ROLLBACK');
