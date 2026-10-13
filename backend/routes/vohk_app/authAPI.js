@@ -73,17 +73,27 @@ router.post('/register-fcm', authenticate, async (req, res) => {
         const { userId } = req.user;
         const { fcmToken, platform, deviceName } = req.body;
         if (!fcmToken || !platform) {
+            console.warn(`[FCM DEVICE REGISTRATION REJECTED] user=${userId} reason=missing-fields platform=${platform || 'missing'}`);
             return res.status(400).json({ error: 'fcmToken and platform are required' });
         }
         if (!['android', 'ios'].includes(platform)) {
+            console.warn(`[FCM DEVICE REGISTRATION REJECTED] user=${userId} reason=invalid-platform platform=${platform}`);
             return res.status(400).json({ error: 'Invalid platform' });
         }
         const result = await authService.registerFcmToken(userId, { fcmToken, platform, deviceName });
+        console.log(`[FCM DEVICE REGISTERED] user=${userId} platform=${platform}`);
         return res.status(200).json(result);
     } catch (err) {
-        console.error(err);
+        console.error(`[FCM DEVICE REGISTRATION FAILED] user=${req.user?.userId || 'unknown'}`, err);
         return res.status(500).json({ error: err.message });
     }
+});
+router.post('/register-fcm/failure', authenticate, async (req, res) => {
+    const { userId } = req.user;
+    const platform = String(req.body?.platform || 'unknown').slice(0, 20);
+    const error = String(req.body?.error || 'No error supplied').replace(/[\r\n]+/g, ' ').slice(0, 500);
+    console.warn(`[FCM CLIENT SETUP FAILED] user=${userId} platform=${platform} error=${error}`);
+    return res.status(204).end();
 });
 router.delete('/register-fcm', authenticate, async (req, res) => {
     try {
