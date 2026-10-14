@@ -136,6 +136,7 @@ test('resident claim identifies the resident and an authorized staff scan record
     const residentId = '33333333-3333-4333-8333-333333333333';
     const staffId = '44444444-4444-4444-8444-444444444444';
     let delivery;
+    const notifications = [];
 
     const encomienda = {
         encomienda_id: packageId,
@@ -164,7 +165,12 @@ test('resident claim identifies the resident and an authorized staff scan record
         if (request === '../../repositories/staffCondominiumRepository') return {
             findByUserAndCondominium: async () => ({}),
         };
-        if (request === './pushNotificationService') return { sendToUsers: async () => ({ sent: 0 }) };
+        if (request === './pushNotificationService') return {
+            sendToUsers: async (userIds, message) => {
+                notifications.push({ userIds, message });
+                return { sent: 1, failed: 0, devices: 1, users: 1 };
+            },
+        };
         return originalLoad.call(this, request, parent, isMain);
     };
 
@@ -183,6 +189,14 @@ test('resident claim identifies the resident and an authorized staff scan record
 
         await service.deliverEncomienda({ userId: staffId, role: 'staff', claimToken: listed[0].claim_token });
         assert.deepEqual(delivery, { encomiendaId: packageId, staffUserId: staffId, residentUserId: residentId });
+        assert.equal(notifications.length, 1);
+        assert.deepEqual(notifications[0].userIds, [residentId]);
+        assert.deepEqual(notifications[0].message.data, {
+            type: 'encomienda_delivered',
+            encomiendaId: packageId,
+            unitId,
+            status: 'delivered',
+        });
     } finally {
         Module._load = originalLoad;
         if (previousSecret === undefined) delete process.env.JWT_SECRET;

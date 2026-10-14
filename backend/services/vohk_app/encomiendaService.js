@@ -115,6 +115,35 @@ async function notifyResidents(encomienda, reminder = false, knownResidents = nu
     }
 }
 
+async function notifyDelivery(encomienda, residentUserId) {
+    try {
+        const delivery = await pushNotificationService.sendToUsers([residentUserId], {
+            notification: {
+                title: 'Encomienda entregada',
+                body: 'La entrega de tu encomienda fue confirmada.',
+            },
+            data: {
+                type: 'encomienda_delivered',
+                encomiendaId: encomienda.encomienda_id,
+                unitId: encomienda.unit_id,
+                status: 'delivered',
+            },
+        });
+        if (!delivery.sent) {
+            console.warn(
+                `[ENCOMIENDA DELIVERY ${encomienda.encomienda_id}] No active resident device accepted the push. ` +
+                `resident=${residentUserId} devices=${delivery.devices ?? 0} failed=${delivery.failed ?? 0}`,
+            );
+        }
+        return delivery.sent;
+    } catch (error) {
+        // Delivery is already committed. A push failure must not turn a
+        // successful QR scan into an error response for concierge staff.
+        console.error(`[ENCOMIENDA DELIVERY ${encomienda.encomienda_id}]`, error);
+        return 0;
+    }
+}
+
 async function createEncomienda({ userId, role, unitId, recipientName, courierName, notes, photo }) {
     if (!STAFF_ROLES.includes(role)) throw createError('Only staff can register packages', 403);
     if (!photo) throw createError('A package photo is required', 400);
@@ -177,7 +206,9 @@ async function deliverEncomienda({ userId, role, claimToken }) {
     if (result.outcome === 'resident_not_assigned') throw createError('The resident is no longer assigned to this unit', 409);
     if (result.outcome === 'not_found') throw createError('Package not found', 404);
     if (result.outcome !== 'delivered') throw createError(`This package is already ${result.outcome}`, 409);
-    return encomiendaRepository.findById(claim.encomiendaId);
+    const delivered = await encomiendaRepository.findById(claim.encomiendaId);
+    await notifyDelivery(delivered || result.encomienda, claim.residentUserId);
+    return delivered;
 }
 
 async function cancelEncomienda({ userId, role, encomiendaId, reason }) {
