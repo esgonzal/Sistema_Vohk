@@ -227,10 +227,11 @@
     <div class="incoming-call-card">
         <h2 *ngIf="incomingCall">Llamada entrante</h2>
         <h2 *ngIf="activeCall">Llamada en curso</h2>
-        <p *ngIf="incomingCall">Llamada recibida desde Twilio</p>
-        <p *ngIf="activeCall">Comunicación activa</p>
+        <h3 *ngIf="incomingCall">{{ callOrigin(incomingCall) }}</h3>
+        <h3 *ngIf="activeCall">{{ callOrigin(activeCall) }}</h3>
+        <p *ngIf="incomingCall">Llamada de audio entrante</p>
+        <p *ngIf="activeCall">Comunicación de audio activa</p>
         <div *ngIf="incomingDevice">
-            <h3>{{incomingDevice.name}}</h3>
             <iframe class="call-camera" [src]="incomingDevice.safeStreamUrl" frameborder="0">
             </iframe>
         </div>

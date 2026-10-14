@@ -329,6 +329,16 @@ export class ConserjeriaComponent implements OnInit, OnDestroy {
     this.activeCall = null;
   }
 
+  callOrigin(call: Call | null): string {
+    if (!call) return 'Origen desconocido';
+    const callerName = call.customParameters.get('caller_name')?.trim();
+    if (callerName) return callerName;
+    if (this.incomingDevice?.name) return this.incomingDevice.name;
+    const rawFrom = call.parameters['From']?.trim() || '';
+    const identity = rawFrom.replace(/^client:/i, '');
+    return identity || 'Origen desconocido';
+  }
+
   showActionPanel(panel: ActionPanel): void {
     this.operationsExpanded = true;
     this.actionPanel = panel;
