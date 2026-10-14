@@ -28,7 +28,7 @@ test('resident management call is condominium-scoped and rings admin and staff',
     try {
         const service = require('../services/vohk_app/twilioService');
         const xml = await service.handleOutgoingCall(
-            `client:${resident.sip_identity}`,
+            resident.sip_identity,
             `management:${condominiumId}`,
             'CA-management-call',
         );
@@ -38,6 +38,10 @@ test('resident management call is condominium-scoped and rings admin and staff',
         assert.match(xml, /<Parameter name="caller_name" value="Ana Pérez · Depto 42"/);
         assert.equal(activities[0].metadata.direction, 'resident_to_management');
         assert.deepEqual(activities[0].participants.map(item => item.userId), ['resident-id', 'staff-id', 'admin-id']);
+        await assert.rejects(
+            service.handleOutgoingCall('sip:attacker@example.com', `management:${condominiumId}`),
+            /Invalid client destination/,
+        );
     } finally {
         Module._load = originalLoad;
         delete require.cache[require.resolve('../services/vohk_app/twilioService')];

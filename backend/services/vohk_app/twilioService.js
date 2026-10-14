@@ -18,6 +18,16 @@ function extractSipIdentity(sipAddress) {
     return match?.[1]?.toLowerCase() || null;
 }
 
+function extractClientIdentity(from) {
+    if (typeof from !== 'string') return null;
+    const value = from.trim();
+    const identity = value.toLowerCase().startsWith('client:') ? value.substring('client:'.length) : value;
+    // Twilio Voice SDK webhooks may provide either "client:<identity>" or the
+    // bare identity passed to Call.place(). Authorization is still resolved
+    // against app_user below; this only normalizes the two legitimate shapes.
+    return /^[A-Za-z0-9_.-]{1,121}$/.test(identity) ? identity : null;
+}
+
 async function handleIncomingCall(from, to, callSid = null) {
     const twiml = new twilio.twiml.VoiceResponse();
     if (/^sips?:/i.test(from)) {
@@ -101,7 +111,8 @@ async function handleIncomingCall(from, to, callSid = null) {
 }
 async function handleOutgoingCall(from, to, callSid = null) {
     const twiml = new twilio.twiml.VoiceResponse();
-    if (!from.startsWith('client:') || !to) {
+    const callerIdentity = extractClientIdentity(from);
+    if (!callerIdentity || !to) {
         throw new Error('Invalid client destination');
     }
     // APP -> INTERCOM
@@ -116,7 +127,6 @@ async function handleOutgoingCall(from, to, callSid = null) {
             error.status = 404;
             throw error;
         }
-        const callerIdentity = from.replace('client:', '');
         const caller = await userRepository.findByIdentity(callerIdentity);
         if (!caller) {
             const error = new Error('Caller not found');
@@ -157,7 +167,6 @@ async function handleOutgoingCall(from, to, callSid = null) {
         if (!unitId) {
             throw new Error('Invalid unit destination');
         }
-        const callerIdentity = from.replace('client:', '');
         const caller = await userRepository.findByIdentity(callerIdentity);
         if (!caller || !['admin', 'staff', 'superadmin'].includes(caller.role)) {
             const error = new Error('Caller cannot reach this unit');
@@ -212,7 +221,6 @@ async function handleOutgoingCall(from, to, callSid = null) {
         if (!condominiumId) {
             throw new Error('Invalid management destination');
         }
-        const callerIdentity = from.replace('client:', '');
         const caller = await userRepository.findByIdentity(callerIdentity);
         if (!caller || caller.role !== 'resident') {
             const error = new Error('Only residents can call condominium management');
@@ -272,7 +280,6 @@ async function handleOutgoingCall(from, to, callSid = null) {
         error.status = 404;
         throw error;
     }
-    const callerIdentity = from.replace('client:', '');
     const caller = await userRepository.findByIdentity(callerIdentity);
     const callCondominium = caller ? await userRepository.findCallCondominium(caller.user_id, resident.user_id) : null;
     if (!caller || !callCondominium) {
