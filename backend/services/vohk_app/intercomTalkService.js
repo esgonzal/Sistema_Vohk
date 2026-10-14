@@ -2,6 +2,7 @@ const net = require('net');
 const { Readable } = require('stream');
 const condominiumRepository = require('../../repositories/condominiumRepository');
 const residentUnitRepository = require('../../repositories/residentUnitRepository');
+const staffCondominiumRepository = require('../../repositories/staffCondominiumRepository');
 const deviceRepository = require('../../repositories/deviceRepository');
 
 const SAMPLE_RATE = 8000;
@@ -24,6 +25,9 @@ async function getAuthorizedIntercom(deviceId, user) {
     if (user.role === 'admin') {
         const condominium = await condominiumRepository.findByIdAndAdmin(intercom.condominium_id, user.userId);
         if (!condominium) throw httpError('Forbidden', 403);
+    } else if (user.role === 'staff') {
+        const assignment = await staffCondominiumRepository.findByUserAndCondominium(user.userId, intercom.condominium_id);
+        if (!assignment) throw httpError('Forbidden', 403);
     } else if (user.role === 'resident') {
         const unit = await residentUnitRepository.findByUserAndCondominium(user.userId, intercom.condominium_id);
         if (!unit) throw httpError('Forbidden', 403);

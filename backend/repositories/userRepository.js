@@ -14,7 +14,8 @@ async function findByUsername(username) {
     const result = await pool.query(`
         SELECT * 
         FROM app_user 
-        WHERE username = $1
+        WHERE LOWER(BTRIM(username)) = LOWER(BTRIM($1))
+        LIMIT 1
     `, [username]);
     return result.rows[0];
 }
@@ -75,7 +76,12 @@ async function createManagementUser(username, passwordHash, rut, sipIdentity, em
 async function updateResident(userId, email, legalName) {
     const result = await pool.query(`
         UPDATE app_user 
-        SET email = $2, legal_name = $3 
+        SET username = CASE
+                WHEN LOWER(BTRIM(username)) = LOWER(BTRIM(email)) THEN $2
+                ELSE username
+            END,
+            email = $2,
+            legal_name = $3
         WHERE user_id = $1 AND role = 'resident' 
         RETURNING *
     `, [userId, email, legalName]);
@@ -111,9 +117,13 @@ async function updateUsername(userId, username) {
 async function updateEmail(userId, email) {
     const result = await pool.query(`
         UPDATE app_user 
-        SET email = $2 
+        SET username = CASE
+                WHEN LOWER(BTRIM(username)) = LOWER(BTRIM(email)) THEN $2
+                ELSE username
+            END,
+            email = $2
         WHERE user_id = $1 
-        RETURNING user_id, email
+        RETURNING user_id, username, email
     `, [userId, email]);
     return result.rows[0];
 }
@@ -237,8 +247,52 @@ async function findActiveResidentsByUnit(unitId) {
     return result.rows;
 }
 
+async function findResidentCallLocation(userId, condominiumId) {
+    const result = await pool.query(`
+        SELECT c.condominium_id, c.name AS condominium_name,
+               un.unit_id, un.name AS unit_name, un.room_no,
+               b.name AS building_name
+        FROM resident_unit ru
+        INNER JOIN unit un ON un.unit_id = ru.unit_id
+        INNER JOIN building b ON b.building_id = un.building_id
+        INNER JOIN condominium c ON c.condominium_id = b.condominium_id
+        INNER JOIN app_user resident ON resident.user_id = ru.user_id
+        WHERE ru.user_id = $1
+          AND c.condominium_id = $2
+          AND resident.role = 'resident'
+          AND resident.active = TRUE
+        ORDER BY ru.is_primary DESC
+        LIMIT 1
+    `, [userId, condominiumId]);
+    return result.rows[0] || null;
+}
+
+async function findActiveManagementByCondominium(condominiumId) {
+    const result = await pool.query(`
+        SELECT u.user_id, u.legal_name, u.sip_identity, u.role
+        FROM app_user u
+        INNER JOIN condominium c ON c.condominium_id = $1
+        WHERE u.active = TRUE
+          AND u.sip_identity IS NOT NULL
+          AND BTRIM(u.sip_identity) <> ''
+          AND (
+              (u.role = 'admin' AND u.user_id = c.admin_user_id)
+              OR (u.role = 'staff' AND EXISTS (
+                  SELECT 1
+                  FROM staff_condominium sc
+                  WHERE sc.user_id = u.user_id
+                    AND sc.condominium_id = c.condominium_id
+              ))
+          )
+        ORDER BY CASE WHEN u.role = 'staff' THEN 0 ELSE 1 END, u.legal_name
+        LIMIT 11
+    `, [condominiumId]);
+    return result.rows;
+}
+
 module.exports = {
     findById, findByUsername, findByRut, findByIdentity, findByEmail, findByPasswordResetToken,
     createResident, createManagementUser, updateResident, savePasswordResetToken, resetPassword, updateUsername, updateEmail, updatePassword,
-    getUsersByCondominium, findCallCondominium, findCallableUnit, findActiveResidentsByUnit
+    getUsersByCondominium, findCallCondominium, findCallableUnit, findActiveResidentsByUnit,
+    findResidentCallLocation, findActiveManagementByCondominium
 };

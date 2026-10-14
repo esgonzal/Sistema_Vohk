@@ -68,6 +68,12 @@ async function createManagementUser(creatorUserId, creatorRole, { legalName, rut
         error.status = 409;
         throw error;
     }
+    const existingUsername = await userRepository.findByUsername(normalizedEmail);
+    if (existingUsername) {
+        const error = new Error('Username is already registered');
+        error.status = 409;
+        throw error;
+    }
     const existingIdentity = await userRepository.findByIdentity(sipIdentity);
     if (existingIdentity) {
         const error = new Error('SIP identity is already registered');
@@ -141,6 +147,12 @@ async function createResident(unitId, userId, role, { legalName, rut, email, isP
         const existingEmail = await userRepository.findByEmail(normalizedEmail);
         if (existingEmail) {
             const error = new Error('Email is already registered');
+            error.status = 409;
+            throw error;
+        }
+        const existingUsername = await userRepository.findByUsername(normalizedEmail);
+        if (existingUsername) {
+            const error = new Error('Username is already registered');
             error.status = 409;
             throw error;
         }
@@ -278,7 +290,9 @@ async function updateResident(residentId, userId, role, { unitId, legalName, ema
     if (!unit) return null;
     const residentUnit = await residentUnitRepository.findByUserAndUnit(residentId, unitId);
     if (!residentUnit) return null;
-    await userRepository.updateResident(residentId, email.toLowerCase(), legalName);
+    const normalizedEmail = email.trim().toLowerCase();
+    await ensureEmailAndDerivedUsernameAvailable(residentId, normalizedEmail);
+    await userRepository.updateResident(residentId, normalizedEmail, legalName);
     await residentUnitRepository.updateResidentUnit(residentId, unitId, isPrimary);
     return userRepository.findById(residentId);
 }
@@ -321,14 +335,31 @@ async function updateUsername(userId, username) {
     return userRepository.updateUsername(userId, username);
 }
 async function updateEmail(userId, email) {
-    const normalizedEmail = email.toLowerCase();
+    const normalizedEmail = email.trim().toLowerCase();
+    await ensureEmailAndDerivedUsernameAvailable(userId, normalizedEmail);
+    return userRepository.updateEmail(userId, normalizedEmail);
+}
+async function ensureEmailAndDerivedUsernameAvailable(userId, normalizedEmail) {
+    const user = await userRepository.findById(userId);
+    if (!user) {
+        const error = new Error('User not found');
+        error.status = 404;
+        throw error;
+    }
     const existing = await userRepository.findByEmail(normalizedEmail);
     if (existing && existing.user_id !== userId) {
         const error = new Error('Email is already in use');
         error.status = 409;
         throw error;
     }
-    return userRepository.updateEmail(userId, normalizedEmail);
+    const usernameWasDerivedFromEmail = user.username.trim().toLowerCase() === user.email?.trim().toLowerCase();
+    if (!usernameWasDerivedFromEmail) return;
+    const usernameOwner = await userRepository.findByUsername(normalizedEmail);
+    if (usernameOwner && usernameOwner.user_id !== userId) {
+        const error = new Error('Username is already in use');
+        error.status = 409;
+        throw error;
+    }
 }
 async function updatePassword(userId, currentPassword, newPassword) {
     const user = await userRepository.findById(userId);

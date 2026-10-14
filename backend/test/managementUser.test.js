@@ -14,6 +14,7 @@ test('superadmin creates an administrator without sending email and receives one
         if (request === '../../repositories/userRepository') return {
             findByRut: async () => existingRut,
             findByEmail: async () => null,
+            findByUsername: async () => null,
             findByIdentity: async () => null,
             createManagementUser: async (...args) => {
                 created.push(args);

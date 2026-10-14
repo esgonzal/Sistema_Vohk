@@ -51,7 +51,7 @@ router.put('/email', async (req, res) => {
         if (!updated) {
             return res.status(404).json({ error: 'User not found' });
         }
-        return res.status(200).json({ email: updated.email });
+        return res.status(200).json({ email: updated.email, username: updated.username });
     } catch (error) {
         return sendServerError(res, error, 'Could not update email');
     }
@@ -179,6 +179,9 @@ router.put('/:residentId', async (req, res) => {
         }
         if (isBlank(residentId) || isBlank(unitId) || isBlank(legalName) || isBlank(email)) {
             return res.status(400).json({ error: 'Resident ID, unit ID, legal name and email are required' });
+        }
+        if (!isValidEmail(email)) {
+            return res.status(400).json({ error: 'A valid email is required' });
         }
         if (typeof isPrimary !== 'boolean') {
             return res.status(400).json({ error: 'isPrimary must be a boolean' });

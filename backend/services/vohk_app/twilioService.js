@@ -205,6 +205,66 @@ async function handleOutgoingCall(from, to, callSid = null) {
         }
         return twiml.toString();
     }
+    // RESIDENT APP -> ADMIN / STAFF APPS IN THE SELECTED CONDOMINIUM.
+    // All callable management identities ring in parallel; Twilio connects the first answer.
+    if (to.startsWith('management:')) {
+        const condominiumId = to.substring('management:'.length);
+        if (!condominiumId) {
+            throw new Error('Invalid management destination');
+        }
+        const callerIdentity = from.replace('client:', '');
+        const caller = await userRepository.findByIdentity(callerIdentity);
+        if (!caller || caller.role !== 'resident') {
+            const error = new Error('Only residents can call condominium management');
+            error.status = 403;
+            throw error;
+        }
+        const location = await userRepository.findResidentCallLocation(caller.user_id, condominiumId);
+        if (!location) {
+            const error = new Error('Resident does not belong to this condominium');
+            error.status = 403;
+            throw error;
+        }
+        const recipients = await userRepository.findActiveManagementByCondominium(condominiumId);
+        if (!recipients.length) {
+            const error = new Error('No management users are available');
+            error.status = 409;
+            throw error;
+        }
+        if (recipients.length > 10) {
+            const error = new Error('Condominium has more than 10 callable management users');
+            error.status = 409;
+            throw error;
+        }
+        const unitLabel = location.unit_name || location.room_no;
+        const callerName = unitLabel
+            ? `${caller.legal_name || 'Residente'} · ${unitLabel}`
+            : caller.legal_name || 'Residente';
+        await activityRepository.createActivity({
+            condominiumId,
+            actorUserId: caller.user_id,
+            eventType: 'call',
+            status: 'initiated',
+            source: 'twilio',
+            correlationId: callSid,
+            participants: [
+                { userId: caller.user_id, role: 'caller' },
+                ...recipients.map(recipient => ({ userId: recipient.user_id, role: 'recipient' })),
+            ],
+            metadata: { direction: 'resident_to_management', from, to, unitId: location.unit_id },
+        }).catch(error => console.error('Could not record resident management call activity:', error));
+        const dial = twiml.dial({ answerOnBridge: true, timeout: 30 });
+        for (const recipient of recipients) {
+            const client = dial.client({ statusCallback: STATUS_CALLBACK_URL, statusCallbackMethod: 'POST', statusCallbackEvent: 'initiated ringing answered completed' });
+            client.identity(recipient.sip_identity);
+            client.parameter({ name: 'call_type', value: 'resident' });
+            client.parameter({ name: 'caller_identity', value: callerIdentity });
+            client.parameter({ name: 'caller_name', value: callerName });
+            client.parameter({ name: 'condominium_id', value: condominiumId });
+            client.parameter({ name: 'unit_id', value: String(location.unit_id) });
+        }
+        return twiml.toString();
+    }
     // APP -> APP / RESIDENT
     const resident = await userRepository.findByIdentity(to);
     if (!resident) {
