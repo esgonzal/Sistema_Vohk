@@ -123,3 +123,47 @@ test('an intercom call to the first room SIP identity rings every active residen
     }
 });
 
+test('an intercom Center call replaces the configured staff number with the schedule resolver recipient', async () => {
+    const originalLoad = Module._load;
+    const centerUser = { user_id: 'staff-id', role: 'staff', active: true, sip_identity: '12345678' };
+    const administrator = { user_id: 'admin-id', role: 'admin', active: true, sip_identity: '19334358' };
+    const activities = [];
+    Module._load = function (request, parent, isMain) {
+        if (request === 'firebase-admin') return { messaging: () => ({ send: async () => undefined }) };
+        if (request === '../../repositories/userRepository') return {
+            findByIdentity: async identity => identity === '12345678' ? centerUser : null,
+        };
+        if (request === '../../repositories/intercomRepository') return {
+            findIntercomBySipIdentity: async () => ({
+                intercom_id: 'intercom-id', device_id: 'door-device', intercom_name: 'Acceso Principal',
+                condominium_id: 'condo-id', condominium_name: 'Condominio',
+            }),
+        };
+        if (request === '../../repositories/userDeviceRepository') return { findActiveByUserId: async () => [] };
+        if (request === '../../repositories/activityRepository') return {
+            createActivity: async input => { activities.push(input); return input; },
+        };
+        if (request === './managementCallRoutingService') return {
+            resolveManagementCallRecipients: async () => ({ recipients: [administrator], route: 'admin_fallback' }),
+        };
+        if (request.startsWith('../../repositories/')) return {};
+        return originalLoad.call(this, request, parent, isMain);
+    };
+    try {
+        delete require.cache[require.resolve('../services/vohk_app/twilioService')];
+        const service = require('../services/vohk_app/twilioService');
+        const xml = await service.handleIncomingCall(
+            'sip:vp-01-vohk@10.20.30.3',
+            'sip:12345678@vohk-porteria.sip.us1.twilio.com',
+            'CA-center-call',
+        );
+        assert.match(xml, /<Identity>19334358<\/Identity>/);
+        assert.doesNotMatch(xml, /<Identity>12345678<\/Identity>/);
+        assert.equal(activities[0].metadata.direction, 'intercom_to_management');
+        assert.equal(activities[0].metadata.managementRoute, 'admin_fallback');
+    } finally {
+        Module._load = originalLoad;
+        delete require.cache[require.resolve('../services/vohk_app/twilioService')];
+    }
+});
+

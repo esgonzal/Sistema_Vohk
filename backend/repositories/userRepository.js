@@ -307,9 +307,24 @@ async function findActiveManagementByCondominium(condominiumId) {
     return result.rows;
 }
 
+async function findActiveAdminByCondominium(condominiumId) {
+    const result = await pool.query(`
+        SELECT u.user_id, u.legal_name, u.sip_identity, u.role
+        FROM condominium c
+        INNER JOIN app_user u ON u.user_id = c.admin_user_id
+        WHERE c.condominium_id = $1
+          AND u.role = 'admin'
+          AND u.active = TRUE
+          AND u.sip_identity IS NOT NULL
+          AND BTRIM(u.sip_identity) <> ''
+        LIMIT 1
+    `, [condominiumId]);
+    return result.rows[0] || null;
+}
+
 module.exports = {
     findById, findByUsername, findByRut, findByIdentity, findByEmail, findByPasswordResetToken,
     createResident, createManagementUser, updateResident, savePasswordResetToken, resetPassword, updateUsername, updateEmail, updatePassword,
     getUsersByCondominium, findCallCondominium, findCallableUnit, findActiveResidentsByUnit, findUniqueResidentUnitByIdentity,
-    findResidentCallLocation, findActiveManagementByCondominium
+    findResidentCallLocation, findActiveManagementByCondominium, findActiveAdminByCondominium
 };

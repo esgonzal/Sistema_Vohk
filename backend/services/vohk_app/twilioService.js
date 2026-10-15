@@ -6,6 +6,7 @@ const userDeviceRepository = require('../../repositories/userDeviceRepository');
 const activityRepository = require('../../repositories/activityRepository');
 const condominiumRepository = require('../../repositories/condominiumRepository');
 const intercomUserRepository = require('../../repositories/intercomUserRepository');
+const managementCallRoutingService = require('./managementCallRoutingService');
 const OUTBOUND_CALLER_ID = process.env.TWILIO_CALLER_ID;
 const OUTBOUND_SIP_URI = process.env.TWILIO_OUTBOUND_SIP_URI;
 const STATUS_CALLBACK_URL = process.env.TWILIO_STATUS_CALLBACK_URL || 'https://api.vohk.cl/api/twilio/client-status';
@@ -40,17 +41,29 @@ async function handleIncomingCall(from, to, callSid = null) {
             throw new Error(`Invalid SIP caller address: ${from}`);
         }
         const apartmentIdentity = destinationMatch[1];
-        const [resident, intercom] = await Promise.all([userRepository.findByIdentity(apartmentIdentity), intercomRepository.findIntercomBySipIdentity(sipIdentity),]);
+        const [destinationUser, intercom] = await Promise.all([userRepository.findByIdentity(apartmentIdentity), intercomRepository.findIntercomBySipIdentity(sipIdentity),]);
         const callerName = intercom ? `${intercom.intercom_name} - ${intercom.condominium_name}` : 'Citófono';
-        const callableResident = resident?.role === 'resident' && resident.active !== false ? resident : null;
+        const callableResident = destinationUser?.role === 'resident' && destinationUser.active !== false ? destinationUser : null;
+        const isManagementDestination = ['staff', 'admin'].includes(destinationUser?.role) && Boolean(intercom?.condominium_id);
         let recipients = callableResident ? [callableResident] : [];
         let targetUnit = null;
+        let managementRoute = null;
+        if (isManagementDestination) {
+            const resolved = await managementCallRoutingService.resolveManagementCallRecipients(intercom.condominium_id);
+            recipients = resolved.recipients;
+            managementRoute = resolved.route;
+        }
         if (callableResident && intercom?.condominium_id) {
             targetUnit = await userRepository.findUniqueResidentUnitByIdentity(apartmentIdentity, intercom.condominium_id);
             if (targetUnit) {
                 const unitResidents = await userRepository.findActiveResidentsByUnit(targetUnit.unit_id);
                 if (unitResidents.length > 0 && unitResidents.length <= 10) recipients = unitResidents;
             }
+        }
+        if (isManagementDestination && !recipients.length) {
+            twiml.say({ language: 'es-MX' }, 'No hay personal disponible en este momento.');
+            twiml.hangup();
+            return twiml.toString();
         }
         for (const recipient of recipients) {
             const devices = await userDeviceRepository.findActiveByUserId(recipient.user_id);
@@ -89,7 +102,10 @@ async function handleIncomingCall(from, to, callSid = null) {
                 source: 'twilio',
                 correlationId: callSid,
                 participants: recipients.map(recipient => ({ userId: recipient.user_id, role: 'recipient' })),
-                metadata: { direction: 'intercom_to_user', from, to, callerName, unitId: targetUnit?.unit_id || null },
+                metadata: {
+                    direction: isManagementDestination ? 'intercom_to_management' : 'intercom_to_user',
+                    from, to, callerName, unitId: targetUnit?.unit_id || null, managementRoute
+                },
             }).catch(error => console.error('Could not record incoming call activity:', error));
         }
         const dial = twiml.dial({ answerOnBridge: true, timeout: 30 });
@@ -236,7 +252,8 @@ async function handleOutgoingCall(from, to, callSid = null) {
             error.status = 403;
             throw error;
         }
-        const recipients = await userRepository.findActiveManagementByCondominium(condominiumId);
+        const resolved = await managementCallRoutingService.resolveManagementCallRecipients(condominiumId);
+        const recipients = resolved.recipients;
         if (!recipients.length) {
             const error = new Error('No management users are available');
             error.status = 409;
@@ -262,7 +279,7 @@ async function handleOutgoingCall(from, to, callSid = null) {
                 { userId: caller.user_id, role: 'caller' },
                 ...recipients.map(recipient => ({ userId: recipient.user_id, role: 'recipient' })),
             ],
-            metadata: { direction: 'resident_to_management', from, to, unitId: location.unit_id },
+            metadata: { direction: 'resident_to_management', from, to, unitId: location.unit_id, managementRoute: resolved.route },
         }).catch(error => console.error('Could not record resident management call activity:', error));
         const dial = twiml.dial({ answerOnBridge: true, timeout: 30 });
         for (const recipient of recipients) {

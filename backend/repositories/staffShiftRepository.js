@@ -22,6 +22,8 @@ async function listShifts(condominiumId) {
                        'user_id', u.user_id,
                        'legal_name', u.legal_name,
                        'email', u.email,
+                       'sip_identity', u.sip_identity,
+                       'role', u.role,
                        'active', u.active
                    ) ORDER BY u.legal_name) FILTER (WHERE u.user_id IS NOT NULL),
                    '[]'::json
