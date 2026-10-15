@@ -2,6 +2,19 @@ const condominiumRepository = require('../../repositories/condominiumRepository'
 const zoneRepository = require('../../repositories/zoneRepository');
 const buildingRepository = require('../../repositories/buildingRepository');
 const staffCondominiumRepository = require('../../repositories/staffCondominiumRepository');
+const staffShiftRepository = require('../../repositories/staffShiftRepository');
+
+async function requireManagedCondominium(condominiumId, userId, role) {
+    const condominium = role === 'superadmin'
+        ? await condominiumRepository.findById(condominiumId)
+        : await condominiumRepository.findByIdAndAdmin(condominiumId, userId);
+    if (!condominium) {
+        const error = new Error('Condominium not found');
+        error.status = 404;
+        throw error;
+    }
+    return condominium;
+}
 
 async function getCondominiumTree(userId, role) {
     const adminUserId = role === 'admin' ? userId : null;
@@ -98,6 +111,43 @@ async function updateInvitationSettings(condominiumId, userId, role, maxRecurren
     return condominiumRepository.updateInvitationSettings(condominiumId, role === 'superadmin' ? null : userId, maxRecurrentInvitations, maxTemporaryDurationHours, maxExpressDurationHours);
 }
 
+async function getStaffScheduleData(condominiumId, userId, role) {
+    await requireManagedCondominium(condominiumId, userId, role);
+    const [staff, shifts] = await Promise.all([
+        staffShiftRepository.listStaff(condominiumId),
+        staffShiftRepository.listShifts(condominiumId)
+    ]);
+    return { staff, shifts };
+}
+
+async function createStaffShift(condominiumId, userId, role, input) {
+    await requireManagedCondominium(condominiumId, userId, role);
+    const shiftId = await staffShiftRepository.saveShift({ condominiumId, ...input });
+    const shifts = await staffShiftRepository.listShifts(condominiumId);
+    return shifts.find(shift => shift.shift_id === shiftId);
+}
+
+async function updateStaffShift(shiftId, userId, role, input) {
+    const existing = await staffShiftRepository.findById(shiftId);
+    if (!existing) return null;
+    await requireManagedCondominium(existing.condominium_id, userId, role);
+    const savedId = await staffShiftRepository.saveShift({
+        shiftId,
+        condominiumId: existing.condominium_id,
+        ...input
+    });
+    if (!savedId) return null;
+    const shifts = await staffShiftRepository.listShifts(existing.condominium_id);
+    return shifts.find(shift => shift.shift_id === savedId);
+}
+
+async function deleteStaffShift(shiftId, userId, role) {
+    const existing = await staffShiftRepository.findById(shiftId);
+    if (!existing) return null;
+    await requireManagedCondominium(existing.condominium_id, userId, role);
+    return staffShiftRepository.deleteShift(shiftId, existing.condominium_id);
+}
+
 async function createBuilding(condominiumId, userId, role, name, floorCount) {
     return buildingRepository.createBuilding(condominiumId, role === 'superadmin' ? null : userId, name, floorCount);
 }
@@ -140,6 +190,7 @@ module.exports = {
     getCondominiumTree, listAdminCondominiums,
     createCondominium, updateCondominium, deleteCondominium, updateResidentCameraAccess,
     getInvitationSettings, updateInvitationSettings,
+    getStaffScheduleData, createStaffShift, updateStaffShift, deleteStaffShift,
     createBuilding, updateBuilding, deleteBuilding,
     createZone, updateZone, deleteZone
 };

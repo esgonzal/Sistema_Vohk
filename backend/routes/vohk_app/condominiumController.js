@@ -20,6 +20,40 @@ function sendServerError(res, error, message) {
 function isAdminRole(role) {
     return role === 'admin' || role === 'superadmin';
 }
+function parseShift(body) {
+    const { name, startTime, endTime, weekdays, enabled, staffUserIds } = body;
+    const timePattern = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
+    if (isBlank(name) || name.trim().length > 100) {
+        const error = new Error('Shift name is required and must not exceed 100 characters');
+        error.status = 400;
+        throw error;
+    }
+    if (!timePattern.test(startTime) || !timePattern.test(endTime)) {
+        const error = new Error('startTime and endTime must use HH:mm format');
+        error.status = 400;
+        throw error;
+    }
+    const normalizedDays = Array.isArray(weekdays)
+        ? [...new Set(weekdays)].sort((a, b) => a - b)
+        : [];
+    if (!normalizedDays.length || normalizedDays.some(day => !Number.isInteger(day) || day < 0 || day > 6)) {
+        const error = new Error('weekdays must contain values from 0 to 6');
+        error.status = 400;
+        throw error;
+    }
+    const normalizedStaff = Array.isArray(staffUserIds) ? [...new Set(staffUserIds)] : [];
+    if (normalizedStaff.some(id => typeof id !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id))) {
+        const error = new Error('staffUserIds must contain valid user identifiers');
+        error.status = 400;
+        throw error;
+    }
+    if (typeof enabled !== 'boolean') {
+        const error = new Error('enabled must be a boolean');
+        error.status = 400;
+        throw error;
+    }
+    return { name: name.trim(), startTime, endTime, weekdays: normalizedDays, enabled, staffUserIds: normalizedStaff };
+}
 
 router.get('/tree', async (req, res) => {
     try {
@@ -160,6 +194,50 @@ router.put('/:condominiumId/invitation-settings', async (req, res) => {
         return res.status(200).json(settings);
     } catch (error) {
         return sendServerError(res, error, 'Could not update invitation settings');
+    }
+});
+router.get('/:condominiumId/staff-shifts', async (req, res) => {
+    try {
+        const { userId, role } = req.user;
+        if (!isAdminRole(role)) return res.status(403).json({ error: 'Forbidden' });
+        const data = await condominiumService.getStaffScheduleData(req.params.condominiumId, userId, role);
+        return res.status(200).json(data);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not retrieve staff shifts');
+    }
+});
+router.post('/:condominiumId/staff-shifts', async (req, res) => {
+    try {
+        const { userId, role } = req.user;
+        if (!isAdminRole(role)) return res.status(403).json({ error: 'Forbidden' });
+        const shift = await condominiumService.createStaffShift(
+            req.params.condominiumId, userId, role, parseShift(req.body)
+        );
+        return res.status(201).json(shift);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not create staff shift');
+    }
+});
+router.put('/staff-shifts/:shiftId', async (req, res) => {
+    try {
+        const { userId, role } = req.user;
+        if (!isAdminRole(role)) return res.status(403).json({ error: 'Forbidden' });
+        const shift = await condominiumService.updateStaffShift(req.params.shiftId, userId, role, parseShift(req.body));
+        if (!shift) return res.status(404).json({ error: 'Shift not found' });
+        return res.status(200).json(shift);
+    } catch (error) {
+        return sendServerError(res, error, 'Could not update staff shift');
+    }
+});
+router.delete('/staff-shifts/:shiftId', async (req, res) => {
+    try {
+        const { userId, role } = req.user;
+        if (!isAdminRole(role)) return res.status(403).json({ error: 'Forbidden' });
+        const shift = await condominiumService.deleteStaffShift(req.params.shiftId, userId, role);
+        if (!shift) return res.status(404).json({ error: 'Shift not found' });
+        return res.status(200).json({ success: true, deleted: shift });
+    } catch (error) {
+        return sendServerError(res, error, 'Could not delete staff shift');
     }
 });
 router.post('/:condominiumId/buildings', async (req, res) => {
