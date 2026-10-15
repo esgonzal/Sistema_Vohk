@@ -42,8 +42,18 @@ async function handleIncomingCall(from, to, callSid = null) {
         const apartmentIdentity = destinationMatch[1];
         const [resident, intercom] = await Promise.all([userRepository.findByIdentity(apartmentIdentity), intercomRepository.findIntercomBySipIdentity(sipIdentity),]);
         const callerName = intercom ? `${intercom.intercom_name} - ${intercom.condominium_name}` : 'Citófono';
-        if (resident) {
-            const devices = await userDeviceRepository.findActiveByUserId(resident.user_id);
+        const callableResident = resident?.role === 'resident' && resident.active !== false ? resident : null;
+        let recipients = callableResident ? [callableResident] : [];
+        let targetUnit = null;
+        if (callableResident && intercom?.condominium_id) {
+            targetUnit = await userRepository.findUniqueResidentUnitByIdentity(apartmentIdentity, intercom.condominium_id);
+            if (targetUnit) {
+                const unitResidents = await userRepository.findActiveResidentsByUnit(targetUnit.unit_id);
+                if (unitResidents.length > 0 && unitResidents.length <= 10) recipients = unitResidents;
+            }
+        }
+        for (const recipient of recipients) {
+            const devices = await userDeviceRepository.findActiveByUserId(recipient.user_id);
             for (const device of devices) {
                 try {
                     await admin.messaging().send({
@@ -51,7 +61,7 @@ async function handleIncomingCall(from, to, callSid = null) {
                         data: {
                             type: 'incoming_call',
                             call_type: 'intercom',
-                            identity: apartmentIdentity,
+                            identity: recipient.sip_identity,
                             caller_name: callerName,
                             device_id: String(intercom?.device_id ?? ''),
                             condominium_id: String(intercom?.condominium_id ?? ''),
@@ -70,7 +80,7 @@ async function handleIncomingCall(from, to, callSid = null) {
                 }
             }
         }
-        if (resident && intercom?.condominium_id) {
+        if (recipients.length && intercom?.condominium_id) {
             await activityRepository.createActivity({
                 condominiumId: intercom.condominium_id,
                 deviceId: intercom.device_id,
@@ -78,30 +88,23 @@ async function handleIncomingCall(from, to, callSid = null) {
                 status: 'initiated',
                 source: 'twilio',
                 correlationId: callSid,
-                participants: [{ userId: resident.user_id, role: 'recipient' }],
-                metadata: { direction: 'intercom_to_user', from, to, callerName },
+                participants: recipients.map(recipient => ({ userId: recipient.user_id, role: 'recipient' })),
+                metadata: { direction: 'intercom_to_user', from, to, callerName, unitId: targetUnit?.unit_id || null },
             }).catch(error => console.error('Could not record incoming call activity:', error));
         }
-        const dial = twiml.dial({ answerOnBridge: true });
-        const client = dial.client({ statusCallback: STATUS_CALLBACK_URL, statusCallbackMethod: 'POST', statusCallbackEvent: 'initiated ringing answered completed' });
-        client.identity(apartmentIdentity);
-        client.parameter({ name: 'call_type', value: 'intercom' });
-        client.parameter({ name: 'caller_name', value: callerName });
-        client.parameter({ name: '__TWI_CALLER_NAME', value: callerName });
-        if (intercom?.intercom_id) {
-            client.parameter({ name: 'intercom_id', value: String(intercom.intercom_id) });
-        }
-        if (intercom?.device_id) {
-            client.parameter({ name: 'device_id', value: String(intercom.device_id) });
-        }
-        if (intercom?.intercom_name) {
-            client.parameter({ name: 'intercom_name', value: intercom.intercom_name });
-        }
-        if (intercom?.condominium_id) {
-            client.parameter({ name: 'condominium_id', value: String(intercom.condominium_id) });
-        }
-        if (intercom?.condominium_name) {
-            client.parameter({ name: 'condominium_name', value: intercom.condominium_name });
+        const dial = twiml.dial({ answerOnBridge: true, timeout: 30 });
+        const dialRecipients = recipients.length ? recipients : [{ sip_identity: apartmentIdentity }];
+        for (const recipient of dialRecipients) {
+            const client = dial.client({ statusCallback: STATUS_CALLBACK_URL, statusCallbackMethod: 'POST', statusCallbackEvent: 'initiated ringing answered completed' });
+            client.identity(recipient.sip_identity);
+            client.parameter({ name: 'call_type', value: 'intercom' });
+            client.parameter({ name: 'caller_name', value: callerName });
+            client.parameter({ name: '__TWI_CALLER_NAME', value: callerName });
+            if (intercom?.intercom_id) client.parameter({ name: 'intercom_id', value: String(intercom.intercom_id) });
+            if (intercom?.device_id) client.parameter({ name: 'device_id', value: String(intercom.device_id) });
+            if (intercom?.intercom_name) client.parameter({ name: 'intercom_name', value: intercom.intercom_name });
+            if (intercom?.condominium_id) client.parameter({ name: 'condominium_id', value: String(intercom.condominium_id) });
+            if (intercom?.condominium_name) client.parameter({ name: 'condominium_name', value: intercom.condominium_name });
         }
     } else {
         const dial = twiml.dial({ callerId: OUTBOUND_CALLER_ID });

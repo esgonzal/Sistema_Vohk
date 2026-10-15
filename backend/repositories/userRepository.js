@@ -247,6 +247,23 @@ async function findActiveResidentsByUnit(unitId) {
     return result.rows;
 }
 
+async function findUniqueResidentUnitByIdentity(sipIdentity, condominiumId) {
+    const result = await pool.query(`
+        SELECT un.unit_id
+        FROM app_user resident
+        INNER JOIN resident_unit ru ON ru.user_id = resident.user_id
+        INNER JOIN unit un ON un.unit_id = ru.unit_id
+        INNER JOIN building b ON b.building_id = un.building_id
+        WHERE resident.sip_identity = $1
+          AND resident.role = 'resident'
+          AND resident.active = TRUE
+          AND b.condominium_id = $2
+        ORDER BY ru.is_primary DESC, un.unit_id
+        LIMIT 2
+    `, [sipIdentity, condominiumId]);
+    return result.rows.length === 1 ? result.rows[0] : null;
+}
+
 async function findResidentCallLocation(userId, condominiumId) {
     const result = await pool.query(`
         SELECT c.condominium_id, c.name AS condominium_name,
@@ -293,6 +310,6 @@ async function findActiveManagementByCondominium(condominiumId) {
 module.exports = {
     findById, findByUsername, findByRut, findByIdentity, findByEmail, findByPasswordResetToken,
     createResident, createManagementUser, updateResident, savePasswordResetToken, resetPassword, updateUsername, updateEmail, updatePassword,
-    getUsersByCondominium, findCallCondominium, findCallableUnit, findActiveResidentsByUnit,
+    getUsersByCondominium, findCallCondominium, findCallableUnit, findActiveResidentsByUnit, findUniqueResidentUnitByIdentity,
     findResidentCallLocation, findActiveManagementByCondominium
 };

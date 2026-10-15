@@ -71,3 +71,55 @@ test('unit fan-out preserves Twilio Client resident calls and SIP intercom calls
     }
 });
 
+test('an intercom call to the first room SIP identity rings every active resident in that unit', async () => {
+    const originalLoad = Module._load;
+    const activityCalls = [];
+    const pushMessages = [];
+    const residents = [
+        { user_id: 'resident-1', role: 'resident', active: true, legal_name: 'Ana', sip_identity: '19415890' },
+        { user_id: 'resident-2', role: 'resident', active: true, legal_name: 'Luis', sip_identity: '19489351' },
+    ];
+
+    Module._load = function (request, parent, isMain) {
+        if (request === 'firebase-admin') return { messaging: () => ({ send: async message => pushMessages.push(message) }) };
+        if (request === '../../repositories/userRepository') return {
+            findByIdentity: async identity => residents.find(item => item.sip_identity === identity) || null,
+            findUniqueResidentUnitByIdentity: async () => ({ unit_id: 'unit-201' }),
+            findActiveResidentsByUnit: async () => residents,
+        };
+        if (request === '../../repositories/intercomRepository') return {
+            findIntercomBySipIdentity: async () => ({
+                intercom_id: 'intercom-id', device_id: 'door-device', intercom_name: 'Acceso Principal',
+                condominium_id: 'condo-id', condominium_name: 'Condominio',
+            }),
+        };
+        if (request === '../../repositories/userDeviceRepository') return {
+            findActiveByUserId: async userId => [{ user_device_id: `device-${userId}`, fcm_token: `token-${userId}` }],
+        };
+        if (request === '../../repositories/activityRepository') return {
+            createActivity: async input => { activityCalls.push(input); return input; },
+        };
+        if (request.startsWith('../../repositories/')) return {};
+        return originalLoad.call(this, request, parent, isMain);
+    };
+
+    try {
+        delete require.cache[require.resolve('../services/vohk_app/twilioService')];
+        const service = require('../services/vohk_app/twilioService');
+        const xml = await service.handleIncomingCall(
+            'sip:vp-01-vohk@10.20.30.3',
+            'sip:19415890@vohk-porteria.sip.us1.twilio.com',
+            'CA-room-201',
+        );
+
+        assert.match(xml, /<Identity>19415890<\/Identity>/);
+        assert.match(xml, /<Identity>19489351<\/Identity>/);
+        assert.deepEqual(pushMessages.map(message => message.data.identity), ['19415890', '19489351']);
+        assert.deepEqual(activityCalls[0].participants.map(item => item.userId), ['resident-1', 'resident-2']);
+        assert.equal(activityCalls[0].metadata.unitId, 'unit-201');
+    } finally {
+        Module._load = originalLoad;
+        delete require.cache[require.resolve('../services/vohk_app/twilioService')];
+    }
+});
+
