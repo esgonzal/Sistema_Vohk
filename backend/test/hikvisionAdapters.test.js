@@ -96,13 +96,13 @@ test('K1T343 builds the model-specific resident, visitor and phonebook data', ()
     assert.equal(visitor.userVerifyMode, 'faceOrPw');
     assert.equal(visitor.doorRight, '1');
     assert.deepEqual(visitor.RightPlan, [{ doorNo: 1, planTemplateNo: '1' }]);
-    assert.deepEqual(adapter.buildPhoneRecord(101, ['sip:resident@example.com']), {
+    assert.deepEqual(adapter.buildPhoneRecord(101, ['17046230', '15156810']), {
         PhoneNumberRecord: {
             periodNumber: 1,
             buildingNumber: 1,
             unitNumber: 1,
             roomNo: '101',
-            PhoneNumbers: [{ phoneNumber: 'sip:resident@example.com' }],
+            PhoneNumbers: [{ phoneNumber: '17046230' }, { phoneNumber: '15156810' }],
         },
     });
 });
@@ -125,13 +125,13 @@ test('K1T673 uses the validated MinMoe resident, visitor and phonebook payloads'
         employeeNo: 'visitor-673',
         dynamicCode: '654321',
     }).userVerifyMode, 'faceOrPw');
-    assert.deepEqual(adapter.buildPhoneRecord(101, ['sip:resident@example.com']), {
+    assert.deepEqual(adapter.buildPhoneRecord(101, ['17046230', '15156810']), {
         PhoneNumberRecord: {
             periodNumber: 1,
             buildingNumber: 1,
             unitNumber: 1,
             roomNo: '101',
-            PhoneNumbers: [{ phoneNumber: 'sip:resident@example.com' }],
+            PhoneNumbers: [{ phoneNumber: '17046230' }, { phoneNumber: '15156810' }],
         },
     });
 });

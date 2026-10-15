@@ -234,6 +234,50 @@ async function createPasscode(deviceId, user, input) {
     return { ...response, local };
 }
 
+async function provisionInvitationPasscode({ deviceId, dynamicCode, invitationKey, validFrom, validUntil, createdByUserId }) {
+    const lock = await requireTtlockDevice(deviceId);
+    assertPasscodeCapableLock(lock);
+    const keyboardPwd = validateTtlockPasscode(dynamicCode);
+    const startDate = new Date(validFrom).getTime();
+    const endDate = validUntil ? new Date(validUntil).getTime() : 0;
+    const response = await ttlockClient.addPasscode(lock.lock_id, {
+        keyboardPwd,
+        keyboardPwdName: invitationKey,
+        startDate,
+        endDate,
+    });
+    if (!response.keyboardPwdId) throw httpError('TTLock did not return a passcode ID', 502);
+    try {
+        await ttlockRepository.upsertPasscode({
+            ttlockLockId: lock.ttlock_lock_id,
+            keyboardPwdId: response.keyboardPwdId,
+            keyboardPwd,
+            keyboardPwdName: invitationKey,
+            keyboardPwdType: 2,
+            purpose: 'visitor',
+            createdByUserId,
+            validFrom: new Date(startDate),
+            validUntil: endDate ? new Date(endDate) : null,
+        });
+    } catch (error) {
+        await ttlockClient.deletePasscode(lock.lock_id, response.keyboardPwdId).catch(cleanupError => {
+            console.error(`[TTLOCK INVITATION CLEANUP ${deviceId}]`, cleanupError);
+        });
+        throw error;
+    }
+    return { deviceId, keyboardPwdId: response.keyboardPwdId };
+}
+
+async function revokeInvitationPasscode(deviceId, invitationKey) {
+    const lock = await ttlockRepository.findByDeviceId(deviceId);
+    if (!lock) return false;
+    const passcode = await ttlockRepository.findVisitorPasscode(deviceId, invitationKey);
+    if (!passcode) return false;
+    await ttlockClient.deletePasscode(lock.lock_id, passcode.keyboard_pwd_id);
+    await ttlockRepository.markPasscodeDeleted(passcode.keyboard_pwd_id, lock.ttlock_lock_id);
+    return true;
+}
+
 async function changePasscode(deviceId, keyboardPwdId, user, input) {
     const lock = await requireTtlockDevice(deviceId);
     await assertDeviceAccess(lock, user, { manage: true });
@@ -379,6 +423,8 @@ module.exports = {
     openDoor,
     listPasscodes,
     createPasscode,
+    provisionInvitationPasscode,
+    revokeInvitationPasscode,
     changePasscode,
     deletePasscode,
     listUnlockRecords,

@@ -84,6 +84,18 @@ async function getCondominiumSettings(condominiumId) {
     return result.rows[0];
 }
 
+async function findDevices(invitationId) {
+    const result = await pool.query(
+        `SELECT d.device_id, d.name, d.type
+         FROM invitation_device id
+         INNER JOIN device d ON d.device_id = id.device_id
+         WHERE id.invitation_id = $1
+         ORDER BY d.name`,
+        [invitationId]
+    );
+    return result.rows;
+}
+
 async function createInvitationWithDevices({ visitorId, unitId, createdByUserId, residentUserId, employeeNo, dynamicCode, hasFace, biometricConsentAt, type, validFrom, validUntil, deviceIds }) {
     const client = await pool.connect();
     try {
@@ -188,6 +200,6 @@ async function findActiveByResidentUnit(residentUserId, unitId) {
 }
 
 module.exports = {
-    findById, findByUnitId, findIntercoms, getCondominiumSettings, createInvitationWithDevices, markRevoked,
+    findById, findByUnitId, findIntercoms, findDevices, getCondominiumSettings, createInvitationWithDevices, markRevoked,
     findExpiredActiveInvitations, markExpired, findActiveByResidentUnit,
 };

@@ -7,6 +7,7 @@ const staffCondominiumRepository = require('../../repositories/staffCondominiumR
 const deviceRepository = require('../../repositories/deviceRepository');
 const intercomRepository = require('../../repositories/intercomRepository');
 const deviceService = require('./deviceService');
+const ttlockService = require('./ttlockService');
 const { getAdapterForIntercom } = require('./hikvision/adapterFactory');
 const { isValidRut, formatRut } = require('../../utils/rut');
 
@@ -26,6 +27,20 @@ function formatHikvisionTime(date) {
 
 function getPermanentHikvisionEndDate() {
     return new Date('2037-12-31T23:59:59-03:00');
+}
+
+function createDynamicCode({ ttlockCompatible = false } = {}) {
+    for (let attempt = 0; attempt < 20; attempt++) {
+        const code = String(crypto.randomInt(100000, 1000000));
+        if (!ttlockCompatible) return code;
+        try {
+            ttlockService._private.validateTtlockPasscode(code);
+            return code;
+        } catch (_) {
+            // Generate another code when TTLock rejects a repeated/sequential pattern.
+        }
+    }
+    throw createError('Could not generate a compatible access code', 500);
 }
 
 async function getAccessibleUnit(userId, role, unitId) {
@@ -69,20 +84,26 @@ async function validateResidentForUnit({ userId, role, residentUserId, unitId })
     return targetResidentUserId;
 }
 
-async function validateIntercoms(unit, deviceIds) {
+async function validateDevices(unit, deviceIds) {
     const uniqueDeviceIds = [...new Set(deviceIds)];
     if (uniqueDeviceIds.some(deviceId => typeof deviceId !== 'string' || deviceId.trim() === '')) {
-        throw createError('Invalid intercom ID', 400);
+        throw createError('Invalid access device ID', 400);
     }
     const condominiumDevices = await deviceRepository.findDevicesByCondominium(unit.condominium_id);
-    const selectedIntercoms = condominiumDevices.filter(device => uniqueDeviceIds.includes(device.device_id) && device.type === 'intercom' && device.intercom_id);
-    if (selectedIntercoms.length !== uniqueDeviceIds.length) {
-        throw createError('One or more intercoms are invalid or do not belong to the unit condominium', 400);
+    const selectedDevices = condominiumDevices.filter(device => uniqueDeviceIds.includes(device.device_id) && (
+        (device.type === 'intercom' && device.intercom_id) || device.type === 'lock'
+    ));
+    if (selectedDevices.length !== uniqueDeviceIds.length) {
+        throw createError('One or more access devices are invalid or do not belong to the unit condominium', 400);
     }
-    if (selectedIntercoms.some(device => device.active !== true)) {
-        throw createError('One or more selected intercoms are inactive', 400);
+    if (selectedDevices.some(device => device.active !== true)) {
+        throw createError('One or more selected access devices are inactive', 400);
     }
-    return selectedIntercoms;
+    return {
+        devices: selectedDevices,
+        intercoms: selectedDevices.filter(device => device.type === 'intercom'),
+        locks: selectedDevices.filter(device => device.type === 'lock'),
+    };
 }
 
 async function getIntercomAdapter(deviceId) {
@@ -183,7 +204,7 @@ async function createInvitation({ userId, role, unitId, residentUserId, type, va
         throw createError('Staff cannot create recurrent invitations', 403);
     }
     if (!Array.isArray(deviceIds) || deviceIds.length === 0) {
-        throw createError('At least one intercom is required', 400);
+        throw createError('At least one access device is required', 400);
     }
     if (type === 'express' && photo) {
         throw createError('Express invitations cannot use face access', 400);
@@ -196,21 +217,22 @@ async function createInvitation({ userId, role, unitId, residentUserId, type, va
     const settings = await invitationRepository.getCondominiumSettings(unit.condominium_id);
     if (!settings) throw createError('Condominium configuration not found', 500);
     const { begin, end } = calculateValidity({ type, validFrom, validUntil, durationHours, settings, });
-    const selectedIntercoms = await validateIntercoms(unit, deviceIds);
+    const selected = await validateDevices(unit, deviceIds);
     let normalizedVisitor = null;
     if (type !== 'express') {
         normalizedVisitor = validateVisitor(visitor);
     }
-    const dynamicCode = String(crypto.randomInt(100000, 1000000));
+    const dynamicCode = createDynamicCode({ ttlockCompatible: selected.locks.length > 0 });
     const employeeNo = `${Date.now()}${crypto.randomInt(100, 1000)}`;
     const hasFace = type !== 'express' && Boolean(photo);
     const invitationData = { valid_from: begin, valid_until: end, };
     const visitorName = normalizedVisitor?.name || 'Pase Express';
-    const provisionedDeviceIds = [];
+    const provisionedIntercomIds = [];
+    const provisionedLockIds = [];
     try {
-        for (const intercom of selectedIntercoms) {
+        for (const intercom of selected.intercoms) {
             await createIntercomVisitor({ deviceId: intercom.device_id, invitation: invitationData, visitorName, employeeNo, dynamicCode });
-            provisionedDeviceIds.push(intercom.device_id);
+            provisionedIntercomIds.push(intercom.device_id);
             if (hasFace) {
                 const faceResult = await deviceService.enrollFace(intercom.device_id, employeeNo, photo, normalizedVisitor.name);
                 if (faceResult.statusCode !== 1) {
@@ -218,13 +240,31 @@ async function createInvitation({ userId, role, unitId, residentUserId, type, va
                 }
             }
         }
+        for (const lock of selected.locks) {
+            await ttlockService.provisionInvitationPasscode({
+                deviceId: lock.device_id,
+                dynamicCode,
+                invitationKey: employeeNo,
+                validFrom: begin,
+                validUntil: end,
+                createdByUserId: userId,
+            });
+            provisionedLockIds.push(lock.device_id);
+        }
     } catch (error) {
         console.error('[INVITATION PROVISION]', error);
-        for (const deviceId of provisionedDeviceIds) {
+        for (const deviceId of provisionedIntercomIds) {
             try {
                 await deleteIntercomVisitor(deviceId, employeeNo);
             } catch (cleanupError) {
                 console.error(`[INVITATION PROVISION CLEANUP ${deviceId}]`, cleanupError);
+            }
+        }
+        for (const deviceId of provisionedLockIds) {
+            try {
+                await ttlockService.revokeInvitationPasscode(deviceId, employeeNo);
+            } catch (cleanupError) {
+                console.error(`[INVITATION TTLOCK CLEANUP ${deviceId}]`, cleanupError);
             }
         }
         throw error;
@@ -236,19 +276,26 @@ async function createInvitation({ userId, role, unitId, residentUserId, type, va
         }
         const invitation = await invitationRepository.createInvitationWithDevices({
             visitorId: createdVisitor?.visitor_id || null, unitId, createdByUserId: userId, residentUserId: ownerResidentUserId, employeeNo, dynamicCode, hasFace,
-            biometricConsentAt: hasFace ? new Date() : null, type, validFrom: begin, validUntil: end, deviceIds: selectedIntercoms.map(device => device.device_id),
+            biometricConsentAt: hasFace ? new Date() : null, type, validFrom: begin, validUntil: end, deviceIds: selected.devices.map(device => device.device_id),
         });
 
-        return { ...invitation, visitor: normalizedVisitor, dynamic_code: dynamicCode, provisioned_devices: selectedIntercoms.length, total_devices: selectedIntercoms.length };
+        return { ...invitation, visitor: normalizedVisitor, dynamic_code: dynamicCode, provisioned_devices: selected.devices.length, total_devices: selected.devices.length };
     } catch (error) {
         if (createdVisitor) {
             await visitorRepository.deleteVisitor(createdVisitor.visitor_id);
         }
-        for (const deviceId of provisionedDeviceIds) {
+        for (const deviceId of provisionedIntercomIds) {
             try {
                 await deleteIntercomVisitor(deviceId, employeeNo);
             } catch (cleanupError) {
                 console.error(`[INVITATION DATABASE CLEANUP ${deviceId}]`, cleanupError);
+            }
+        }
+        for (const deviceId of provisionedLockIds) {
+            try {
+                await ttlockService.revokeInvitationPasscode(deviceId, employeeNo);
+            } catch (cleanupError) {
+                console.error(`[INVITATION TTLOCK DATABASE CLEANUP ${deviceId}]`, cleanupError);
             }
         }
         throw error;
@@ -260,6 +307,10 @@ async function revokeInvitation(invitation) {
         const intercoms = await invitationRepository.findIntercoms(invitation.invitation_id);
         for (const intercom of intercoms) {
             await deleteIntercomVisitor(intercom.device_id, invitation.hikvision_employee_no);
+        }
+        const devices = await invitationRepository.findDevices(invitation.invitation_id);
+        for (const device of devices.filter(item => item.type === 'lock')) {
+            await ttlockService.revokeInvitationPasscode(device.device_id, invitation.hikvision_employee_no);
         }
     }
     return invitationRepository.markRevoked(invitation.invitation_id);
@@ -294,6 +345,10 @@ async function processExpiredInvitations() {
 
                 for (const intercom of intercoms) {
                     await deleteIntercomVisitor(intercom.device_id, invitation.hikvision_employee_no);
+                }
+                const devices = await invitationRepository.findDevices(invitation.invitation_id);
+                for (const device of devices.filter(item => item.type === 'lock')) {
+                    await ttlockService.revokeInvitationPasscode(device.device_id, invitation.hikvision_employee_no);
                 }
             }
             await invitationRepository.markExpired(invitation.invitation_id);

@@ -166,6 +166,21 @@ async function findResidentPasscodes(userId) {
     return result.rows;
 }
 
+async function findVisitorPasscode(deviceId, keyboardPwdName) {
+    const result = await pool.query(`
+        SELECT tp.*, tl.device_id, tl.lock_id
+        FROM ttlock_passcode tp
+        INNER JOIN ttlock_lock tl ON tl.ttlock_lock_id = tp.ttlock_lock_id
+        WHERE tl.device_id = $1
+          AND tp.keyboard_pwd_name = $2
+          AND tp.purpose = 'visitor'
+          AND tp.status <> 'deleted'
+        ORDER BY tp.created_at DESC
+        LIMIT 1
+    `, [deviceId, keyboardPwdName]);
+    return result.rows[0];
+}
+
 async function upsertPasscode({
     ttlockLockId,
     keyboardPwdId,
@@ -244,6 +259,7 @@ module.exports = {
     findByResident,
     findResidentPasscode,
     findResidentPasscodes,
+    findVisitorPasscode,
     upsertPasscode,
     updatePasscode,
     markPasscodeDeleted,

@@ -69,7 +69,11 @@ async function findSipIdentitiesByUnit(unitId) {
         SELECT u.sip_identity
         FROM resident_unit ru
         INNER JOIN app_user u ON u.user_id = ru.user_id
-        WHERE ru.unit_id = $1 AND u.sip_identity IS NOT NULL
+        WHERE ru.unit_id = $1
+          AND u.role = 'resident'
+          AND u.active = TRUE
+          AND u.sip_identity IS NOT NULL
+          AND BTRIM(u.sip_identity) <> ''
         ORDER BY ru.is_primary DESC, u.legal_name
     `, [unitId]);
     return result.rows.map(row => row.sip_identity);
