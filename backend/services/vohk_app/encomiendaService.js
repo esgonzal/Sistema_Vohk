@@ -225,7 +225,11 @@ async function processReminders(now = new Date()) {
     const hour = Number(new Intl.DateTimeFormat('en-US', { timeZone: 'America/Santiago', hour: '2-digit', hourCycle: 'h23' }).format(now));
     if (hour < 8 || hour >= 22) return 0;
     const pending = await encomiendaRepository.findDueReminders(REMINDER_INTERVAL_HOURS);
-    for (const encomienda of pending) await notifyResidents(encomienda, true);
+    for (const encomienda of pending) {
+        // A NULL last_notified_at represents an initial push that no device
+        // accepted. Preserve the original publication wording on retries.
+        await notifyResidents(encomienda, !encomienda.initial_notification);
+    }
     return pending.length;
 }
 

@@ -129,6 +129,45 @@ test('package reminders use a fixed one-hour interval', async () => {
     }
 });
 
+test('a failed publication push stays eligible for an initial-notification retry', async () => {
+    const originalLoad = Module._load;
+    const notifications = [];
+    const marked = [];
+    const pending = [{
+        encomienda_id: '11111111-1111-4111-8111-111111111111',
+        unit_id: '22222222-2222-4222-8222-222222222222',
+        created_by_user_id: '33333333-3333-4333-8333-333333333333',
+        unit_name: '101',
+        initial_notification: true,
+    }];
+    Module._load = function (request, parent, isMain) {
+        if (request === '../../repositories/encomiendaRepository') return {
+            findDueReminders: async () => pending,
+            findResidentsByUnit: async () => [{ user_id: 'resident-1' }],
+            markNotified: async (...args) => marked.push(args),
+        };
+        if (request === './pushNotificationService') return {
+            sendToUsers: async (userIds, message) => {
+                notifications.push({ userIds, message });
+                return { sent: 1, failed: 0, devices: 1, users: 1, errors: {} };
+            },
+        };
+        if (request.startsWith('../../repositories/')) return {};
+        return originalLoad.call(this, request, parent, isMain);
+    };
+    const servicePath = require.resolve('../services/vohk_app/encomiendaService');
+    try {
+        const service = require(servicePath);
+        const processed = await service.processReminders(new Date('2026-10-16T12:00:00-03:00'));
+        assert.equal(processed, 1);
+        assert.equal(notifications[0].message.notification.title, 'Llegó una encomienda');
+        assert.equal(marked[0][3], false);
+    } finally {
+        Module._load = originalLoad;
+        delete require.cache[servicePath];
+    }
+});
+
 test('resident claim identifies the resident and an authorized staff scan records both parties', async () => {
     const originalLoad = Module._load;
     const packageId = '11111111-1111-4111-8111-111111111111';

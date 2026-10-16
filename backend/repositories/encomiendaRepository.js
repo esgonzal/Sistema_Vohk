@@ -24,8 +24,8 @@ async function create({ unitId, createdByUserId, recipientName, courierName, not
         const result = await client.query(`
             INSERT INTO encomienda (
                 unit_id, created_by_user_id, recipient_name, courier_name, notes,
-                photo_bytes, photo_mime_type, last_notified_at
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+                photo_bytes, photo_mime_type
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING *
         `, [unitId, createdByUserId, recipientName, courierName, notes, photoBytes, photoMimeType]);
         const encomienda = result.rows[0];
@@ -150,12 +150,16 @@ async function findResidentsByUnit(unitId) {
 
 async function findDueReminders(hours) {
     const result = await pool.query(`
-        SELECT e.encomienda_id, e.unit_id, e.created_by_user_id, u.name AS unit_name
+        SELECT e.encomienda_id, e.unit_id, e.created_by_user_id, u.name AS unit_name,
+               (e.last_notified_at IS NULL) AS initial_notification
         FROM encomienda e
         JOIN unit u ON u.unit_id = e.unit_id
         WHERE e.status = 'pending'
-          AND COALESCE(e.last_notified_at, e.created_at) <= NOW() - ($1::text || ' hours')::interval
-        ORDER BY COALESCE(e.last_notified_at, e.created_at)
+          AND (
+              e.last_notified_at IS NULL
+              OR e.last_notified_at <= NOW() - ($1::text || ' hours')::interval
+          )
+        ORDER BY e.last_notified_at NULLS FIRST, e.created_at
         LIMIT 200
     `, [hours]);
     return result.rows;
@@ -172,7 +176,12 @@ async function markNotified(encomiendaId, actorUserId, residentIds, reminder, de
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
-        await client.query(`UPDATE encomienda SET last_notified_at = NOW(), updated_at = NOW() WHERE encomienda_id = $1 AND status = 'pending'`, [encomiendaId]);
+        // A timestamp means Firebase accepted at least one delivery. When no
+        // device accepted the initial push, keep NULL so the five-minute worker
+        // retries it promptly instead of suppressing it for a full hour.
+        if (deliverySummary.sent > 0) {
+            await client.query(`UPDATE encomienda SET last_notified_at = NOW(), updated_at = NOW() WHERE encomienda_id = $1 AND status = 'pending'`, [encomiendaId]);
+        }
         await client.query(`
             INSERT INTO encomienda_event (encomienda_id, event_type, actor_user_id, metadata)
             VALUES ($1, 'notified', $2, jsonb_build_object(
