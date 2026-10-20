@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const authenticate = require('../../middleware/authMiddleware');
 const deviceService = require('../../services/vohk_app/deviceService');
+const mediaAccessService = require('../../services/vohk_app/mediaAccessService');
 router.use(authenticate);
 
 function isAdminRole(role) {
@@ -16,7 +17,7 @@ router.get('/location', async (req, res) => {
             return res.status(403).json({ error: 'Forbidden' });
         }
         const devices = await deviceService.getDevicesByCondominium(condominiumId, userId, role);
-        res.json(devices);
+        res.json(mediaAccessService.protectDeviceResponse(devices, req.user));
     } catch (err) {
         console.log(err);
         const status = err.status >= 400 && err.status < 500 ? err.status : 500;

@@ -1,10 +1,17 @@
 const axios = require('axios');
 
-// TODO: move these to env vars (process.env.TTLOCK_CLIENT_ID / TTLOCK_CLIENT_SECRET)
-const TTLOCK_CLIENT_ID = 'c4114592f7954ca3b751c44d81ef2c7d';
-const TTLOCK_CLIENT_SECRET = '33b556bdb803763f2e647fc7a357dedf';
 const TTLOCK_AUTH_URL = 'https://euapi.ttlock.com';
 const TTLOCK_V3_URL = 'https://euapi.ttlock.com/v3';
+
+function requireConfig(name) {
+  const value = process.env[name];
+  if (!value) {
+    const error = new Error(`Missing TTLock configuration: ${name}`);
+    error.status = 503;
+    throw error;
+  }
+  return value;
+}
 
 function formHeaders() {
   return { 'Content-Type': 'application/x-www-form-urlencoded' };
@@ -14,11 +21,13 @@ function formHeaders() {
  * Exchanges username/password for a TTLock access token.
  */
 async function ttlockLogin(username, password) {
+  const clientId = requireConfig('TTLOCK_CLIENT_ID');
+  const clientSecret = requireConfig('TTLOCK_CLIENT_SECRET');
   const { data } = await axios.post(
     `${TTLOCK_AUTH_URL}/oauth2/token`,
     new URLSearchParams({
-      clientId: TTLOCK_CLIENT_ID,
-      clientSecret: TTLOCK_CLIENT_SECRET,
+      clientId,
+      clientSecret,
       username,
       password
     }),
@@ -34,7 +43,7 @@ async function ttlockPost(path, accessToken, params = {}) {
   const { data } = await axios.post(
     `${TTLOCK_V3_URL}${path}`,
     new URLSearchParams({
-      clientId: TTLOCK_CLIENT_ID,
+      clientId: requireConfig('TTLOCK_CLIENT_ID'),
       accessToken,
       date: Date.now(),
       ...params
@@ -50,7 +59,7 @@ async function ttlockPost(path, accessToken, params = {}) {
 async function ttlockGet(path, accessToken, params = {}) {
   const { data } = await axios.get(`${TTLOCK_V3_URL}${path}`, {
     params: {
-      clientId: TTLOCK_CLIENT_ID,
+      clientId: requireConfig('TTLOCK_CLIENT_ID'),
       accessToken,
       date: Date.now(),
       ...params
@@ -59,4 +68,4 @@ async function ttlockGet(path, accessToken, params = {}) {
   return data;
 }
 
-module.exports = { ttlockLogin, ttlockPost, ttlockGet, TTLOCK_CLIENT_ID };
+module.exports = { ttlockLogin, ttlockPost, ttlockGet };

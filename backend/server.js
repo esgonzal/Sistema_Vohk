@@ -6,6 +6,7 @@ const http = require('http');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const app = express();
+app.set('trust proxy', process.env.TRUST_PROXY || 'loopback');
 const pool = require('../backend/database/db.js');
 
 app.use(bodyParser.json());
@@ -29,16 +30,10 @@ const v0Routes = require('./routes/v0');
 app.use('/v0', v0Routes);
 const v1Routes = require('./routes/v1');
 app.use('/v1', v1Routes);
-const emailRouter = require('../backend/routes/nodemailer/emailRoutes.js');
-app.use('/mail', emailRouter);
 const mondayTest = require('../backend/routes/automation/monday_test.js');
 app.use('/monday', mondayTest);
 const apiRouter = require('./routes/vohk_app');
 app.use('/api', apiRouter);
-
-app.use("/debug.jpg", (req, res) => {
-  res.sendFile("/opt/vohk_ai/debug_center.jpg");
-});
 
 const { startDeviceHeartbeat } = require('./jobs/deviceHeartbeat');
 const { startInvitationExpiration } = require('./jobs/invitationExpiration');

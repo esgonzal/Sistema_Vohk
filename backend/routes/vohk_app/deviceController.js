@@ -3,6 +3,7 @@ const multer = require('multer');
 const authenticate = require('../../middleware/authMiddleware');
 const deviceService = require('../../services/vohk_app/deviceService');
 const ttlockService = require('../../services/vohk_app/ttlockService');
+const mediaAccessService = require('../../services/vohk_app/mediaAccessService');
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 router.use(authenticate);
@@ -30,7 +31,7 @@ router.get('/condominium/:condominiumId', async (req, res) => {
             return res.status(403).json({ error: 'Forbidden' });
         }
         const devices = await deviceService.getDevicesByCondominium(condominiumId, userId, role);
-        return res.status(200).json(devices);
+        return res.status(200).json(mediaAccessService.protectDeviceResponse(devices, req.user));
     } catch (error) {
         return sendServerError(res, error, 'Could not retrieve devices');
     }
@@ -46,7 +47,7 @@ router.get('/location-mobile', async (req, res) => {
             return res.status(400).json({ error: 'Condominium ID is required' });
         }
         const devices = await deviceService.getMobileDevices({ userId, role, condominiumId });
-        return res.status(200).json(devices);
+        return res.status(200).json(mediaAccessService.protectDeviceResponse(devices, req.user));
     } catch (error) {
         return sendServerError(res, error, 'Could not retrieve devices');
     }

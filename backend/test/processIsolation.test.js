@@ -71,7 +71,7 @@ test('real API entry points preserve contracts and survive an independent VOHK r
     assert.equal((await request(university, '/v1/user/register', {})).status, 400);
     assert.equal((await request(vohk, '/api/auth/login', {})).status, 400);
     assert.deepEqual(await (await request(integrations, '/monday/consult', { challenge: 'test' })).json(), { challenge: 'test' });
-    assert.equal((await request(legacy, '/mail/sendEkeySummary', {})).status, 400);
+    assert.equal((await request(legacy, '/mail/sendEkeySummary', {})).status, 404);
 
     // A service must not accidentally mount another service's routes.
     for (const api of [legacy, integrations, vohk]) {

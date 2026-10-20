@@ -1,6 +1,6 @@
 const axios = require('axios');
-const TTLOCK_CLIENT_ID = 'c4114592f7954ca3b751c44d81ef2c7d';
-const TTLOCK_CLIENT_SECRET = '33b556bdb803763f2e647fc7a357dedf';
+const TTLOCK_CLIENT_ID = process.env.TTLOCK_CLIENT_ID;
+const TTLOCK_CLIENT_SECRET = process.env.TTLOCK_CLIENT_SECRET;
 
 async function login(username, password) {
     try {

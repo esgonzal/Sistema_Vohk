@@ -4,16 +4,6 @@ const { Resend } = require('resend');
 const RESEND_KEY = process.env.RESEND_KEY;
 const resend = new Resend(RESEND_KEY);
 
-//const nodemailer = require('nodemailer');
-//const USER = "soporte@vohk.cl";
-//const PASS = "khto bghq ckfz txla";
-/*
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: { user: USER, pass: PASS }
-});
-*/
-
 function validateEmail(email) {
     return typeof email === 'string' && email.includes('@');
 }

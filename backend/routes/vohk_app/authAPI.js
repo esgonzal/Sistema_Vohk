@@ -2,8 +2,28 @@ const express = require('express');
 const router = express.Router();
 const authService = require('../../services/vohk_app/authService');
 const authenticate = require('../../middleware/authMiddleware');
+const { createRateLimiter } = require('../../middleware/rateLimitMiddleware');
 
-router.post('/login', async (req, res) => {
+const loginLimiter = createRateLimiter({
+    windowMs: 15 * 60 * 1000,
+    limit: 10,
+    key: req => `${req.ip}:${req.body?.username || ''}`,
+    message: 'Too many login attempts. Try again in 15 minutes.',
+});
+const forgotPasswordLimiter = createRateLimiter({
+    windowMs: 15 * 60 * 1000,
+    limit: 5,
+    key: req => req.ip,
+    message: 'Too many password reset requests. Try again in 15 minutes.',
+});
+const resetPasswordLimiter = createRateLimiter({
+    windowMs: 15 * 60 * 1000,
+    limit: 10,
+    key: req => req.ip,
+    message: 'Too many password reset attempts. Try again in 15 minutes.',
+});
+
+router.post('/login', loginLimiter, async (req, res) => {
     try {
         const { username, password } = req.body;
         if (!username || !password) {
@@ -19,7 +39,7 @@ router.post('/login', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-router.post('/forgot-password', async (req, res) => {
+router.post('/forgot-password', forgotPasswordLimiter, async (req, res) => {
     try {
         const { email } = req.body;
         if (!email) {
@@ -34,7 +54,7 @@ router.post('/forgot-password', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-router.post('/reset-password', async (req, res) => {
+router.post('/reset-password', resetPasswordLimiter, async (req, res) => {
     try {
         const { token, password } = req.body;
         if (!token || !password) {

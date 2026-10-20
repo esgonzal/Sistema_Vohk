@@ -212,5 +212,4 @@ router.delete('/residents/:residentId/units/:unitId', async (req, res) => {
     }
 });
 
-
 module.exports = router;

@@ -7,6 +7,7 @@ const cors = require('cors');
 
 function createApp(service) {
     const app = express();
+    app.set('trust proxy', process.env.TRUST_PROXY || 'loopback');
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({ extended: true }));
     const allowedOrigins = ['http://localhost:4200', 'https://app.vohk.cl','http://localhost:4201', 'https://one.vohk.cl'];

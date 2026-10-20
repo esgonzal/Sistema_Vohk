@@ -2,13 +2,14 @@ const express = require('express');
 const router = express.Router();
 const admin = require('firebase-admin');
 const twilioService = require('../../services/vohk_app/twilioService');
+const { validateTwilioWebhook } = require('../../middleware/twilioWebhookMiddleware');
 const serviceAccount = require('../../firebase/firebase-service-account.json');
 
 if (!admin.apps.length) {
     admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
 }
 
-router.post('/incoming', async (req, res) => {
+router.post('/incoming', validateTwilioWebhook, async (req, res) => {
     try {
         console.log(`Incoming Twilio call ${req.body.CallSid}: ${req.body.From} -> ${req.body.To}`);
         const from = req.body.From || '';
@@ -23,7 +24,7 @@ router.post('/incoming', async (req, res) => {
         res.status(500).send('Internal server error');
     }
 });
-router.post('/outgoing', async (req, res) => {
+router.post('/outgoing', validateTwilioWebhook, async (req, res) => {
     try {
         console.log(`Outgoing Twilio call: ${req.body.From} -> ${req.body.To}`);
         const from = req.body.From || '';
@@ -42,7 +43,7 @@ router.post('/outgoing', async (req, res) => {
     }
 });
 
-router.post('/client-status', async (req, res) => {
+router.post('/client-status', validateTwilioWebhook, async (req, res) => {
     const status = req.body.CallStatus;
     try {
         await twilioService.recordCallStatus(req.body);

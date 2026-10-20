@@ -3,7 +3,6 @@ const { createApp, startServer } = require('./runtime/httpServer');
 function createLegacyApp() {
     const app = createApp('legacy-api');
     app.use('/v0', require('./routes/v0'));
-    app.use('/mail', require('./routes/nodemailer/emailRoutes'));
     return app;
 }
 
