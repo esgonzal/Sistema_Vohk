@@ -34,12 +34,10 @@ export class PopUpService {
   selectLocksForMultipleEkeys = false;   //La accion de seleccionar cerraduras para enviar multiples ekeys se hace en un pop up
   addRecipientsForMultipleEkeys = false; //La accion de agregar receptores para enviar multiples ekeys se hace en un pop up
   resetPassword = false;                 //La accion de cambiar contraseña de un usuario se hace en un pop up
-  sharePasscode = false;                 //La accion de compartir código se hace en un pop up
   wrongAccountType = false;              //Para cambiar la contraseña, se necesita que la cuenta sea creada dentro del sistema
   transferLockWarning = false;           //Antes de transferir la cerradura a otra cuenta, se muestra un popup para confirmar
   changeNickname = false;
   cardReader = false;
-  emailSuccess = false;
   excelRecords = false;
   temporalPasscode = false;
   temporalPasscode2 = false;
@@ -47,7 +45,6 @@ export class PopUpService {
   selectLocksForTransfer = false;
   selectHubsForTransfer = false;
   createPasscode = false;
-  createEkey = false;
   createCard = false;
   passageMode = false;
   transferLock = false;
@@ -63,7 +60,6 @@ export class PopUpService {
   selectLocksForMultiplePasscodes = false;
   multiplePasscodesResult = false;
   multipleCardsResult = false;
-  emailMessage: string = '';
   lock_alias: string;
   
   gatewaysOfAccount: GatewayAccount[] = []
@@ -90,7 +86,6 @@ export class PopUpService {
   records: Record[] = [];
   fingerprints: Fingerprint[] = [];
   endDateUser: string;
-  toEmail: string;
   multiplePasscodeResults: MultiplePasscodeResponse[] = [];
   multipleCardResults: CardResult[] = [];
 

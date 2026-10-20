@@ -95,6 +95,7 @@
                     <ng-container *ngFor="let resident of unit.residents">
                         <div class="resident">
                             {{ resident.legal_name }}
+                            <small *ngIf="resident.is_primary"> · Principal</small>
                         </div>
                     </ng-container>
                     <span class="empty" *ngIf="!unit.residents?.length">
@@ -119,7 +120,7 @@
                 <div class="unit-actions">
                     <span class="status" [class.inactive]="!unit.residents?.length">
                         <span class="status-dot"></span>
-                        {{ unit.residents?.length ? 'Ocupada' : 'Vacante' }}
+                        {{ unit.residents?.length ? unit.residents.length + (unit.residents.length === 1 ? ' residente' : ' residentes') : 'Vacante' }}
                     </span>
                     <button class="action-btn" (click)="openCreateResident(unit)">
                         +

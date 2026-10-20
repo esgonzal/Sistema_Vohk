@@ -63,6 +63,11 @@
   background: #22242a;
 }
 
+.small-btn:disabled {
+  cursor: not-allowed;
+  opacity: .45;
+}
+
 .condominiums {
   display: flex;
   flex-direction: column;
@@ -208,6 +213,107 @@
   color: #2e6bff;
 }
 
+.section-header>div>div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.section-header small {
+  color: #777;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.shift-row {
+  display: grid;
+  grid-template-columns: 150px minmax(220px, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 16px;
+  border-bottom: 1px solid #222;
+  transition: .2s;
+}
+
+.shift-row:last-child {
+  border-bottom: none;
+}
+
+.shift-row:hover {
+  background: rgba(255, 255, 255, .025);
+}
+
+.shift-row.disabled {
+  opacity: .55;
+}
+
+.shift-time {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+.shift-time span,
+.shift-meta {
+  color: #777;
+}
+
+.shift-name {
+  color: #eee;
+  font-weight: 600;
+}
+
+.overnight {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 3px 7px;
+  border-radius: 20px;
+  background: #202841;
+  color: #7da3ff;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.shift-meta {
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+.shift-people {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+  color: #aaa;
+  font-size: 12px;
+}
+
+.shift-people mat-icon {
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+  color: #2e6bff;
+}
+
+.shift-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.shift-actions .toggle-switch {
+  margin-right: 8px;
+}
+
+.shift-status {
+  padding: 24px 16px;
+  color: #777;
+  text-align: center;
+  font-size: 13px;
+}
+
 .management-row {
   display: flex;
   justify-content: space-between;
@@ -345,6 +451,124 @@
   white-space: nowrap;
 }
 
+::ng-deep .shift-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  text-align: left;
+}
+
+::ng-deep .shift-form>label,
+::ng-deep .shift-time-grid label,
+::ng-deep .shift-form-label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #aaa;
+  font-size: 13px;
+}
+
+::ng-deep .shift-form .swal2-input {
+  width: 100%;
+  height: 44px;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+::ng-deep .shift-time-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+::ng-deep .shift-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-top: 7px;
+}
+
+::ng-deep .shift-choice input {
+  position: absolute;
+  opacity: 0;
+}
+
+::ng-deep .shift-choice span {
+  display: block;
+  padding: 9px 4px;
+  border: 1px solid #3a3d45;
+  border-radius: 8px;
+  color: #999;
+  text-align: center;
+  cursor: pointer;
+}
+
+::ng-deep .shift-choice input:checked+span {
+  border-color: #2e6bff;
+  background: rgba(46, 107, 255, .16);
+  color: #8eb0ff;
+}
+
+::ng-deep .shift-staff-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  max-height: 210px;
+  margin-top: 7px;
+  overflow-y: auto;
+}
+
+::ng-deep .shift-staff-choice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid #33363d;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+::ng-deep .shift-staff-choice input {
+  accent-color: #2e6bff;
+}
+
+::ng-deep .shift-staff-choice span,
+::ng-deep .shift-staff-choice small {
+  display: block;
+}
+
+::ng-deep .shift-staff-choice strong {
+  color: #ddd;
+  font-size: 13px;
+}
+
+::ng-deep .shift-staff-choice small {
+  margin-top: 2px;
+  color: #777;
+  font-size: 11px;
+}
+
+::ng-deep .shift-staff-choice.inactive {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+::ng-deep .shift-enabled {
+  flex-direction: row !important;
+  align-items: center;
+  color: #ddd !important;
+}
+
+::ng-deep .shift-enabled input {
+  accent-color: #2e6bff;
+}
+
+::ng-deep .shift-empty {
+  grid-column: 1 / -1;
+  color: #777;
+  font-size: 13px;
+}
+
 @media(max-width:900px) {
   .page-header {
     flex-direction: column;
@@ -362,5 +586,17 @@
 
   .camera-access-setting {
     align-items: flex-start;
+  }
+
+  .shift-row {
+    grid-template-columns: 1fr auto;
+  }
+
+  .shift-time {
+    grid-column: 1 / -1;
+  }
+
+  ::ng-deep .shift-staff-list {
+    grid-template-columns: 1fr;
   }
 }

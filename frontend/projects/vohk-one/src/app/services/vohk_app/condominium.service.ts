@@ -23,6 +23,18 @@ export class CondominiumService {
   updateInvitationSettings(condominiumId: string, settings: any) {
     return this.http.put<any>(`${this.URL}/api/condominiums/${condominiumId}/invitation-settings`, settings);
   }
+  getStaffShifts(condominiumId: string) {
+    return this.http.get<any>(`${this.URL}/api/condominiums/${condominiumId}/staff-shifts`);
+  }
+  createStaffShift(condominiumId: string, shift: any) {
+    return this.http.post<any>(`${this.URL}/api/condominiums/${condominiumId}/staff-shifts`, shift);
+  }
+  updateStaffShift(shiftId: string, shift: any) {
+    return this.http.put<any>(`${this.URL}/api/condominiums/staff-shifts/${shiftId}`, shift);
+  }
+  deleteStaffShift(shiftId: string) {
+    return this.http.delete(`${this.URL}/api/condominiums/staff-shifts/${shiftId}`);
+  }
   createCondominium(name: string, address: string, city: string) {
     return this.http.post(`${this.URL}/api/condominiums/`, { name, address, city });
   }

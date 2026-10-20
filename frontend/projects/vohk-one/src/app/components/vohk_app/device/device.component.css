@@ -126,7 +126,7 @@ button {
 .table-header,
 .device-row {
     display: grid;
-    grid-template-columns: 1.8fr 1fr 1fr 1fr .8fr .8fr;
+    grid-template-columns: 1.8fr 1fr 1fr 1fr .8fr minmax(176px, .8fr);
     gap: 12px;
     padding: 14px 20px;
     align-items: center;
@@ -137,6 +137,10 @@ button {
     font-size: 11px;
     text-transform: uppercase;
     background: #191b20;
+}
+
+.table-header>div:last-child {
+    text-align: right;
 }
 
 .device-row {
@@ -223,16 +227,39 @@ button {
 }
 
 .device-actions {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(4, 38px);
     gap: 8px;
+    justify-content: end;
+}
+
+.action-refresh {
+    grid-column: 1;
+}
+
+.action-provision {
+    grid-column: 2;
+}
+
+.action-edit {
+    grid-column: 3;
+}
+
+.action-delete {
+    grid-column: 4;
 }
 
 .action-btn {
-    padding: 6px 9px;
+    width: 38px;
+    height: 40px;
+    padding: 0;
     border: 1px solid #2a2c32;
     border-radius: 7px;
     background: #1c1d21;
     color: #ddd;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .action-btn:hover {

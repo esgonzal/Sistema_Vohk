@@ -66,23 +66,6 @@
         <button (click)="popupService.cardReader=false">Volver</button>
     </div>
 </div>
-<div class="container_sin_width" *ngIf="popupService.emailSuccess" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
-    <div class="header">
-        Se enviará el siguiente correo al usuario
-    </div>
-    <div id="content" style="background-color: rgb(245, 245, 245);">
-        <textarea [(ngModel)]="emailMessage" rows="10" cols="50"></textarea>
-        <!-- <div [innerHTML]="popupService.emailMessage"></div> -->
-    </div>
-    <div id="actions">
-        <button (click)="cancelEmail()">Volver</button>
-        <button (click)="copyToClipboard()">Copiar mensaje</button>
-        <button (click)="saveEmail()">Confirmar</button>
-    </div>
-    <div *ngIf="isCopied" class="confirmation-message">
-        El mensaje fue copiado.
-    </div>
-</div>
 <div class="container" *ngIf="popupService.excelFingerprints" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
     <div class="header">
         Introduzca un nombre para el archivo

@@ -19,8 +19,8 @@
                     <div class="camera-card" *ngFor="let device of cameraDevices; trackBy: cameraTrackBy"
                         (dragover)="$event.preventDefault()" (drop)="onCameraDrop($event, device)">
                         <div class="camera-player">
-                            <iframe #cameraFrame class="camera-frame" [src]="device.safeStreamUrl" [title]="device.name"
-                                frameborder="0" allow="autoplay; fullscreen" loading="lazy"></iframe>
+                            <app-camera-stream class="camera-frame" [streamUrl]="device.safeStreamUrl"
+                                [allowAudio]="canUseCameraAudio"></app-camera-stream>
                             <button class="drag-handle" type="button" draggable="true"
                                 (dragstart)="onCameraDragStart($event, device)" (dragend)="onCameraDragEnd()"
                                 title="Arrastrar cámara">
@@ -232,8 +232,8 @@
         <p *ngIf="incomingCall">Llamada de audio entrante</p>
         <p *ngIf="activeCall">Comunicación de audio activa</p>
         <div *ngIf="incomingDevice">
-            <iframe class="call-camera" [src]="incomingDevice.safeStreamUrl" frameborder="0">
-            </iframe>
+            <app-camera-stream class="call-camera" [streamUrl]="incomingDevice.safeStreamUrl"
+                [allowAudio]="canUseCameraAudio"></app-camera-stream>
         </div>
         <div class="buttons">
             <ng-container *ngIf="incomingCall">

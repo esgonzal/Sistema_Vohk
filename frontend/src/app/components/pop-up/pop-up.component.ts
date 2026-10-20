@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit, SecurityContext } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 
@@ -12,12 +12,10 @@ import { GatewayService } from 'src/app/services/gateway.service';
 
 import { GatewayAccount } from '../../Interfaces/Gateway';
 import { Formulario } from '../../Interfaces/Formulario';
-import { operationResponse, addGroupResponse, sendEkeyResponse } from '../../Interfaces/API_responses';
+import { operationResponse, addGroupResponse } from '../../Interfaces/API_responses';
 
 import { lastValueFrom } from 'rxjs';
 import moment from 'moment';
-import { Clipboard } from '@angular/cdk/clipboard';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import * as XLSX from 'xlsx';
 import { LockData } from 'src/app/Interfaces/Lock';
 import { DarkModeService } from 'src/app/services/dark-mode.service';
@@ -49,8 +47,6 @@ export class PopUpComponent implements OnInit {
   confirmPassword: string = '';
   URL = 'https://api.vohkapp.com';
   cardNumber: string = '';
-  emailMessage: string;
-  public isCopied: boolean = false;
   email: string;
   currentGroup = sessionStorage.getItem("lockGroupID") ?? '';
   locksOfGroup: LockData[] = []
@@ -71,16 +67,11 @@ export class PopUpComponent implements OnInit {
     public userService: UserServiceService,
     public ekeyService: EkeyServiceService,
     public popupService: PopUpService,
-    private clipboard: Clipboard,
-    private sanitizer: DomSanitizer,
     public DarkModeService: DarkModeService
   ) { }
 
   async ngOnInit() {
     // Esto es para mostrar los valores actuales del AutoLockTime si es que estaba activado desde antes
-    if (this.popupService.emailSuccess) {
-      this.emailMessage = this.convertHtmlToPlainText(this.extractHtmlContent(this.popupService.emailMessage));
-    }
     if (this.popupService.detalles) {
       if (this.popupService.detalles.autoLockTime >= 0) {
         this.autoLockToggle = true;
@@ -268,75 +259,6 @@ export class PopUpComponent implements OnInit {
   }
   getCardNumber(datos: Formulario) {
     console.log(datos.name)
-  }
-  extractHtmlContent(safeHtml: SafeHtml): string {
-    return this.sanitizer.sanitize(SecurityContext.HTML, safeHtml) || '';
-  }
-  convertHtmlToPlainText(htmlContent: string): string {
-    const tempElement = document.createElement('div');
-    tempElement.innerHTML = htmlContent;
-    // Get plain text and replace <p> tags with newlines
-    let plainText = tempElement.textContent || tempElement.innerText || '';
-    // Optional: Clean up extra spaces or blank lines if needed
-    plainText = plainText.replace(/\n\s*\n/g, '\n').trim();
-    return plainText;
-  }
-  convertPlainTextToHtml(plainText: string): string {
-    // Split the plain text into paragraphs based on newlines
-    const paragraphs = plainText.split(/\n+/).filter(line => line.trim() !== '');
-    // Wrap each paragraph in <p> tags and join them
-    const htmlContent = paragraphs.map(para => `<p>${para.trim()}</p>`).join('\n');
-    return htmlContent;
-  }
-  cancelEmail() {
-    this.popupService.emailSuccess = false;
-  }
-  async saveEmail() {
-    this.isLoading = true;
-    try {
-      //const updatedHtml = this.convertPlainTextToHtml(this.emailMessage);
-      //this.popupService.emailMessage = updatedHtml; // Save as HTML
-      let response = await lastValueFrom(this.ekeyService.sendEmail(this.popupService.toEmail, this.popupService.emailMessage)) as sendEkeyResponse;
-      console.log(response)
-      if (response.success) {
-        this.isLoading = false;
-        this.popupService.emailSuccess = false
-        this.popupService.createEkey = false;
-        window.location.reload();
-      }
-    } catch (error) {
-      console.error("Error while sending Email:", error);
-      this.isLoading = false;
-    } finally {
-      this.isLoading = false;
-    }
-
-
-  }
-  copyToClipboard() {
-    const emailContent = this.popupService.emailMessage;
-    if (emailContent) {
-      const sanitizedContent = this.sanitizer.sanitize(SecurityContext.HTML, emailContent) || '';
-      const tempElement = document.createElement('div');
-      tempElement.innerHTML = sanitizedContent;
-      const textContent = tempElement.textContent || tempElement.innerText;
-      const clipboardAttempt = this.clipboard.beginCopy(textContent);
-      let remainingAttempts = 5;
-      const attempt = () => {
-        const result = clipboardAttempt.copy();
-        if (result) {
-          this.isCopied = true;
-          setTimeout(() => {
-            this.isCopied = false;
-          }, 2000);
-        } else if (--remainingAttempts) {
-          setTimeout(attempt, 100);
-        } else {
-          clipboardAttempt.destroy();
-        }
-      };
-      attempt();
-    }
   }
   exportFingerprintsToExcel(): void {
     if (this.name !== undefined) {

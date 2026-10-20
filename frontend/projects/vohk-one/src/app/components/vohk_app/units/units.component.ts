@@ -235,7 +235,6 @@ export class UnitsComponent implements OnInit, OnDestroy {
     if (!result.isConfirmed || !result.value) {
       return;
     }
-    console.log(unit.unit_id, result.value.legalName, result.value.rut, result.value.email, result.value.isPrimary)
     this.unitService.createResident(unit.unit_id, result.value.legalName, result.value.rut, result.value.email, result.value.isPrimary).subscribe({
       next: () => {
         Swal.fire('Residente agregado', 'El residente fue vinculado correctamente.', 'success');

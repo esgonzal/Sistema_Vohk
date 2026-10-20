@@ -115,21 +115,4 @@ export class EkeyServiceService {
     const body = { lockID, keyID };
     return this.http.post<operationResponse>(url, body, { headers: this.getHeaders(accessToken) });
   }
-  generateEmail(userID: string, lockAlias: string, recieverName: string, startDate: string, endDate: string, email?: string): Observable<sendEkeyResponse> {
-    console.log("generar email");
-    let body = { userID, lockAlias, recieverName, startDate, endDate, email }
-    let url = this.URL.concat('/v0/ekey/generateEmail');
-    return this.http.post<sendEkeyResponse>(url, body);
-  }
-  generateEmail2(userID: string, lockAlias: string, recieverName: string, code: string, email: string): Observable<sendEkeyResponse> {
-    let body = { userID, lockAlias, recieverName, code, email };
-    let url = this.URL.concat('/v0/ekey/generateEmail2');
-    return this.http.post<sendEkeyResponse>(url, body);
-  }
-  sendEmail(toEmail: string, emailContent: string): Observable<sendEkeyResponse> {
-    console.log("enviar email");
-    let body = { toEmail, emailContent }
-    let url = this.URL.concat('/mail/sendEmail');
-    return this.http.post<sendEkeyResponse>(url, body);
-  }
 }

@@ -69,6 +69,60 @@
                         </label>
                     </div>
                 </div>
+                <div class="management-section shifts-section">
+                    <div class="section-header">
+                        <div>
+                            <mat-icon>schedule</mat-icon>
+                            <div>
+                                <span>Turnos del personal</span>
+                                <small>Organiza horarios y asigna las cuentas de conserjería.</small>
+                            </div>
+                        </div>
+                        <button class="small-btn" [disabled]="condo.shiftsLoading || !condo.staff?.length"
+                            (click)="openShiftEditor(condo)">
+                            + Nuevo turno
+                        </button>
+                    </div>
+                    <div class="shift-status" *ngIf="condo.shiftsLoading">Cargando turnos…</div>
+                    <div class="shift-status" *ngIf="!condo.shiftsLoading && condo.shiftsLoaded && !condo.staff?.length">
+                        Primero crea o asigna una cuenta de personal a este condominio.
+                    </div>
+                    <div class="shift-status" *ngIf="!condo.shiftsLoading && condo.staff?.length && !condo.shifts?.length">
+                        Aún no hay turnos configurados.
+                    </div>
+                    <div class="shift-row" [class.disabled]="!shift.enabled" *ngFor="let shift of condo.shifts">
+                        <div class="shift-time">
+                            <strong>{{ shift.start_time }}</strong>
+                            <span>—</span>
+                            <strong>{{ shift.end_time }}</strong>
+                        </div>
+                        <div class="shift-details">
+                            <div class="shift-name">
+                                {{ shift.name }}
+                                <span class="overnight" *ngIf="shift.end_time <= shift.start_time">termina al día siguiente</span>
+                            </div>
+                            <div class="shift-meta">{{ formatShiftDays(shift.weekdays) }}</div>
+                            <div class="shift-people">
+                                <mat-icon>group</mat-icon>
+                                <span>{{ shift.staff.length ? shift.staff[0].legal_name : 'Sin personal' }}</span>
+                                <span *ngIf="shift.staff.length > 1">+{{ shift.staff.length - 1 }}</span>
+                            </div>
+                        </div>
+                        <div class="shift-actions">
+                            <label class="toggle-switch" title="Habilitar o deshabilitar turno">
+                                <input type="checkbox" [checked]="shift.enabled" [disabled]="shift.saving"
+                                    (change)="toggleShift(condo, shift, $event)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <button class="icon-btn" matTooltip="Editar turno" (click)="openShiftEditor(condo, shift)">
+                                <mat-icon>edit</mat-icon>
+                            </button>
+                            <button class="icon-btn danger" matTooltip="Eliminar turno" (click)="deleteShift(condo, shift)">
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                        </div>
+                    </div>
+                </div>
                 <div class="management-section">
                     <div class="camera-access-setting">
                         <div class="camera-access-info">

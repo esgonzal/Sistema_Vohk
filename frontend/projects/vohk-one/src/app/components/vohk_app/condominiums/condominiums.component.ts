@@ -15,6 +15,27 @@ interface Condominium {
   zones: Zone[];
   expanded?: boolean;
   cameraAccessSaving?: boolean;
+  staff?: StaffMember[];
+  shifts?: StaffShift[];
+  shiftsLoaded?: boolean;
+  shiftsLoading?: boolean;
+}
+interface StaffMember {
+  user_id: string;
+  legal_name: string;
+  email?: string;
+  active: boolean;
+}
+interface StaffShift {
+  shift_id: string;
+  condominium_id: string;
+  name: string;
+  start_time: string;
+  end_time: string;
+  weekdays: number[];
+  enabled: boolean;
+  staff: StaffMember[];
+  saving?: boolean;
 }
 interface Building {
   building_id: string;
@@ -38,6 +59,7 @@ export class CondominiumsComponent implements OnInit {
   data: any;
   condominiums: Condominium[] = [];
   loading = true;
+  readonly dayLabels = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
   constructor(private condominiumService: CondominiumService) { }
 
@@ -66,6 +88,133 @@ export class CondominiumsComponent implements OnInit {
   }
   toggleCondominium(condo: Condominium) {
     condo.expanded = !condo.expanded;
+    if (condo.expanded && !condo.shiftsLoaded) this.loadStaffShifts(condo);
+  }
+  loadStaffShifts(condo: Condominium) {
+    condo.shiftsLoading = true;
+    this.condominiumService.getStaffShifts(condo.condominium_id).subscribe({
+      next: data => {
+        condo.staff = data.staff || [];
+        condo.shifts = data.shifts || [];
+        condo.shiftsLoaded = true;
+        condo.shiftsLoading = false;
+      },
+      error: err => {
+        condo.shiftsLoading = false;
+        Swal.fire('Error', err.error?.error || 'No se pudieron cargar los turnos.', 'error');
+      }
+    });
+  }
+  formatShiftDays(days: number[]) {
+    if (days.length === 7) return 'Todos los días';
+    if (days.length === 5 && [1, 2, 3, 4, 5].every(day => days.includes(day))) return 'Lunes a viernes';
+    return days.map(day => this.dayLabels[day]).join(', ');
+  }
+  private escapeHtml(value: string) {
+    return value.replace(/[&<>'"]/g, character => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+    }[character] || character));
+  }
+  async openShiftEditor(condo: Condominium, shift?: StaffShift) {
+    if (!condo.shiftsLoaded) return;
+    const selectedDays = new Set(shift?.weekdays || [1, 2, 3, 4, 5]);
+    const selectedStaff = new Set((shift?.staff || []).map(member => member.user_id));
+    const daysHtml = this.dayLabels.map((label, index) => `
+      <label class="shift-choice">
+        <input type="checkbox" name="shift-day" value="${index}" ${selectedDays.has(index) ? 'checked' : ''}>
+        <span>${label}</span>
+      </label>`).join('');
+    const staffHtml = (condo.staff || []).map(member => `
+      <label class="shift-staff-choice ${member.active ? '' : 'inactive'}">
+        <input type="checkbox" name="shift-staff" value="${member.user_id}"
+          ${selectedStaff.has(member.user_id) ? 'checked' : ''} ${member.active ? '' : 'disabled'}>
+        <span><strong>${this.escapeHtml(member.legal_name)}</strong>${member.email ? `<small>${this.escapeHtml(member.email)}</small>` : ''}</span>
+      </label>`).join('');
+    const result = await Swal.fire({
+      title: shift ? 'Editar turno' : 'Nuevo turno',
+      width: 650,
+      html: `
+        <div class="shift-form">
+          <label>Nombre del turno<input id="shift-name" class="swal2-input" maxlength="100" value="${this.escapeHtml(shift?.name || '')}" placeholder="Ej. Turno mañana"></label>
+          <div class="shift-time-grid">
+            <label>Inicio<input id="shift-start" type="time" class="swal2-input" value="${shift?.start_time || '08:00'}"></label>
+            <label>Término<input id="shift-end" type="time" class="swal2-input" value="${shift?.end_time || '16:00'}"></label>
+          </div>
+          <div><span class="shift-form-label">Días</span><div class="shift-days">${daysHtml}</div></div>
+          <div><span class="shift-form-label">Personal asignado</span><div class="shift-staff-list">${staffHtml || '<p class="shift-empty">No hay cuentas de personal asignadas a este condominio.</p>'}</div></div>
+          <label class="shift-enabled"><input id="shift-enabled" type="checkbox" ${shift?.enabled !== false ? 'checked' : ''}> Turno habilitado</label>
+        </div>`,
+      showCancelButton: true,
+      confirmButtonText: shift ? 'Guardar cambios' : 'Crear turno',
+      cancelButtonText: 'Cancelar',
+      preConfirm: () => {
+        const name = (document.getElementById('shift-name') as HTMLInputElement).value.trim();
+        const startTime = (document.getElementById('shift-start') as HTMLInputElement).value;
+        const endTime = (document.getElementById('shift-end') as HTMLInputElement).value;
+        const weekdays = Array.from(document.querySelectorAll<HTMLInputElement>('input[name="shift-day"]:checked')).map(input => Number(input.value));
+        const staffUserIds = Array.from(document.querySelectorAll<HTMLInputElement>('input[name="shift-staff"]:checked')).map(input => input.value);
+        const enabled = (document.getElementById('shift-enabled') as HTMLInputElement).checked;
+        if (!name || !startTime || !endTime) {
+          Swal.showValidationMessage('Completa el nombre y las horas del turno.');
+          return;
+        }
+        if (!weekdays.length) {
+          Swal.showValidationMessage('Selecciona al menos un día.');
+          return;
+        }
+        if (!staffUserIds.length) {
+          Swal.showValidationMessage('Asigna al menos una cuenta de personal.');
+          return;
+        }
+        return { name, startTime, endTime, weekdays, enabled, staffUserIds };
+      }
+    });
+    if (!result.isConfirmed) return;
+    const request = shift
+      ? this.condominiumService.updateStaffShift(shift.shift_id, result.value)
+      : this.condominiumService.createStaffShift(condo.condominium_id, result.value);
+    request.subscribe({
+      next: () => {
+        this.loadStaffShifts(condo);
+        Swal.fire('Guardado', 'El turno quedó guardado correctamente.', 'success');
+      },
+      error: err => Swal.fire('Error', err.error?.error || 'No se pudo guardar el turno.', 'error')
+    });
+  }
+  toggleShift(condo: Condominium, shift: StaffShift, event: Event) {
+    const input = event.target as HTMLInputElement;
+    const enabled = input.checked;
+    shift.saving = true;
+    this.condominiumService.updateStaffShift(shift.shift_id, {
+      name: shift.name,
+      startTime: shift.start_time,
+      endTime: shift.end_time,
+      weekdays: shift.weekdays,
+      enabled,
+      staffUserIds: shift.staff.map(member => member.user_id)
+    }).subscribe({
+      next: () => { shift.enabled = enabled; shift.saving = false; },
+      error: err => {
+        input.checked = shift.enabled;
+        shift.saving = false;
+        Swal.fire('Error', err.error?.error || 'No se pudo actualizar el turno.', 'error');
+      }
+    });
+  }
+  async deleteShift(condo: Condominium, shift: StaffShift) {
+    const result = await Swal.fire({
+      title: '¿Eliminar turno?',
+      text: shift.name,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Eliminar',
+      cancelButtonText: 'Cancelar'
+    });
+    if (!result.isConfirmed) return;
+    this.condominiumService.deleteStaffShift(shift.shift_id).subscribe({
+      next: () => { this.loadStaffShifts(condo); Swal.fire('Eliminado', 'Turno eliminado.', 'success'); },
+      error: err => Swal.fire('Error', err.error?.error || 'No se pudo eliminar el turno.', 'error')
+    });
   }
   toggleBuilding(building: Building) {
     building.expanded = !building.expanded;

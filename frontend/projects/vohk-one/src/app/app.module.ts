@@ -21,6 +21,7 @@ import { AppComponent } from './app.component';
 import { PrivacyPolicyComponent } from './components/privacy-policy/privacy-policy.component';
 import { CondominiumsComponent } from './components/vohk_app/condominiums/condominiums.component';
 import { ConserjeriaComponent } from './components/vohk_app/conserjeria/conserjeria.component';
+import { CameraStreamComponent } from './components/vohk_app/conserjeria/camera-stream.component';
 import { DashboardComponent } from './components/vohk_app/dashboard/dashboard.component';
 import { DeviceComponent } from './components/vohk_app/device/device.component';
 import { LoginComponent } from './components/vohk_app/login/login.component';
@@ -50,6 +51,7 @@ export const CUSTOM_DATE_FORMATS = {
     TopbarComponent,
     CondominiumsComponent,
     ConserjeriaComponent,
+    CameraStreamComponent,
     DashboardComponent,
     DeviceComponent,
     LoginComponent,

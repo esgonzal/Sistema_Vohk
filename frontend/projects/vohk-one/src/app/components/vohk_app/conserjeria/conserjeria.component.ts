@@ -1,7 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { firstValueFrom, forkJoin, Subject, takeUntil, timer } from 'rxjs';
 import { SelectedCondominium, SelectedCondominiumService } from 'src/app/services/vohk_app/selected-condominium.service';
-import { DomSanitizer } from '@angular/platform-browser';
 import { TwilioService } from 'src/app/services/vohk_app/twilio.service';
 import { Call } from '@twilio/voice-sdk';
 import { ConserjeriaService } from 'src/app/services/vohk_app/conserjeria.service';
@@ -23,6 +22,8 @@ interface GridPreset {
   styleUrls: ['./conserjeria.component.css']
 })
 export class ConserjeriaComponent implements OnInit, OnDestroy {
+  private readonly mediaUrlRefreshIntervalMs = 10 * 60 * 60 * 1000;
+  readonly canUseCameraAudio = localStorage.getItem('role') === 'superadmin';
   loading = true;
   devices: any[] = [];
   cameraDevices: any[] = [];
@@ -68,7 +69,6 @@ export class ConserjeriaComponent implements OnInit, OnDestroy {
   constructor(
     private consjerjeriaService: ConserjeriaService,
     private selectedCondominiumService: SelectedCondominiumService,
-    private sanitizer: DomSanitizer,
     private twilioService: TwilioService,
     private dashboardService: DashboardService,
     private userService: UserService
@@ -97,6 +97,15 @@ export class ConserjeriaComponent implements OnInit, OnDestroy {
         this.loadActivities(this.selectedCondominium.condominium_id, false);
       }
     });
+    // Media URLs are valid for 12 hours by default. Renew them before expiry so
+    // a concierge screen can remain open across a full shift without a manual reload.
+    timer(this.mediaUrlRefreshIntervalMs, this.mediaUrlRefreshIntervalMs)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        if (this.selectedCondominium) {
+          this.loadDevices(this.selectedCondominium.condominium_id, false);
+        }
+      });
     this.twilioService.incomingCall$.pipe(takeUntil(this.destroy$)).subscribe(call => {
       this.incomingCall = call;
       if (!call) {
@@ -123,8 +132,8 @@ export class ConserjeriaComponent implements OnInit, OnDestroy {
     });
   }
 
-  loadDevices(condominiumId: string): void {
-    this.loading = true;
+  loadDevices(condominiumId: string, showLoading = true): void {
+    if (showLoading) this.loading = true;
     this.consjerjeriaService.getDevices(condominiumId).subscribe({
       next: data => {
         console.log('Consejeria:', data);
@@ -134,9 +143,7 @@ export class ConserjeriaComponent implements OnInit, OnDestroy {
           if (!rawStreamUrl) {
             return { ...device, safeStreamUrl: null };
           }
-          const separator = rawStreamUrl.includes('?') ? '&' : '?';
-          const streamUrl = `${rawStreamUrl}${separator}controls=false&autoplay=true&muted=true&playsInline=true&disablepictureinpicture=true`;
-          return { ...device, safeStreamUrl: this.sanitizer.bypassSecurityTrustResourceUrl(streamUrl) };
+          return { ...device, safeStreamUrl: rawStreamUrl };
         });
         this.devices = preparedDevices;
         this.cameraDevices = preparedDevices.filter((device: any) => device.type === 'camera' || device.type === 'intercom');
@@ -145,14 +152,16 @@ export class ConserjeriaComponent implements OnInit, OnDestroy {
         if (!this.doorDevices.some(device => device.device_id === this.selectedDoorId)) {
           this.selectedDoorId = this.doorDevices[0]?.device_id || '';
         }
-        this.loading = false;
+        if (showLoading) this.loading = false;
       },
       error: err => {
         console.error('Unable to load concierge devices:', err);
-        this.devices = [];
-        this.cameraDevices = [];
-        this.doorDevices = [];
-        this.loading = false;
+        if (showLoading) {
+          this.devices = [];
+          this.cameraDevices = [];
+          this.doorDevices = [];
+        }
+        if (showLoading) this.loading = false;
       }
     });
   }

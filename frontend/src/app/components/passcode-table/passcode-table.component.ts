@@ -199,12 +199,4 @@ export class PasscodeTableComponent implements OnInit, AfterViewInit {
       console.log("Necesita estar conectado a un gateway para usar esta función")
     }*/
   }
-  compartirPasscode(passcode: Passcode) {
-    /*
-    this.popupService.userID = this.userID;
-    this.popupService.lock_alias = this.Alias;
-    this.popupService.passcode = passcode;
-    this.popupService.sharePasscode = true;*/
-  }
-
 }

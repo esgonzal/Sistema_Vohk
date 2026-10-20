@@ -99,23 +99,23 @@
             </div>
 
             <div class="device-actions">
-                <button *ngIf="isSuperAdmin && supportsIdentityRefresh(device)" class="action-btn"
+                <button *ngIf="isSuperAdmin && supportsIdentityRefresh(device)" class="action-btn action-refresh"
                     (click)="refreshIdentity(device)" title="Actualizar modelo y firmware">
                     <mat-icon>sync</mat-icon>
                 </button>
-                <button *ngIf="isSuperAdmin && isTtlockDevice(device)" class="action-btn"
+                <button *ngIf="isSuperAdmin && isTtlockDevice(device)" class="action-btn action-refresh"
                     (click)="refreshTtlock(device)" title="Actualizar estado TTLock">
                     <mat-icon>sync</mat-icon>
                 </button>
-                <button *ngIf="isSuperAdmin && (device.type === 'intercom' || device.type === 'lock')" class="action-btn"
+                <button *ngIf="isSuperAdmin && (device.type === 'intercom' || device.type === 'lock')" class="action-btn action-provision"
                     (click)="provisionResidents(device)"
                     [title]="isTtlockDevice(device) ? 'Provisionar códigos de residentes' : 'Provisionar residentes y números SIP'">
                     <mat-icon>group_add</mat-icon>
                 </button>
-                <button class="action-btn" (click)="editDevice(device)" title="Editar nombre y zona">
+                <button class="action-btn action-edit" (click)="editDevice(device)" title="Editar nombre y zona">
                     <mat-icon>edit</mat-icon>
                 </button>
-                <button *ngIf="isSuperAdmin" class="action-btn danger" (click)="deleteDevice(device)" title="Eliminar">
+                <button *ngIf="isSuperAdmin" class="action-btn action-delete danger" (click)="deleteDevice(device)" title="Eliminar">
                     <mat-icon>delete</mat-icon>
                 </button>
             </div>
