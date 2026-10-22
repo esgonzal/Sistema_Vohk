@@ -1,0 +1,13 @@
+# Merge these keys into the top level of the active mediamtx.yml.
+# Keep existing path/source definitions unchanged.
+authMethod: http
+authHTTPAddress: http://127.0.0.1:8080/api/media/mediamtx-authorize
+authHTTPExclude:
+  # MediaMTX's management endpoints stay local and do not contain viewer tokens.
+  - action: api
+  - action: metrics
+  - action: pprof
+  # Keep this only when cameras are configured as MediaMTX static RTSP sources.
+  # If an external client publishes streams into MediaMTX, give that publisher
+  # separate credentials instead of excluding publish globally.
+  - action: publish
