@@ -71,7 +71,7 @@ test('unit fan-out preserves Twilio Client resident calls and SIP intercom calls
     }
 });
 
-test('an intercom call to the first room SIP identity rings every active resident in that unit', async () => {
+test('each intercom room leg rings only its addressed resident', async () => {
     const originalLoad = Module._load;
     const activityCalls = [];
     const pushMessages = [];
@@ -85,7 +85,6 @@ test('an intercom call to the first room SIP identity rings every active residen
         if (request === '../../repositories/userRepository') return {
             findByIdentity: async identity => residents.find(item => item.sip_identity === identity) || null,
             findUniqueResidentUnitByIdentity: async () => ({ unit_id: 'unit-201' }),
-            findActiveResidentsByUnit: async () => residents,
         };
         if (request === '../../repositories/intercomRepository') return {
             findIntercomBySipIdentity: async () => ({
@@ -113,9 +112,9 @@ test('an intercom call to the first room SIP identity rings every active residen
         );
 
         assert.match(xml, /<Identity>19415890<\/Identity>/);
-        assert.match(xml, /<Identity>19489351<\/Identity>/);
-        assert.deepEqual(pushMessages.map(message => message.data.identity), ['19415890', '19489351']);
-        assert.deepEqual(activityCalls[0].participants.map(item => item.userId), ['resident-1', 'resident-2']);
+        assert.doesNotMatch(xml, /<Identity>19489351<\/Identity>/);
+        assert.deepEqual(pushMessages.map(message => message.data.identity), ['19415890']);
+        assert.deepEqual(activityCalls[0].participants.map(item => item.userId), ['resident-1']);
         assert.equal(activityCalls[0].metadata.unitId, 'unit-201');
     } finally {
         Module._load = originalLoad;

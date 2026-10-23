@@ -55,10 +55,6 @@ async function handleIncomingCall(from, to, callSid = null) {
         }
         if (callableResident && intercom?.condominium_id) {
             targetUnit = await userRepository.findUniqueResidentUnitByIdentity(apartmentIdentity, intercom.condominium_id);
-            if (targetUnit) {
-                const unitResidents = await userRepository.findActiveResidentsByUnit(targetUnit.unit_id);
-                if (unitResidents.length > 0 && unitResidents.length <= 10) recipients = unitResidents;
-            }
         }
         if (isManagementDestination && !recipients.length) {
             twiml.say({ language: 'es-MX' }, 'No hay personal disponible en este momento.');

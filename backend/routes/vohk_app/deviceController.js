@@ -4,6 +4,7 @@ const authenticate = require('../../middleware/authMiddleware');
 const deviceService = require('../../services/vohk_app/deviceService');
 const ttlockService = require('../../services/vohk_app/ttlockService');
 const mediaAccessService = require('../../services/vohk_app/mediaAccessService');
+const cameraVisionService = require('../../services/vohk_app/cameraVisionService');
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 router.use(authenticate);
@@ -21,6 +22,13 @@ function sendServerError(res, error, message) {
 }
 function isAdminRole(role) {
     return role === 'admin' || role === 'superadmin';
+}
+function protectVisionSnapshot(profile, user) {
+    const protectedDevice = mediaAccessService.protectDeviceResponse({
+        device_id: profile.device.deviceId,
+        snapshot_url: profile.device.snapshotUrl,
+    }, user);
+    return { ...profile, device: { ...profile.device, snapshotUrl: protectedDevice.snapshot_url } };
 }
 
 router.get('/condominium/:condominiumId', async (req, res) => {
@@ -111,6 +119,22 @@ router.put('/:deviceId/zone', async (req, res) => {
         return res.status(200).json(updated);
     } catch (error) {
         return sendServerError(res, error, 'Could not move device');
+    }
+});
+router.get('/:deviceId/vision-profile', async (req, res) => {
+    try {
+        const profile = await cameraVisionService.getVisionProfile(req.params.deviceId, req.user);
+        return res.status(200).json(protectVisionSnapshot(profile, req.user));
+    } catch (error) {
+        return sendServerError(res, error, 'Could not retrieve vision profile');
+    }
+});
+router.put('/:deviceId/vision-profile', async (req, res) => {
+    try {
+        const profile = await cameraVisionService.replaceVisionProfile(req.params.deviceId, req.user, req.body);
+        return res.status(200).json(protectVisionSnapshot(profile, req.user));
+    } catch (error) {
+        return sendServerError(res, error, 'Could not update vision profile');
     }
 });
 router.delete('/:deviceId', async (req, res) => {
