@@ -5,6 +5,7 @@ const deviceService = require('../../services/vohk_app/deviceService');
 const ttlockService = require('../../services/vohk_app/ttlockService');
 const mediaAccessService = require('../../services/vohk_app/mediaAccessService');
 const cameraVisionService = require('../../services/vohk_app/cameraVisionService');
+const hikvisionQrService = require('../../services/vohk_app/hikvisionQrService');
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 router.use(authenticate);
@@ -265,6 +266,30 @@ router.get('/resident/access-methods', async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });
+    }
+});
+router.get('/resident/qr-code', async (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    try {
+        return res.status(200).json(await hikvisionQrService.getResidentCredential(req.user));
+    } catch (error) {
+        return sendServerError(res, error, 'Could not retrieve resident QR');
+    }
+});
+router.post('/resident/qr-code', async (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    try {
+        return res.status(201).json(await hikvisionQrService.issueResidentCredential(req.user));
+    } catch (error) {
+        return sendServerError(res, error, 'Could not issue resident QR');
+    }
+});
+router.delete('/resident/qr-code', async (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    try {
+        return res.status(200).json(await hikvisionQrService.deleteResidentCredential(req.user));
+    } catch (error) {
+        return sendServerError(res, error, 'Could not delete resident QR');
     }
 });
 router.put('/resident/dynamic-code', async (req, res) => {

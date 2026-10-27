@@ -19,6 +19,7 @@ function fixture(overrides = {}) {
     const api = {
         getCapabilities: async () => ({ ok: true, data: { QRCodeInfoCap: capability } }),
         findPerson: async () => ({ ok: true, data: { UserInfoSearch: { UserInfo: [{ employeeNo: '12345678', userType: 'normal' }] } } }),
+        configureEncryption: async () => ({ ok: true, data: { statusCode: 1 } }),
         issue: async (...args) => { calls.push(['issue', ...args.slice(1)]); return { ok: true, data: { QRCodeInfo: { QRCodeString: 'credential' } } }; },
         ...overrides.api,
     };
@@ -126,4 +127,39 @@ test('HTTP routes require JWT and mark QR responses no-store', async t => {
     assert.equal(response.status, 201);
     assert.equal(response.headers.get('cache-control'), 'no-store');
     assert.equal((await response.json()).qrCode, 'credential');
+});
+
+test('resident can issue, read and remove only their own encrypted QR credential', async t => {
+    const oldSecret = process.env.QR_CREDENTIAL_SECRET;
+    process.env.QR_CREDENTIAL_SECRET = 'resident-qr-test-secret';
+    t.after(() => { if (oldSecret === undefined) delete process.env.QR_CREDENTIAL_SECRET; else process.env.QR_CREDENTIAL_SECRET = oldSecret; });
+    let stored;
+    const resident = { userId, role: 'resident' };
+    const { service } = fixture({
+        repo: {
+            findResidentQrDevices: async requestedUserId => [{
+                device_id: deviceId,
+                model: 'DS-K1T343MWX',
+                employee_no: '12345678',
+            }],
+            saveResidentCredential: async value => {
+                stored = { ...value, qr_payload: value.qrPayload, valid_value: value.validValue,
+                    usage_limit: value.usageLimit, issued_at: new Date().toISOString() };
+                return stored;
+            },
+            findResidentCredential: async () => stored,
+            deleteResidentCredential: async () => { const existed = Boolean(stored); stored = null; return existed; },
+        },
+        api: { getCapabilities: async () => ({ ok: true, data: { QRCodeInfoCap: {
+            ...capability, times: { '@min': 0, '@max': 1000 },
+        } } }) },
+    });
+    const issued = await service.issueResidentCredential(resident);
+    assert.equal(issued.qrCode, 'credential');
+    assert.equal(stored.qr_payload.includes('credential'), false);
+    assert.equal((await service.getResidentCredential(resident)).qrCode, 'credential');
+    const deleted = await service.deleteResidentCredential(resident);
+    assert.equal(deleted.success, true);
+    assert.equal(deleted.revokedOnDevice, false);
+    assert.deepEqual(await service.getResidentCredential(resident), { hasQr: false });
 });

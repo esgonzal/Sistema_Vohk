@@ -23,14 +23,42 @@ async function main() {
         }
         const adapter = await require('../services/vohk_app/hikvision/adapterFactory').getAdapterForIntercom(device);
         if (mode === 'inspect') {
-            const result = await require('../services/vohk_app/hikvision/qrApi').getCapabilities(adapter);
+            const findValue = (value, names) => {
+                if (!value || typeof value !== 'object') return undefined;
+                for (const [key, child] of Object.entries(value)) {
+                    if (names.includes(key.toLowerCase())) return child;
+                    const nested = findValue(child, names);
+                    if (nested !== undefined) return nested;
+                }
+                return undefined;
+            };
+            const qrApi = require('../services/vohk_app/hikvision/qrApi');
+            const [accessControl, result, encryption, encryptionConfig, acsConfig] = await Promise.all([
+                qrApi.getAccessControlCapabilities(adapter),
+                qrApi.getCapabilities(adapter),
+                qrApi.getEncryptionCapabilities(adapter),
+                qrApi.getEncryptionConfiguration(adapter),
+                qrApi.getAccessControlConfiguration(adapter),
+            ]);
             const cap = result.data?.QRCodeInfoCap;
+            const encryptionCfg = encryptionConfig.data?.QRCodeEncryption || encryptionConfig.data;
             console.log(JSON.stringify({ model: device.model, firmware: device.firmware_version,
                 storedAccessEvents: adapter.supportsStoredAccessEvents, status: result.status,
+                accessControlStatus: accessControl.status,
+                qrSupported: {
+                    encryption: findValue(accessControl.data, ['issupportqrcodeencryption']),
+                    generation: findValue(accessControl.data, ['issupportqrcodeinfo']),
+                },
+                encryptionStatus: encryption.status,
+                encryptionConfigurationStatus: encryptionConfig.status,
+                encryptionConfigured: encryptionConfig.ok ? Boolean(encryptionCfg && Object.keys(encryptionCfg).length) : null,
+                accessControlConfigurationStatus: acsConfig.status,
+                qrAuthenticationEnabled: findValue(acsConfig.data, ['qrcodeenabled']),
                 qrLimits: cap ? Object.fromEntries(['employeeNo', 'valid', 'times'].map(k => [k, {
                     min: cap[k]?.['@min'], max: cap[k]?.['@max'],
                 }])) : null }, null, 2));
-            if (!result.ok) process.exitCode = 1;
+            // Some K1 firmware accepts PUT but intentionally returns 404 for GET on QRCodeEncryption.
+            if (![accessControl, result, encryption, acsConfig].every(item => item.ok)) process.exitCode = 1;
             return;
         }
         const { jsonEventParts } = require('../services/vohk_app/hikvision/eventStream');
