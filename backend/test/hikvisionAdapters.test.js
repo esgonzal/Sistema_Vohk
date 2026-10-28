@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const { createAdapter, getProfileForModel } = require('../services/vohk_app/hikvision/adapterFactory');
 const {
     accessEventDescriptor,
+    correlationId,
     employeeNoFromEvent,
     eventStatus,
     parseDeviceTime,
@@ -224,19 +225,37 @@ test('access event helpers normalize K1 identities and outcomes', () => {
         description: 'Acceso mediante QR',
         status: 'succeeded',
     });
+    assert.deepEqual(accessEventDescriptor({ minor: 157 }), {
+        method: 'qr',
+        methodLabel: 'QR',
+        description: 'QR rechazado',
+        status: 'failed',
+    });
     assert.equal(eventStatus({ minor: 151 }), 'failed');
     assert.equal(shouldPersistAccessEvent({ minor: 21 }), false);
     assert.equal(shouldPersistAccessEvent({ minor: 22 }), false);
     assert.equal(shouldPersistAccessEvent({ minor: 75 }), true);
 });
 
-test('K1T673 event timestamps use Santiago wall time despite its stale UTC-4 suffix', () => {
+test('device event timestamps respect explicit offsets and reject invalid values', () => {
     assert.equal(
         parseDeviceTime('2026-10-28T09:20:40-04:00', { model: 'DS-K1T673DWX' }).toISOString(),
-        '2026-10-28T12:20:40.000Z',
+        '2026-10-28T13:20:40.000Z',
     );
     assert.equal(
         parseDeviceTime('2026-10-28T09:20:40-04:00', { model: 'DS-K1T343MWX' }).toISOString(),
         '2026-10-28T13:20:40.000Z',
     );
+    assert.equal(parseDeviceTime(null), null);
+    assert.equal(parseDeviceTime('not-a-time'), null);
+});
+
+test('stored Hikvision event identity is stable when its displayed time changes', () => {
+    const device = { device_id: 'device-1' };
+    const event = { serialNo: 1747, employeeNoString: '19489351', major: 5, minor: 156 };
+    assert.equal(
+        correlationId(device, event, new Date('2026-10-28T12:20:40Z')),
+        correlationId(device, event, new Date('2026-10-28T13:20:40Z')),
+    );
+    assert.equal(correlationId(device, event, new Date()), 'device-1:1747');
 });

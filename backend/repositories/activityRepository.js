@@ -11,7 +11,7 @@ async function createActivity({ condominiumId, deviceId = null, actorUserId = nu
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, COALESCE($8, NOW()), $9::jsonb)
             ON CONFLICT (source, correlation_id, event_type, status)
                 WHERE correlation_id IS NOT NULL
-            DO UPDATE SET occurred_at = EXCLUDED.occurred_at,
+            DO UPDATE SET occurred_at = LEAST(activity_event.occurred_at, EXCLUDED.occurred_at),
                           metadata = activity_event.metadata || EXCLUDED.metadata
             RETURNING *
         `, [condominiumId, deviceId, actorUserId, eventType, status, source, correlationId, occurredAt, JSON.stringify(metadata)]);

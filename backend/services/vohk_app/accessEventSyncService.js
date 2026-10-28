@@ -8,7 +8,7 @@ const DEVICE_TIMEZONE = process.env.DEVICE_TIMEZONE || 'America/Santiago';
 const configuredLookbackDays = Number.parseInt(process.env.ACCESS_EVENT_INITIAL_LOOKBACK_DAYS || '30', 10);
 const INITIAL_LOOKBACK_MS = Math.min(Math.max(configuredLookbackDays || 30, 1), 365) * 24 * 60 * 60 * 1000;
 const OVERLAP_MS = 5 * 60 * 1000;
-const K1T673_FUTURE_GRACE_MS = 2 * 60 * 60 * 1000;
+const MAX_EVENT_FUTURE_MS = 2 * 60 * 1000;
 const PAGE_SIZE = 30;
 const MAX_PAGES = 100;
 
@@ -36,6 +36,7 @@ const ACCESS_EVENT_DESCRIPTORS = new Map([
     [151, { method: 'pin', methodLabel: 'PIN', description: 'PIN rechazado', status: 'failed' }],
     // MinMoe V4 successful QR authentication (observed on K1T343 and K1T673).
     [156, { method: 'qr', methodLabel: 'QR', description: 'Acceso mediante QR', status: 'succeeded' }],
+    [157, { method: 'qr', methodLabel: 'QR', description: 'QR rechazado', status: 'failed' }],
     [149, { method: 'pin', methodLabel: 'PIN', description: 'Acceso mediante PIN', status: 'succeeded' }],
     [150, { method: 'pin', methodLabel: 'PIN', description: 'PIN rechazado', status: 'failed' }],
     [179, { method: 'pin', methodLabel: 'PIN', description: 'Acceso mediante código dinámico', status: 'succeeded' }],
@@ -53,22 +54,13 @@ function formatDeviceTime(value) {
     return moment(value).tz(DEVICE_TIMEZONE).format('YYYY-MM-DDTHH:mm:ssZ');
 }
 
-function parseDeviceTime(value, device = null) {
-    if (!value) return new Date();
+function parseDeviceTime(value) {
+    if (!value) return null;
     const text = String(value);
-    // This firmware keeps Chile's standard UTC-4 suffix during daylight saving
-    // time even though its web UI and event wall clock are correct. Treat its
-    // displayed wall time as America/Santiago so events are neither delayed nor
-    // shown one hour late in Vohk.
-    if (String(device?.model || '').trim().toUpperCase() === 'DS-K1T673DWX') {
-        const wallTime = text.replace(/(Z|[+-]\d\d:\d\d)$/, '');
-        const parsed = moment.tz(wallTime, DEVICE_TIMEZONE);
-        return parsed.isValid() ? parsed.toDate() : new Date();
-    }
     const parsed = /(Z|[+-]\d\d:\d\d)$/.test(text)
-        ? moment.parseZone(text)
-        : moment.tz(text, DEVICE_TIMEZONE);
-    return parsed.isValid() ? parsed.toDate() : new Date();
+        ? moment.parseZone(text, moment.ISO_8601, true)
+        : moment.tz(text, moment.ISO_8601, true, DEVICE_TIMEZONE);
+    return parsed.isValid() ? parsed.toDate() : null;
 }
 
 function employeeNoFromEvent(event) {
@@ -101,7 +93,9 @@ function eventStatus(event) {
 function correlationId(device, event, occurredAt) {
     const serial = event.serialNo ?? event.SerialNo;
     if (serial !== undefined && serial !== null) {
-        return `${device.device_id}:${serial}:${occurredAt.toISOString()}`;
+        // A stored Hikvision event keeps its device serial even when a timezone
+        // change makes the firmware render a different wall-clock timestamp.
+        return `${device.device_id}:${serial}`;
     }
     const stable = JSON.stringify({
         deviceId: device.device_id,
@@ -140,7 +134,8 @@ function eventMetadata(event, subject) {
 async function persistDeviceEvent(device, event) {
     if (!shouldPersistAccessEvent(event)) return false;
     const employeeNo = employeeNoFromEvent(event);
-    const occurredAt = parseDeviceTime(event.time || event.dateTime, device);
+    const occurredAt = parseDeviceTime(event.time || event.dateTime);
+    if (!occurredAt || occurredAt.getTime() > Date.now() + MAX_EVENT_FUTURE_MS) return false;
     const subject = await accessEventRepository.resolveEventSubject(device.device_id, employeeNo, occurredAt);
     const participants = subject?.owner_user_id
         ? [{ userId: subject.owner_user_id, role: 'invitation_owner' }]
@@ -166,9 +161,6 @@ async function syncDeviceAccessEvents(device) {
 
     const latest = await accessEventRepository.findLatestEventTime(device.device_id);
     const now = new Date();
-    const futureGrace = String(device.model || '').trim().toUpperCase() === 'DS-K1T673DWX'
-        ? K1T673_FUTURE_GRACE_MS
-        : 60_000;
     const start = latest
         ? new Date(new Date(latest).getTime() - OVERLAP_MS)
         : new Date(now.getTime() - INITIAL_LOOKBACK_MS);
@@ -183,9 +175,9 @@ async function syncDeviceAccessEvents(device) {
             major: 5,
             minor: 0,
             startTime: formatDeviceTime(start),
-            endTime: formatDeviceTime(new Date(now.getTime() + futureGrace)),
+            endTime: formatDeviceTime(new Date(now.getTime() + 60_000)),
             picEnable: false,
-            timeReverseOrder: false,
+            timeReverseOrder: true,
             searchID,
         });
         if (!result.ok) {
