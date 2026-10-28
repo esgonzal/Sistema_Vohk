@@ -48,7 +48,6 @@ class K1t343Adapter extends HikvisionAdapter {
         return {
             ...super.buildVisitorUserInfo(options),
             ...this.buildDoorAuthorization(),
-            userVerifyMode: 'faceOrPw',
         };
     }
 

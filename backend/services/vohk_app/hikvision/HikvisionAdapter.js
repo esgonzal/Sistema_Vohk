@@ -109,7 +109,6 @@ class HikvisionAdapter {
             Valid: invitation.valid,
             dynamicCode,
             doorRight: String(this.intercom.door_id || 1),
-            userVerifyMode: 'cardOrPw',
         };
     }
 
