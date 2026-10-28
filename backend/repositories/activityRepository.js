@@ -75,6 +75,7 @@ async function listActivities({ userId, role, condominiumId = null, limit = 30, 
         LEFT JOIN activity_participant ap ON ap.activity_event_id = ae.activity_event_id
         LEFT JOIN app_user participant ON participant.user_id = ap.user_id
         WHERE ($3::uuid IS NULL OR ae.condominium_id = $3)
+          AND COALESCE((ae.metadata->>'suppressed')::boolean, FALSE) = FALSE
           AND ($4::timestamptz IS NULL OR ae.occurred_at < $4)
           AND ($6::text IS NULL OR ae.event_type = $6)
           AND (
