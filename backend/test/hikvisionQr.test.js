@@ -70,12 +70,14 @@ test('device user absence, mismatch and blacklist stop issuance', async () => {
         assert.equal(calls.some(c => c[0] === 'issue'), false);
     }
 });
-test('K1T673 remains explicitly unsupported and K1T343 capability is not reported as proven issuance', async () => {
+test('K1T343 and K1T673 report their live physical QR validation', async () => {
     const { service, device } = fixture();
-    device.model = 'DS-K1T673DWX';
-    await assert.rejects(service.getCapabilities(deviceId, actor), { code: 'QR_MODEL_UNVALIDATED' });
-    device.model = 'DS-K1T343MWX';
-    assert.equal((await service.getCapabilities(deviceId, actor)).verification.issuance, 'unconfirmed');
+    for (const model of ['DS-K1T343MWX', 'DS-K1T673DWX']) {
+        device.model = model;
+        const verification = (await service.getCapabilities(deviceId, actor)).verification;
+        assert.equal(verification.issuance, 'observed');
+        assert.equal(verification.physicalAccess, 'observed');
+    }
 });
 test('K1T343 times rejection is surfaced without retry or credential leakage', async () => {
     let attempts = 0;

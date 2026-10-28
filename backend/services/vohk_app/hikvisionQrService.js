@@ -50,13 +50,6 @@ function deviceEncryptionMaterial() {
     const material = crypto.createHash('sha256').update(`vohk-hikvision-qr-v1:${secret}`).digest('hex');
     return { key: material.slice(0, 32), vector: material.slice(32, 64) };
 }
-function deviceEncryptionMaterial() {
-    const secret = process.env.HIKVISION_QR_SHARED_SECRET || process.env.QR_CREDENTIAL_SECRET || process.env.JWT_SECRET;
-    if (!secret) throw fail(500, 'QR_ENCRYPTION_UNAVAILABLE', 'QR device encryption is not configured');
-    const material = crypto.createHash('sha256').update(`vohk-hikvision-qr-v1:${secret}`).digest('hex');
-    return { key: material.slice(0, 32), vector: material.slice(32, 64) };
-}
-
 function createService({ repo = repository, getAdapter = getAdapterForIntercom, api = qrApi,
     render = value => QRCode.toDataURL(value, { width: 600, margin: 4, errorCorrectionLevel: 'M' }) } = {}) {
     async function context(deviceId, actor) {
@@ -67,7 +60,7 @@ function createService({ repo = repository, getAdapter = getAdapterForIntercom, 
         if (!device) throw fail(404, 'DEVICE_NOT_FOUND', 'Device not found or not accessible');
         const model = normalizeModel(device.model);
         // Other MinMoe models must be validated explicitly before issuing credentials.
-        if (!['DS-KV9503-WBE1', 'DS-K1T343MWX'].includes(model)) {
+        if (!['DS-KV9503-WBE1', 'DS-K1T343MWX', 'DS-K1T673DWX'].includes(model)) {
             throw fail(422, 'QR_MODEL_UNVALIDATED', 'QR integration has not been validated for this device model');
         }
         return { device, model, adapter: await getAdapter(device) };
@@ -83,8 +76,11 @@ function createService({ repo = repository, getAdapter = getAdapterForIntercom, 
         const limits = { employeeNo: range(cap.employeeNo), valid: range(cap.valid), times: range(cap.times) };
         if (Object.values(limits).some(v => !v)) throw fail(502, 'QR_CAPABILITIES_UNAVAILABLE', 'Device QR limits are incomplete');
         return { deviceId: ctx.device.device_id, model: ctx.model, limits, validityUnit: 'device-defined',
-            verification: { issuance: ctx.model === 'DS-KV9503-WBE1' ? 'observed' : 'unconfirmed',
-                physicalAccess: 'unconfirmed', eventAttribution: 'unconfirmed' } };
+            verification: {
+                issuance: 'observed',
+                physicalAccess: ['DS-K1T343MWX', 'DS-K1T673DWX'].includes(ctx.model) ? 'observed' : 'unconfirmed',
+                eventAttribution: 'unconfirmed',
+            } };
     }
     async function getCapabilities(deviceId, actor) {
         return capabilities(await context(deviceId, actor));
@@ -162,27 +158,34 @@ function createService({ repo = repository, getAdapter = getAdapterForIntercom, 
         if (employeeNumbers.length !== 1 || !/^\d+$/.test(employeeNumbers[0])) {
             throw fail(409, 'QR_EMPLOYEE_MISMATCH', 'Resident identity is not synchronized across QR access devices');
         }
-        const device = devices[0];
-        const ctx = { device, model: normalizeModel(device.model), adapter: await getAdapter(device) };
+        const contexts = await Promise.all(devices.map(async device => ({
+            device,
+            model: normalizeModel(device.model),
+            adapter: await getAdapter(device),
+        })));
+        const ctx = contexts[0];
+        const device = ctx.device;
         const cap = await capabilities(ctx);
         const employeeNo = employeeNumbers[0];
         within(employeeNo.length, cap.limits.employeeNo, 'employee identifier length');
         const valid = Math.min(43200, cap.limits.valid.max);
         const times = cap.limits.times.min === 0 ? 0 : cap.limits.times.max;
-        let person;
-        try { person = await api.findPerson(ctx.adapter, employeeNo); }
-        catch { throw fail(502, 'QR_DEVICE_UNREACHABLE', 'Could not verify the resident on the device'); }
-        const matches = person.data?.UserInfoSearch?.UserInfo;
-        if (!person.ok || !Array.isArray(matches) || matches.length !== 1 ||
-            String(matches[0].employeeNo) !== employeeNo || matches[0].userType !== 'normal') {
-            throw fail(409, 'QR_USER_NOT_PROVISIONED', 'Resident is not provisioned on the QR access device');
-        }
         const encryption = deviceEncryptionMaterial();
-        let encryptionResult;
-        try { encryptionResult = await api.configureEncryption(ctx.adapter, encryption.key, encryption.vector); }
-        catch { throw fail(502, 'QR_DEVICE_UNREACHABLE', 'Could not configure QR encryption on the device'); }
-        if (!encryptionResult.ok || (encryptionResult.data?.statusCode !== undefined && Number(encryptionResult.data.statusCode) !== 1)) {
-            throw fail(422, 'QR_ENCRYPTION_REJECTED', 'The access device rejected QR encryption configuration');
+        for (const target of contexts) {
+            let person;
+            try { person = await api.findPerson(target.adapter, employeeNo); }
+            catch { throw fail(502, 'QR_DEVICE_UNREACHABLE', 'Could not verify the resident on every QR access device'); }
+            const matches = person.data?.UserInfoSearch?.UserInfo;
+            if (!person.ok || !Array.isArray(matches) || matches.length !== 1 ||
+                String(matches[0].employeeNo) !== employeeNo || matches[0].userType !== 'normal') {
+                throw fail(409, 'QR_USER_NOT_PROVISIONED', 'Resident is not provisioned on every QR access device');
+            }
+            let encryptionResult;
+            try { encryptionResult = await api.configureEncryption(target.adapter, encryption.key, encryption.vector); }
+            catch { throw fail(502, 'QR_DEVICE_UNREACHABLE', 'Could not configure QR encryption on every access device'); }
+            if (!encryptionResult.ok || (encryptionResult.data?.statusCode !== undefined && Number(encryptionResult.data.statusCode) !== 1)) {
+                throw fail(422, 'QR_ENCRYPTION_REJECTED', 'An access device rejected QR encryption configuration');
+            }
         }
         let result;
         try { result = await api.issue(ctx.adapter, employeeNo, valid, times); }

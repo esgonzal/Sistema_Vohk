@@ -11,7 +11,11 @@ async function findSyncableIntercoms(streamOnly = false) {
         INNER JOIN zone z ON z.zone_id = d.zone_id
         WHERE d.active = TRUE
           AND LOWER(d.vendor) = 'hikvision'
-          AND (($1 = FALSE AND UPPER(COALESCE(d.model, '')) LIKE 'DS-K1T343%')
+          AND (($1 = FALSE AND UPPER(TRIM(COALESCE(d.model, ''))) IN (
+                    'DS-K1T323MBFWX-E1',
+                    'DS-K1T343MWX',
+                    'DS-K1T673DWX'
+               ))
                OR ($1 = TRUE AND UPPER(TRIM(COALESCE(d.model, ''))) = 'DS-KV9503-WBE1'))
         ORDER BY d.device_id
     `, [streamOnly]);

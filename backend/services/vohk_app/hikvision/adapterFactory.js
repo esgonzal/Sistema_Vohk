@@ -1,8 +1,12 @@
 const HikvisionAdapter = require('./HikvisionAdapter');
+const K1t323Adapter = require('./K1t323Adapter');
 const K1t343Adapter = require('./K1t343Adapter');
 const K1t673Adapter = require('./K1t673Adapter');
 
 const KV9503_MODELS = new Set(['DS-KV9503-WBE1']);
+const K1T323_MODELS = new Set([
+    'DS-K1T323MBFWX-E1',
+]);
 const K1T343_MODELS = new Set([
     'DS-K1T343MX',
     'DS-K1T343MWX',
@@ -25,6 +29,9 @@ function createAdapter(intercom, client) {
     const model = normalizeModel(intercom.model);
     if (!model || KV9503_MODELS.has(model)) {
         return new HikvisionAdapter(intercom, client);
+    }
+    if (K1T323_MODELS.has(model)) {
+        return new K1t323Adapter(intercom, client);
     }
     if (K1T343_MODELS.has(model)) {
         return new K1t343Adapter(intercom, client);
@@ -49,6 +56,7 @@ function getProfileForModel(model) {
         return { profile: null, storedAccessEvents: false, supported: false };
     }
     if (!KV9503_MODELS.has(normalized)
+        && !K1T323_MODELS.has(normalized)
         && !K1T343_MODELS.has(normalized)
         && !K1T673_MODELS.has(normalized)) {
         return { profile: null, storedAccessEvents: false, supported: false };

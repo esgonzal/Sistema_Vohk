@@ -39,7 +39,7 @@ async function findResidentQrDevices(userId) {
         JOIN zone z ON z.zone_id = d.zone_id
         WHERE iu.user_id = $1 AND d.active = TRUE
           AND LOWER(d.vendor) = 'hikvision'
-          AND UPPER(TRIM(d.model)) = 'DS-K1T343MWX'
+          AND UPPER(TRIM(d.model)) IN ('DS-K1T343MWX', 'DS-K1T673DWX')
         ORDER BY d.created_at
     `, [userId]);
     return rows;

@@ -39,6 +39,14 @@ const commonIntercom = {
 };
 
 test('factory selects the supported MinMoe profiles and rejects unknown intercom models', () => {
+    const k1t323 = createAdapter({ ...commonIntercom, model: 'DS-K1T323MBFWX-E1' }, recordingClient());
+    assert.equal(k1t323.profile, 'hikvision-minmoe-k1t323-v4');
+    assert.equal(k1t323.supportsStoredAccessEvents, true);
+    assert.deepEqual(getProfileForModel('ds-k1t323mbfwx-e1'), {
+        profile: 'hikvision-minmoe-k1t323-v4',
+        storedAccessEvents: true,
+        supported: true,
+    });
     const k1 = createAdapter({ ...commonIntercom, model: 'DS-K1T343MWX' }, recordingClient());
     assert.equal(k1.profile, 'hikvision-minmoe-k1t343-v4');
     assert.equal(k1.supportsStoredAccessEvents, true);
@@ -107,6 +115,30 @@ test('K1T343 builds the model-specific resident, visitor and phonebook data', ()
     });
 });
 
+test('K1T323 uses the live-validated MinMoe resident, PIN and phonebook contracts', () => {
+    const adapter = createAdapter({ ...commonIntercom, model: 'DS-K1T323MBFWX-E1' }, recordingClient());
+    const resident = adapter.buildResidentUserInfo({
+        employeeNo: 'resident-323',
+        dynamicCode: '123456',
+        name: 'Resident 323',
+        roomNumber: 101,
+        floorNumber: 1,
+    });
+    assert.equal(resident.dynamicCode, '123456');
+    assert.deepEqual(resident.callNumbers, ['1-1-1-101']);
+    assert.equal(resident.doorRight, '1');
+    assert.deepEqual(resident.RightPlan, [{ doorNo: 1, planTemplateNo: '1' }]);
+    assert.deepEqual(adapter.buildPhoneRecord(101, ['17046230']), {
+        PhoneNumberRecord: {
+            periodNumber: 1,
+            buildingNumber: 1,
+            unitNumber: 1,
+            roomNo: '101',
+            PhoneNumbers: [{ phoneNumber: '17046230' }],
+        },
+    });
+});
+
 test('K1T673 uses the validated MinMoe resident, visitor and phonebook payloads', () => {
     const adapter = createAdapter({ ...commonIntercom, model: 'DS-K1T673DWX' }, recordingClient());
     const resident = adapter.buildResidentUserInfo({
@@ -146,7 +178,7 @@ test('K1T343 phonebook updates use delete then create', async () => {
 });
 
 test('MinMoe adapters expose stored access events and block unvalidated PIN clearing', async () => {
-    for (const model of ['DS-K1T343MWX', 'DS-K1T673DWX']) {
+    for (const model of ['DS-K1T323MBFWX-E1', 'DS-K1T343MWX', 'DS-K1T673DWX']) {
         const client = recordingClient([
             response(`<DeviceInfo><model>${model}</model></DeviceInfo>`),
             response({ AcsEvent: { numOfMatches: 1, InfoList: [] } }),
@@ -180,6 +212,12 @@ test('access event helpers normalize K1 identities and outcomes', () => {
         method: 'pin',
         methodLabel: 'PIN',
         description: 'Acceso mediante PIN',
+        status: 'succeeded',
+    });
+    assert.deepEqual(accessEventDescriptor({ minor: 156 }), {
+        method: 'qr',
+        methodLabel: 'QR',
+        description: 'Acceso mediante QR',
         status: 'succeeded',
     });
     assert.equal(eventStatus({ minor: 151 }), 'failed');

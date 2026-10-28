@@ -33,6 +33,8 @@ const ACCESS_EVENT_DESCRIPTORS = new Map([
     [101, { method: 'pin', methodLabel: 'PIN', description: 'Acceso mediante PIN', status: 'succeeded' }],
     [102, { method: 'pin', methodLabel: 'PIN', description: 'PIN rechazado', status: 'failed' }],
     [151, { method: 'pin', methodLabel: 'PIN', description: 'PIN rechazado', status: 'failed' }],
+    // MinMoe V4 successful QR authentication (observed on K1T343 and K1T673).
+    [156, { method: 'qr', methodLabel: 'QR', description: 'Acceso mediante QR', status: 'succeeded' }],
     [149, { method: 'pin', methodLabel: 'PIN', description: 'Acceso mediante PIN', status: 'succeeded' }],
     [150, { method: 'pin', methodLabel: 'PIN', description: 'PIN rechazado', status: 'failed' }],
     [179, { method: 'pin', methodLabel: 'PIN', description: 'Acceso mediante código dinámico', status: 'succeeded' }],
