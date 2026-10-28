@@ -8,6 +8,7 @@ router.use('/media', require('./mediaController'));
 router.use('/alma', require('./almaController'));
 
 router.use('/activities', require('./activityController'));
+router.use('/vision/events', require('./visionEventController'));
 router.use('/invitation', require('./invitationController'));
 router.use('/encomiendas', require('./encomiendaController'));
 

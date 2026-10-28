@@ -5,6 +5,7 @@ const {
     accessEventDescriptor,
     employeeNoFromEvent,
     eventStatus,
+    parseDeviceTime,
     shouldPersistAccessEvent,
 } = require('../services/vohk_app/accessEventSyncService');
 
@@ -224,4 +225,15 @@ test('access event helpers normalize K1 identities and outcomes', () => {
     assert.equal(shouldPersistAccessEvent({ minor: 21 }), false);
     assert.equal(shouldPersistAccessEvent({ minor: 22 }), false);
     assert.equal(shouldPersistAccessEvent({ minor: 75 }), true);
+});
+
+test('K1T673 event timestamps use Santiago wall time despite its stale UTC-4 suffix', () => {
+    assert.equal(
+        parseDeviceTime('2026-10-28T09:20:40-04:00', { model: 'DS-K1T673DWX' }).toISOString(),
+        '2026-10-28T12:20:40.000Z',
+    );
+    assert.equal(
+        parseDeviceTime('2026-10-28T09:20:40-04:00', { model: 'DS-K1T343MWX' }).toISOString(),
+        '2026-10-28T13:20:40.000Z',
+    );
 });
