@@ -128,6 +128,7 @@ class K1t343Adapter extends HikvisionAdapter {
             '/ISAPI/AccessControl/AcsEvent?format=json',
             'POST',
             { AcsEventCond: condition },
+            { signal: AbortSignal.timeout(12000) },
         );
         return { ok: response.ok && Boolean(data.AcsEvent), status: response.status, data: data.AcsEvent || data };
     }

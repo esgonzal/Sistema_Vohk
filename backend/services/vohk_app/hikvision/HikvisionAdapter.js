@@ -20,10 +20,11 @@ class HikvisionAdapter {
         return this.client.fetch(this.url(path), options);
     }
 
-    async fetchJson(path, method, payload) {
+    async fetchJson(path, method, payload, options = {}) {
         const response = await this.fetch(path, {
+            ...options,
             method,
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...options.headers },
             body: payload === undefined ? undefined : JSON.stringify(payload),
         });
         const text = await response.text();
@@ -41,6 +42,7 @@ class HikvisionAdapter {
         const response = await this.fetch('/ISAPI/System/deviceInfo', {
             method: 'GET',
             headers: { Accept: 'application/xml' },
+            signal: AbortSignal.timeout(12000),
         });
         const text = await response.text();
         if (!response.ok) {
