@@ -1,8 +1,8 @@
 const repository = require('../../repositories/hikvisionQrRepository');
 const { getAdapterForIntercom, normalizeModel } = require('./hikvision/adapterFactory');
 const qrApi = require('./hikvision/qrApi');
+const { encryptCredential, decryptCredential, deviceEncryptionMaterial } = require('./hikvision/qrCredentialCrypto');
 const QRCode = require('qrcode');
-const crypto = require('node:crypto');
 
 function fail(status, code, message) {
     return Object.assign(new Error(message), { status, code });
@@ -22,34 +22,6 @@ function within(value, limits, label) {
     }
 }
 
-function credentialKey() {
-    const secret = process.env.QR_CREDENTIAL_SECRET || process.env.JWT_SECRET;
-    if (!secret) throw fail(500, 'QR_STORAGE_UNAVAILABLE', 'QR credential storage is not configured');
-    return crypto.createHash('sha256').update(secret).digest();
-}
-function encryptCredential(value) {
-    const iv = crypto.randomBytes(12);
-    const cipher = crypto.createCipheriv('aes-256-gcm', credentialKey(), iv);
-    const encrypted = Buffer.concat([cipher.update(value, 'utf8'), cipher.final()]);
-    return ['v1', iv.toString('base64url'), cipher.getAuthTag().toString('base64url'), encrypted.toString('base64url')].join('.');
-}
-function decryptCredential(value) {
-    const [version, iv, tag, encrypted] = String(value || '').split('.');
-    if (version !== 'v1' || !iv || !tag || !encrypted) throw fail(500, 'QR_STORAGE_INVALID', 'Stored QR credential is invalid');
-    try {
-        const decipher = crypto.createDecipheriv('aes-256-gcm', credentialKey(), Buffer.from(iv, 'base64url'));
-        decipher.setAuthTag(Buffer.from(tag, 'base64url'));
-        return Buffer.concat([decipher.update(Buffer.from(encrypted, 'base64url')), decipher.final()]).toString('utf8');
-    } catch {
-        throw fail(500, 'QR_STORAGE_INVALID', 'Stored QR credential could not be decrypted');
-    }
-}
-function deviceEncryptionMaterial() {
-    const secret = process.env.HIKVISION_QR_SHARED_SECRET || process.env.QR_CREDENTIAL_SECRET || process.env.JWT_SECRET;
-    if (!secret) throw fail(500, 'QR_ENCRYPTION_UNAVAILABLE', 'QR device encryption is not configured');
-    const material = crypto.createHash('sha256').update(`vohk-hikvision-qr-v1:${secret}`).digest('hex');
-    return { key: material.slice(0, 32), vector: material.slice(32, 64) };
-}
 function createService({ repo = repository, getAdapter = getAdapterForIntercom, api = qrApi,
     render = value => QRCode.toDataURL(value, { width: 600, margin: 4, errorCorrectionLevel: 'M' }) } = {}) {
     async function context(deviceId, actor) {

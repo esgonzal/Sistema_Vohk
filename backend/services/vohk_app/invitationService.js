@@ -9,9 +9,12 @@ const intercomRepository = require('../../repositories/intercomRepository');
 const deviceService = require('./deviceService');
 const ttlockService = require('./ttlockService');
 const { getAdapterForIntercom } = require('./hikvision/adapterFactory');
+const qrApi = require('./hikvision/qrApi');
+const { encryptCredential, decryptCredential, deviceEncryptionMaterial } = require('./hikvision/qrCredentialCrypto');
 const { isValidRut, formatRut } = require('../../utils/rut');
 
 const INVITATION_TYPES = ['recurrent', 'temporary', 'express'];
+const QR_MODELS = new Set(['DS-K1T343MWX', 'DS-K1T673DWX']);
 
 function createError(message, status) {
     const error = new Error(message);
@@ -193,7 +196,47 @@ function calculateValidity({ type, validFrom, validUntil, durationHours, setting
 
 async function listInvitations({ userId, role, unitId }) {
     await getAccessibleUnit(userId, role, unitId);
-    return invitationRepository.findByUnitId(unitId);
+    const invitations = await invitationRepository.findByUnitId(unitId);
+    return invitations.map(withQrCredential);
+}
+
+function withQrCredential(invitation) {
+    const { qr_payload: encryptedQr, ...safeInvitation } = invitation;
+    return {
+        ...safeInvitation,
+        has_qr: Boolean(encryptedQr),
+        qr_code: encryptedQr ? decryptCredential(encryptedQr) : null,
+    };
+}
+
+async function createInvitationQr(intercoms, employeeNo) {
+    const eligible = intercoms.filter(intercom => QR_MODELS.has(String(intercom.model || '').trim().toUpperCase()));
+    if (!eligible.length) return null;
+    const contexts = await Promise.all(eligible.map(async intercom => ({
+        intercom,
+        adapter: (await getIntercomAdapter(intercom.device_id)).adapter,
+    })));
+    const encryption = deviceEncryptionMaterial();
+    for (const context of contexts) {
+        const configured = await qrApi.configureEncryption(context.adapter, encryption.key, encryption.vector);
+        if (!configured.ok || (configured.data?.statusCode !== undefined && Number(configured.data.statusCode) !== 1)) {
+            throw createError(`Could not configure QR access in ${context.intercom.name}`, 502);
+        }
+    }
+    const capability = await qrApi.getCapabilities(contexts[0].adapter);
+    const cap = capability.data?.QRCodeInfoCap;
+    const valid = Number(cap?.valid?.['@max']);
+    const minTimes = Number(cap?.times?.['@min']);
+    if (!capability.ok || !Number.isInteger(valid) || valid < 1 || !Number.isInteger(minTimes)) {
+        throw createError('QR access capabilities are unavailable', 502);
+    }
+    const times = minTimes === 0 ? 0 : Number(cap.times?.['@max']);
+    const issued = await qrApi.issue(contexts[0].adapter, employeeNo, valid, times);
+    const qrCode = issued.data?.QRCodeInfo?.QRCodeString;
+    if (!issued.ok || typeof qrCode !== 'string' || !qrCode.length || qrCode.length > 2048) {
+        throw createError('Could not generate invitation QR access', 502);
+    }
+    return qrCode;
 }
 
 async function createInvitation({ userId, role, unitId, residentUserId, type, validFrom, validUntil, durationHours, deviceIds, visitor, photo, biometricConsent }) {
@@ -229,6 +272,7 @@ async function createInvitation({ userId, role, unitId, residentUserId, type, va
     const visitorName = normalizedVisitor?.name || 'Pase Express';
     const provisionedIntercomIds = [];
     const provisionedLockIds = [];
+    let qrCode = null;
     try {
         for (const intercom of selected.intercoms) {
             await createIntercomVisitor({ deviceId: intercom.device_id, invitation: invitationData, visitorName, employeeNo, dynamicCode });
@@ -251,6 +295,7 @@ async function createInvitation({ userId, role, unitId, residentUserId, type, va
             });
             provisionedLockIds.push(lock.device_id);
         }
+        qrCode = await createInvitationQr(selected.intercoms, employeeNo);
     } catch (error) {
         console.error('[INVITATION PROVISION]', error);
         for (const deviceId of provisionedIntercomIds) {
@@ -275,11 +320,13 @@ async function createInvitation({ userId, role, unitId, residentUserId, type, va
             createdVisitor = await visitorRepository.createVisitor(normalizedVisitor.name, normalizedVisitor.rut, normalizedVisitor.email, normalizedVisitor.phone, normalizedVisitor.vehiclePlate);
         }
         const invitation = await invitationRepository.createInvitationWithDevices({
-            visitorId: createdVisitor?.visitor_id || null, unitId, createdByUserId: userId, residentUserId: ownerResidentUserId, employeeNo, dynamicCode, hasFace,
+            visitorId: createdVisitor?.visitor_id || null, unitId, createdByUserId: userId, residentUserId: ownerResidentUserId, employeeNo, dynamicCode,
+            qrPayload: qrCode ? encryptCredential(qrCode) : null, hasFace,
             biometricConsentAt: hasFace ? new Date() : null, type, validFrom: begin, validUntil: end, deviceIds: selected.devices.map(device => device.device_id),
         });
 
-        return { ...invitation, visitor: normalizedVisitor, dynamic_code: dynamicCode, provisioned_devices: selected.devices.length, total_devices: selected.devices.length };
+        return { ...withQrCredential(invitation), visitor: normalizedVisitor, dynamic_code: dynamicCode,
+            provisioned_devices: selected.devices.length, total_devices: selected.devices.length };
     } catch (error) {
         if (createdVisitor) {
             await visitorRepository.deleteVisitor(createdVisitor.visitor_id);

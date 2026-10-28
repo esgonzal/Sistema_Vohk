@@ -96,7 +96,7 @@ async function findDevices(invitationId) {
     return result.rows;
 }
 
-async function createInvitationWithDevices({ visitorId, unitId, createdByUserId, residentUserId, employeeNo, dynamicCode, hasFace, biometricConsentAt, type, validFrom, validUntil, deviceIds }) {
+async function createInvitationWithDevices({ visitorId, unitId, createdByUserId, residentUserId, employeeNo, dynamicCode, qrPayload, hasFace, biometricConsentAt, type, validFrom, validUntil, deviceIds }) {
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
@@ -109,6 +109,7 @@ async function createInvitationWithDevices({ visitorId, unitId, createdByUserId,
                 resident_user_id,
                 hikvision_employee_no,
                 dynamic_code,
+                qr_payload,
                 has_face,
                 biometric_consent_at,
                 type,
@@ -116,10 +117,10 @@ async function createInvitationWithDevices({ visitorId, unitId, createdByUserId,
                 valid_from,
                 valid_until
             )
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'active',$10,$11)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'active',$11,$12)
             RETURNING *
             `,
-            [visitorId, unitId, createdByUserId, residentUserId, employeeNo, dynamicCode, hasFace, biometricConsentAt, type, validFrom, validUntil]
+            [visitorId, unitId, createdByUserId, residentUserId, employeeNo, dynamicCode, qrPayload, hasFace, biometricConsentAt, type, validFrom, validUntil]
         );
         const invitation = invitationResult.rows[0];
         await client.query(
