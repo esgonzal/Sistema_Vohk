@@ -72,7 +72,10 @@ router.post('/', authenticate, upload.single('photo'), async (req, res) => {
         if (type === 'express' && (durationHours === undefined || durationHours === null || String(durationHours).trim() === '')) {
             return res.status(400).json({ error: 'Express duration is required' });
         }
-        if (type !== 'express' && (isBlank(name) || isBlank(rut))) {
+        if (isBlank(name)) {
+            return res.status(400).json({ error: 'Visitor name is required' });
+        }
+        if (type !== 'express' && isBlank(rut)) {
             return res.status(400).json({ error: 'Visitor name and RUT are required' });
         }
         const invitation = await invitationService.createInvitation({
@@ -85,7 +88,7 @@ router.post('/', authenticate, upload.single('photo'), async (req, res) => {
             validUntil: validUntil || null,
             durationHours: durationHours || null,
             deviceIds,
-            visitor: type === 'express' ? null : { name, rut, email, phone, vehiclePlate },
+            visitor: { name, rut, email, phone, vehiclePlate },
             photo: req.file || null,
             biometricConsent,
         });

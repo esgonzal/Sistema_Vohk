@@ -147,14 +147,14 @@ async function deleteIntercomVisitor(deviceId, employeeNo) {
     }
 }
 
-function validateVisitor(visitor) {
+function validateVisitor(visitor, { requireRut = true } = {}) {
     if (!visitor) throw createError('Visitor information is required', 400);
     const name = String(visitor.name || '').trim();
     const rut = String(visitor.rut || '').trim();
     if (!name) throw createError('Visitor name is required', 400);
-    if (!rut) throw createError('Visitor RUT is required', 400);
-    if (!isValidRut(rut)) throw createError('Invalid visitor RUT', 400);
-    return { name, rut: formatRut(rut), email: String(visitor.email || '').trim() || null, phone: String(visitor.phone || '').trim() || null, vehiclePlate: String(visitor.vehiclePlate || '').trim() || null, };
+    if (requireRut && !rut) throw createError('Visitor RUT is required', 400);
+    if (rut && !isValidRut(rut)) throw createError('Invalid visitor RUT', 400);
+    return { name, rut: rut ? formatRut(rut) : null, email: String(visitor.email || '').trim() || null, phone: String(visitor.phone || '').trim() || null, vehiclePlate: String(visitor.vehiclePlate || '').trim() || null, };
 }
 
 function calculateValidity({ type, validFrom, validUntil, durationHours, settings }) {
@@ -261,15 +261,12 @@ async function createInvitation({ userId, role, unitId, residentUserId, type, va
     if (!settings) throw createError('Condominium configuration not found', 500);
     const { begin, end } = calculateValidity({ type, validFrom, validUntil, durationHours, settings, });
     const selected = await validateDevices(unit, deviceIds);
-    let normalizedVisitor = null;
-    if (type !== 'express') {
-        normalizedVisitor = validateVisitor(visitor);
-    }
+    const normalizedVisitor = validateVisitor(visitor, { requireRut: type !== 'express' });
     const dynamicCode = createDynamicCode({ ttlockCompatible: selected.locks.length > 0 });
     const employeeNo = `${Date.now()}${crypto.randomInt(100, 1000)}`;
     const hasFace = type !== 'express' && Boolean(photo);
     const invitationData = { valid_from: begin, valid_until: end, };
-    const visitorName = normalizedVisitor?.name || 'Pase Express';
+    const visitorName = normalizedVisitor.name;
     const provisionedIntercomIds = [];
     const provisionedLockIds = [];
     let qrCode = null;
