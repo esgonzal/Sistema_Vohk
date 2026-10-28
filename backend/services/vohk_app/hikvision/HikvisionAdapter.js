@@ -105,7 +105,9 @@ class HikvisionAdapter {
         return {
             employeeNo,
             name: visitorName,
-            userType: 'visitor',
+            // Hikvision QR validation only resolves provisioned normal users.
+            // Invitation lifetime remains bounded by Valid and by Vohk revocation.
+            userType: 'normal',
             Valid: invitation.valid,
             dynamicCode,
             doorRight: String(this.intercom.door_id || 1),

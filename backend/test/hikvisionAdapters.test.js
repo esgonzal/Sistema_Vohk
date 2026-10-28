@@ -102,6 +102,7 @@ test('K1T343 builds the model-specific resident, visitor and phonebook data', ()
         employeeNo: 'visitor-1',
         dynamicCode: '654321',
     });
+    assert.equal(visitor.userType, 'normal');
     assert.equal(visitor.userVerifyMode, undefined);
     assert.equal(visitor.doorRight, '1');
     assert.deepEqual(visitor.RightPlan, [{ doorNo: 1, planTemplateNo: '1' }]);
@@ -152,12 +153,14 @@ test('K1T673 uses the validated MinMoe resident, visitor and phonebook payloads'
     assert.deepEqual(resident.callNumbers, ['1-1-1-101']);
     assert.equal(resident.doorRight, '1');
     assert.deepEqual(resident.RightPlan, [{ doorNo: 1, planTemplateNo: '1' }]);
-    assert.equal(adapter.buildVisitorUserInfo({
+    const visitor = adapter.buildVisitorUserInfo({
         invitation: { valid: { enable: true } },
         visitorName: 'Visitor 673',
         employeeNo: 'visitor-673',
         dynamicCode: '654321',
-    }).userVerifyMode, undefined);
+    });
+    assert.equal(visitor.userType, 'normal');
+    assert.equal(visitor.userVerifyMode, undefined);
     assert.deepEqual(adapter.buildPhoneRecord(101, ['17046230', '15156810']), {
         PhoneNumberRecord: {
             periodNumber: 1,
