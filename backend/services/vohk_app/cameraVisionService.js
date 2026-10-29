@@ -5,6 +5,7 @@ const REGION_TYPES = new Set(['landmark', 'occupancy', 'route', 'transition', 'i
 const SEVERITIES = new Set(['information', 'warning', 'critical']);
 const KEY_PATTERN = /^[a-z][a-z0-9_]{0,99}$/;
 const COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/;
+const TIME_PATTERN = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
 
 function fail(status, message, code, details) {
     const error = new Error(message);
@@ -76,26 +77,58 @@ function normalizeRule(rule, index, regionKeys) {
     const severity = cleanText(rule.severity || 'information', `rules[${index}].severity`, 20, { required: true });
     if (!SEVERITIES.has(severity)) throw fail(400, `Rule severity '${severity}' is invalid`);
     const conditions = rule.conditions;
-    if (!conditions || conditions.type !== 'dwell' || !regionKeys.has(conditions.regionKey)) {
-        throw fail(400, `Rule ${index + 1} must reference an existing region with a dwell condition`);
+    if (!conditions || !['dwell', 'region_entry'].includes(conditions.type) || !regionKeys.has(conditions.regionKey)) {
+        throw fail(400, `Rule ${index + 1} must reference an existing region with a supported condition`);
     }
-    const minimumSeconds = Number(conditions.minimumSeconds);
-    if (!Number.isFinite(minimumSeconds) || minimumSeconds < 1 || minimumSeconds > 86400) {
-        throw fail(400, `Rule ${index + 1} dwell time must be between 1 and 86400 seconds`);
+    let minimumSeconds = null;
+    if (conditions.type === 'dwell') {
+        minimumSeconds = Number(conditions.minimumSeconds);
+        if (!Number.isFinite(minimumSeconds) || minimumSeconds < 1 || minimumSeconds > 86400) {
+            throw fail(400, `Rule ${index + 1} dwell time must be between 1 and 86400 seconds`);
+        }
     }
+    const rawActions = conditions.actions || {};
+    const actions = {
+        saveSnapshot: rawActions.saveSnapshot !== false,
+        storeEvent: rawActions.storeEvent !== false,
+        requestAiAnalysis: rawActions.requestAiAnalysis === true || conditions.requiresReasoning === true,
+    };
     return {
         name: cleanText(rule.name, `rules[${index}].name`, 150, { required: true }),
         eventType,
         conditions: {
-            type: 'dwell',
+            type: conditions.type,
             regionKey: conditions.regionKey,
-            minimumSeconds,
-            requiresReasoning: conditions.requiresReasoning === true,
+            ...(minimumSeconds == null ? {} : { minimumSeconds }),
+            requiresReasoning: actions.requestAiAnalysis,
+            actions,
         },
         severity,
-        schedule: rule.schedule || null,
+        schedule: normalizeSchedule(rule.schedule, index),
         enabled: rule.enabled !== false,
     };
+}
+
+function normalizeSchedule(schedule, index) {
+    if (!schedule || schedule.enabled === false) return null;
+    if (typeof schedule !== 'object') throw fail(400, `Rule ${index + 1} schedule is invalid`);
+    const timezone = cleanText(schedule.timezone || 'America/Santiago', `rules[${index}].schedule.timezone`, 100, { required: true });
+    try { new Intl.DateTimeFormat('en-US', { timeZone: timezone }).format(); } catch {
+        throw fail(400, `Rule ${index + 1} timezone is invalid`);
+    }
+    const startTime = cleanText(schedule.startTime, `rules[${index}].schedule.startTime`, 5, { required: true });
+    const endTime = cleanText(schedule.endTime, `rules[${index}].schedule.endTime`, 5, { required: true });
+    if (!TIME_PATTERN.test(startTime) || !TIME_PATTERN.test(endTime) || startTime === endTime) {
+        throw fail(400, `Rule ${index + 1} schedule requires different valid start and end times`);
+    }
+    if (!Array.isArray(schedule.daysOfWeek) || !schedule.daysOfWeek.length) {
+        throw fail(400, `Rule ${index + 1} schedule requires at least one day`);
+    }
+    const daysOfWeek = [...new Set(schedule.daysOfWeek.map(Number))].sort((a, b) => a - b);
+    if (daysOfWeek.some(day => !Number.isInteger(day) || day < 1 || day > 7)) {
+        throw fail(400, `Rule ${index + 1} schedule days are invalid`);
+    }
+    return { enabled: true, timezone, startTime, endTime, daysOfWeek };
 }
 
 function serialize(device, stored) {
@@ -143,6 +176,14 @@ async function getVisionProfile(deviceId, user) {
     return serialize(device, await cameraVisionRepository.getProfile(deviceId));
 }
 
+async function getVisionProfileForIngest(deviceId) {
+    const device = await deviceRepository.findDeviceById(deviceId);
+    if (!device || !['camera', 'intercom'].includes(device.type)) {
+        throw fail(404, 'Camera or video intercom not found');
+    }
+    return serialize(device, await cameraVisionRepository.getProfile(deviceId));
+}
+
 async function replaceVisionProfile(deviceId, user, payload) {
     const device = await getAuthorizedCamera(deviceId, user.userId, user.role);
     if (!payload || typeof payload !== 'object') throw fail(400, 'Vision profile is required');
@@ -167,4 +208,4 @@ async function replaceVisionProfile(deviceId, user, payload) {
     return serialize(device, await cameraVisionRepository.getProfile(deviceId));
 }
 
-module.exports = { getVisionProfile, replaceVisionProfile, _private: { normalizeRegion, normalizeRule } };
+module.exports = { getVisionProfile, getVisionProfileForIngest, replaceVisionProfile, _private: { normalizeRegion, normalizeRule, normalizeSchedule } };

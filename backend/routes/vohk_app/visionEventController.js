@@ -1,6 +1,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const visionEventService = require('../../services/vohk_app/visionEventService');
+const cameraVisionService = require('../../services/vohk_app/cameraVisionService');
 const router = express.Router();
 
 function authenticateIngest(req, res, next) {
@@ -29,6 +30,17 @@ router.post('/', authenticateIngest, async (req, res) => {
         console.error('Could not record vision event:', error);
         const status = error.status >= 400 && error.status < 500 ? error.status : 500;
         return res.status(status).json({ error: status === 500 ? 'Could not record vision event' : error.message });
+    }
+});
+
+router.get('/profile', authenticateIngest, async (req, res) => {
+    try {
+        const profile = await cameraVisionService.getVisionProfileForIngest(req.visionToken.deviceId);
+        return res.status(200).json(profile);
+    } catch (error) {
+        console.error('Could not retrieve vision profile:', error);
+        const status = error.status >= 400 && error.status < 500 ? error.status : 500;
+        return res.status(status).json({ error: status === 500 ? 'Could not retrieve vision profile' : error.message });
     }
 });
 

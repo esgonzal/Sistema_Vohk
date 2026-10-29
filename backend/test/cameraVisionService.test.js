@@ -54,6 +54,38 @@ test('profile replacement normalizes regions and dwell rules', async () => {
     assert.equal(captured[2].sceneContext, 'Acceso principal');
     assert.equal(captured[3][0].color, '#ef4444');
     assert.equal(captured[4][0].conditions.minimumSeconds, 5);
+    assert.deepEqual(captured[4][0].conditions.actions, {
+        saveSnapshot: true, storeEvent: true, requestAiAnalysis: false,
+    });
+});
+
+test('transition rules and overnight schedules are normalized', async () => {
+    let captured;
+    const service = loadService({
+        device: { device_id: 'camera-1', name: 'Entrada', type: 'camera' },
+        replace: async (...args) => { captured = args; },
+    });
+    await service.replaceVisionProfile('camera-1', { userId: 'admin-1', role: 'admin' }, {
+        configurationVersion: 0,
+        regions: [{
+            key: 'garden', name: 'Jardín', type: 'transition', color: '#00ff00',
+            points: [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: .5, y: 1 }],
+        }],
+        rules: [{
+            name: 'Cruce nocturno', eventType: 'restricted_area_crossing',
+            conditions: {
+                type: 'region_entry', regionKey: 'garden',
+                actions: { saveSnapshot: true, storeEvent: false, requestAiAnalysis: true },
+            },
+            schedule: {
+                enabled: true, timezone: 'America/Santiago', startTime: '22:00', endTime: '06:00',
+                daysOfWeek: [7, 1, 2, 3, 4, 5, 6],
+            },
+        }],
+    });
+    assert.equal(captured[4][0].conditions.type, 'region_entry');
+    assert.equal(captured[4][0].conditions.actions.storeEvent, false);
+    assert.deepEqual(captured[4][0].schedule.daysOfWeek, [1, 2, 3, 4, 5, 6, 7]);
 });
 
 test('invalid normalized coordinates are rejected', async () => {

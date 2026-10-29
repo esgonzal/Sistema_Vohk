@@ -68,6 +68,7 @@ async function recordVisionEvent(token, payload) {
             dwellSeconds,
             trackId,
             configurationVersion: Number.isInteger(payload.configurationVersion) ? payload.configurationVersion : null,
+            requestAiAnalysis: payload.requestAiAnalysis === true,
             analysisStage: 'deterministic_candidate',
             aiReviewed: false,
         },
