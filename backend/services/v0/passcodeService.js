@@ -90,4 +90,52 @@ const changePasscode = async ({ accessToken, lockID, passcodeID, newName, newCod
     }
 }
 
-module.exports = { getLockPasscodes, getPasscode, addPasscode, deletePasscode, changePasscode };
+const multiplePasscodes = async ({ accessToken, selectedLocks, passcodes }) => {
+    const results = [];
+
+    for (const lock of selectedLocks) {
+        const lockResults = [];
+        for (const passcode of passcodes) {
+            try {
+                const now = Date.now();
+                const isCustom = passcode.tipo === 2;
+                const endpoint = isCustom ? 'add' : 'get';
+                const params = {
+                    clientId: TTLOCK_CLIENT_ID,
+                    accessToken,
+                    lockId: lock.id.toString(),
+                    keyboardPwdName: passcode.name,
+                    keyboardPwdType: '2',
+                    startDate: now.toString(),
+                    endDate: '0',
+                    date: now.toString()
+                };
+
+                if (isCustom) {
+                    params.keyboardPwd = passcode.code.toString();
+                    params.addType = '2';
+                }
+
+                const response = await axios.post(
+                    `${TTLOCK_BASE_URL}/keyboardPwd/${endpoint}`,
+                    new URLSearchParams(params),
+                    { headers: buildHeaders(accessToken) }
+                );
+                const data = response.data;
+
+                if (data?.keyboardPwdId) {
+                    lockResults.push({ passcodeName: passcode.name, tipo: passcode.tipo, code: passcode.code || data.keyboardPwd, result: 'success', codeId: data.keyboardPwdId, errcode: 0 });
+                } else {
+                    lockResults.push({ passcodeName: passcode.name, tipo: passcode.tipo, code: passcode.code, result: 'failed', errcode: data?.errcode || 'INVALID_PASSCODE', errmsg: data?.errmsg || 'Passcode could not be created' });
+                }
+            } catch (error) {
+                lockResults.push({ passcodeName: passcode.name, tipo: passcode.tipo, code: passcode.code, result: 'failed', errcode: error.response?.data?.errcode || 'UNKNOWN', errmsg: error.response?.data?.errmsg || error.message });
+            }
+        }
+        results.push({ lockId: lock.id, lockAlias: lock.alias, passcodes: lockResults });
+    }
+
+    return results;
+};
+
+module.exports = { getLockPasscodes, getPasscode, addPasscode, deletePasscode, changePasscode, multiplePasscodes };
