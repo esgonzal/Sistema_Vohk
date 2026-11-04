@@ -28,6 +28,11 @@ frontend/.angular/
 
 # Local Codex deployment and diagnostic scratch files
 .codex-*
+/tmp/
+
+# Generated document exports kept locally unless intentionally promoted.
+/artifacts/*.docx
+/artifacts/*.pdf
 
 # Local Hikvision investigation archives, device captures and QR credentials.
 artifacts/intercom-event-audit/

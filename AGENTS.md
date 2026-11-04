@@ -9,3 +9,10 @@
 - Build Vohk One with `npm run build:one` from `frontend/`.
 
 The authoritative version declarations are `.nvmrc`, `.node-version`, the npm `engines` fields, and this file. Codex and Linear environments must set `CODEX_ENV_NODE_VERSION=22.16.0` when that variable is available.
+
+## Temporary files
+
+- Never clone or copy a repository into this repository's `tmp/`, `artifacts/`, `backend/`, or `frontend/` directories.
+- Never place generated `node_modules`, build output, caches, screenshots, diagnostic captures, or document render intermediates inside the repository unless the task explicitly requires a tracked artifact.
+- Use the operating system temporary directory for disposable work and remove it when the task finishes.
+- The repository-level `tmp/` directory is ignored and reserved only for short-lived local files; it must not contain repository clones.
