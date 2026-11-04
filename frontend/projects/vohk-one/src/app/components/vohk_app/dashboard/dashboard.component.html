@@ -64,7 +64,7 @@
         </div>
         <div class="activity-list" *ngIf="activities.length; else noActivity">
             <div class="activity-item" *ngFor="let activity of pagedActivities">
-                <mat-icon>{{ activity.event_type === 'camera_event' ? 'videocam' : (activity.event_type === 'door_open' ? 'lock_open' : 'call') }}</mat-icon>
+                <mat-icon>{{ activity.event_type === 'encomienda_alert' ? 'inventory_2' : (activity.event_type === 'camera_event' ? 'videocam' : (activity.event_type === 'door_open' ? 'lock_open' : 'call')) }}</mat-icon>
                 <div class="activity-info">
                     <div class="activity-title">{{ activityTitle(activity) }}</div>
                     <div class="activity-detail">

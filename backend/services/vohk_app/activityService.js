@@ -20,7 +20,7 @@ async function listActivities(user, query) {
         throw error;
     }
     const eventType = query.eventType || null;
-    if (eventType && !['door_open', 'call', 'access', 'camera_event'].includes(eventType)) {
+    if (eventType && !['door_open', 'call', 'access', 'camera_event', 'encomienda_alert'].includes(eventType)) {
         const error = new Error('Invalid event type');
         error.status = 400;
         throw error;

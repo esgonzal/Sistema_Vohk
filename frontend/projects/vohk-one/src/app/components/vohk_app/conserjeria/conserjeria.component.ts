@@ -502,6 +502,15 @@ export class ConserjeriaComponent implements OnInit, OnDestroy {
   }
 
   activityTitle(activity: any): string {
+    if (activity.event_type === 'camera_event') {
+      if (activity.metadata?.eventName === 'visitor_waiting') {
+        return `Persona esperando en ${activity.metadata?.regionName || activity.device_name || 'la cámara'}`;
+      }
+      if (activity.metadata?.eventName === 'bath_route_crossed') {
+        return 'Persona pasó hacia baño/comedor';
+      }
+      return `Evento de cámara: ${activity.metadata?.ruleName || activity.metadata?.eventName || 'observación'}`;
+    }
     if (activity.event_type === 'access') {
       const subject = activity.actor_name || activity.metadata?.subjectName || 'Persona no identificada';
       const description = activity.metadata?.description;
@@ -509,6 +518,10 @@ export class ConserjeriaComponent implements OnInit, OnDestroy {
     }
     if (activity.event_type === 'door_open') {
       return `${activity.actor_name || 'Usuario'} abrió ${activity.device_name || 'un acceso'}`;
+    }
+    if (activity.event_type === 'encomienda_alert') {
+      const unit = activity.metadata?.unitName || 'una unidad';
+      return `Encomienda pendiente de retiro en ${unit}`;
     }
 
     const participants = activity.participants ?? [];
@@ -536,6 +549,7 @@ export class ConserjeriaComponent implements OnInit, OnDestroy {
   }
 
   activityMethod(activity: any): string {
+    if (activity.event_type === 'camera_event') return 'Visión';
     if (activity.event_type === 'door_open') return 'Remoto';
     if (activity.event_type !== 'access') return '—';
     return activity.metadata?.methodLabel || 'Desconocido';

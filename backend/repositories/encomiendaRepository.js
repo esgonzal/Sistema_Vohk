@@ -165,6 +165,54 @@ async function findDueReminders(hours) {
     return result.rows;
 }
 
+async function findDueAdminAlerts(hours = 24) {
+    const result = await pool.query(`
+        SELECT e.encomienda_id, e.unit_id, e.created_by_user_id, e.recipient_name,
+               e.courier_name, e.created_at, u.name AS unit_name,
+               b.name AS building_name, c.condominium_id,
+               c.name AS condominium_name, c.admin_user_id
+        FROM encomienda e
+        JOIN unit u ON u.unit_id = e.unit_id
+        JOIN building b ON b.building_id = u.building_id
+        JOIN condominium c ON c.condominium_id = b.condominium_id
+        WHERE e.status = 'pending'
+          AND e.created_at <= NOW() - ($1::text || ' hours')::interval
+          AND (
+              e.last_admin_alert_at IS NULL
+              OR e.last_admin_alert_at <= NOW() - ($1::text || ' hours')::interval
+          )
+        ORDER BY e.last_admin_alert_at NULLS FIRST, e.created_at
+        LIMIT 200
+    `, [hours]);
+    return result.rows;
+}
+
+async function markAdminAlerted(encomiendaId, delivery = {}) {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        const updated = await client.query(`
+            UPDATE encomienda
+            SET last_admin_alert_at = NOW(), updated_at = NOW()
+            WHERE encomienda_id = $1 AND status = 'pending'
+            RETURNING encomienda_id
+        `, [encomiendaId]);
+        if (updated.rowCount) {
+            await client.query(`
+                INSERT INTO encomienda_event (encomienda_id, event_type, metadata)
+                VALUES ($1, 'admin_alert', $2::jsonb)
+            `, [encomiendaId, JSON.stringify(delivery)]);
+        }
+        await client.query('COMMIT');
+        return Boolean(updated.rowCount);
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
+}
+
 async function markNotified(encomiendaId, actorUserId, residentIds, reminder, delivery = {}) {
     const deliverySummary = {
         sent: Number(delivery.sent) || 0,
@@ -199,4 +247,4 @@ async function markNotified(encomiendaId, actorUserId, residentIds, reminder, de
     }
 }
 
-module.exports = { create, findById, listByUnit, listByCondominium, getPhoto, deliver, cancel, findResidentsByUnit, findDueReminders, markNotified };
+module.exports = { create, findById, listByUnit, listByCondominium, getPhoto, deliver, cancel, findResidentsByUnit, findDueReminders, findDueAdminAlerts, markNotified, markAdminAlerted };
