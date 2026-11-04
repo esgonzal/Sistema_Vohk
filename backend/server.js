@@ -1,6 +1,6 @@
 // Combined entry point retained for migration rollback / existing Docker users.
 // Normal split deployment uses backend-pm2.config.js. Do not run this alongside
-// vohk-worker: both start the same scheduled jobs. See deploy/README.md.
+// vohk-worker: both start the same scheduled jobs.
 const express = require('express');
 const http = require('http');
 const bodyParser = require('body-parser');

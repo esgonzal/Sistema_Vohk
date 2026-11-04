@@ -84,6 +84,6 @@ async function main() {
 }
 main().catch(() => {
     // Upstream errors can contain connection credentials: do not log exception objects.
-    console.error('Diagnostics failed. Check mode/device UUID, database configuration and device connectivity. See deploy/HIKVISION_QR.md.');
+    console.error('Diagnostics failed. Check mode/device UUID, database configuration and device connectivity.');
     process.exitCode = 1;
 });

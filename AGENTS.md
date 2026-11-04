@@ -12,7 +12,8 @@ The authoritative version declarations are `.nvmrc`, `.node-version`, the npm `e
 
 ## Temporary files
 
-- Never clone or copy a repository into this repository's `tmp/`, `artifacts/`, `backend/`, or `frontend/` directories.
+- Never clone or copy a repository into this repository's `tmp/`, `artifacts/`, `deploy/`, `backend/`, or `frontend/` directories.
 - Never place generated `node_modules`, build output, caches, screenshots, diagnostic captures, or document render intermediates inside the repository unless the task explicitly requires a tracked artifact.
 - Use the operating system temporary directory for disposable work and remove it when the task finishes.
 - The repository-level `tmp/` directory is ignored and reserved only for short-lived local files; it must not contain repository clones.
+- Do not create repository-level `artifacts/` or `deploy/` directories. Research output and droplet configuration copies must remain outside the source repository.

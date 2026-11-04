@@ -30,11 +30,7 @@ frontend/.angular/
 .codex-*
 /tmp/
 
-# Generated document exports kept locally unless intentionally promoted.
-/artifacts/*.docx
-/artifacts/*.pdf
-
-# Local Hikvision investigation archives, device captures and QR credentials.
-artifacts/intercom-event-audit/
-artifacts/hikvision-qr-lab/
-artifacts/hikvision-experiment-archive/
+# AI-generated research, diagnostic captures and delivery/deployment scratch data
+# do not belong in this source repository.
+/artifacts/
+/deploy/
