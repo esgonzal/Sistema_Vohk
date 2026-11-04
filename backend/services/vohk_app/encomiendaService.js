@@ -5,10 +5,15 @@ const condominiumRepository = require('../../repositories/condominiumRepository'
 const unitRepository = require('../../repositories/unitRepository');
 const residentUnitRepository = require('../../repositories/residentUnitRepository');
 const staffCondominiumRepository = require('../../repositories/staffCondominiumRepository');
+const staffShiftRepository = require('../../repositories/staffShiftRepository');
+const userRepository = require('../../repositories/userRepository');
+const activityRepository = require('../../repositories/activityRepository');
 const pushNotificationService = require('./pushNotificationService');
+const emailService = require('./emailService');
 
 const STAFF_ROLES = ['staff', 'admin', 'superadmin'];
 const REMINDER_INTERVAL_HOURS = 1;
+const ADMIN_ALERT_INTERVAL_HOURS = 24;
 const PHOTO_MIME_TYPES = {
     jpeg: 'image/jpeg',
     png: 'image/png',
@@ -233,6 +238,74 @@ async function processReminders(now = new Date()) {
     return pending.length;
 }
 
+async function processAdminAlerts(now = new Date()) {
+    const pending = await encomiendaRepository.findDueAdminAlerts(ADMIN_ALERT_INTERVAL_HOURS);
+    let processed = 0;
+    for (const encomienda of pending) {
+        const [admin, staff] = await Promise.all([
+            encomienda.admin_user_id ? userRepository.findById(encomienda.admin_user_id) : null,
+            staffShiftRepository.listStaff(encomienda.condominium_id),
+        ]);
+        const recipients = new Map();
+        if (admin?.active && admin.user_id) recipients.set(admin.user_id, admin);
+        for (const member of staff) {
+            if (member.active && member.user_id) recipients.set(member.user_id, member);
+        }
+        const recipientList = [...recipients.values()];
+        if (!recipientList.length) {
+            console.warn(`[ENCOMIENDA ADMIN ALERT ${encomienda.encomienda_id}] No active admin or staff recipients`);
+            continue;
+        }
+
+        const recipientIds = recipientList.map(recipient => recipient.user_id);
+        const emailRecipients = recipientList.filter(recipient => recipient.email);
+        await Promise.all(emailRecipients.map(recipient => emailService.sendPackageAgingAlertEmail({
+            toEmail: recipient.email,
+            legalName: recipient.legal_name,
+            unitName: encomienda.unit_name,
+            buildingName: encomienda.building_name,
+            residentName: encomienda.recipient_name,
+            receivedAt: encomienda.created_at,
+        })));
+        const pushDelivery = await pushNotificationService.sendToUsers(recipientIds, {
+            notification: {
+                title: 'Encomienda pendiente de retiro',
+                body: `La encomienda de ${encomienda.unit_name} lleva al menos 24 horas en conserjería.`,
+            },
+            data: {
+                type: 'encomienda_admin_alert',
+                encomiendaId: encomienda.encomienda_id,
+                unitId: encomienda.unit_id,
+                condominiumId: encomienda.condominium_id,
+            },
+        });
+        const date = now.toISOString().slice(0, 10);
+        await activityRepository.createActivity({
+            condominiumId: encomienda.condominium_id,
+            eventType: 'encomienda_alert',
+            source: 'encomienda-alert',
+            correlationId: `encomienda:${encomienda.encomienda_id}:${date}`,
+            status: 'pending',
+            occurredAt: now.toISOString(),
+            metadata: {
+                encomiendaId: encomienda.encomienda_id,
+                unitName: encomienda.unit_name,
+                buildingName: encomienda.building_name,
+                residentName: encomienda.recipient_name,
+                receivedAt: encomienda.created_at,
+            },
+            participants: recipientIds.map(userId => ({ userId, role: 'recipient' })),
+        });
+        await encomiendaRepository.markAdminAlerted(encomienda.encomienda_id, {
+            recipientIds,
+            emailRecipients: emailRecipients.map(recipient => recipient.user_id),
+            push: pushDelivery,
+        });
+        processed += 1;
+    }
+    return processed;
+}
+
 module.exports = {
     createEncomienda,
     listEncomiendas,
@@ -240,6 +313,8 @@ module.exports = {
     deliverEncomienda,
     cancelEncomienda,
     processReminders,
+    processAdminAlerts,
     detectPhotoMimeType,
     REMINDER_INTERVAL_HOURS,
+    ADMIN_ALERT_INTERVAL_HOURS,
 };

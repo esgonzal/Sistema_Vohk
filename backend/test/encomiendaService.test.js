@@ -3,6 +3,129 @@ const assert = require('node:assert/strict');
 const Module = require('module');
 const jwt = require('jsonwebtoken');
 
+test('admin package alerts notify unique active admin and staff through email, push and activity', async () => {
+    const originalLoad = Module._load;
+    const adminId = '11111111-1111-4111-8111-111111111111';
+    const staffId = '22222222-2222-4222-8222-222222222222';
+    const inactiveId = '33333333-3333-4333-8333-333333333333';
+    const packageId = '44444444-4444-4444-8444-444444444444';
+    const condominiumId = '55555555-5555-4555-8555-555555555555';
+    const sentEmails = [];
+    const pushes = [];
+    const activities = [];
+    const marked = [];
+    const due = [{
+        encomienda_id: packageId,
+        unit_id: '66666666-6666-4666-8666-666666666666',
+        condominium_id: condominiumId,
+        admin_user_id: adminId,
+        unit_name: '101',
+        building_name: 'Torre A',
+        recipient_name: 'Ana Residente',
+        created_at: '2026-11-02T12:00:00.000Z',
+    }];
+    Module._load = function (request, parent, isMain) {
+        if (request === '../../repositories/encomiendaRepository') return {
+            findDueAdminAlerts: async hours => {
+                assert.equal(hours, 24);
+                return due;
+            },
+            markAdminAlerted: async (...args) => marked.push(args),
+        };
+        if (request === '../../repositories/userRepository') return {
+            findById: async () => ({ user_id: adminId, legal_name: 'Admin', email: 'admin@example.com', active: true }),
+        };
+        if (request === '../../repositories/staffShiftRepository') return {
+            listStaff: async id => {
+                assert.equal(id, condominiumId);
+                return [
+                    { user_id: adminId, legal_name: 'Admin duplicado', email: 'admin@example.com', active: true },
+                    { user_id: staffId, legal_name: 'Staff', email: 'staff@example.com', active: true },
+                    { user_id: inactiveId, legal_name: 'Inactivo', email: 'inactive@example.com', active: false },
+                ];
+            },
+        };
+        if (request === '../../repositories/activityRepository') return { createActivity: async input => activities.push(input) };
+        if (request === './emailService') return { sendPackageAgingAlertEmail: async input => sentEmails.push(input) };
+        if (request === './pushNotificationService') return {
+            sendToUsers: async (userIds, message) => {
+                pushes.push({ userIds, message });
+                return { sent: 2, failed: 0 };
+            },
+        };
+        if (request.startsWith('../../repositories/')) return {};
+        return originalLoad.call(this, request, parent, isMain);
+    };
+    const servicePath = require.resolve('../services/vohk_app/encomiendaService');
+    try {
+        const service = require(servicePath);
+        assert.equal(await service.processAdminAlerts(new Date('2026-11-04T12:00:00.000Z')), 1);
+        assert.deepEqual(sentEmails.map(item => item.toEmail).sort(), ['admin@example.com', 'staff@example.com']);
+        assert.deepEqual(pushes[0].userIds.sort(), [adminId, staffId].sort());
+        assert.equal(pushes[0].message.data.type, 'encomienda_admin_alert');
+        assert.equal(activities[0].eventType, 'encomienda_alert');
+        assert.equal(activities[0].correlationId, `encomienda:${packageId}:2026-11-04`);
+        assert.deepEqual(marked[0][1].recipientIds.sort(), [adminId, staffId].sort());
+        assert.equal(marked.length, 1);
+    } finally {
+        Module._load = originalLoad;
+        delete require.cache[servicePath];
+    }
+});
+
+test('admin package alerts remain due when a condominium has no active recipients', async () => {
+    const originalLoad = Module._load;
+    let activityCreated = false;
+    let marked = false;
+    Module._load = function (request, parent, isMain) {
+        if (request === '../../repositories/encomiendaRepository') return {
+            findDueAdminAlerts: async () => [{ encomienda_id: 'package-1', condominium_id: 'condo-1', admin_user_id: null }],
+            markAdminAlerted: async () => { marked = true; },
+        };
+        if (request === '../../repositories/staffShiftRepository') return { listStaff: async () => [{ user_id: 'inactive', active: false }] };
+        if (request === '../../repositories/userRepository') return { findById: async () => null };
+        if (request === '../../repositories/activityRepository') return { createActivity: async () => { activityCreated = true; } };
+        if (request === './emailService') return { sendPackageAgingAlertEmail: async () => {} };
+        if (request === './pushNotificationService') return { sendToUsers: async () => ({ sent: 0 }) };
+        if (request.startsWith('../../repositories/')) return {};
+        return originalLoad.call(this, request, parent, isMain);
+    };
+    const servicePath = require.resolve('../services/vohk_app/encomiendaService');
+    try {
+        const service = require(servicePath);
+        assert.equal(await service.processAdminAlerts(), 0);
+        assert.equal(activityCreated, false);
+        assert.equal(marked, false);
+    } finally {
+        Module._load = originalLoad;
+        delete require.cache[servicePath];
+    }
+});
+
+test('admin package alerts do not resend while the repository 24-hour window is closed', async () => {
+    const originalLoad = Module._load;
+    let pushed = false;
+    Module._load = function (request, parent, isMain) {
+        if (request === '../../repositories/encomiendaRepository') return { findDueAdminAlerts: async hours => {
+            assert.equal(hours, 24);
+            return [];
+        } };
+        if (request === './pushNotificationService') return { sendToUsers: async () => { pushed = true; } };
+        if (request.startsWith('../../repositories/')) return {};
+        if (request === './emailService') return {};
+        return originalLoad.call(this, request, parent, isMain);
+    };
+    const servicePath = require.resolve('../services/vohk_app/encomiendaService');
+    try {
+        const service = require(servicePath);
+        assert.equal(await service.processAdminAlerts(), 0);
+        assert.equal(pushed, false);
+    } finally {
+        Module._load = originalLoad;
+        delete require.cache[servicePath];
+    }
+});
+
 test('package photos are identified from their bytes instead of trusting multipart MIME metadata', async () => {
     const servicePath = require.resolve('../services/vohk_app/encomiendaService');
     try {

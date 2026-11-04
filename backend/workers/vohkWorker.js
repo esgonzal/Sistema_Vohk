@@ -6,10 +6,12 @@ function startVohkWorker() {
     const { startInvitationExpiration } = require('../jobs/invitationExpiration');
     const { startAccessEventSync } = require('../jobs/accessEventSync');
     const { startEncomiendaReminder } = require('../jobs/encomiendaReminder');
+    const { startEncomiendaAdminAlert } = require('../jobs/encomiendaAdminAlert');
     startDeviceHeartbeat();
     startInvitationExpiration();
     startAccessEventSync();
     startEncomiendaReminder();
+    startEncomiendaAdminAlert();
     console.log('[vohk-worker] Scheduled jobs started');
 }
 

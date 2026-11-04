@@ -5,11 +5,7 @@ const { Resend } = require('resend');
 const RESEND_KEY = process.env.RESEND_KEY;
 const EMAIL_FROM = process.env.EMAIL_FROM || 'VÖHK <soporte@vohk.cl>';
 
-if (!RESEND_KEY) {
-    throw new Error('RESEND_KEY environment variable is not configured');
-}
-
-const resend = new Resend(RESEND_KEY);
+const resend = RESEND_KEY ? new Resend(RESEND_KEY) : null;
 
 function validateEmail(email) {
     return (typeof email === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
@@ -30,6 +26,7 @@ async function renderTemplate(templateName, variables = {}) {
 }
 
 async function sendEmail({ toEmail, subject, html, text }) {
+    if (!resend) throw new Error('RESEND_KEY environment variable is not configured');
     if (!validateEmail(toEmail)) {
         throw new Error('Invalid recipient email address');
     }
@@ -52,4 +49,12 @@ async function sendPasswordResetEmail({ toEmail, legalName, resetUrl }) {
     return sendEmail({ toEmail, subject: 'Restablecer contraseña - ONE by VÖHK', html, text });
 }
 
-module.exports = { sendEmail, renderTemplate, sendResidentWelcomeEmail, sendPasswordResetEmail };
+async function sendPackageAgingAlertEmail({ toEmail, legalName, unitName, buildingName, residentName, receivedAt }) {
+    const received = new Date(receivedAt).toLocaleString('es-CL', { timeZone: 'America/Santiago' });
+    const variables = { legalName: legalName || 'equipo de conserjería', unitName, buildingName, residentName: residentName || 'No informado', receivedAt: received };
+    const html = await renderTemplate('encomienda-alert.html', variables);
+    const text = [`Hola ${variables.legalName},`, '', `La encomienda para ${variables.unitName} (${variables.buildingName}) lleva al menos 24 horas sin retirarse.`, `Residente: ${variables.residentName}`, `Recibida: ${received}`, '', 'Por favor realiza el seguimiento desde ONE by VÖHK.'].join('\n');
+    return sendEmail({ toEmail, subject: `Encomienda pendiente · ${unitName}`, html, text });
+}
+
+module.exports = { sendEmail, renderTemplate, sendResidentWelcomeEmail, sendPasswordResetEmail, sendPackageAgingAlertEmail };

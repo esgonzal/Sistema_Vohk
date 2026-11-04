@@ -61,6 +61,10 @@ export class DashboardComponent implements OnInit {
     if (activity.event_type === 'door_open') {
       return `${activity.actor_name || 'Usuario'} abrió ${activity.device_name || 'un acceso'}`;
     }
+    if (activity.event_type === 'encomienda_alert') {
+      const unit = activity.metadata?.unitName || 'una unidad';
+      return `Encomienda pendiente de retiro en ${unit}`;
+    }
     const participants = activity.participants ?? [];
     const caller = participants.find((item: any) => item.role === 'caller')?.name || activity.actor_name;
     const recipient = participants.find((item: any) => item.role === 'recipient')?.name;
