@@ -16,13 +16,28 @@ Presione el siguiente [link para ingresar al sistema](https://vohkapp.com)
 
 ## Tecnologías
 
+### Runtime oficial
+
+Todo el repositorio se desarrolla, prueba y automatiza con **Node.js 22.16.0** y **npm 10.9.2**. Node 18 o versiones anteriores no son compatibles con las dependencias actuales del backend.
+
+Con NVM para Windows:
+
+```powershell
+nvm install 22.16.0
+nvm use 22.16.0
+node --version
+npm --version
+```
+
+Los archivos `.nvmrc`, `.node-version`, los campos `engines` de npm y la imagen del `backend/Dockerfile` mantienen esta versión explícita para desarrollo local, Codex/Linear y contenedores.
+
 Frontend
 
     Angular: Versión 16.2.11
 
 Backend
 
-    Node.js: Versión 16.14.2
+    Node.js: Versión 22.16.0
 
 ## Vistas
 

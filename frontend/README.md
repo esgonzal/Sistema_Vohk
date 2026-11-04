@@ -5,6 +5,10 @@ This workspace contains two independent Angular applications:
 - `vohk`: the original TTLock administration site in `src/`.
 - `vohk-one`: the new condominium administration site in `projects/vohk-one/`.
 
+## Runtime requirement
+
+Use **Node.js 22.16.0** and **npm 10.9.2**. From the repository root, `nvm use 22.16.0` selects the version declared in `.nvmrc`.
+
 ## Development server
 
 - Run `npm run start:legacy` for the original site at `http://localhost:4200/`.

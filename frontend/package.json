@@ -1,6 +1,11 @@
 {
     "name": "vohk",
     "version": "0.0.0",
+    "packageManager": "npm@10.9.2",
+    "engines": {
+        "node": ">=22.16.0 <23",
+        "npm": ">=10.9.2 <11"
+    },
     "scripts": {
         "ng": "ng",
         "start": "ng serve vohk --proxy-config src/proxy.conf.json",
