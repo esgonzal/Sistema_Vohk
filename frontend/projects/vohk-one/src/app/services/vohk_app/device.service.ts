@@ -16,6 +16,36 @@ export interface AvailableTtlockDevice {
   suggestedDeviceType: 'lock' | 'gate';
 }
 
+export type VisionRegionType = 'landmark' | 'occupancy' | 'route' | 'transition' | 'ignore';
+export interface VisionPoint { x: number; y: number; }
+export interface VisionRegion {
+  id?: string; key: string; name: string; type: VisionRegionType; color: string;
+  points: VisionPoint[]; description: string; enabled: boolean;
+}
+export interface VisionRule {
+  id?: string; name: string; eventType: string;
+  conditions: {
+    type: 'dwell' | 'region_entry'; regionKey: string; minimumSeconds?: number;
+    requiresReasoning: boolean;
+    actions?: { saveSnapshot: boolean; storeEvent: boolean; requestAiAnalysis: boolean; };
+  };
+  severity: 'information' | 'warning' | 'critical';
+  schedule: {
+    enabled: boolean; timezone: string; startTime: string; endTime: string; daysOfWeek: number[];
+  } | null;
+  enabled: boolean;
+}
+export interface CameraVisionProfileResponse {
+  device: { deviceId: string; name: string; type: string; snapshotUrl: string | null; };
+  profile: {
+    sceneContext: string; calibrationVersion: number; configurationVersion: number;
+    referenceWidth: number | null; referenceHeight: number | null;
+    referenceImageKey: string | null; enabled: boolean;
+  };
+  regions: VisionRegion[];
+  rules: VisionRule[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -60,5 +90,13 @@ export class DeviceService {
 
   deleteDevice(deviceId: string) {
     return this.http.delete(`${this.URL}/api/devices/${deviceId}`);
+  }
+
+  getVisionProfile(deviceId: string) {
+    return this.http.get<CameraVisionProfileResponse>(`${this.URL}/api/devices/${deviceId}/vision-profile`);
+  }
+
+  saveVisionProfile(deviceId: string, payload: any) {
+    return this.http.put<CameraVisionProfileResponse>(`${this.URL}/api/devices/${deviceId}/vision-profile`, payload);
   }
 }

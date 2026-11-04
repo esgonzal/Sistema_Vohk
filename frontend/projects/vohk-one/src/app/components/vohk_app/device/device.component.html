@@ -99,6 +99,10 @@
             </div>
 
             <div class="device-actions">
+                <button *ngIf="canConfigureVision && supportsVision(device)" class="action-btn action-vision"
+                    (click)="configureVision(device)" title="Configurar visión">
+                    <mat-icon>polyline</mat-icon>
+                </button>
                 <button *ngIf="isSuperAdmin && supportsIdentityRefresh(device)" class="action-btn action-refresh"
                     (click)="refreshIdentity(device)" title="Actualizar modelo y firmware">
                     <mat-icon>sync</mat-icon>

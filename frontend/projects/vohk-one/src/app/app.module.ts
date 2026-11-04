@@ -24,6 +24,7 @@ import { ConserjeriaComponent } from './components/vohk_app/conserjeria/conserje
 import { CameraStreamComponent } from './components/vohk_app/conserjeria/camera-stream.component';
 import { DashboardComponent } from './components/vohk_app/dashboard/dashboard.component';
 import { DeviceComponent } from './components/vohk_app/device/device.component';
+import { CameraVisionEditorComponent } from './components/vohk_app/camera-vision-editor/camera-vision-editor.component';
 import { LoginComponent } from './components/vohk_app/login/login.component';
 import { ResetPasswordComponent } from './components/vohk_app/reset-password/reset-password.component';
 import { UnitsComponent } from './components/vohk_app/units/units.component';
@@ -54,6 +55,7 @@ export const CUSTOM_DATE_FORMATS = {
     CameraStreamComponent,
     DashboardComponent,
     DeviceComponent,
+    CameraVisionEditorComponent,
     LoginComponent,
     ResetPasswordComponent,
     UnitsComponent,

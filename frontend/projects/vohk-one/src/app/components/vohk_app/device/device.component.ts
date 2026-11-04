@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { firstValueFrom, forkJoin, Subject, takeUntil } from 'rxjs';
 import Swal from 'sweetalert2';
 import { AvailableTtlockDevice, DeviceService } from 'src/app/services/vohk_app/device.service';
@@ -27,6 +28,10 @@ export class DeviceComponent implements OnInit, OnDestroy {
     return localStorage.getItem('role') === 'superadmin';
   }
 
+  get canConfigureVision(): boolean {
+    return localStorage.getItem('role') === 'superadmin';
+  }
+
   private escapeHtml(value: unknown): string {
     return String(value ?? '')
       .replace(/&/g, '&amp;')
@@ -38,8 +43,17 @@ export class DeviceComponent implements OnInit, OnDestroy {
 
   constructor(
     private deviceService: DeviceService,
-    private selectedCondominiumService: SelectedCondominiumService
+    private selectedCondominiumService: SelectedCondominiumService,
+    private router: Router
   ) { }
+
+  supportsVision(device: any): boolean {
+    return device?.type === 'camera' || device?.type === 'intercom';
+  }
+
+  configureVision(device: any): void {
+    this.router.navigate(['/admin/dispositivos', device.device_id, 'vision']);
+  }
 
   ngOnInit(): void {
     this.selectedCondominiumService.selected$.pipe(takeUntil(this.destroy$)).subscribe(condo => {

@@ -1,0 +1,69 @@
+<div class="vision-page">
+  <header class="vision-header">
+    <div><button class="back-button" (click)="back()"><mat-icon>arrow_back</mat-icon> Dispositivos</button><div class="eyebrow">CONFIGURACIÓN DE VISIÓN · V{{ configurationVersion }}</div><h1>{{ deviceName || 'Cámara' }}</h1><p>Define regiones espaciales normalizadas para entregar contexto a los analizadores.</p></div>
+    <div class="header-actions"><button class="secondary-button" (click)="exportJson()" [disabled]="loading"><mat-icon>download</mat-icon> Exportar JSON</button><button class="primary-button" (click)="save()" [disabled]="loading || saving"><mat-icon>save</mat-icon> {{ saving ? 'Guardando…' : 'Guardar' }}</button></div>
+  </header>
+  <div *ngIf="loading" class="state-card">Cargando perfil de visión…</div><div *ngIf="!loading && error" class="state-card error">{{ error }}</div>
+  <div *ngIf="!loading && !error" class="editor-layout">
+    <main class="workspace-card">
+      <div class="image-toolbar"><div><strong>Imagen de referencia</strong><span *ngIf="imageWidth && imageHeight">{{ imageWidth }} × {{ imageHeight }} px</span></div><div class="toolbar-actions"><button *ngIf="snapshotUrl" class="tool-button" (click)="useDeviceSnapshot()">Snapshot del dispositivo</button><label class="tool-button file-button">Cargar imagen<input type="file" accept="image/*" (change)="chooseImage($event)"></label></div></div>
+      <div *ngIf="localImageName" class="local-image-note">{{ localImageName }} se usa localmente como referencia; la imagen no se sube al servidor.</div>
+      <div class="canvas-shell" [style.aspect-ratio]="aspectRatio">
+        <img *ngIf="imageSource" [src]="imageSource" alt="Vista de la cámara" (load)="onImageLoaded($event)">
+        <div *ngIf="!imageSource" class="image-placeholder"><mat-icon>add_photo_alternate</mat-icon><strong>Carga una imagen de referencia</strong><span>También puedes configurar snapshot_url en el dispositivo.</span></div>
+        <svg #overlay class="overlay" viewBox="0 0 1 1" preserveAspectRatio="none" (click)="onOverlayClick($event)" (pointermove)="dragPoint($event)" (pointerup)="stopPointDrag($event)" (pointercancel)="stopPointDrag($event)">
+          <g *ngFor="let region of regions; let regionIndex = index" (click)="selectRegion(regionIndex, $event)"><polygon [attr.points]="polygonPoints(region.points)" [attr.fill]="region.color" [attr.stroke]="region.color" [class.selected]="regionIndex === selectedIndex"></polygon><circle *ngFor="let point of region.points; let pointIndex = index" [attr.cx]="point.x" [attr.cy]="point.y" r="0.009" [attr.fill]="region.color" [class.visible-point]="regionIndex === selectedIndex" (pointerdown)="startPointDrag(regionIndex, pointIndex, $event)"></circle></g>
+          <polyline *ngIf="drawingPoints.length" [attr.points]="polygonPoints(drawingPoints)" class="draft-line"></polyline><circle *ngFor="let point of drawingPoints" [attr.cx]="point.x" [attr.cy]="point.y" r="0.009" class="draft-point"></circle>
+        </svg>
+      </div>
+      <div class="drawing-toolbar"><button class="tool-button accent" (click)="startDrawing()" [disabled]="drawing"><mat-icon>polyline</mat-icon> Nueva región</button><ng-container *ngIf="drawing"><span class="drawing-help">Haz clic en al menos tres puntos.</span><button class="tool-button" (click)="undoPoint()" [disabled]="!drawingPoints.length">Deshacer punto</button><button class="tool-button" (click)="cancelDrawing()">Cancelar</button><button class="tool-button success" (click)="finishDrawing()" [disabled]="drawingPoints.length < 3">Cerrar polígono</button></ng-container></div>
+      <section class="context-section"><div class="section-heading"><strong>Contexto de la escena</strong><span>Describe lo que el modelo debe entender de esta cámara.</span></div><textarea [(ngModel)]="sceneContext" maxlength="5000" rows="3" placeholder="Ej.: Entrada principal de ventas. La puerta izquierda conduce a recepción…"></textarea><div class="profile-options"><label><input type="checkbox" [(ngModel)]="profileEnabled"> Perfil habilitado</label><label>Versión de calibración <input type="number" min="1" step="1" [(ngModel)]="calibrationVersion"></label></div></section>
+    </main>
+    <aside class="side-card">
+      <div class="side-heading"><div><strong>Regiones visuales</strong><span>{{ regions.length }} configuradas</span></div></div>
+      <div class="region-list">
+        <button *ngFor="let region of regions; let index = index" class="region-item" [class.active]="index === selectedIndex" (click)="selectRegion(index)">
+          <span class="color-dot" [style.background]="region.color"></span>
+          <span><strong>{{ region.name }}</strong><small>{{ region.type === 'transition' ? 'Cruce de umbral' : 'Área delimitada' }} · {{ region.points.length }} puntos</small></span>
+        </button>
+        <div *ngIf="!regions.length" class="empty-regions">Dibuja tu primera región sobre la imagen.</div>
+      </div>
+      <div *ngIf="selectedRegion as region" class="region-form">
+        <div class="form-title"><strong>Editar región</strong><button class="delete-button" (click)="deleteSelected()"><mat-icon>delete</mat-icon></button></div>
+        <label>Nombre<input [(ngModel)]="region.name" maxlength="150"></label>
+        <label>Clave<input [(ngModel)]="region.key" maxlength="100" (blur)="normalizeSelectedKey()"></label>
+        <label>Propósito
+          <select [(ngModel)]="region.type" (ngModelChange)="onRegionTypeChanged(region)">
+            <option *ngFor="let type of regionTypes" [value]="type.value">{{ type.label }}</option>
+          </select>
+        </label>
+        <div class="purpose-help">{{ region.type === 'transition' ? 'Activa la regla cuando una persona pasa desde fuera hacia dentro del polígono.' : 'Activa la regla cuando una persona permanece dentro del polígono durante el tiempo indicado.' }}</div>
+        <label>Color<input class="color-input" type="color" [(ngModel)]="region.color"></label>
+        <label>Descripción<textarea [(ngModel)]="region.description" maxlength="2000" rows="4"></textarea></label>
+        <label class="checkbox-label"><input type="checkbox" [(ngModel)]="region.enabled"> Región habilitada</label>
+        <div class="rule-box">
+          <label class="checkbox-label rule-toggle"><input type="checkbox" [(ngModel)]="region.ruleEnabled"> Regla determinística habilitada</label>
+          <ng-container *ngIf="region.ruleEnabled">
+            <label>Nombre de la regla<input [(ngModel)]="region.ruleName" maxlength="150"></label>
+            <label>Tipo de evento<input [(ngModel)]="region.eventType" maxlength="80"></label>
+            <label *ngIf="region.type !== 'transition'">Tiempo mínimo dentro del área (segundos)<input type="number" min="1" max="86400" [(ngModel)]="region.minimumSeconds"></label>
+            <div class="rule-subsection">
+              <label class="checkbox-label"><input type="checkbox" [(ngModel)]="region.scheduleEnabled"> Activar solo durante un horario</label>
+              <ng-container *ngIf="region.scheduleEnabled">
+                <div class="time-grid"><label>Desde<input type="time" [(ngModel)]="region.scheduleStart"></label><label>Hasta<input type="time" [(ngModel)]="region.scheduleEnd"></label></div>
+                <span class="field-hint">El horario usa America/Santiago y puede cruzar medianoche.</span>
+                <div class="day-picker" aria-label="Días activos"><button type="button" *ngFor="let day of weekDays" [class.active]="region.scheduleDays.includes(day.value)" (click)="toggleScheduleDay(region, day.value)">{{ day.label }}</button></div>
+              </ng-container>
+            </div>
+            <div class="rule-subsection actions-grid">
+              <strong>Acciones</strong>
+              <label class="checkbox-label"><input type="checkbox" [(ngModel)]="region.saveSnapshot"> Guardar snapshot local</label>
+              <label class="checkbox-label"><input type="checkbox" [(ngModel)]="region.storeEvent"> Registrar evento</label>
+              <label class="checkbox-label"><input type="checkbox" [(ngModel)]="region.requestAiAnalysis"> Solicitar análisis de IA en el futuro</label>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>

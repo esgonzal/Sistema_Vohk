@@ -228,25 +228,27 @@ button {
 
 .device-actions {
     display: grid;
-    grid-template-columns: repeat(4, 38px);
+    grid-template-columns: repeat(5, 38px);
     gap: 8px;
     justify-content: end;
 }
 
-.action-refresh {
-    grid-column: 1;
-}
+.action-vision { grid-column: 1; color: #a78bfa; }
 
-.action-provision {
+.action-refresh {
     grid-column: 2;
 }
 
-.action-edit {
+.action-provision {
     grid-column: 3;
 }
 
-.action-delete {
+.action-edit {
     grid-column: 4;
+}
+
+.action-delete {
+    grid-column: 5;
 }
 
 .action-btn {

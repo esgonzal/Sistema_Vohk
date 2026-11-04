@@ -44,6 +44,15 @@ export class DashboardComponent implements OnInit {
   }
 
   activityTitle(activity: any): string {
+    if (activity.event_type === 'camera_event') {
+      if (activity.metadata?.eventName === 'visitor_waiting') {
+        return `Persona esperando en ${activity.metadata?.regionName || activity.device_name || 'la cámara'}`;
+      }
+      if (activity.metadata?.eventName === 'bath_route_crossed') {
+        return `Persona pasó hacia baño/comedor`;
+      }
+      return `Evento de cámara: ${activity.metadata?.ruleName || activity.metadata?.eventName || 'observación'}`;
+    }
     if (activity.event_type === 'access') {
       const subject = activity.actor_name || activity.metadata?.subjectName || 'Persona no identificada';
       const description = activity.metadata?.description;

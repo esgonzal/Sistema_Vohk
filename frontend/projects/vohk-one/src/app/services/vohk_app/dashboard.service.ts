@@ -17,7 +17,7 @@ export class DashboardService {
   getCondominiums() {
     return this.http.get<any>(`${this.URL}/api/condominiums/tree`);
   }
-  getActivities(limit = 20, condominiumId?: string, eventType?: 'door_open' | 'call' | 'access') {
+  getActivities(limit = 20, condominiumId?: string, eventType?: 'door_open' | 'call' | 'access' | 'camera_event') {
     const params: Record<string, string | number> = { limit };
     if (condominiumId) params['condominiumId'] = condominiumId;
     if (eventType) params['eventType'] = eventType;
