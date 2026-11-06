@@ -1,5 +1,5 @@
 {
-    "name": "vohk",
+    "name": "sistema-vohk-frontend",
     "version": "0.0.0",
     "packageManager": "npm@10.9.2",
     "engines": {
@@ -9,14 +9,9 @@
     "scripts": {
         "ng": "ng",
         "start": "ng serve vohk --proxy-config src/proxy.conf.json",
-        "start:legacy": "ng serve vohk --proxy-config src/proxy.conf.json",
-        "start:one": "ng serve vohk-one --port 4201",
         "build": "ng build vohk",
-        "build:legacy": "ng build vohk",
-        "build:one": "ng build vohk-one",
-        "build:all": "ng build vohk && ng build vohk-one",
-        "watch": "ng build --watch --configuration development",
-        "test": "ng test"
+        "watch": "ng build vohk --watch --configuration development",
+        "test": "ng test vohk"
     },
     "private": true,
     "dependencies": {

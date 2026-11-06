@@ -40,9 +40,19 @@ const getLockPasscodes = async ({ accessToken, lockID }) => {
 
 const getPasscode = async ({ accessToken, lockID, type, name, startDate, endDate }) => {
     try {
+        const params = {
+            clientId: TTLOCK_CLIENT_ID,
+            accessToken,
+            lockId: lockID,
+            keyboardPwdType: type,
+            startDate,
+            date: Date.now()
+        };
+        if (name !== undefined) params.keyboardPwdName = name;
+        if (endDate !== undefined) params.endDate = endDate;
         const response = await axios.post(
             `${TTLOCK_BASE_URL}/keyboardPwd/get`,
-            new URLSearchParams({ clientId: TTLOCK_CLIENT_ID, accessToken: accessToken, lockId: lockID, keyboardPwdType: type, keyboardPwdName: name, startDate: startDate, endDate: endDate, date: Date.now() }),
+            new URLSearchParams(params),
             { headers: buildHeaders(accessToken) }
         );
         return response.data;
@@ -53,9 +63,21 @@ const getPasscode = async ({ accessToken, lockID, type, name, startDate, endDate
 }
 const addPasscode = async ({ accessToken, lockID, keyboardPwd, keyboardPwdType, keyboardPwdName, startDate, endDate }) => {
     try {
+        const params = {
+            clientId: TTLOCK_CLIENT_ID,
+            accessToken,
+            lockId: lockID,
+            keyboardPwd,
+            addType: '2',
+            keyboardPwdType,
+            date: Date.now()
+        };
+        if (keyboardPwdName !== undefined) params.keyboardPwdName = keyboardPwdName;
+        if (startDate !== undefined) params.startDate = startDate;
+        if (endDate !== undefined) params.endDate = endDate;
         const response = await axios.post(
             `${TTLOCK_BASE_URL}/keyboardPwd/add`,
-            new URLSearchParams({ clientId: TTLOCK_CLIENT_ID, accessToken: accessToken, lockId: lockID, keyboardPwd: keyboardPwd, addType: '2', keyboardPwdType: keyboardPwdType, keyboardPwdName: keyboardPwdName, startDate: startDate, endDate: endDate, date: Date.now() }),
+            new URLSearchParams(params),
             { headers: buildHeaders(accessToken) }
         );
         return response.data;
@@ -78,9 +100,21 @@ const deletePasscode = async ({ accessToken, lockID, passcodeID }) => {
 }
 const changePasscode = async ({ accessToken, lockID, passcodeID, newName, newCode, newStartDate, newEndDate }) => {
     try {
+        const params = {
+            clientId: TTLOCK_CLIENT_ID,
+            accessToken,
+            lockId: lockID,
+            keyboardPwdId: passcodeID,
+            changeType: '2',
+            date: Date.now()
+        };
+        if (newName !== undefined) params.keyboardPwdName = newName;
+        if (newCode !== undefined) params.newKeyboardPwd = newCode;
+        if (newStartDate !== undefined) params.startDate = newStartDate;
+        if (newEndDate !== undefined) params.endDate = newEndDate;
         const response = await axios.post(
             `${TTLOCK_BASE_URL}/keyboardPwd/change`,
-            new URLSearchParams({ clientId: TTLOCK_CLIENT_ID, accessToken, lockId: lockID, keyboardPwdId: passcodeID, changeType: '2', keyboardPwdName: newName, newKeyboardPwd: newCode, startDate: newStartDate, endDate: newEndDate, date: Date.now() }),
+            new URLSearchParams(params),
             { headers: buildHeaders(accessToken) }
         );
         return response.data;

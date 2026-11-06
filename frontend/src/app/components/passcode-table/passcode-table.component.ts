@@ -7,6 +7,11 @@ import moment from 'moment';
 import { Passcode } from 'src/app/Interfaces/Elements';
 import { PasscodeServiceService } from 'src/app/services/passcode-service.service';
 import { LockServiceService } from 'src/app/services/lock-service.service';
+import { LockData } from 'src/app/Interfaces/Lock';
+import { Router } from '@angular/router';
+import { PopUpService } from 'src/app/services/pop-up.service';
+import Swal from 'sweetalert2';
+import { createPasscodeResponse, operationResponse } from 'src/app/Interfaces/API_responses';
 
 @Component({
   selector: 'app-passcode-table',
@@ -17,6 +22,7 @@ export class PasscodeTableComponent implements OnInit, AfterViewInit {
 
   @Input() lockId!: number;
   @Input() accessToken!: string;
+  @Input() locksOfGroup: LockData[] = [];
   passcodes: Passcode[] = [];
   displayedColumns = ['Nombre', 'Contrasena', 'Responsable', 'Fecha', 'Periodo_validez', 'Valido', 'Botones'];
   searchText = '';
@@ -27,7 +33,12 @@ export class PasscodeTableComponent implements OnInit, AfterViewInit {
   sort!: MatSort;
   isLoading: boolean = false;
 
-  constructor(public passcodeService: PasscodeServiceService, public lockService: LockServiceService) { }
+  constructor(
+    public passcodeService: PasscodeServiceService,
+    public lockService: LockServiceService,
+    private popupService: PopUpService,
+    private router: Router
+  ) { }
 
   async ngOnInit() {
     await this.loadPasscodes();
@@ -137,66 +148,284 @@ export class PasscodeTableComponent implements OnInit, AfterViewInit {
     return `${inicio} - ${fin} ${nombre}`;
   }
 
-  crearPasscode() {
-    /*
-    this.passcodeService.lockAlias = this.Alias;
-    this.passcodeService.userID = this.userID;
-    this.passcodeService.username = this.userID;
+  async crearPasscode(): Promise<void> {
+    const { value } = await Swal.fire({
+      title: 'Crear código',
+      html: `
+        <div class="vohk-swal-form">
+          <div class="vohk-swal-field">
+            <label for="passcodeName">Nombre</label>
+            <input id="passcodeName" class="swal2-input" placeholder="Ej. Visita principal">
+          </div>
+          <div class="vohk-swal-grid">
+            <div class="vohk-swal-field">
+              <label for="passcodeMode">Generación</label>
+              <select id="passcodeMode" class="swal2-select">
+                <option value="random">Aleatorio</option>
+                <option value="custom">Personalizado</option>
+              </select>
+            </div>
+            <div class="vohk-swal-field">
+              <label for="passcodeType">Vigencia</label>
+              <select id="passcodeType" class="swal2-select">
+                <option value="2">Permanente</option>
+                <option value="3">Temporal</option>
+              </select>
+            </div>
+          </div>
+          <div id="passcodeCodeField" class="vohk-swal-field" style="display:none">
+            <label for="passcodeValue">Código personalizado</label>
+            <input id="passcodeValue" class="swal2-input" inputmode="numeric" placeholder="4 a 9 dígitos">
+          </div>
+          <div id="passcodeDates" class="vohk-swal-grid" style="display:none">
+            <div class="vohk-swal-field">
+              <label for="passcodeStart">Inicio</label>
+              <input id="passcodeStart" type="datetime-local" class="swal2-input">
+            </div>
+            <div class="vohk-swal-field">
+              <label for="passcodeEnd">Término</label>
+              <input id="passcodeEnd" type="datetime-local" class="swal2-input">
+            </div>
+          </div>
+          <p id="passcodeTimeHint" class="vohk-swal-hint" style="display:none"></p>
+        </div>`,
+      customClass: { popup: 'vohk-form-popup' },
+      showCancelButton: true,
+      confirmButtonText: 'Generar',
+      cancelButtonText: 'Cancelar',
+      didOpen: () => {
+        const mode = document.getElementById('passcodeMode') as HTMLSelectElement;
+        const codeField = document.getElementById('passcodeCodeField') as HTMLDivElement;
+        const type = document.getElementById('passcodeType') as HTMLSelectElement;
+        const dates = document.getElementById('passcodeDates') as HTMLDivElement;
+        const start = document.getElementById('passcodeStart') as HTMLInputElement;
+        const end = document.getElementById('passcodeEnd') as HTMLInputElement;
+        const timeHint = document.getElementById('passcodeTimeHint') as HTMLParagraphElement;
+        const updateFields = () => {
+          codeField.style.display = mode.value === 'custom' ? 'grid' : 'none';
+          dates.style.display = type.value === '3' ? 'grid' : 'none';
+          timeHint.style.display = type.value === '3' ? 'block' : 'none';
+          timeHint.textContent = mode.value === 'random'
+            ? 'TTLock aplica los códigos aleatorios por hora. Los minutos se guardarán como :00.'
+            : 'El código personalizado conservará la hora y los minutos seleccionados.';
+        };
+        mode.addEventListener('change', updateFields);
+        type.addEventListener('change', updateFields);
+        this.openPickerOnFieldClick(start, end);
+        updateFields();
+      },
+      preConfirm: () => {
+        const name = (document.getElementById('passcodeName') as HTMLInputElement).value.trim();
+        const mode = (document.getElementById('passcodeMode') as HTMLSelectElement).value;
+        const code = (document.getElementById('passcodeValue') as HTMLInputElement).value.trim();
+        const type = (document.getElementById('passcodeType') as HTMLSelectElement).value;
+        const start = (document.getElementById('passcodeStart') as HTMLInputElement).value;
+        const end = (document.getElementById('passcodeEnd') as HTMLInputElement).value;
+        if (!name) {
+          Swal.showValidationMessage('Debe ingresar un nombre.');
+          return false;
+        }
+        if (mode === 'custom' && !/^\d{4,9}$/.test(code)) {
+          Swal.showValidationMessage('El código debe contener entre 4 y 9 dígitos.');
+          return false;
+        }
+        if (type === '3' && (!start || !end || moment(end).valueOf() <= moment(start).valueOf())) {
+          Swal.showValidationMessage('Debe ingresar un período válido.');
+          return false;
+        }
+        return { name, mode, code, type, start, end };
+      }
+    });
+    if (!value) return;
+
+    const precision = value.mode === 'random' ? 'hour' : 'minute';
+    const startDate = value.type === '3'
+      ? moment(value.start).startOf(precision).valueOf().toString()
+      : moment().startOf(precision).valueOf().toString();
+    const endDate = value.type === '3'
+      ? moment(value.end).startOf(precision).valueOf().toString()
+      : undefined;
+    this.isLoading = true;
+    try {
+      const request = value.mode === 'custom'
+        ? this.passcodeService.generateCustomPasscode(
+          this.accessToken, this.lockId, value.code, value.type, value.name,
+          value.type === '3' ? startDate : undefined, endDate
+        )
+        : this.passcodeService.generatePasscode(
+          this.accessToken, this.lockId, value.type, startDate, value.name, endDate
+        );
+      const response = await lastValueFrom(request) as createPasscodeResponse;
+      if (response?.keyboardPwdId || response?.errcode === 0) {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Código creado',
+          text: response.keyboardPwd ? `Código: ${response.keyboardPwd}` : undefined,
+          confirmButtonText: 'Aceptar'
+        });
+        await this.refresh();
+      } else {
+        this.showPasscodeError(response?.errcode, response?.errmsg, 'No fue posible crear el código.');
+      }
+    } catch (error) {
+      console.error(error);
+      this.showPasscodeError(undefined, undefined, 'Ocurrió un error inesperado al crear el código.');
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  async borrarPasscode(passcodeID: number): Promise<void> {
+    const confirmation = await Swal.fire({
+      title: 'Eliminar código',
+      text: '¿Está seguro que desea eliminar este código?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí',
+      cancelButtonText: 'No',
+      confirmButtonColor: '#d33'
+    });
+    if (!confirmation.isConfirmed) return;
+
+    await this.runPasscodeChange(
+      () => this.passcodeService.deletePasscode(this.accessToken, this.lockId, passcodeID),
+      'Código eliminado',
+      'No fue posible eliminar el código.'
+    );
+  }
+
+  async cambiarNombrePasscode(passcode: Passcode): Promise<void> {
+    const { value: name } = await Swal.fire({
+      title: 'Editar nombre',
+      input: 'text',
+      inputValue: passcode.keyboardPwdName || '',
+      showCancelButton: true,
+      confirmButtonText: 'Guardar',
+      cancelButtonText: 'Cancelar',
+      inputValidator: value => value.trim() ? null : 'Debe ingresar un nombre.'
+    });
+    if (!name) return;
+
+    await this.runPasscodeChange(
+      () => this.passcodeService.changePasscode(this.accessToken, this.lockId, passcode.keyboardPwdId, name.trim()),
+      'Nombre actualizado',
+      'No fue posible cambiar el nombre.'
+    );
+  }
+
+  async cambiarPeriodoPasscode(passcode: Passcode): Promise<void> {
+    const startValue = Number(passcode.startDate) > 0 ? moment(Number(passcode.startDate)).format('YYYY-MM-DDTHH:mm') : '';
+    const endValue = Number(passcode.endDate) > 0 ? moment(Number(passcode.endDate)).format('YYYY-MM-DDTHH:mm') : '';
+    const { value } = await Swal.fire({
+      title: 'Editar período',
+      html: `
+        <label style="display:block;text-align:left;margin:10px 2em 0">Inicio</label>
+        <input id="passcodeStart" type="datetime-local" class="swal2-input" value="${startValue}">
+        <label style="display:block;text-align:left;margin:10px 2em 0">Término</label>
+        <input id="passcodeEnd" type="datetime-local" class="swal2-input" value="${endValue}">`,
+      showCancelButton: true,
+      confirmButtonText: 'Guardar',
+      cancelButtonText: 'Cancelar',
+      didOpen: () => {
+        this.openPickerOnFieldClick(
+          document.getElementById('passcodeStart') as HTMLInputElement,
+          document.getElementById('passcodeEnd') as HTMLInputElement
+        );
+      },
+      preConfirm: () => {
+        const start = (document.getElementById('passcodeStart') as HTMLInputElement).value;
+        const end = (document.getElementById('passcodeEnd') as HTMLInputElement).value;
+        if (!start || !end || moment(end).valueOf() <= moment(start).valueOf()) {
+          Swal.showValidationMessage('Debe ingresar un período válido.');
+          return false;
+        }
+        return { start, end };
+      }
+    });
+    if (!value) return;
+
+    await this.runPasscodeChange(
+      () => this.passcodeService.changePasscode(
+        this.accessToken, this.lockId, passcode.keyboardPwdId, undefined, undefined,
+        moment(value.start).valueOf().toString(), moment(value.end).valueOf().toString()
+      ),
+      'Período actualizado',
+      'No fue posible cambiar el período.'
+    );
+  }
+
+  async cambiarPasscode(passcode: Passcode): Promise<void> {
+    const { value: code } = await Swal.fire({
+      title: 'Editar secuencia',
+      input: 'text',
+      inputValue: passcode.keyboardPwd || '',
+      inputAttributes: { inputmode: 'numeric', maxlength: '9' },
+      showCancelButton: true,
+      confirmButtonText: 'Guardar',
+      cancelButtonText: 'Cancelar',
+      inputValidator: value => /^\d{4,9}$/.test(value.trim()) ? null : 'El código debe contener entre 4 y 9 dígitos.'
+    });
+    if (!code) return;
+
+    await this.runPasscodeChange(
+      () => this.passcodeService.changePasscode(this.accessToken, this.lockId, passcode.keyboardPwdId, undefined, code.trim()),
+      'Código actualizado',
+      'No fue posible cambiar la secuencia.'
+    );
+  }
+
+  private async runPasscodeChange(request: () => any, successTitle: string, fallbackError: string): Promise<void> {
+    this.isLoading = true;
+    try {
+      const response = await lastValueFrom(request()) as operationResponse;
+      if (response?.errcode === 0) {
+        await Swal.fire({ icon: 'success', title: successTitle, timer: 1500, showConfirmButton: false });
+        await this.refresh();
+      } else {
+        this.showPasscodeError(response?.errcode, response?.errmsg, fallbackError);
+      }
+    } catch (error) {
+      console.error(error);
+      this.showPasscodeError(undefined, undefined, fallbackError);
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  private showPasscodeError(errcode: number | undefined, errmsg: string | undefined, fallback: string): void {
+    if (errcode === 10003) {
+      sessionStorage.clear();
+    }
+    const messages: { [key: number]: string } = {
+      [-3008]: 'Para editar este código necesita usarlo al menos una vez.',
+      [-3007]: 'El código ya existe en la cerradura.',
+      [-3006]: 'El código debe contener entre 4 y 9 dígitos.',
+      [-3003]: 'El gateway está ocupado. Intente nuevamente en unos segundos.'
+    };
+    Swal.fire({ icon: 'error', title: 'Error', text: messages[errcode ?? 0] || errmsg || fallback });
+  }
+
+  private openPickerOnFieldClick(...inputs: HTMLInputElement[]): void {
+    inputs.forEach(input => {
+      input.addEventListener('click', () => {
+        try {
+          input.showPicker();
+        } catch {
+          input.focus();
+        }
+      });
+    });
+  }
+
+  toMultiples() {
+    this.passcodeService.userID = sessionStorage.getItem('user') ?? '';
     this.passcodeService.lockID = this.lockId;
-    this.passcodeService.endDateUser = this.endDateDeUser;
-    this.passcodeService.gateway = Number(this.gateway)
-    this.passcodeService.featureValue = this.featureValue;
-    this.popupService.createPasscode = true;
-    //this.router.navigate(["users", this.username, "lock", this.lockId, "passcode"]);
-    */
-  }
-  borrarPasscode(passcodeID: number) {/*
-    if (this.gateway === '1') {
-      this.popupService.userID = this.userID;
-      this.popupService.lockID = this.lockId;
-      this.popupService.elementType = 'el código';
-      this.popupService.elementID = passcodeID;
-      this.popupService.delete = true;
-    } else {
-      this.popupService.needGateway = true;
-      console.log("Necesita estar conectado a un gateway para usar esta función")
-    }*/
-  }
-  cambiarNombrePasscode(passcode: Passcode) {/*
-    if (this.gateway === '1') {
-      this.popupService.userID = this.userID;
-      this.popupService.lockID = this.lockId;
-      this.popupService.elementType = 'passcode';
-      this.popupService.elementID = passcode.keyboardPwdId;
-      this.popupService.passcode = passcode;
-      this.popupService.cambiarNombre = true;
-    } else {
-      this.popupService.needGateway = true;
-    }*/
-  }
-  cambiarPeriodoPasscode(passcode: Passcode) {/*
-    if (this.gateway === '1') {
-      this.popupService.userID = this.userID;
-      this.popupService.lockID = this.lockId;
-      this.popupService.elementType = 'passcode';
-      this.popupService.elementID = passcode.keyboardPwdId;
-      this.popupService.passcode = passcode;
-      this.popupService.cambiarPeriodo = true;
-    } else {
-      this.popupService.needGateway = true;
-    }*/
-  }
-  cambiarPasscode(passcode: Passcode) {/*
-    if (this.gateway === '1') {
-      this.popupService.userID = this.userID;
-      this.popupService.lockID = this.lockId;
-      this.popupService.elementType = 'passcode';
-      this.popupService.elementID = passcode.keyboardPwdId;
-      this.popupService.passcode = passcode;
-      this.popupService.editarPasscode = true;
-    } else {
-      this.popupService.needGateway = true;
-      console.log("Necesita estar conectado a un gateway para usar esta función")
-    }*/
+    this.passcodeService.currentLocks = this.locksOfGroup;
+    this.passcodeService.selectedLocks = this.locksOfGroup.map(lock => ({
+      id: lock.lockId,
+      alias: lock.lockAlias
+    }));
+    this.popupService.locksOfGroup = this.locksOfGroup;
+    this.router.navigate(['users', this.passcodeService.userID, 'lock', this.lockId, 'passcode', 'multiple']);
   }
 }

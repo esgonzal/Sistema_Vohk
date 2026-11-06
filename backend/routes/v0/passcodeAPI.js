@@ -74,7 +74,7 @@ router.post('/delete', async (req, res) => {
     }
 });
 router.post('/change', async (req, res) => {
-    const { lockID, passcodeID, newName, newCode } = req.body;
+    const { lockID, passcodeID, newName, newCode, newStartDate, newEndDate } = req.body;
     const accessToken = req.headers.authorization?.replace('Bearer ', '');
     if (!accessToken) {
         return res.status(401).json({ errmsg: 'Missing access token' });
@@ -83,7 +83,7 @@ router.post('/change', async (req, res) => {
         return res.status(400).json({ errmsg: 'Missing required fields' });
     }
     try {
-        const data = await passcodeService.changePasscode({ accessToken, lockID, passcodeID, newName, newCode });
+        const data = await passcodeService.changePasscode({ accessToken, lockID, passcodeID, newName, newCode, newStartDate, newEndDate });
         return res.json(data);
     } catch (error) {
         console.error('changePasscode error:', error);

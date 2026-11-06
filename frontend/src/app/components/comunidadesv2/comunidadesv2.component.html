@@ -1,68 +1,125 @@
-<div class="pagina_completa" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
+<div class="communities-page" [ngClass]="{'dark-mode': DarkModeService.darkMode}">
     <app-loader [loader]="isLoading"></app-loader>
-    <!-- SIDEBAR -->
-    <div class="sidebar-grupos">
-        <div class="subtitle">Mis Comunidades</div>
-        <div class="searchBar"><input type="text" placeholder="Busqueda" [(ngModel)]="searchText"
-                (input)="searchGroups()" /></div>
-        <div class="create-group-button">
-            <button class="menuButton" style="width:200px;" (click)="crearGrupo()">Crear Comunidad</button>
+
+    <aside class="communities-sidebar" aria-label="Comunidades">
+        <div class="sidebar-heading">
+            <div>
+                <span class="eyebrow">Administración</span>
+                <h1>Mis comunidades</h1>
+            </div>
+            <span class="group-count">{{ groups.length }}</span>
         </div>
-        <div class="groupList" *ngFor="let group of groupsFiltrados" (click)="chooseGroup(group)"
-            [class.selected]="group === chosenGroup">
-            <div class="icono"><fa-icon [icon]="faHome"></fa-icon></div>
-            <div class="grupo"><span>{{ group.groupName }}</span></div>
+
+        <div class="sidebar-tools">
+            <label class="group-search">
+                <span class="search-icon" aria-hidden="true"></span>
+                <input type="search" placeholder="Buscar comunidad" [(ngModel)]="searchText"
+                    (input)="searchGroups()" aria-label="Buscar comunidad">
+            </label>
+            <button class="primary-action" type="button" (click)="crearGrupo()">Crear comunidad</button>
         </div>
-    </div>
-    <div class="resto" *ngIf="chosenGroup">
-        <div class="top">
-            <div class="groupName">{{ chosenGroup.groupName }}</div>
-            <div class="groupButtons" *ngIf="chosenGroup.groupId !== -1" style="display: flex;">
-                <button [matMenuTriggerFor]="editarMenu" class="menuButton" style="margin-right: 5px;">Editar</button>
+
+        <nav class="groups-list" aria-label="Lista de comunidades">
+            <button type="button" class="group-item" *ngFor="let group of groupsFiltrados"
+                (click)="chooseGroup(group)" [class.selected]="group === chosenGroup"
+                [attr.aria-current]="group === chosenGroup ? 'page' : null" [matTooltip]="group.groupName">
+                <span class="group-icon"><fa-icon [icon]="faHome"></fa-icon></span>
+                <span class="group-copy">
+                    <span class="group-title">{{ group.groupName }}</span>
+                    <span class="group-meta">{{ group.locks.length }} cerraduras</span>
+                </span>
+                <span class="selection-mark" aria-hidden="true"></span>
+            </button>
+        </nav>
+    </aside>
+
+    <main class="community-content" *ngIf="chosenGroup">
+        <header class="community-header">
+            <div class="community-heading">
+                <span class="eyebrow">Comunidad seleccionada</span>
+                <h2>{{ chosenGroup.groupName }}</h2>
+                <div class="community-summary">
+                    <span>{{ chosenGroup.locks.length }} cerraduras</span>
+                    <span class="summary-dot"></span>
+                    <span>Selecciona una para administrar sus accesos</span>
+                </div>
+            </div>
+
+            <div class="community-actions" *ngIf="chosenGroup.groupId !== -1">
+                <button [matMenuTriggerFor]="editarMenu" class="secondary-action" type="button">Editar</button>
                 <mat-menu #editarMenu="matMenu">
-                    <button mat-menu-item (click)="cambiarNombre(chosenGroup.groupId)"><span>Editar
-                            Nombre</span></button>
-                    <button mat-menu-item style="color: red;" (click)="eliminar(chosenGroup.groupId)"><span>Eliminar
-                            Comunidad</span></button>
+                    <button mat-menu-item (click)="cambiarNombre(chosenGroup.groupId)">Editar nombre</button>
+                    <button mat-menu-item class="danger-menu-item" (click)="eliminar(chosenGroup.groupId)">
+                        Eliminar comunidad
+                    </button>
                 </mat-menu>
-                <button [matMenuTriggerFor]="adminMenu" class="menuButton">Administrar Cerraduras</button>
+
+                <button [matMenuTriggerFor]="adminMenu" class="primary-action" type="button">
+                    Administrar cerraduras
+                </button>
                 <mat-menu #adminMenu="matMenu">
-                    <button mat-menu-item (click)="agregar(chosenGroup)"><span>Agregar Dispositivo</span></button>
-                    <button mat-menu-item (click)="remover(chosenGroup)"><span>Remover Dispositivo</span></button>
+                    <button mat-menu-item (click)="agregar(chosenGroup)">Agregar dispositivo</button>
+                    <button mat-menu-item (click)="remover(chosenGroup)">Remover dispositivo</button>
                 </mat-menu>
             </div>
-        </div>
-        <div class="listado_cerraduras">
-            <div *ngIf="(chosenGroup?.locks?.length ?? 0) > 0">
-                <mat-grid-list [cols]="cols" rowHeight="350px">
-                    <mat-grid-tile *ngFor="let lock of chosenGroup.locks">
-                        <ng-container *ngIf="hasValidAccess(lock); else invalidLock">
-                            <mat-card class="valid_lock" (click)="onLockButtonClick(lock)">
-                                <img class="custom-image" src="../../../assets/images/door.jpg" alt="Image Description">
-                                <mat-card-header>
-                                    <div mat-card-title
-                                        style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{
-                                        lock.lockAlias }}</div>
-                                    <div mat-card-subtitle>{{ lock.hasGateway === 1 ? 'Online' : 'Offline' }}</div>
-                                </mat-card-header>
-                            </mat-card>
-                        </ng-container>
-                        <ng-template #invalidLock>
-                            <mat-card class="valid_lock" (click)="onInvalidButtonClick()">
-                                <img class="custom-image" src="../../../assets/images/door.jpg" alt="Image Description">
-                                <mat-card-header>
-                                    <div mat-card-title>{{ lock.lockAlias }}</div>
-                                    <div mat-card-subtitle>{{ lock.hasGateway === 1 ? 'Online' : 'Offline' }}</div>
-                                </mat-card-header>
-                            </mat-card>
-                        </ng-template>
-                    </mat-grid-tile>
-                </mat-grid-list>
+        </header>
+
+        <section class="locks-section" *ngIf="chosenGroup.locks.length > 0; else emptyGroup">
+            <div class="lock-grid">
+                <article class="lock-card" *ngFor="let lock of chosenGroup.locks"
+                    [class.lock-card--restricted]="!hasValidAccess(lock)" (click)="onLockButtonClick(lock)"
+                    (keydown.enter)="onLockButtonClick(lock)" tabindex="0" role="button"
+                    [attr.aria-label]="'Abrir cerradura ' + lock.lockAlias">
+                    <div class="lock-card-topline">
+                        <span class="lock-symbol" aria-hidden="true">
+                            <span class="lock-symbol-shackle"></span>
+                            <span class="lock-symbol-body"></span>
+                        </span>
+                        <span class="status-badge" [class.status-badge--online]="lock.hasGateway === 1"
+                            [class.status-badge--offline]="lock.hasGateway !== 1">
+                            <span class="status-dot"></span>
+                            {{ lock.hasGateway === 1 ? 'Online' : 'Offline' }}
+                        </span>
+                    </div>
+
+                    <div class="lock-identity">
+                        <h3>{{ lock.lockAlias }}</h3>
+                    </div>
+
+                    <div class="lock-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Acceso</span>
+                            <span class="detail-value" [class.restricted-text]="!hasValidAccess(lock)">
+                                {{ hasValidAccess(lock) ? 'Autorizado' : 'Restringido' }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="battery-row">
+                        <div class="battery-copy">
+                            <span>Batería</span>
+                            <strong>{{ lock.electricQuantity }}%</strong>
+                        </div>
+                        <div class="battery-track" aria-hidden="true">
+                            <span [style.width.%]="lock.electricQuantity"
+                                [class.battery-low]="lock.electricQuantity < 25"></span>
+                        </div>
+                    </div>
+
+                    <div class="lock-card-footer">
+                        <span>{{ lock.hasGateway === 1 ? 'Gateway conectado' : 'Sin gateway' }}</span>
+                        <span class="open-lock-link">Ver cerradura <span aria-hidden="true">→</span></span>
+                    </div>
+                </article>
             </div>
-            <div *ngIf="chosenGroup?.locks?.length === 0" style="margin-top: 100px;">
-                <p style="text-align:center;">Esta comunidad no tiene cerraduras.</p>
-                <p style="text-align:center;">Para agregar una cerradura, presione el botón Administrar Cerraduras.</p>
-            </div>
-        </div>
-    </div>
+        </section>
+
+        <ng-template #emptyGroup>
+            <section class="empty-state">
+                <span class="empty-icon" aria-hidden="true"><fa-icon [icon]="faHome"></fa-icon></span>
+                <h3>Esta comunidad todavía no tiene cerraduras</h3>
+                <p>Usa “Administrar cerraduras” para agregar el primer dispositivo.</p>
+            </section>
+        </ng-template>
+    </main>
 </div>

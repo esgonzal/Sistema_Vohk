@@ -6,7 +6,8 @@
 - Install backend dependencies with `npm ci` from `backend/`.
 - Install frontend dependencies with `npm ci` from `frontend/`.
 - Run the complete backend suite with `npm test` from `backend/`.
-- Build Vohk One with `npm run build:one` from `frontend/`.
+- The frontend directory contains only the legacy Angular site served at `app.vohk.cl`; it must not contain Vohk One code.
+- Build the Angular frontend with `npm run build` from `frontend/`.
 
 The authoritative version declarations are `.nvmrc`, `.node-version`, the npm `engines` fields, and this file. Codex and Linear environments must set `CODEX_ENV_NODE_VERSION=22.16.0` when that variable is available.
 

@@ -42,8 +42,9 @@ export class PasscodeServiceService {
   async fetchPasscodes(lockId: number) {
     this.passcodes = [];
     try {
+      const accessToken = sessionStorage.getItem('accessToken') ?? '';
       const response = await lastValueFrom(
-        this.getPasscodesofLock(this.userID, lockId)
+        this.getPasscodesofLock(accessToken, lockId)
       );
       const typedResponse = response as PasscodeResponse;
       if (typedResponse?.list) {
@@ -59,33 +60,31 @@ export class PasscodeServiceService {
       this.passcodesDataSource = new MatTableDataSource(this.passcodes);
     }
   }
-  multiplePasscodes(userID: string, passcodes: { name: string, tipo: number, code: string }[]): Observable<MultiplePasscodeResponse[]> {
-    let body = { userID, passcodes, selectedLocks: this.selectedLocks }
+  multiplePasscodes(accessToken: string, passcodes: { name: string, tipo: number, code: string }[]): Observable<MultiplePasscodeResponse[]> {
+    let body = { passcodes, selectedLocks: this.selectedLocks }
     let url = this.URL.concat('/v0/passcode/multiplePasscodes');
-    return this.http.post<MultiplePasscodeResponse[]>(url, body);
+    return this.http.post<MultiplePasscodeResponse[]>(url, body, { headers: this.getHeaders(accessToken) });
   }
 
-  generatePasscode(userID: string, lockID: number, type: string, startDate: string, name?: string, endDate?: string): Observable<createPasscodeResponse> {
-    let body = { userID, lockID, type, startDate, name, endDate };
-    let url = this.URL.concat('/v0/passcode/get');
-    console.log(body)
-    return this.http.post<createPasscodeResponse>(url, body);
+  generatePasscode(accessToken: string, lockID: number, type: string, startDate: string, name?: string, endDate?: string): Observable<createPasscodeResponse> {
+    const body = { lockID, type, startDate, name, endDate };
+    const url = this.URL.concat('/v0/passcode/get');
+    return this.http.post<createPasscodeResponse>(url, body, { headers: this.getHeaders(accessToken) });
   }
-  generateCustomPasscode(userID: string, lockID: number, keyboardPwd: string, keyboardPwdType: string, keyboardPwdName?: string, startDate?: string, endDate?: string): Observable<createPasscodeResponse> {
-    let body = { userID, lockID, keyboardPwd, keyboardPwdType, keyboardPwdName, startDate, endDate };
-    console.log(body)
-    let url = this.URL.concat('/v0/passcode/add');
-    return this.http.post<createPasscodeResponse>(url, body);
+  generateCustomPasscode(accessToken: string, lockID: number, keyboardPwd: string, keyboardPwdType: string, keyboardPwdName?: string, startDate?: string, endDate?: string): Observable<createPasscodeResponse> {
+    const body = { lockID, keyboardPwd, keyboardPwdType, keyboardPwdName, startDate, endDate };
+    const url = this.URL.concat('/v0/passcode/add');
+    return this.http.post<createPasscodeResponse>(url, body, { headers: this.getHeaders(accessToken) });
   }
-  deletePasscode(userID: string, lockID: number, passcodeID: number): Observable<operationResponse> {
-    let body = { userID, lockID, passcodeID };
-    let url = this.URL.concat('/v0/passcode/delete');
-    return this.http.post<operationResponse>(url, body);
+  deletePasscode(accessToken: string, lockID: number, passcodeID: number): Observable<operationResponse> {
+    const body = { lockID, passcodeID };
+    const url = this.URL.concat('/v0/passcode/delete');
+    return this.http.post<operationResponse>(url, body, { headers: this.getHeaders(accessToken) });
   }
-  changePasscode(userID: string, lockID: number, passcodeID: number, newName?: string, newPwd?: string, newStartDate?: string, newEndDate?: string): Observable<operationResponse> {
-    let body = { userID, lockID, passcodeID, newName, newPwd, newStartDate, newEndDate };
-    let url = this.URL.concat('/v0/passcode/change');
-    return this.http.post<operationResponse>(url, body);
+  changePasscode(accessToken: string, lockID: number, passcodeID: number, newName?: string, newCode?: string, newStartDate?: string, newEndDate?: string): Observable<operationResponse> {
+    const body = { lockID, passcodeID, newName, newCode, newStartDate, newEndDate };
+    const url = this.URL.concat('/v0/passcode/change');
+    return this.http.post<operationResponse>(url, body, { headers: this.getHeaders(accessToken) });
   }
   toggleLock(lock: { id: number; alias: string }) {
     const index = this.selectedLocks.findIndex(l => l.id === lock.id);

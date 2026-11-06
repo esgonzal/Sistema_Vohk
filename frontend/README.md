@@ -1,9 +1,8 @@
-# VÖHK Angular workspace
+# Sistema VÖHK frontend
 
-This workspace contains two independent Angular applications:
+This directory contains the Angular application served at `https://app.vohk.cl`. It uses the legacy `/v0` API routes from `Sistema_Vohk/backend`.
 
-- `vohk`: the original TTLock administration site in `src/`.
-- `vohk-one`: the new condominium administration site in `projects/vohk-one/`.
+The application served at `https://one.vohk.cl` is maintained separately in the `vohk_one_web` repository and must not be added to this workspace.
 
 ## Runtime requirement
 
@@ -11,8 +10,7 @@ Use **Node.js 22.16.0** and **npm 10.9.2**. From the repository root, `nvm use 2
 
 ## Development server
 
-- Run `npm run start:legacy` for the original site at `http://localhost:4200/`.
-- Run `npm run start:one` for the new site at `http://localhost:4201/`.
+Run `npm start` to serve the application at `http://localhost:4200/`.
 
 ## Code scaffolding
 
@@ -20,9 +18,7 @@ Run `ng generate component component-name` to generate a new component. You can 
 
 ## Build
 
-- `npm run build:legacy` outputs to `dist/vohk/`.
-- `npm run build:one` outputs to `dist/vohk-one/`.
-- `npm run build:all` builds both applications.
+Run `npm run build`. The production output is written to `dist/vohk/`.
 
 ## Running unit tests
 

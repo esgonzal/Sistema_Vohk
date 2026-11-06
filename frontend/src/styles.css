@@ -43,3 +43,594 @@ body {
         margin-left: 1em;
     }
 }
+
+/* Shared visual system for the legacy administration site. */
+:root {
+    --vohk-ink: #172033;
+    --vohk-muted: #687386;
+    --vohk-line: #e3e8ef;
+    --vohk-surface: #ffffff;
+    --vohk-surface-soft: #f7f9fc;
+    --vohk-accent: #f5c754;
+    --vohk-accent-strong: #dfaa22;
+    --vohk-danger: #c83b4d;
+    --vohk-radius: 16px;
+    --vohk-shadow: 0 18px 50px rgba(23, 32, 51, 0.12);
+}
+
+body {
+    color: var(--vohk-ink);
+    font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* SweetAlert: consistent, responsive forms across the whole application. */
+.swal2-container {
+    padding: 1rem !important;
+    background: rgba(18, 28, 36, 0.48) !important;
+    backdrop-filter: blur(5px);
+}
+
+.swal2-popup {
+    width: min(34rem, calc(100vw - 2rem)) !important;
+    padding: 1.75rem !important;
+    border: 1px solid rgba(255, 255, 255, 0.7) !important;
+    border-radius: 22px !important;
+    background: var(--vohk-surface) !important;
+    box-shadow: 0 28px 80px rgba(10, 19, 34, 0.28) !important;
+}
+
+.swal2-title {
+    padding: 0 !important;
+    color: var(--vohk-ink) !important;
+    font-size: clamp(1.5rem, 4vw, 2rem) !important;
+    font-weight: 750 !important;
+    letter-spacing: -0.035em;
+}
+
+.swal2-html-container {
+    margin: 1.25rem 0 0 !important;
+    color: var(--vohk-muted) !important;
+    line-height: 1.5;
+    overflow: visible !important;
+}
+
+.swal2-html-container .swal2-input,
+.swal2-html-container .swal2-select,
+.swal2-popup > .swal2-input,
+.swal2-popup > .swal2-select {
+    display: block;
+    width: 100% !important;
+    max-width: 100%;
+    height: 3.25rem;
+    margin: 0.75rem 0 0 !important;
+    padding: 0 1rem;
+    box-sizing: border-box;
+    border: 1px solid #d8dee8;
+    border-radius: 12px;
+    background: #fbfcfe;
+    color: var(--vohk-ink);
+    font: inherit;
+    box-shadow: none !important;
+    outline: none;
+    transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.swal2-html-container .swal2-input:focus,
+.swal2-html-container .swal2-select:focus,
+.swal2-popup > .swal2-input:focus,
+.swal2-popup > .swal2-select:focus {
+    border-color: var(--vohk-accent-strong) !important;
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(245, 199, 84, 0.22) !important;
+}
+
+.swal2-actions {
+    width: 100%;
+    margin: 1.5rem 0 0 !important;
+    gap: 0.65rem;
+}
+
+.swal2-styled {
+    min-height: 2.8rem;
+    margin: 0 !important;
+    padding: 0.7rem 1.25rem !important;
+    border-radius: 11px !important;
+    font-weight: 700 !important;
+    box-shadow: none !important;
+    transition: transform 150ms ease, filter 150ms ease, box-shadow 150ms ease;
+}
+
+.swal2-styled:hover {
+    transform: translateY(-1px);
+    filter: brightness(0.98);
+}
+
+.swal2-confirm {
+    background: var(--vohk-accent) !important;
+    color: #2a210b !important;
+    box-shadow: 0 8px 18px rgba(223, 170, 34, 0.25) !important;
+}
+
+.swal2-cancel {
+    background: #edf1f5 !important;
+    color: #465164 !important;
+}
+
+.swal2-validation-message {
+    margin: 1rem 0 0 !important;
+    border-radius: 10px;
+    background: #fff2f3 !important;
+    color: #a72d3d !important;
+}
+
+.vohk-swal-form {
+    display: grid;
+    gap: 1rem;
+    text-align: left;
+}
+
+.vohk-swal-field {
+    display: grid;
+    gap: 0.4rem;
+}
+
+.vohk-swal-field > label {
+    color: #3d485a;
+    font-size: 0.8rem;
+    font-weight: 750;
+    letter-spacing: 0.055em;
+    text-transform: uppercase;
+}
+
+.vohk-swal-field .swal2-input,
+.vohk-swal-field .swal2-select {
+    margin: 0 !important;
+}
+
+.vohk-swal-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
+}
+
+.vohk-swal-hint {
+    position: relative;
+    margin: -0.15rem 0 0;
+    padding: 0.8rem 0.9rem 0.8rem 2.35rem;
+    border: 1px solid #f1dfaa;
+    border-radius: 11px;
+    background: #fffae9;
+    color: #68551d;
+    font-size: 0.82rem;
+    line-height: 1.4;
+}
+
+.vohk-swal-hint::before {
+    position: absolute;
+    top: 0.72rem;
+    left: 0.85rem;
+    content: "i";
+    display: grid;
+    width: 1rem;
+    height: 1rem;
+    place-items: center;
+    border-radius: 50%;
+    background: #e4b93b;
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 800;
+}
+
+.vohk-selection-list {
+    display: grid;
+    gap: 0.45rem;
+    max-height: min(21rem, 48vh);
+    padding: 0.2rem 0.35rem 0.2rem 0.1rem;
+    overflow-y: auto;
+    text-align: left;
+    scrollbar-width: thin;
+}
+
+.vohk-selection-item {
+    display: flex;
+    gap: 0.7rem;
+    align-items: center;
+    min-height: 2.65rem;
+    padding: 0.45rem 0.7rem;
+    border: 1px solid #e3e8ef;
+    border-radius: 10px;
+    background: #fafbfd;
+    color: #4a566a;
+    cursor: pointer;
+    transition: border-color 140ms ease, background 140ms ease;
+}
+
+.vohk-selection-item:hover {
+    border-color: #e0b43a;
+    background: #fffae9;
+}
+
+.vohk-selection-item input {
+    width: 1rem;
+    height: 1rem;
+    margin: 0;
+    accent-color: #d9a722;
+}
+
+.vohk-selection-empty {
+    padding: 1.5rem 1rem;
+    border: 1px dashed #d8dee8;
+    border-radius: 11px;
+    background: #fafbfd;
+    color: #7a8597;
+    text-align: center;
+}
+
+/* Material tabs: compact segmented navigation with a clear active state. */
+app-lockv2 .lock-tabs .mat-mdc-tab-header {
+    margin: 0;
+    border-bottom: 1px solid var(--vohk-line);
+    background: var(--vohk-surface);
+}
+
+app-lockv2 .lock-tabs .mat-mdc-tab-label-container {
+    padding: 0.45rem;
+}
+
+app-lockv2 .lock-tabs .mdc-tab {
+    min-width: 7rem;
+    height: 3rem;
+    margin: 0.15rem;
+    border: 0 !important;
+    border-radius: 10px;
+    background: transparent !important;
+    opacity: 1;
+    transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+app-lockv2 .lock-tabs .mdc-tab:hover {
+    background: #f4f6f9 !important;
+}
+
+app-lockv2 .lock-tabs .mdc-tab--active {
+    background: #fff7dc !important;
+    color: #3d2d00 !important;
+}
+
+app-lockv2 .lock-tabs .mdc-tab-indicator__content--underline {
+    display: none;
+}
+
+app-lockv2 .lock-tabs .mdc-tab__text-label {
+    color: inherit !important;
+    font-weight: 700;
+}
+
+/* Shared list/table presentation for every lock access-method tab. */
+app-ekey-table .contenido,
+app-passcode-table .contenido,
+app-card-table .contenido,
+app-fingerprint-table .contenido,
+app-record-table .contenido {
+    display: block;
+    min-width: 0;
+    padding: 1.25rem;
+    overflow-x: auto;
+    background: var(--vohk-surface);
+}
+
+app-ekey-table .button-container,
+app-passcode-table .button-container,
+app-card-table .button-container,
+app-fingerprint-table .button-container,
+app-record-table .button-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 0 0 1.25rem;
+}
+
+app-ekey-table .button-container > input,
+app-passcode-table .button-container > input,
+app-card-table .button-container > input,
+app-fingerprint-table .button-container > input,
+app-record-table .button-container > input {
+    width: min(22rem, 100%);
+    min-height: 2.75rem;
+    padding: 0 1rem;
+    border: 1px solid #d8dee8;
+    border-radius: 12px;
+    background: var(--vohk-surface-soft);
+    color: var(--vohk-ink);
+    font: inherit;
+    text-indent: 0;
+    outline: none;
+    transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+app-ekey-table .button-container > input:focus,
+app-passcode-table .button-container > input:focus,
+app-card-table .button-container > input:focus,
+app-fingerprint-table .button-container > input:focus,
+app-record-table .button-container > input:focus {
+    border-color: var(--vohk-accent-strong);
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(245, 199, 84, 0.2);
+}
+
+app-ekey-table .button-container > div,
+app-passcode-table .button-container > div,
+app-card-table .button-container > div,
+app-fingerprint-table .button-container > div,
+app-record-table .button-container > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+}
+
+app-ekey-table .button-container button,
+app-passcode-table .button-container button,
+app-card-table .button-container button,
+app-fingerprint-table .button-container button,
+app-record-table .button-container button {
+    min-height: 2.65rem;
+    padding: 0 1rem;
+    border: 1px solid #e0b53c !important;
+    border-radius: 11px !important;
+    background: var(--vohk-accent) !important;
+    color: #2d2308;
+    font-weight: 750;
+    cursor: pointer;
+    transition: transform 150ms ease, box-shadow 150ms ease, filter 150ms ease;
+}
+
+app-ekey-table .button-container button:hover,
+app-passcode-table .button-container button:hover,
+app-card-table .button-container button:hover,
+app-fingerprint-table .button-container button:hover,
+app-record-table .button-container button:hover {
+    transform: translateY(-1px);
+    filter: brightness(0.98);
+    box-shadow: 0 7px 16px rgba(223, 170, 34, 0.22);
+}
+
+app-lockv2 table.mat-mdc-table,
+app-lockv2 table.mat-table {
+    width: 100% !important;
+    min-width: 56rem;
+    table-layout: auto !important;
+    border: 1px solid var(--vohk-line);
+    border-radius: 14px;
+    background: var(--vohk-surface);
+    box-shadow: none;
+    overflow: hidden;
+}
+
+app-lockv2 .mat-mdc-header-row,
+app-lockv2 .mat-header-row {
+    height: 3.25rem;
+    background: #f3f6fa !important;
+}
+
+app-lockv2 .mat-mdc-header-cell,
+app-lockv2 .mat-header-cell {
+    padding: 0.85rem 1rem !important;
+    border-bottom: 1px solid var(--vohk-line) !important;
+    color: #566175;
+    font-size: 0.73rem;
+    font-weight: 800 !important;
+    letter-spacing: 0.055em;
+    text-align: left !important;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+app-lockv2 .mat-mdc-row,
+app-lockv2 .mat-row {
+    min-height: 3.6rem;
+    background: var(--vohk-surface) !important;
+    transition: background 130ms ease;
+}
+
+app-lockv2 .mat-mdc-row:hover,
+app-lockv2 .mat-row:hover {
+    background: #fffbef !important;
+}
+
+app-lockv2 .mat-mdc-cell,
+app-lockv2 .mat-cell {
+    padding: 0.9rem 1rem !important;
+    border-bottom-color: #edf0f4 !important;
+    background: transparent !important;
+    color: #2f394b;
+    font-size: 0.88rem;
+    text-align: left !important;
+    vertical-align: middle;
+}
+
+app-lockv2 .custom-button,
+app-lockv2 .custom-button-eliminar {
+    min-height: 2.15rem;
+    padding: 0.35rem 0.7rem !important;
+    border-radius: 8px !important;
+    font-weight: 700;
+    text-align: center !important;
+}
+
+app-lockv2 .custom-button {
+    color: #3a506f !important;
+}
+
+app-lockv2 .custom-button:hover {
+    background: #edf3fa !important;
+}
+
+app-lockv2 .custom-button-eliminar {
+    color: var(--vohk-danger) !important;
+}
+
+app-lockv2 .custom-button-eliminar:hover {
+    background: #fff0f2 !important;
+}
+
+app-lockv2 .mat-mdc-paginator,
+app-lockv2 .mat-paginator {
+    border: 1px solid var(--vohk-line);
+    border-top: 0;
+    border-radius: 0 0 14px 14px;
+    background: #fafbfd;
+    color: var(--vohk-muted);
+}
+
+@media (max-width: 760px) {
+    .swal2-popup {
+        padding: 1.25rem !important;
+        border-radius: 18px !important;
+    }
+
+    .vohk-swal-grid {
+        grid-template-columns: 1fr;
+    }
+
+    app-ekey-table .button-container,
+    app-passcode-table .button-container,
+    app-card-table .button-container,
+    app-fingerprint-table .button-container,
+    app-record-table .button-container {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    app-ekey-table .button-container > input,
+    app-passcode-table .button-container > input,
+    app-card-table .button-container > input,
+    app-fingerprint-table .button-container > input,
+    app-record-table .button-container > input {
+        width: 100%;
+    }
+
+    .swal2-popup {
+        max-height: calc(100dvh - 1.25rem);
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    .swal2-title {
+        font-size: 1.55rem !important;
+    }
+
+    .swal2-html-container {
+        margin-top: 1rem !important;
+    }
+
+    .swal2-styled {
+        min-height: 3rem;
+        touch-action: manipulation;
+    }
+
+    app-lockv2 .lock-tabs .mat-mdc-tab-label-container {
+        padding: 0.3rem;
+    }
+
+    app-lockv2 .lock-tabs .mdc-tab {
+        min-width: 5.75rem;
+        height: 2.8rem;
+        padding-right: 0.75rem;
+        padding-left: 0.75rem;
+    }
+
+    app-ekey-table .contenido,
+    app-passcode-table .contenido,
+    app-card-table .contenido,
+    app-fingerprint-table .contenido,
+    app-record-table .contenido {
+        padding: 0.85rem;
+        overscroll-behavior-x: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    app-ekey-table .button-container > div,
+    app-passcode-table .button-container > div,
+    app-card-table .button-container > div,
+    app-fingerprint-table .button-container > div,
+    app-record-table .button-container > div {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+    }
+
+    app-ekey-table .button-container button,
+    app-passcode-table .button-container button,
+    app-card-table .button-container button,
+    app-fingerprint-table .button-container button,
+    app-record-table .button-container button {
+        width: 100%;
+        min-height: 2.9rem;
+        padding: 0 0.75rem;
+        touch-action: manipulation;
+    }
+
+    app-lockv2 table.mat-mdc-table,
+    app-lockv2 table.mat-table {
+        min-width: 48rem;
+    }
+
+    app-lockv2 .mat-mdc-header-cell,
+    app-lockv2 .mat-header-cell,
+    app-lockv2 .mat-mdc-cell,
+    app-lockv2 .mat-cell {
+        padding-right: 0.75rem !important;
+        padding-left: 0.75rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .swal2-container {
+        padding: 0.5rem !important;
+    }
+
+    .swal2-popup {
+        width: calc(100vw - 1rem) !important;
+        max-height: calc(100dvh - 1rem);
+        padding: 1.15rem !important;
+        border-radius: 16px !important;
+    }
+
+    .swal2-actions {
+        display: grid !important;
+        grid-template-columns: 1fr;
+        gap: 0.55rem;
+    }
+
+    .swal2-styled {
+        width: 100%;
+    }
+
+    .swal2-confirm {
+        grid-row: 1;
+    }
+
+    .swal2-cancel {
+        grid-row: 2;
+    }
+
+    app-ekey-table .button-container > div,
+    app-passcode-table .button-container > div,
+    app-card-table .button-container > div,
+    app-fingerprint-table .button-container > div,
+    app-record-table .button-container > div {
+        grid-template-columns: 1fr;
+    }
+
+    app-lockv2 .mat-mdc-paginator-page-size,
+    app-lockv2 .mat-paginator-page-size {
+        display: none;
+    }
+
+    app-lockv2 .mat-mdc-paginator-range-label,
+    app-lockv2 .mat-paginator-range-label {
+        margin: 0 0.35rem;
+    }
+}

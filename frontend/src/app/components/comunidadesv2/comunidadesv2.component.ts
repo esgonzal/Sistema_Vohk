@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import moment from 'moment';
 import { lastValueFrom } from 'rxjs';
@@ -30,7 +30,6 @@ export class Comunidadesv2Component implements OnInit {
   groupsFiltrados: Group[] = [];
   locksWithoutGroup: LockData[] = [];
   visibleGroups: { [groupId: string]: boolean } = {};
-  cols: number = 4;
   chosenGroup: Group
   darkMode: boolean;
   searchText: string = '';
@@ -41,9 +40,7 @@ export class Comunidadesv2Component implements OnInit {
     private lockService: LockServiceService,
     private router: Router,
     public popupService: PopUpService,
-    public DarkModeService: DarkModeService) {
-    this.updateCols();
-  }
+    public DarkModeService: DarkModeService) { }
   async ngOnInit(): Promise<void> {
     this.isLoading = true;
     try {
@@ -52,11 +49,10 @@ export class Comunidadesv2Component implements OnInit {
         this.groups = response.list;
         this.groupsFiltrados = response.list;
         this.groupService.groups = response.list;
+        const unassignedGroup = this.groups.find(g => g.groupId === -1);
+        this.popupService.locksWithoutGroup = unassignedGroup?.locks ?? [];
         const savedGroupId = Number(sessionStorage.getItem('lockGroupID'));
-        this.chosenGroup = this.groups.find(g => g.groupId === savedGroupId) ?? this.groups.find(g => g.groupId === -1) ?? this.groups[0];
-        if (this.chosenGroup?.groupId === -1) {
-          this.popupService.locksWithoutGroup = this.chosenGroup.locks;
-        }
+        this.chosenGroup = this.groups.find(g => g.groupId === savedGroupId) ?? unassignedGroup ?? this.groups[0];
       } else if (response.errcode === 10003) {
         sessionStorage.clear();
       }
@@ -154,12 +150,12 @@ export class Comunidadesv2Component implements OnInit {
     const locks = this.popupService.locksWithoutGroup ?? [];
     let selected: { id: number; alias: string }[] = [];
     const html = `
-    <div style="max-height:300px; overflow:auto; text-align:left;">
-      ${locks.map(lock => `
-        <label style="display:block; margin:6px 0;">
+    <div class="vohk-selection-list">
+      ${locks.length ? locks.map(lock => `
+        <label class="vohk-selection-item">
           <input type="checkbox" data-id="${lock.lockId}" data-alias="${lock.lockAlias}"> ${lock.lockAlias}
         </label>
-      `).join('')}
+      `).join('') : '<div class="vohk-selection-empty">No hay cerraduras sin asociar.</div>'}
     </div>`;
     const result = await Swal.fire({
       title: `Agregar cerraduras a ${group.groupName}`,
@@ -195,12 +191,12 @@ export class Comunidadesv2Component implements OnInit {
     const locks = group.locks ?? [];
     let selected: { id: number; alias: string }[] = [];
     const html = `
-    <div style="max-height:300px; overflow:auto; text-align:left;">
-      ${locks.map(lock => `
-        <label style="display:block; margin:6px 0;">
+    <div class="vohk-selection-list">
+      ${locks.length ? locks.map(lock => `
+        <label class="vohk-selection-item">
           <input type="checkbox" data-id="${lock.lockId}" data-alias="${lock.lockAlias}"> ${lock.lockAlias}
         </label>
-      `).join('')}
+      `).join('') : '<div class="vohk-selection-empty">Esta comunidad no tiene cerraduras.</div>'}
     </div>`;
     const result = await Swal.fire({
       title: `Remover cerraduras de ${group.groupName}`,
@@ -270,21 +266,5 @@ export class Comunidadesv2Component implements OnInit {
       text: 'No tiene permiso para acceder a esta cerradura. Comuníquese con el administrador.',
       confirmButtonText: 'Ok'
     });
-  }
-
-  @HostListener('window:resize', ['$event'])
-  onResize(event: Event) {
-    this.updateCols(); // Update cols value on resize
-  }
-  private updateCols() {
-    const screenWidth = window.innerWidth;
-    const imageWidthWithMargin = 220; // 200px width + 10px margin
-    if (screenWidth <= 600) { // Mobile breakpoint
-      //const numColumns = Math.floor(screenWidth / (imageWidthWithMargin / 2)); // Adjusting for smaller cards on mobile
-      this.cols = 2;
-    } else {
-      const numColumns = Math.min(Math.floor(screenWidth / imageWidthWithMargin), 4); // Maximum of 4 columns on larger screens
-      this.cols = numColumns;
-    }
   }
 }

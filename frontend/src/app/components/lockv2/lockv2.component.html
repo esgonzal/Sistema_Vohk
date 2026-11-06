@@ -25,55 +25,22 @@
             </div>
             <div class="derecho">
                 <div matTooltip="La cerradura tiene {{Bateria}}% de batería restante">
-                    <button><fa-icon [icon]="faBatteryFull"></fa-icon></button>
+                    <span class="status-indicator"><fa-icon [icon]="faBatteryFull"></fa-icon></span>
                 </div>
                 <div>
                     <div *ngIf="gateway==='1'" matTooltip="La cerradura está conectada a un dispositivo hub">
-                        <button style="color: green;"><fa-icon [icon]="faWifi"></fa-icon></button>
+                        <span class="status-indicator" style="color: green;"><fa-icon [icon]="faWifi"></fa-icon></span>
                     </div>
                     <div *ngIf="gateway==='0'" matTooltip="La cerradura no está conectada a un dispositivo hub">
-                        <button style="color: red;"><fa-icon [icon]="faWifi"></fa-icon></button>
+                        <span class="status-indicator" style="color: red;"><fa-icon [icon]="faWifi"></fa-icon></span>
                     </div>
-                </div>
-                <div *ngIf="(userType==='110301') || (userType==='110302' && keyRight==='1')">
-                    <button [matMenuTriggerFor]="menu" aria-label="Settings"><fa-icon [icon]="faGear"></fa-icon>
-                    </button>
-                    <mat-menu #menu="matMenu">
-                        <button mat-menu-item (click)="editName()" disabled>
-                            Editar Nombre
-                        </button>
-                        <!-- 
-                        <button mat-menu-item *ngIf="userType==='110301'" (click)="TransferirLock()"><span>Transferir
-                                Dispositivo</span></button>
-                        -->
-                        <button mat-menu-item
-                            *ngIf="(userType==='110301' || (userType==='110302' && keyRight==='1'))  && lockService.checkFeature(featureValue, 22)"
-                            (click)="PassageMode()" disabled>
-                            <span>Modo de Paso</span>
-                        </button>
-                        <button mat-menu-item (click)="esencial()" disabled>
-                            Datos esenciales
-                        </button>
-                    </mat-menu>
-                </div>
-                <div *ngIf="lockService.checkFeature(featureValue, 0)">
-                    <button (click)="toTemporalPasscode()" matTooltip="Crea un código con duración de 3 horas" disabled>
-                        <fa-icon [icon]="faPlus"></fa-icon>
-                    </button>
-                </div>
-                <div>
-                    <button (click)="Unlock()" *ngIf="lockService.checkFeature(featureValue, 10)"
-                        matTooltip="Presione para abrir la cerradura remotamente si es que está conectada a un dispositivo hub"
-                        disabled>
-                        <fa-icon [icon]="faDoorOpen"></fa-icon>
-                    </button>
                 </div>
             </div>
         </div>
         <div class="funciones_cerradura" *ngIf="(userType==='110301') || (userType==='110302' && keyRight==='1')">
             <div>
                 <div class="tablist">
-                    <mat-tab-group backgroundColor="primary" color="warn">
+                    <mat-tab-group class="lock-tabs" backgroundColor="primary" color="warn" animationDuration="180ms">
                         <!-- EKEYS -->
                         <mat-tab label="Ekeys">
                             <ng-template matTabContent>
@@ -86,7 +53,8 @@
                         <mat-tab label="Códigos" *ngIf="lockService.checkFeature(featureValue, 0)"
                             [attr.data-tab]="'passcodes'">
                             <ng-template matTabContent>
-                                <app-passcode-table [lockId]="lockId" [accessToken]="accessToken">
+                                <app-passcode-table [lockId]="lockId" [accessToken]="accessToken"
+                                    [locksOfGroup]="locksOfGroup">
                                 </app-passcode-table>
                             </ng-template>
                         </mat-tab>

@@ -5,6 +5,7 @@ import { MultiplePasscodeResponse } from 'src/app/Interfaces/API_responses';
 import { DarkModeService } from 'src/app/services/dark-mode.service';
 import { PasscodeServiceService } from 'src/app/services/passcode-service.service';
 import { PopUpService } from 'src/app/services/pop-up.service';
+import { EkeyServiceService } from 'src/app/services/ekey-service.service';
 import * as XLSX from 'xlsx';
 
 @Component({
@@ -22,17 +23,48 @@ export class MultiplePasscodeComponent implements OnInit {
   constructor(
     private router: Router,
     private passcodeService: PasscodeServiceService,
+    private ekeyService: EkeyServiceService,
     public popupService: PopUpService,
     public DarkModeService: DarkModeService) {
-    if (!this.passcodeService.username || !this.passcodeService.userID || !this.passcodeService.lockID || !this.passcodeService.endDateUser) {
+    if (!this.passcodeService.userID || !this.passcodeService.lockID) {
       this.router.navigate(['users', sessionStorage.getItem('user'), 'lock', sessionStorage.getItem('lockID')])
     }
   }
 
-  ngOnInit() {
-    this.passcodes = [{
-      name: '', tipo: 2, code: '',
-    }];
+  async ngOnInit() {
+    this.popupService.locksOfGroup = this.passcodeService.currentLocks;
+    await this.loadPasscodesFromEkeys();
+  }
+
+  private async loadPasscodesFromEkeys() {
+    this.isLoading = true;
+    try {
+      const accessToken = sessionStorage.getItem('accessToken') ?? '';
+      const response = await lastValueFrom(
+        this.ekeyService.getEkeysofLock(accessToken, this.passcodeService.lockID)
+      );
+
+      this.passcodes = (response?.list ?? []).map(ekey => ({
+        name: ekey.keyName,
+        tipo: 2,
+        code: this.lastSixDigits(ekey.username)
+      }));
+
+      if (this.passcodes.length === 0) {
+        this.passcodes = [{ name: '', tipo: 2, code: '' }];
+        this.error = 'No se encontraron eKeys para generar códigos.';
+      }
+    } catch (error) {
+      console.error('Error while loading eKeys for passcodes:', error);
+      this.passcodes = [{ name: '', tipo: 2, code: '' }];
+      this.error = 'No fue posible cargar las eKeys.';
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  private lastSixDigits(username: string): string {
+    return (username ?? '').replace(/\D/g, '').slice(-6);
   }
 
   removePasscode(index: number) {
@@ -152,6 +184,10 @@ export class MultiplePasscodeComponent implements OnInit {
 
   async validarInputs() {
     this.error = "";
+    if (this.passcodeService.selectedLocks.length === 0) {
+      this.error = 'Debe seleccionar al menos una cerradura.';
+      return;
+    }
     for (let passcode of this.passcodes) {
       if (!passcode.name) {
         this.error = "Por favor rellene el campo 'Nombre'";
@@ -159,17 +195,23 @@ export class MultiplePasscodeComponent implements OnInit {
       else if (!passcode.code && passcode.tipo == 2) {
         this.error = "Por favor rellene el campo 'Código'";
       }
-      else if (passcode.code.length < 4 && passcode.tipo == 2) {
-        this.error = "El código deber tener al menos 4 dígitos";
+      else if (!/^\d{6}$/.test(String(passcode.code)) && passcode.tipo == 2) {
+        this.error = "Cada código debe tener exactamente 6 dígitos";
       }
     }
     if (this.error === '') {
       this.isLoading = true;
-      let response = await lastValueFrom(this.passcodeService.multiplePasscodes(this.passcodeService.userID, this.passcodes)) as MultiplePasscodeResponse[]
-      this.popupService.multiplePasscodeResults = response;
-      console.log(this.popupService.multiplePasscodeResults)
-      this.isLoading = false;
-      this.popupService.multiplePasscodesResult = true;
+      try {
+        const accessToken = sessionStorage.getItem('accessToken') ?? '';
+        const response = await lastValueFrom(this.passcodeService.multiplePasscodes(accessToken, this.passcodes));
+        this.popupService.multiplePasscodeResults = response;
+        this.popupService.multiplePasscodesResult = true;
+      } catch (error: any) {
+        console.error('Error while creating multiple passcodes:', error);
+        this.error = error?.error?.errmsg || 'No fue posible generar los códigos.';
+      } finally {
+        this.isLoading = false;
+      }
     }
   }
 }

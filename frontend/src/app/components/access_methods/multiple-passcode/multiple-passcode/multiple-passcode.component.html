@@ -43,7 +43,8 @@
                         </td>
                         <!--Codigo-->
                         <td style="width: 20%">
-                            <input type="number" [(ngModel)]="passcode.code" name="code_{{ i }}"
+                            <input type="text" inputmode="numeric" maxlength="6" pattern="[0-9]{6}"
+                                [(ngModel)]="passcode.code" name="code_{{ i }}"
                                 style="width: 100%; max-width: 100%; box-sizing: border-box" 
                                 [required]="passcode.tipo == 2" [disabled]="passcode.tipo == 3"
                                 [class.invalid-input]="passcode.tipo == 2 && !passcode.code" />

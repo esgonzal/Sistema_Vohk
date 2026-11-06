@@ -61,6 +61,17 @@ app-pop-up {
     border: solid 1px black;
 }
 
+.status-indicator {
+    display: grid;
+    width: 2.75rem;
+    height: 2.75rem;
+    place-items: center;
+    border: 1px solid #dce2eb;
+    border-radius: 12px;
+    background: #f7f9fc;
+    color: #3e4a5d;
+}
+
 .funciones_cerradura {
     background-color: #F7FAFA;
     margin: 20px;
@@ -250,5 +261,157 @@ app-pop-up {
     }
     .tablist {
         width: 95vw;
+    }
+}
+
+/* Modern lock workspace shell. Shared tabs and tables are styled globally. */
+.pagina_completa {
+    min-height: calc(100vh - 60px);
+    padding: clamp(1rem, 3vw, 2.5rem) clamp(1rem, 6vw, 7rem);
+    box-sizing: border-box;
+    background:
+        radial-gradient(circle at top right, rgba(245, 199, 84, 0.17), transparent 28rem),
+        #f3f6fa;
+}
+
+.resto {
+    width: 100%;
+    min-width: 0;
+    max-width: 96rem;
+    margin: 0 auto;
+}
+
+.cerradura {
+    align-items: center;
+    margin: 0;
+    padding: clamp(1.25rem, 3vw, 2rem);
+    border: 1px solid #e3e8ef;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 14px 38px rgba(23, 32, 51, 0.08);
+}
+
+.izquierdo {
+    gap: 0.25rem;
+}
+
+.nombre_cerradura {
+    color: #172033;
+    font-size: clamp(1.65rem, 3vw, 2.35rem);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1.1;
+}
+
+.nombre_comunidad {
+    margin-top: 0.35rem;
+    color: #3d485a;
+    font-size: 0.95rem;
+    font-weight: 650;
+}
+
+.rol_usuario {
+    color: #758095;
+    font-size: 0.84rem;
+    font-weight: 550;
+}
+
+.derecho {
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+}
+
+.derecho div button {
+    display: grid;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin: 0;
+    padding: 0;
+    place-items: center;
+    border: 1px solid #dce2eb;
+    border-radius: 12px;
+    background: #f7f9fc;
+    color: #3e4a5d;
+    cursor: pointer;
+    transition: transform 150ms ease, border-color 150ms ease, background 150ms ease, box-shadow 150ms ease;
+}
+
+.derecho div button:not(:disabled):hover {
+    transform: translateY(-2px);
+    border-color: #e0b53c;
+    background: #fff8e2;
+    box-shadow: 0 8px 18px rgba(23, 32, 51, 0.1);
+}
+
+.derecho div button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.funciones_cerradura {
+    margin: 1.25rem 0 0;
+    overflow: hidden;
+    border: 1px solid #e3e8ef;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 14px 38px rgba(23, 32, 51, 0.07);
+}
+
+.tablist {
+    width: 100%;
+    min-width: 0;
+}
+
+.dark-mode.pagina_completa {
+    background:
+        radial-gradient(circle at top right, rgba(245, 199, 84, 0.08), transparent 28rem),
+        #101820;
+}
+
+.dark-mode .cerradura,
+.dark-mode .funciones_cerradura {
+    border-color: #2c3949;
+    background: #17222d;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.24);
+}
+
+.dark-mode .nombre_cerradura,
+.dark-mode .nombre_comunidad {
+    color: #f4f7fb;
+}
+
+.dark-mode .rol_usuario {
+    color: #a8b3c2;
+}
+
+.dark-mode .status-indicator {
+    border-color: #344355;
+    background: #22303e;
+    color: #eef3f8;
+}
+
+@media only screen and (max-width: 760px) {
+    .pagina_completa {
+        padding: 0.75rem;
+    }
+
+    .cerradura {
+        width: auto;
+        align-items: stretch;
+        flex-direction: column;
+        gap: 1.15rem;
+    }
+
+    .derecho {
+        justify-content: flex-start;
+    }
+
+    .rol_usuario {
+        padding-bottom: 0;
+    }
+
+    .funciones_cerradura {
+        margin-top: 0.75rem;
     }
 }
